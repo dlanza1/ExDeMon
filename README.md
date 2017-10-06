@@ -1,6 +1,7 @@
 # Spark Streaming job for monitoring metrics
 
-This Spark Streaming job is designed for monitoring metrics. 
+A general purpose metric monitor using Apache Spark. 
+Metrics coming from Kafka or any other source, results and notifications can be sunk to Elastic or any other system, different analysis can be applied, notifications, configuration can be updated without restarting, it can detect missing metrics, ...
 
 [User's manual](doc/users-manual.md)
 
