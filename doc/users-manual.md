@@ -63,8 +63,8 @@ spark.es.port=9203
 
 # Monitor CPU of all instances
 # attribute.INSTANCE_NAME does not need to be specified, same efect as regex:.*
-monitor.CPUUsage.attribute.INSTANCE_NAME = regex:.*
-monitor.CPUUsage.attribute.METRIC_NAME = CPU Usage Per Sec
+monitor.CPUUsage.filter.attribute.INSTANCE_NAME = regex:.*
+monitor.CPUUsage.filter.attribute.METRIC_NAME = CPU Usage Per Sec
 monitor.CPUUsage.pre-analysis.type = weighted-average
 monitor.CPUUsage.pre-analysis.period = 10m
 monitor.CPUUsage.analysis.type = fixed-threshold
@@ -94,8 +94,8 @@ monitor.all-seasonal.notificator.warn-constant.period = 20m
 
 ```
 ## filter (optional)
-monitor.<monitor-id>.attribute.<metric_attribute_key> = regex:<regex_for_value>|<exact_value>
-monitor.<monitor-id>.attribute... (as many attributes as needed)
+monitor.<monitor-id>.filter.attribute.<metric_attribute_key> = regex:<regex_for_value>|<exact_value>
+monitor.<monitor-id>.filter.attribute... (as many attributes as needed)
 ## missing metric (optional)
 monitor.<monitor-id>.missing.max-period = <period like 1h, 3m or 45s>
 ## pre-analysis (optional)
@@ -118,11 +118,11 @@ It acts on the attributes of the metrics. Only configured attributes are checked
 
 It can specify an exact value for the attribute:
 ```
-monitor.<monitor_id>.attribute.<attribute_key> = <value>
+monitor.<monitor_id>.filter.attribute.<attribute_key> = <value>
 ```
 or a regex expression:
 ```
-monitor.<monitor_id>.attribute.<attribute_key> = regex:<regex_expression>
+monitor.<monitor_id>.filter.attribute.<attribute_key> = regex:<regex_expression>
 ```
 
 #### Missing metric maximum period
