@@ -170,6 +170,9 @@ monitor.<monitor-id>.pre-analysis.type = average
 monitor.<monitor-id>.pre-analysis.period = <period like 1h, 3m or 45s> (default: 5m)
 ```
 
+An example of the result of this pre-analysis can be seen in the following image.
+![Average pre-analysis](img/pre-analysis/average.png)
+
 #### Weighted average
 
 Produced value is computed as the weighted average from all the values from the previous configured period.
@@ -182,6 +185,9 @@ monitor.<monitor-id>.pre-analysis.type = weighted-average
 monitor.<monitor-id>.pre-analysis.period = <period like 1h, 3m or 45s> (default: 5m)
 ```
 
+An example of the result of this pre-analysis can be seen in the following image.
+![Weighted average pre-analysis](img/pre-analysis/weighted-avergae.png)
+
 #### Difference with previos value
 
 Analyszed value will be the difference of metric value with previous value.
@@ -190,6 +196,9 @@ Configuration:
 ```
 monitor.<monitor-id>.pre-analysis.type = difference
 ```
+
+An example of the result of this pre-analysis can be seen in the following image.
+![Difference pre-analysis](img/pre-analysis/difference.png)
 
 ### Metric analysis
 
@@ -206,6 +215,9 @@ monitor.<monitor-id>.analysis.warn.upperbound  = <value>
 monitor.<monitor-id>.analysis.warn.lowerbound  = <value>
 monitor.<monitor-id>.analysis.error.lowerbound = <value>
 ```
+
+An example of the result of this analysis can be seen in the following image.
+![Fixed thresholds analysis](img/analysis/fixed-thresholds.png)
 
 #### Recent activity analysis 
 
@@ -228,6 +240,9 @@ monitor.<monitor-id>.analysis.warn.upperbound  = <true|false> (default: false)
 monitor.<monitor-id>.analysis.warn.lowerbound  = <true|false> (default: false)
 monitor.<monitor-id>.analysis.error.lowerbound = <true|false> (default: false)
 ```
+
+An example of the result of this analysis can be seen in the following image.
+![Recent activity analysis](img/analysis/recent.png)
 
 #### Percentile analysis
 
@@ -253,6 +268,9 @@ monitor.<monitor-id>.analysis.warn.lowerbound  = <true|false> (default: false)
 monitor.<monitor-id>.analysis.error.lowerbound = <true|false> (default: false)
 ```
 
+An example of the result of this analysis can be seen in the following image.
+![Percentile analysis](img/analysis/percentile.png)
+
 #### Seasonal analysis
 
 Metric is supposed to behave similarly in every season. Saeson can be hour, day or week.
@@ -272,6 +290,9 @@ monitor.<monitor-id>.analysis.learning.ratio = <float> (default: 0.5)
 monitor.<monitor-id>.analysis.error.ratio = <float> (default: 4)
 monitor.<monitor-id>.analysis.warn.ratio = <float> (default: 2)
 ```  
+
+An example of the result of this analysis can be seen in the following image.
+![Seasonal analysis](img/analysis/seasonal.png)
 
 ### Analysis results sinks
 
@@ -304,6 +325,9 @@ monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses
 monitor.<monitor-id>.notificator.<notificator-id>.period = <period like 1h, 3m or 45s> (default: 15m)
 ```
 
+An example of the result of this notificator can be seen in the following image.
+![Constant status notificator](img/notificator/constant.png)
+
 #### Percentage status notificator
 
 If a metric has been in configured statuses during a percentage of the configured period, it produces a notification.
@@ -319,6 +343,9 @@ monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses
 monitor.<monitor-id>.notificator.<notificator-id>.period = <period like 1h, 3m or 45s> (default: 15m)
 monitor.<monitor-id>.notificator.<notificator-id>.percentage = <0-100> (default: 90)
 ```
+
+An example of the result of this notificator can be seen in the following image.
+![Percentage status notificator](img/notificator/percentage.png)
 
 ### Notifications sinks
 
