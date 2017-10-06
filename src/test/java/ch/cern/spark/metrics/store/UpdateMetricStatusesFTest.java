@@ -1,0 +1,83 @@
+package ch.cern.spark.metrics.store;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
+import java.util.Date;
+import java.util.HashMap;
+
+import org.apache.spark.api.java.Optional;
+import org.apache.spark.streaming.State;
+import org.apache.spark.streaming.Time;
+import org.junit.Test;
+
+import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.PropertiesTest;
+import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.MonitorIDMetricIDs;
+import ch.cern.spark.metrics.results.AnalysisResult;
+
+public class UpdateMetricStatusesFTest {
+
+    @Test
+    public void timingOutMetric() throws Exception{
+        Expirable props = PropertiesTest.mockedExpirable();
+        
+        UpdateMetricStatusesF func = new UpdateMetricStatusesF(props);
+        
+        Time time = new Time(1000);
+        MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
+        Optional<Metric> metricOpt = null;
+        @SuppressWarnings("unchecked")
+        State<MetricStore> storeState = mock(State.class);
+        when(storeState.isTimingOut()).thenReturn(true);
+        
+        Optional<AnalysisResult> resultOpt = func.call(time, ids, metricOpt, storeState);
+        
+        assertTrue(resultOpt.isPresent());
+        assertEquals(AnalysisResult.Status.EXCEPTION, resultOpt.get().getStatus());
+        assertEquals("Metric has timmed out.", resultOpt.get().getStatusReason());
+    }
+    
+    @Test
+    public void noMetric() throws Exception{
+        Expirable props = PropertiesTest.mockedExpirable();
+        
+        UpdateMetricStatusesF func = new UpdateMetricStatusesF(props);
+        
+        Time time = new Time(1000);
+        MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
+        Optional<Metric> metricOpt = Optional.absent();
+        @SuppressWarnings("unchecked")
+        State<MetricStore> storeState = mock(State.class);
+        
+        Optional<AnalysisResult> resultOpt = func.call(time, ids, metricOpt, storeState);
+        
+        assertFalse(resultOpt.isPresent());
+    }
+    
+    @Test
+    public void updateLastestTimestamp() throws Exception{
+        Expirable props = PropertiesTest.mockedExpirable();
+        props.get().setProperty("monitor.ID.analysis.type", "fixed-threshold");
+        
+        UpdateMetricStatusesF func = new UpdateMetricStatusesF(props);
+        
+        MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
+        Date metricTime = new Date();;
+        Optional<Metric> metricOpt = Optional.of(new Metric(metricTime , 10, new HashMap<String, String>()));
+        
+        @SuppressWarnings("unchecked")
+        State<MetricStore> storeState = mock(State.class);
+        MetricStore store = new MetricStore();
+        when(storeState.exists()).thenReturn(true);
+        when(storeState.get()).thenReturn(store);
+        
+        Optional<AnalysisResult> resultOpt = func.call(new Time(1000), ids, metricOpt, storeState);
+        
+        assertTrue(resultOpt.isPresent());
+        verify(storeState, times(1)).update(store);
+        assertSame(metricTime, store.getLastestTimestamp());
+    }
+    
+}

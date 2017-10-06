@@ -1,0 +1,63 @@
+# Spark Streaming job for monitoring metrics: developers guide
+
+## Components
+
+External components can be developed by extending the corresponging classes (look at component type below for details).
+
+Internal components should use the two parameters constructor (super(Class, String)) specifying own class and type (for configuring). 
+They also need to be registered at ch.cern.spark.ComponentManager. 
+External components can use the no-parametrized constructor and they do not need to be registered.
+
+Any component can override the config() method. Properties parameter will contain only the corresponding configuration for the component.
+
+### Store for stateful components
+
+Pre-analysis, analysis and notificators may need to keep some historical data. If so, implemented component can implement the interface ch.cern.spark.metrics.store.HasStore.
+
+The save() method must return an object which implements the interface Store and contains only the data that needs to be stored.
+
+The load() method receives the previous saved store.
+
+Data contained in Store will be serialized and may thousands of these are stored. Taking into account that, the Store should contain as less data as possible.
+
+### Metric source
+
+This component is ment to consume metrics from a source and generate an stream of metrics. 
+
+Externally developed sources must extend ch.cern.spark.metrics.source.MetricsSource.
+
+### Metric pre-analysis
+
+This component is ment to transform incoming metrics before the analysis. If a pre-analysis is applied, the produced value will be the value used by the analysis.
+
+Externally developed pre-analysis must extend ch.cern.spark.metrics.preanalysis.PreAnalysis.
+
+If same data need to be kept, this component can make use of an [Store](#store-for-stateful-components). 
+
+### Metric analysis
+
+This component is ment to determine the status (error, warning, exception, ok) of each of the incoming metrics (pre-analyzed or not).  
+
+Externally developed analysis must extend ch.cern.spark.metrics.analysis.Analysis.
+
+If same data need to be kept, this component can make use of an [Store](#store-for-stateful-components).
+
+### Analysis results sink
+
+This component produce results for each of the incoming metrics. These results can be sinked to an external storage for watching the metric and analysis results.
+
+Externally developed analysis results sinks must extend ch.cern.spark.metrics.results.sink.AnalysisResultsSink.
+
+### Notificator
+
+This component determines when to raise a notifications based on analysis results.
+
+Externally developed notificators must extend ch.cern.spark.metrics.notificator.Notificator.
+
+If same data need to be kept, this component can make use of an [Store](#store-for-stateful-components).
+
+### Notifications sink
+
+Notifications produced by notificators are sink using this component. Notifications can be sinked to an external storage, sent by email, used to trigger actions, etc. 
+
+Externally developed analysis results sinks must extend ch.cern.spark.metrics.results.sink.AnalysisResultsSink.

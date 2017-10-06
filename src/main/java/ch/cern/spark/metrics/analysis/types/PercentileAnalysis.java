@@ -1,0 +1,289 @@
+package ch.cern.spark.metrics.analysis.types;
+
+import java.util.Date;
+
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
+import ch.cern.spark.Properties;
+import ch.cern.spark.StringUtils;
+import ch.cern.spark.metrics.DatedValue;
+import ch.cern.spark.metrics.ValueHistory;
+import ch.cern.spark.metrics.analysis.Analysis;
+import ch.cern.spark.metrics.results.AnalysisResult;
+import ch.cern.spark.metrics.results.AnalysisResult.Status;
+import ch.cern.spark.metrics.store.HasStore;
+import ch.cern.spark.metrics.store.Store;
+
+public class PercentileAnalysis extends Analysis implements HasStore{
+    
+    private static final long serialVersionUID = 5419076430764447352L;
+    
+    public static final String PERIOD_PARAM = "period";
+    public static final long PERIOD_DEFAULT = 5 * 60;
+    
+    private long period_in_seconds;
+    
+    public static String ERROR_UPPERBOUND_PARAM = "error.upperbound";
+    private boolean error_upperbound = false;
+    
+    public static String WARNING_UPPERBOUND_PARAM = "warn.upperbound";
+    private boolean warning_upperbound = false;
+    
+    public static String WARNING_LOWERBOUND_PARAM = "warn.lowerbound";
+    private boolean warning_lowerbound = false;
+    
+    public static String ERROR_LOWERBOUND_PARAM = "error.lowerbound";
+    private boolean error_lowerbound = false;
+    
+    private ValueHistory history;
+
+    public static String ERROR_PERCENTILE_PARAM = "error.percentile";
+    public static float ERROR_PERCENTILE_DEFAULT = 99;
+    private float error_percentile;
+    
+    public static String WARN_PERCENTILE_PARAM = "warn.percentile";
+    public static float WARN_PERCENTILE_DEFAULT = 98;
+    private float warn_percentile;
+    
+    public static String ERROR_RATIO_PARAM = "error.ratio";
+    public static float ERROR_RATIO_DEFAULT = 0.3f;
+    private float error_ratio;
+    
+    public static String WARN_RATIO_PARAM = "warn.ratio";
+    public static float WARN_RATIO_DEFAULT = 0.2f;
+    private float warn_ratio;
+    
+    public PercentileAnalysis() {
+        super(PercentileAnalysis.class, "percentile");
+    }
+
+    @Override
+    public void config(Properties properties) throws Exception {
+        super.config(properties);
+        
+        error_upperbound = properties.getBoolean(ERROR_UPPERBOUND_PARAM);
+        warning_upperbound = properties.getBoolean(WARNING_UPPERBOUND_PARAM);
+        warning_lowerbound = properties.getBoolean(WARNING_LOWERBOUND_PARAM);
+        error_lowerbound = properties.getBoolean(ERROR_LOWERBOUND_PARAM);
+        
+        error_percentile = properties.getFloat(ERROR_PERCENTILE_PARAM, ERROR_PERCENTILE_DEFAULT);
+        if(error_percentile > 100 || error_percentile <=50)
+            throw new RuntimeException(ERROR_PERCENTILE_PARAM + " must be between 50 and 100");
+        warn_percentile = properties.getFloat(WARN_PERCENTILE_PARAM, WARN_PERCENTILE_DEFAULT);
+        if(warn_percentile > 100 || warn_percentile <=50)
+            throw new RuntimeException(WARN_PERCENTILE_PARAM + " must be between 50 and 100");
+        
+        error_ratio = properties.getFloat(ERROR_RATIO_PARAM, ERROR_RATIO_DEFAULT);
+        warn_ratio = properties.getFloat(WARN_RATIO_PARAM, WARN_RATIO_DEFAULT);
+        
+        period_in_seconds = getPeriod(properties);
+        history = new ValueHistory(period_in_seconds);
+    }
+    
+    private long getPeriod(Properties properties) {
+        String period_value = properties.getProperty(PERIOD_PARAM);
+        if(period_value != null)
+            return StringUtils.parseStringWithTimeUnitToSeconds(period_value);
+        
+        return PERIOD_DEFAULT;
+    }
+    
+    @Override
+    public void load(Store store) {
+        if(store == null){
+            history = new ValueHistory(period_in_seconds);
+        }else{
+            history = ((ValueHistory.Store_) store).history;
+            history.setPeriod(period_in_seconds);
+        }
+    }
+    
+    @Override
+    public Store save() {
+        ValueHistory.Store_ store = new ValueHistory.Store_();
+        
+        store.history = history;
+        
+        return store;
+    }
+
+    @Override
+    public AnalysisResult process(Date timestamp, Float value) {
+        if(value == null)
+            return AnalysisResult.buildWithStatus(AnalysisResult.Status.EXCEPTION, "Value ("+value+") cannot be parsed to float");
+        
+        history.removeRecordsOutOfPeriodForTime(timestamp);
+        
+        DescriptiveStatistics stats = history.getStatistics();
+
+        history.add(timestamp, value);
+        
+        if(history.size() < 5)
+            return AnalysisResult.buildWithStatus(Status.EXCEPTION, "Not enought historic data (min 5 points)");
+        
+        AnalysisResult result = new AnalysisResult();
+
+        double median = stats.getPercentile(50);
+        
+        processErrorUpperbound(result, value, stats, median); 
+        processWarningUpperbound(result, value, stats, median);
+        processErrorLowerbound(result, value, stats, median);
+        processWarningLowerbound(result, value,stats, median);
+        
+        if(!result.hasStatus())
+            result.setStatus(AnalysisResult.Status.OK, "Metric between thresholds");
+        
+        return result;
+    }
+    
+    private void processErrorLowerbound(AnalysisResult result, float value, DescriptiveStatistics stats, double median) {
+        if(!error_lowerbound)
+            return;
+        
+        double percentile = stats.getPercentile(100 - error_percentile);
+        double diff = Math.abs(median - percentile);
+        double threshold = percentile - diff * error_ratio;
+        
+        result.addMonitorParam("error_lowerbound", threshold);
+        
+        if(result.hasStatus())
+            return;
+        
+        if(value < threshold){
+            result.setStatus(AnalysisResult.Status.ERROR, 
+                    "Value (" + value + ") is less than "
+                            + "percentil " + (100 - error_percentile) + " (" + percentile + ")"
+                            + " - difference with median (" + diff + ")"
+                            + " * error.ratio (" + error_ratio + ") " + " (=" + threshold + ")");
+        }
+    }
+
+    private void processWarningLowerbound(AnalysisResult result, float value, DescriptiveStatistics stats, double median) {
+        if(!warning_lowerbound)
+            return;
+        
+        double percentile = stats.getPercentile(100 - warn_percentile);
+        double diff = Math.abs(median - percentile);
+        double threshold = percentile - diff * warn_ratio;
+
+        result.addMonitorParam("warning_lowerbound", threshold);
+        
+        if(result.hasStatus())
+            return;
+        
+        if(value < threshold){
+            result.setStatus(AnalysisResult.Status.WARNING, 
+                    "Value (" + value + ") is less than "
+                            + "percentil " + (100 - warn_percentile) + " (" + percentile + ")"
+                            + " - difference with median (" + diff + ")"
+                            + " * warn.ratio (" + warn_ratio + ") " + " (=" + threshold + ")");
+        }
+    }
+
+    private void processWarningUpperbound(AnalysisResult result, float value, DescriptiveStatistics stats, double median) {
+        if(!warning_upperbound)
+            return;
+        
+        double percentile = stats.getPercentile(warn_percentile);
+        double diff = Math.abs(median - percentile);
+        double threshold = percentile + diff * warn_ratio;
+        
+        result.addMonitorParam("warning_upperbound", threshold);
+        
+        if(result.hasStatus())
+            return;
+        
+        if(value > threshold){
+            result.setStatus(AnalysisResult.Status.WARNING, 
+                    "Value (" + value + ") is more than "
+                            + "percentil " + (warn_percentile) + " (" + percentile + ")"
+                            + " + difference with median (" + diff + ")"
+                            + " * warn.ratio (" + warn_ratio + ") " + " (=" + threshold + ")");
+        }
+    }
+
+    private void processErrorUpperbound(AnalysisResult result, float value, DescriptiveStatistics stats, double median) {
+        if(!error_upperbound)
+            return;
+        
+        double percentile = stats.getPercentile(error_percentile);
+        double diff = Math.abs(median - percentile);
+        double threshold = percentile + diff * error_ratio;
+        
+        result.addMonitorParam("error_upperbound", threshold);
+        
+        if(result.hasStatus())
+            return;
+        
+        if(value > threshold){
+            result.setStatus(AnalysisResult.Status.ERROR, 
+                    "Value (" + value + ") is more than "
+                            + "percentil " + (error_percentile) + " (" + percentile + ")"
+                            + " + difference with median (" + diff + ")"
+                            + " * error.ratio (" + error_ratio + ") " + " (=" + threshold + ")");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private Float computeAverageForTime(Date time) {
+        if(history.size() == 0)
+            return null;
+        
+        float acummulator = 0;
+        int count = 0;
+        
+        for (DatedValue value : history.getDatedValues()){
+            boolean metricTimeIsOlder = value.getDate().compareTo(time) > 0; 
+            
+            if(metricTimeIsOlder){
+                return acummulator / count;
+            }else{
+                acummulator += value.getValue();
+                count++;
+            }
+        }
+        
+        return acummulator / count;
+    }
+
+    public long getPeriod_in_seconds() {
+        return period_in_seconds;
+    }
+
+    public boolean isError_upperbound() {
+        return error_upperbound;
+    }
+
+    public boolean isWarning_upperbound() {
+        return warning_upperbound;
+    }
+
+    public boolean isWarning_lowerbound() {
+        return warning_lowerbound;
+    }
+
+    public boolean isError_lowerbound() {
+        return error_lowerbound;
+    }
+
+    public ValueHistory getHistory() {
+        return history;
+    }
+
+    public float getError_percentile() {
+        return error_percentile;
+    }
+
+    public float getWarn_percentile() {
+        return warn_percentile;
+    }
+
+    public float getError_ratio() {
+        return error_ratio;
+    }
+
+    public float getWarn_ratio() {
+        return warn_ratio;
+    }
+
+}

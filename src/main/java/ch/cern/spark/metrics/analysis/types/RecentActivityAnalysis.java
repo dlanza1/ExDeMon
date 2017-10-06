@@ -1,0 +1,243 @@
+package ch.cern.spark.metrics.analysis.types;
+
+import java.util.Date;
+
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
+import ch.cern.spark.Properties;
+import ch.cern.spark.StringUtils;
+import ch.cern.spark.metrics.DatedValue;
+import ch.cern.spark.metrics.ValueHistory;
+import ch.cern.spark.metrics.analysis.Analysis;
+import ch.cern.spark.metrics.results.AnalysisResult;
+import ch.cern.spark.metrics.store.HasStore;
+import ch.cern.spark.metrics.store.Store;
+
+public class RecentActivityAnalysis extends Analysis implements HasStore{
+    
+    private static final long serialVersionUID = 5419076430764447352L;
+    
+    public static final String PERIOD_PARAM = "period";
+    public static final long PERIOD_DEFAULT = 5 * 60;
+    
+    private long period_in_seconds;
+    
+    public static String ERROR_UPPERBOUND_PARAM = "error.upperbound";
+    private boolean error_upperbound = false;
+    
+    public static String WARNING_UPPERBOUND_PARAM = "warn.upperbound";
+    private boolean warning_upperbound = false;
+    
+    public static String WARNING_LOWERBOUND_PARAM = "warn.lowerbound";
+    private boolean warning_lowerbound = false;
+    
+    public static String ERROR_LOWERBOUND_PARAM = "error.lowerbound";
+    private boolean error_lowerbound = false;
+    
+    private ValueHistory history;
+
+    public static String ERROR_RATIO_PARAM = "error.ratio";
+    public static float ERROR_RATIO_DEFAULT = 1.8f;
+    private float error_ratio;
+    
+    public static String WARN_RATIO_PARAM = "warn.ratio";
+    public static float WARN_RATIO_DEFAULT = 1.5f;
+    private float warn_ratio;
+    
+    public RecentActivityAnalysis() {
+        super(RecentActivityAnalysis.class, "recent");
+    }
+
+    @Override
+    public void config(Properties properties) throws Exception {
+        super.config(properties);
+        
+        error_upperbound = properties.getBoolean(ERROR_UPPERBOUND_PARAM);
+        warning_upperbound = properties.getBoolean(WARNING_UPPERBOUND_PARAM);
+        warning_lowerbound = properties.getBoolean(WARNING_LOWERBOUND_PARAM);
+        error_lowerbound = properties.getBoolean(ERROR_LOWERBOUND_PARAM);
+        
+        error_ratio = properties.getFloat(ERROR_RATIO_PARAM, ERROR_RATIO_DEFAULT);
+        warn_ratio = properties.getFloat(WARN_RATIO_PARAM, WARN_RATIO_DEFAULT);
+        
+        period_in_seconds = getPeriod(properties);
+        history = new ValueHistory(period_in_seconds);
+    }
+    
+    private long getPeriod(Properties properties) {
+        String period_value = properties.getProperty(PERIOD_PARAM);
+        if(period_value != null)
+            return StringUtils.parseStringWithTimeUnitToSeconds(period_value);
+        
+        return PERIOD_DEFAULT;
+    }
+    
+    @Override
+    public void load(Store store) {
+        if(store == null){
+            history = new ValueHistory(period_in_seconds);
+        }else{
+            history = ((ValueHistory.Store_) store).history;
+            history.setPeriod(period_in_seconds);
+        }
+    }
+    
+    @Override
+    public Store save() {
+        ValueHistory.Store_ store = new ValueHistory.Store_();
+        
+        store.history = history;
+        
+        return store;
+    }
+
+    @Override
+    public AnalysisResult process(Date timestamp, Float value) {
+        if(value == null)
+            return AnalysisResult.buildWithStatus(AnalysisResult.Status.EXCEPTION, "Value ("+value+") cannot be parsed to float");
+        
+        history.removeRecordsOutOfPeriodForTime(timestamp);
+        
+        DescriptiveStatistics stats = history.getStatistics();
+
+        history.add(timestamp, value);
+        
+        AnalysisResult result = new AnalysisResult();
+        
+        float median = (float) stats.getMean();
+        float variance = (float) stats.getStandardDeviation();
+        
+        processErrorUpperbound(result, value, median, variance); 
+        processWarningUpperbound(result, value, median, variance);
+        processErrorLowerbound(result, value, median, variance);
+        processWarningLowerbound(result, value, median, variance);
+        
+        if(!result.hasStatus())
+            result.setStatus(AnalysisResult.Status.OK, "Metric between thresholds");
+        
+        return result;
+    }
+    
+    private void processErrorLowerbound(AnalysisResult result, float value, float average, float variance) {
+        if(!error_lowerbound)
+            return;
+        
+        float error_lowerbound_value = average - variance * error_ratio ;
+        result.addMonitorParam("error_lowerbound", error_lowerbound_value);
+        
+        if(result.hasStatus())
+            return;
+        
+        if(value < error_lowerbound_value){
+            result.setStatus(AnalysisResult.Status.ERROR, 
+                    "Value (" + value + ") is less than "
+                            + "average value from history minus variance * " + ERROR_RATIO_PARAM
+                            + " (" + average + " - (" + variance + " * " + error_ratio  + ") = " + error_lowerbound_value + ")");
+        }
+    }
+
+    private void processWarningLowerbound(AnalysisResult result, float value, float average, float variance) {
+        if(!warning_lowerbound)
+            return;
+        
+        float warning_lowerbound_value = average - variance * warn_ratio;
+        result.addMonitorParam("warning_lowerbound", warning_lowerbound_value);
+        
+        if(result.hasStatus())
+            return;
+        
+        if(value < warning_lowerbound_value){
+            result.setStatus(AnalysisResult.Status.WARNING, 
+                    "Value (" + value + ") is less than "
+                            + "average value from history minus std deviation " + WARN_RATIO_PARAM
+                            + " (" + average + " - (" + variance + " * " + warn_ratio  + ") = " + warning_lowerbound_value + ")");
+        }
+    }
+
+    private void processWarningUpperbound(AnalysisResult result, float value, float average, float variance) {
+        if(!warning_upperbound)
+            return;
+        
+        float warning_upperbound_value = average + variance * warn_ratio;
+        result.addMonitorParam("warning_upperbound", warning_upperbound_value);
+        
+        if(result.hasStatus())
+            return;
+        
+        if(value > warning_upperbound_value){
+            result.setStatus(AnalysisResult.Status.WARNING, 
+                    "Value (" + value + ") is higher than "
+                            + "average value from history plus variance * " + WARN_RATIO_PARAM
+                            + " (" + average + " + (" + variance + " * " + warn_ratio  + ") = " + warning_upperbound_value + ")");
+        }
+    }
+
+    private void processErrorUpperbound(AnalysisResult result, float value, float average, float variance) {
+        if(!error_upperbound)
+            return;
+        
+        float error_upperbound_value = average + variance * error_ratio;
+        result.addMonitorParam("error_upperbound", error_upperbound_value);
+        
+        if(result.hasStatus())
+            return;
+        
+        if(value > error_upperbound_value){
+            result.setStatus(AnalysisResult.Status.ERROR, 
+                    "Value (" + value + ") is higher than "
+                            + "average value from history plus variance * " + ERROR_RATIO_PARAM
+                            + " (" + average + " + (" + variance + " * " + error_ratio  + ") = " + error_upperbound_value + ")");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private Float computeAverageForTime(Date time) {
+        if(history.size() == 0)
+            return null;
+        
+        float acummulator = 0;
+        int count = 0;
+        
+        for (DatedValue value : history.getDatedValues()){
+            boolean metricTimeIsOlder = value.getDate().compareTo(time) > 0; 
+            
+            if(metricTimeIsOlder){
+                return acummulator / count;
+            }else{
+                acummulator += value.getValue();
+                count++;
+            }
+        }
+        
+        return acummulator / count;
+    }
+
+    public long getPeriod_in_seconds() {
+        return period_in_seconds;
+    }
+
+    public boolean isError_upperbound() {
+        return error_upperbound;
+    }
+
+    public boolean isWarning_upperbound() {
+        return warning_upperbound;
+    }
+
+    public boolean isWarning_lowerbound() {
+        return warning_lowerbound;
+    }
+
+    public boolean isError_lowerbound() {
+        return error_lowerbound;
+    }
+
+    public float getError_ratio() {
+        return error_ratio;
+    }
+
+    public float getWarn_ratio() {
+        return warn_ratio;
+    }
+
+}

@@ -1,0 +1,98 @@
+package ch.cern.spark.metrics.store;
+
+import java.io.IOException;
+import java.util.Map;
+
+import org.apache.spark.api.java.Optional;
+import org.apache.spark.api.java.function.Function4;
+import org.apache.spark.streaming.Duration;
+import org.apache.spark.streaming.State;
+import org.apache.spark.streaming.StateSpec;
+import org.apache.spark.streaming.Time;
+import org.apache.spark.streaming.api.java.JavaPairDStream;
+
+import ch.cern.spark.Properties;
+import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.StringUtils;
+import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.MetricStatusesS;
+import ch.cern.spark.metrics.MonitorIDMetricIDs;
+import ch.cern.spark.metrics.results.AnalysisResult;
+import ch.cern.spark.metrics.monitor.Monitor;
+
+public class UpdateMetricStatusesF
+        implements Function4<Time, MonitorIDMetricIDs, Optional<Metric>, State<MetricStore>, Optional<AnalysisResult>> {
+
+    private static final long serialVersionUID = 3156649511706333348L;
+    
+    public static String DATA_EXPIRATION_PARAM = "data.expiration";
+    public static String DATA_EXPIRATION_DEFAULT = "3h";
+
+    private Map<String, Monitor> monitors = null;
+
+    private Properties.Expirable propertiesExp;
+    
+    public UpdateMetricStatusesF(Properties.Expirable propertiesExp) {
+        this.propertiesExp = propertiesExp;
+    }
+
+    @Override
+    public Optional<AnalysisResult> call(
+            Time time, MonitorIDMetricIDs ids, Optional<Metric> metricOpt, State<MetricStore> storeState) 
+            throws Exception {
+        
+        Monitor monitor = getMonitor(ids.getMonitorID());
+        
+        if(storeState.isTimingOut())
+            return Optional.of(AnalysisResult.buildTimingOut(ids, monitor, time));
+        
+        if(!metricOpt.isPresent())
+            return Optional.absent();
+        
+        MetricStore store = getMetricStore(storeState);
+        Metric metric = metricOpt.get();
+        
+        store.updateLastestTimestamp(metric.getTimestamp());
+        
+        AnalysisResult result = monitor.process(store, metric.getTimestamp(), metric.getValue());
+        result.setAnalyzedMetric(metric);
+        
+        storeState.update(store);
+        
+        return Optional.of(result);
+    }
+
+    private Monitor getMonitor(String monitorID) {
+        if(monitors == null)
+            monitors = Monitor.getAll(propertiesExp);
+        
+        return monitors.get(monitorID);
+    }
+    
+    private MetricStore getMetricStore(State<MetricStore> storeState) {
+        if(storeState.exists()){
+            return storeState.get();
+        }else{
+            return new MetricStore();
+        }
+    }
+
+    public static MetricStatusesS apply(
+            JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithID,
+            Expirable propertiesExp, 
+            MetricStoresRDD initialMetricStores) throws IOException {
+        
+        long dataExpirationPeriod = StringUtils.parseStringWithTimeUnitToSeconds(
+                propertiesExp.get().getProperty(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT));
+        
+        StateSpec<MonitorIDMetricIDs, Metric, MetricStore, AnalysisResult> statusSpec = StateSpec
+                .function(new UpdateMetricStatusesF(propertiesExp))
+                .initialState(initialMetricStores.rdd())
+                .timeout(new Duration(dataExpirationPeriod * 1000));
+        
+        MetricStatusesS statuses = new MetricStatusesS(metricsWithID.mapWithState(statusSpec));
+        
+        return statuses;
+    }
+
+}
