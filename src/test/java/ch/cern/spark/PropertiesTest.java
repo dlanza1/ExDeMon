@@ -1,7 +1,6 @@
 package ch.cern.spark;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 
@@ -35,7 +34,7 @@ public class PropertiesTest {
 	}
 
     public static Expirable mockedExpirable() {
-        Properties.Expirable propExp = mock(Properties.Expirable.class);
+        Properties.Expirable propExp = mock(Properties.Expirable.class, withSettings().serializable());
         
         try {
             when(propExp.get()).thenReturn(new Properties());

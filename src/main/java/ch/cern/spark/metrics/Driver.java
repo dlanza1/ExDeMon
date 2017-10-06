@@ -26,25 +26,34 @@ public final class Driver {
     public static String CHECKPOINT_DIR_PARAM = "checkpoint.dir";  
     public static String CHECKPOINT_DIR_DEFAULT = "/tmp/";  
     
-    public static String BATCH_INTERVAL_PARAM = "spark.batch.time";  
+    public static String BATCH_INTERVAL_PARAM = "spark.batch.time";
+    
+    private Properties.Expirable properties;
+    
+    private SparkConf sparkConf;
 
-	public Driver() {
+	public Driver(Properties.Expirable props) throws IOException {
+	    this.properties = props;
+
+        sparkConf = new SparkConf();
+        sparkConf.setAppName("MetricsMonitorStreamingJob");
+        sparkConf.runLocallyIfMasterIsNotConfigured();
+        sparkConf.addProperties(this.properties.get(), "spark.");
 	}
 
 	public static void main(String[] args) throws Exception {
 
-	    String propertyFilePath = args[0];
+	    if(args.length != 1)
+	        throw new RuntimeException("A single argument must be specified with the path to the configuration file.");
 	    
-        final Properties.Expirable props = new Properties.Expirable(propertyFilePath);
+	    String propertyFilePath = args[0];
+	    Properties.Expirable props = new Properties.Expirable(propertyFilePath);
+	    
+	    Driver driver = new Driver(props);
 
-		final SparkConf sparkConf = new SparkConf();
-		sparkConf.setAppName("MonitorMetricsStreamingJob");
-		sparkConf.runLocallyIfMasterIsNotConfigured();
-		sparkConf.addProperties(props.get(), "spark.");
-
-		removeSparkCheckpointDir(props);
+		driver.removeSparkCheckpointDir();
 		
-        JavaStreamingContext ssc = createNewStreamingContext(sparkConf, props);
+        JavaStreamingContext ssc = driver.createNewStreamingContext();
 		
 		// Start the computation
 		ssc.start();
@@ -55,8 +64,8 @@ public final class Driver {
 		}
 	}
 
-    private static void removeSparkCheckpointDir(Properties.Expirable props) throws IOException {
-        Path path = new Path(getCheckpointDir(props) + "/checkpoint/");
+    private void removeSparkCheckpointDir() throws IOException {
+        Path path = new Path(getCheckpointDir(properties) + "/checkpoint/");
         
         FileSystem fs = FileSystem.get(new Configuration());
         
@@ -65,32 +74,46 @@ public final class Driver {
         
     }
 
-    protected static JavaStreamingContext createNewStreamingContext(SparkConf sparkConf, Properties.Expirable props) 
+    protected JavaStreamingContext createNewStreamingContext() 
             throws Exception {
 	    
-        Long batchInterval = props.get().getLong(BATCH_INTERVAL_PARAM);
+        Long batchInterval = properties.get().getLong(BATCH_INTERVAL_PARAM);
         if(batchInterval == null)
             batchInterval = 30l;
         
 		JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, Durations.seconds(batchInterval));
-		ssc.checkpoint(getCheckpointDir(props) + "/checkpoint/");
+		ssc.checkpoint(getCheckpointDir(properties) + "/checkpoint/");
 		
-		MetricsSource metricSource = (MetricsSource) ComponentManager.build(Type.SOURCE, props.get().getSubset("source"));
+		Properties metricSourceProperties = properties.get().getSubset("source");
+		if(metricSourceProperties.getProperty("type") == null)
+		    throw new RuntimeException("A metric source must be configured");
+		MetricsSource metricSource = (MetricsSource) ComponentManager.build(Type.SOURCE, metricSourceProperties);
 		MetricsS metrics = metricSource.createMetricsStream(ssc);
 		
-        MetricStoresRDD initialMetricStores = MetricStoresRDD.load(getCheckpointDir(props), ssc.sparkContext());
-		AnalysisResultsS results = metrics.monitor(props, initialMetricStores);
+        MetricStoresRDD initialMetricStores = MetricStoresRDD.load(getCheckpointDir(properties), ssc.sparkContext());
+		AnalysisResultsS results = metrics.monitor(properties, initialMetricStores);
 		
-		AnalysisResultsSink analysisResultsSink = 
-		        (AnalysisResultsSink) ComponentManager.build(Type.ANALYSIS_RESULTS_SINK, props.get().getSubset("results.sink"));
-		results.sink(analysisResultsSink);
+		Properties analysisResultsSinkProperties = properties.get().getSubset("results.sink");
+    	if(analysisResultsSinkProperties.getProperty("type") != null){
+		    AnalysisResultsSink analysisResultsSink = 
+    		        (AnalysisResultsSink) ComponentManager.build(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
+    		results.sink(analysisResultsSink);
+        }
 		
-		NotificationStoresRDD initialNotificationStores = NotificationStoresRDD.load(getCheckpointDir(props), ssc.sparkContext());
-		NotificationsS notifications = results.notifications(props, initialNotificationStores);
+		NotificationStoresRDD initialNotificationStores = NotificationStoresRDD.load(getCheckpointDir(properties), ssc.sparkContext());
+		NotificationsS notifications = results.notifications(properties, initialNotificationStores);
 		
-		NotificationsSink notificationsSink = 
-		        (NotificationsSink) ComponentManager.build(Type.NOTIFICATIONS_SINK, props.get().getSubset("notifications.sink"));
-		notifications.sink(notificationsSink);
+		Properties notificationsSinkProperties = properties.get().getSubset("notifications.sink");
+        if(notificationsSinkProperties.getProperty("type") != null){
+    		NotificationsSink notificationsSink = 
+    		        (NotificationsSink) ComponentManager.build(Type.NOTIFICATIONS_SINK, notificationsSinkProperties);
+    		notifications.sink(notificationsSink);
+        }
+        
+        if(analysisResultsSinkProperties.getProperty("type") == null
+                && notificationsSinkProperties.getProperty("type") == null){
+            throw new RuntimeException("At least one sink must be configured");
+        }
 		
 		return ssc;
 	}
