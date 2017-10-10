@@ -17,7 +17,6 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import ch.cern.spark.TimeUtils;
 import ch.cern.spark.metrics.predictor.LearningRatioValuePredictor.Period;
 import ch.cern.spark.metrics.predictor.LearningRatioValuePredictor.Store_;
 
@@ -69,7 +68,7 @@ public class LearningRatioValuePredictorTest {
         
         LearningRatioValuePredictor predictor = new LearningRatioValuePredictor(0.5f, Period.HOUR);
      
-        Instant time = TimeUtils.toInstant(10);
+        Instant time = Instant.ofEpochSecond(10);
         
         try{
             predictor.getPredictionForTime(time);
@@ -87,7 +86,7 @@ public class LearningRatioValuePredictorTest {
         
         LearningRatioValuePredictor predictor = new LearningRatioValuePredictor(0.5f, Period.HOUR);
      
-        Instant time = TimeUtils.toInstant(10);
+        Instant time = Instant.ofEpochSecond(10);
         
         predictor.addValue(time, 10f);        
         assertEquals(10f, predictor.getPredictionForTime(time).getValue(), 0f);
@@ -127,7 +126,7 @@ public class LearningRatioValuePredictorTest {
         
         LearningRatioValuePredictor predictor = new LearningRatioValuePredictor(0.5f, Period.HOUR);
      
-        Instant time = TimeUtils.toInstant(10);
+        Instant time = Instant.ofEpochSecond(10);
         
         predictor.addValue(time, 10f);        
         assertEquals(10f, predictor.getPredictionForTime(time).getValue(), 0f);

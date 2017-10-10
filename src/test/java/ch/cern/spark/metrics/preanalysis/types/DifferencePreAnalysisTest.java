@@ -11,8 +11,6 @@ import java.time.Instant;
 
 import org.junit.Test;
 
-import ch.cern.spark.TimeUtils;
-
 public class DifferencePreAnalysisTest {
  
     private DifferencePreAnalysis preAnalysis;
@@ -40,16 +38,16 @@ public class DifferencePreAnalysisTest {
         
         getInstance();
         preAnalysis.load(restoredStore);
-        assertEquals(5f, preAnalysis.process(TimeUtils.toInstant(20), 15f), 0f);
+        assertEquals(5f, preAnalysis.process(Instant.ofEpochSecond(20), 15f), 0f);
     }
     
     @Test
     public void average() throws Exception{
         getInstance();
         
-        assertEquals(0f, preAnalysis.process(TimeUtils.toInstant(20), 10f), 0f);
-        assertEquals(10f, preAnalysis.process(TimeUtils.toInstant(30), 20f), 0f);
-        assertEquals(13f, preAnalysis.process(TimeUtils.toInstant(40), 33f), 0f);
+        assertEquals(0f, preAnalysis.process(Instant.ofEpochSecond(20), 10f), 0f);
+        assertEquals(10f, preAnalysis.process(Instant.ofEpochSecond(30), 20f), 0f);
+        assertEquals(13f, preAnalysis.process(Instant.ofEpochSecond(40), 33f), 0f);
     }
     
 }

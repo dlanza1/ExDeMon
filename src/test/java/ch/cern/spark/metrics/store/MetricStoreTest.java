@@ -6,8 +6,6 @@ import java.time.Instant;
 
 import org.junit.Test;
 
-import ch.cern.spark.TimeUtils;
-
 public class MetricStoreTest {
 
     @Test
@@ -21,18 +19,18 @@ public class MetricStoreTest {
     public void elapsedTimeOlder(){
         MetricStore store = new MetricStore();
 
-		store.updateLastestTimestamp(TimeUtils.toInstant(20));
+		store.updateLastestTimestamp(Instant.ofEpochSecond(20));
         
-        assertEquals(20, store.elapsedTimeFromLastMetric(TimeUtils.toInstant(40)).getSeconds());
+        assertEquals(20, store.elapsedTimeFromLastMetric(Instant.ofEpochSecond(40)).getSeconds());
     }
 
 	@Test
     public void elapsedTimeNewer(){
         MetricStore store = new MetricStore();
         
-        store.updateLastestTimestamp(TimeUtils.toInstant(40));
+        store.updateLastestTimestamp(Instant.ofEpochSecond(40));
         
-        assertEquals(20, store.elapsedTimeFromLastMetric(TimeUtils.toInstant(20)).getSeconds());
+        assertEquals(20, store.elapsedTimeFromLastMetric(Instant.ofEpochSecond(20)).getSeconds());
     }
     
 }

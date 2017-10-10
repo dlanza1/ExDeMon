@@ -3,8 +3,10 @@ package ch.cern.spark.metrics.preanalysis.types;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalDouble;
 
+import ch.cern.spark.Pair;
 import ch.cern.spark.Properties;
 import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.ValueHistory;
@@ -64,13 +66,24 @@ public class WeightedAveragePreAnalysis extends PreAnalysis implements HasStore{
     private OptionalDouble computeAverageForTime(Instant time) {
         List<DatedValue> values = history.getDatedValues();
 
-        double total_weight = values.stream().mapToDouble(value -> computeWeight(time, value.getInstant())).sum();
-        double acummulator = values.stream().mapToDouble(value -> computeWeight(time, value.getInstant()) * value.getValue() ).sum();
+        Optional<Pair<Double, Double>> pairSum = values.stream()
+										        		.map(value -> applyWeight(time, value))
+										        		.reduce((p1, p2) -> combineWeightedValues(p1, p2));
         
-        if(total_weight == 0)
+        if(!pairSum.isPresent())
             return OptionalDouble.empty();
         
-        return OptionalDouble.of(acummulator / total_weight);
+        return OptionalDouble.of(pairSum.get().second / pairSum.get().first);
+    }
+    
+    private Pair<Double, Double> applyWeight(Instant time, DatedValue value) {
+    		double weight = computeWeight(time, value.getInstant());
+    	
+    		return new Pair<Double, Double>(weight, weight * value.getValue());
+    }
+    
+    private Pair<Double, Double> combineWeightedValues(Pair<Double, Double> p1, Pair<Double, Double> p2){
+    		return new Pair<Double, Double>(p1.first + p2.first, p1.second + p2.second);
     }
 
     private double computeWeight(Instant time, Instant metric_timestamp) {
