@@ -13,7 +13,6 @@ import org.apache.log4j.Logger;
 import ch.cern.spark.Component.Type;
 import ch.cern.spark.ComponentManager;
 import ch.cern.spark.Properties;
-import ch.cern.spark.StringUtils;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.filter.Filter;
 import ch.cern.spark.metrics.notificator.Notificator;
@@ -54,9 +53,7 @@ public class Monitor implements Serializable{
         analysisProps = properties.getSubset("analysis");
         notificatorsProps = properties.getSubset("notificator");
         
-        String missingMetricMaxPeriodInSeconds_config = properties.getProperty(MAX_PERIOD_PARAM);
-        if(missingMetricMaxPeriodInSeconds_config != null)
-            maximumMissingPeriod = Duration.ofSeconds(StringUtils.parseStringWithTimeUnitToSeconds(missingMetricMaxPeriodInSeconds_config));
+        maximumMissingPeriod = properties.getPeriod(MAX_PERIOD_PARAM, null);
         
         return this;
     }

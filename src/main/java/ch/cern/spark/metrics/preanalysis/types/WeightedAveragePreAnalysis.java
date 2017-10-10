@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.time.Instant;
 
 import ch.cern.spark.Properties;
-import ch.cern.spark.StringUtils;
 import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.preanalysis.PreAnalysis;
@@ -29,17 +28,9 @@ public class WeightedAveragePreAnalysis extends PreAnalysis implements HasStore{
     public void config(Properties properties) throws Exception {
         super.config(properties);
         
-        period = getPeriod(properties);
+        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
         
         history = new ValueHistory(period);
-    }
-
-    private Duration getPeriod(Properties properties) {
-        String period_value = properties.getProperty(PERIOD_PARAM);
-        if(period_value != null)
-            return Duration.ofSeconds(StringUtils.parseStringWithTimeUnitToSeconds(period_value));
-        
-        return PERIOD_DEFAULT;
     }
 
     @Override

@@ -14,7 +14,6 @@ import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.spark.Properties;
 import ch.cern.spark.Properties.Expirable;
-import ch.cern.spark.StringUtils;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MetricStatusesS;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
@@ -27,7 +26,7 @@ public class UpdateMetricStatusesF
     private static final long serialVersionUID = 3156649511706333348L;
     
     public static String DATA_EXPIRATION_PARAM = "data.expiration";
-    public static String DATA_EXPIRATION_DEFAULT = "3h";
+    public static java.time.Duration DATA_EXPIRATION_DEFAULT = java.time.Duration.ofHours(3);
 
     private Map<String, Monitor> monitors = null;
 
@@ -84,13 +83,12 @@ public class UpdateMetricStatusesF
             Expirable propertiesExp, 
             MetricStoresRDD initialMetricStores) throws IOException {
         
-        long dataExpirationPeriod = StringUtils.parseStringWithTimeUnitToSeconds(
-                propertiesExp.get().getProperty(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT));
+    		java.time.Duration dataExpirationPeriod = propertiesExp.get().getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);
         
         StateSpec<MonitorIDMetricIDs, Metric, MetricStore, AnalysisResult> statusSpec = StateSpec
                 .function(new UpdateMetricStatusesF(propertiesExp))
                 .initialState(initialMetricStores.rdd())
-                .timeout(new Duration(dataExpirationPeriod * 1000));
+                .timeout(new Duration(dataExpirationPeriod.toMillis()));
         
         MetricStatusesS statuses = new MetricStatusesS(metricsWithID.mapWithState(statusSpec));
         

@@ -6,15 +6,6 @@ import org.junit.Test;
 import ch.cern.spark.StringUtils;
 
 public class StringUtilsTest {
-
-    @Test
-    public void stringWithUnitToSeconds(){
-        Assert.assertEquals(3, StringUtils.parseStringWithTimeUnitToSeconds("3"));
-        Assert.assertEquals(23, StringUtils.parseStringWithTimeUnitToSeconds("23"));
-        Assert.assertEquals(34, StringUtils.parseStringWithTimeUnitToSeconds("34s"));
-        Assert.assertEquals(15 * 60, StringUtils.parseStringWithTimeUnitToSeconds("15m"));
-        Assert.assertEquals(2 * 60 * 60, StringUtils.parseStringWithTimeUnitToSeconds("2h"));
-    }
     
     @Test
     public void secondsToString(){

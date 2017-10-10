@@ -40,8 +40,7 @@ public class ConstantNotificator extends Notificator implements HasStore {
             expectedStatuses.add(Status.valueOf(statusFromConf.trim().toUpperCase()));
         }
 
-        if(properties.containsKey(PERIOD_PARAM))
-        		period = Duration.ofSeconds(StringUtils.parseStringWithTimeUnitToSeconds(properties.getProperty(PERIOD_PARAM)));
+        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
     }
     
     @Override

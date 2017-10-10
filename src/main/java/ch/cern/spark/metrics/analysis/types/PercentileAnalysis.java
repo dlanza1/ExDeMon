@@ -6,7 +6,6 @@ import java.time.Instant;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import ch.cern.spark.Properties;
-import ch.cern.spark.StringUtils;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.results.AnalysisResult;
@@ -75,16 +74,8 @@ public class PercentileAnalysis extends Analysis implements HasStore{
         error_ratio = properties.getFloat(ERROR_RATIO_PARAM, ERROR_RATIO_DEFAULT);
         warn_ratio = properties.getFloat(WARN_RATIO_PARAM, WARN_RATIO_DEFAULT);
         
-        period = getPeriod(properties);
+        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
         history = new ValueHistory(period);
-    }
-    
-    private Duration getPeriod(Properties properties) {
-        String period_value = properties.getProperty(PERIOD_PARAM);
-        if(period_value != null)
-            return Duration.ofSeconds(StringUtils.parseStringWithTimeUnitToSeconds(period_value));
-        
-        return PERIOD_DEFAULT;
     }
     
     @Override

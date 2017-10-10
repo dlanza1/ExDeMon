@@ -3,6 +3,7 @@ package ch.cern.spark;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -119,5 +120,12 @@ public class Properties extends java.util.Properties{
         if(!containsKey(key))
             setProperty(key, value);
     }
+
+	public Duration getPeriod(String key, Duration periodDefault) {
+		if(containsKey(key))
+			return TimeUtils.parsePeriod(getProperty(key));
+		
+		return periodDefault;
+	}
 
 }

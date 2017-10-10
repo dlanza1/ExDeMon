@@ -13,7 +13,6 @@ import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.spark.Properties;
 import ch.cern.spark.Properties.Expirable;
-import ch.cern.spark.StringUtils;
 import ch.cern.spark.metrics.monitor.Monitor;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.notificator.NotificatorID;
@@ -27,7 +26,7 @@ public class UpdateNotificationStatusesF
     private static final long serialVersionUID = 1540971922358997509L;
     
     public static String DATA_EXPIRATION_PARAM = "data.expiration";
-    public static String DATA_EXPIRATION_DEFAULT = "3h";
+    public static java.time.Duration DATA_EXPIRATION_DEFAULT = java.time.Duration.ofHours(3);
 
     private Map<String, Monitor> monitors = null;
 
@@ -82,12 +81,11 @@ public class UpdateNotificationStatusesF
     public static NotificationStatusesS apply(JavaPairDStream<NotificatorID, AnalysisResult> resultsWithId,
             Expirable propertiesExp, NotificationStoresRDD initialNotificationStores) throws IOException {
 
-        long dataExpirationPeriod = StringUtils.parseStringWithTimeUnitToSeconds(
-                propertiesExp.get().getProperty(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT));
+        java.time.Duration dataExpirationPeriod = propertiesExp.get().getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);
 
         StateSpec<NotificatorID, AnalysisResult, Store, Notification> statusSpec = StateSpec
                 .function(new UpdateNotificationStatusesF(propertiesExp)).initialState(initialNotificationStores.rdd())
-                .timeout(new Duration(dataExpirationPeriod * 1000));
+                .timeout(new Duration(dataExpirationPeriod.toMillis()));
 
         NotificationStatusesS statuses = new NotificationStatusesS(resultsWithId.mapWithState(statusSpec));
 

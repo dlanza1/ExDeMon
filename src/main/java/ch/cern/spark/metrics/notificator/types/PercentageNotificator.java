@@ -50,8 +50,7 @@ public class PercentageNotificator extends Notificator implements HasStore {
             expectedStatuses.add(Status.valueOf(statusFromConf.trim().toUpperCase()));
         }
         
-        if(properties.containsKey(PERIOD_PARAM))
-    			period = Duration.ofSeconds(StringUtils.parseStringWithTimeUnitToSeconds(properties.getProperty(PERIOD_PARAM)));
+        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
         
         String percentage_s = properties.getProperty(PERCENTAGE_PARAM, PERCENTAGE_DEFAULT);
         percentage = Float.valueOf(percentage_s);

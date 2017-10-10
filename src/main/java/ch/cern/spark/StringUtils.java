@@ -1,28 +1,8 @@
 package ch.cern.spark;
 
 public class StringUtils {
-
-    public static long parseStringWithTimeUnitToSeconds(String input) {
-        char unit = getLastCharacter(input);
-
-        String number_string = input.substring(0, input.length() - 1);
-        if(number_string.length() > 0){
-            long number = Long.parseLong(number_string);
-            
-            switch (unit) {
-            case 'h':
-                return number * 60 * 60;
-            case 'm':
-                return number * 60;
-            case 's':            
-                return number;
-            }
-        }
-
-        return Long.parseLong(input);
-    }
-
-    private static char getLastCharacter(String input) {
+	
+    public static char getLastCharacter(String input) {
         if(input == null)
             throw new IllegalArgumentException("Input is null");
         
