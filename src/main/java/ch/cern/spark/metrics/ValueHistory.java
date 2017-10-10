@@ -95,7 +95,7 @@ public class ValueHistory implements Serializable {
 
     public DescriptiveStatistics getStatistics() {
         DescriptiveStatistics stats = new DescriptiveStatistics();
-
+        
         for (DatedValue value : values)
             stats.addValue(value.getValue());
         

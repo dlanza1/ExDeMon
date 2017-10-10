@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalDouble;
 
 import ch.cern.spark.Pair;
 import ch.cern.spark.Properties;
@@ -58,34 +57,32 @@ public class WeightedAveragePreAnalysis extends PreAnalysis implements HasStore{
         history.add(metric_timestamp, metric_value);
         history.purge(metric_timestamp);
         
-        OptionalDouble newValue = computeAverageForTime(metric_timestamp);
+        Optional<Float> newValue = computeAverageForTime(metric_timestamp);
         
-        return (float) newValue.orElse(metric_value);
+        return newValue.orElse(metric_value);
     }
 
-    private OptionalDouble computeAverageForTime(Instant time) {
+    private Optional<Float> computeAverageForTime(Instant time) {
         List<DatedValue> values = history.getDatedValues();
 
         Optional<Pair<Double, Double>> pairSum = values.stream()
-										 .map(value -> applyWeight(time, value))
-										 .reduce((p1, p2) -> new Pair<Double, Double>(p1.first + p2.first, p1.second + p2.second));
+        									.map(value -> {
+        										double weight = computeWeight(time, value.getInstant());
+										    	
+									    		return new Pair<Double, Double>(weight, weight * value.getValue());
+        									})
+        									.reduce((p1, p2) -> new Pair<Double, Double>(p1.first + p2.first, p1.second + p2.second));
         
         if(!pairSum.isPresent())
-            return OptionalDouble.empty();
+            return Optional.empty();
         
         double totalWeights = pairSum.get().first;
         double weightedValues = pairSum.get().second;
         
-        return OptionalDouble.of(weightedValues / totalWeights);
-    }
-    
-    private Pair<Double, Double> applyWeight(Instant time, DatedValue value) {
-    		double weight = computeWeight(time, value.getInstant());
-    	
-    		return new Pair<Double, Double>(weight, weight * value.getValue());
+        return Optional.of((float) (weightedValues / totalWeights));
     }
 
-    private double computeWeight(Instant time, Instant metric_timestamp) {
+    private float computeWeight(Instant time, Instant metric_timestamp) {
         Duration time_difference = Duration.between(time, metric_timestamp).abs();
         
         if(period.compareTo(time_difference) < 0)

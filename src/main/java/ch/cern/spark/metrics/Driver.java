@@ -94,10 +94,9 @@ public final class Driver {
 		AnalysisResultsS results = metrics.monitor(properties, initialMetricStores);
 		
 		Properties analysisResultsSinkProperties = properties.get().getSubset("results.sink");
-    	if(analysisResultsSinkProperties.getProperty("type") != null){
-		    AnalysisResultsSink analysisResultsSink = 
-    		        (AnalysisResultsSink) ComponentManager.build(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
-    		results.sink(analysisResultsSink);
+    		if(analysisResultsSinkProperties.getProperty("type") != null){
+		    AnalysisResultsSink analysisResultsSink = (AnalysisResultsSink) ComponentManager.build(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
+    			results.sink(analysisResultsSink);
         }
 		
 		NotificationStoresRDD initialNotificationStores = NotificationStoresRDD.load(getCheckpointDir(properties), ssc.sparkContext());
