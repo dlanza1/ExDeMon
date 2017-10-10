@@ -2,3 +2,5 @@
 /.classpath
 /target/
 /.settings/
+/.cache-main
+/.cache-tests
