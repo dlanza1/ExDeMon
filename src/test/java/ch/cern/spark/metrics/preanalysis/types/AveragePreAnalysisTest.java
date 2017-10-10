@@ -22,51 +22,46 @@ public class AveragePreAnalysisTest {
     }
     
     @Test
-    public void averageFromEmptyHistory() throws Exception{
-        getInstance();
-     
-        Assert.assertNull(preAnalysis.getAvergaeForTime(TimeUtils.toInstant(60)));
-    }
-    
-    @Test
     public void average() throws Exception{
         getInstance();
         
-        preAnalysis.process(TimeUtils.toInstant(20), 10f);
-        preAnalysis.process(TimeUtils.toInstant(30), 20f);
-        preAnalysis.process(TimeUtils.toInstant(40), 30f);
+        float average = 0;
         
-        Float actualAverge = preAnalysis.getAvergaeForTime(TimeUtils.toInstant(60));
+        average = preAnalysis.process(TimeUtils.toInstant(20), 10f);
+        average = preAnalysis.process(TimeUtils.toInstant(30), 20f);
+        average = preAnalysis.process(TimeUtils.toInstant(40), 30f);
         
-        Assert.assertNotNull(actualAverge);
-        Assert.assertEquals(20, actualAverge.floatValue(), 0);
+        Assert.assertEquals(20, average, 0);
     }
     
     @Test
     public void averageSameValue() throws Exception{
         getInstance();
         
-        preAnalysis.process(TimeUtils.toInstant(20), 100f);
-        preAnalysis.process(TimeUtils.toInstant(30), 100f);
-        preAnalysis.process(TimeUtils.toInstant(40), 100f);
+        float average = 0;
         
-        Float actualAverge = preAnalysis.getAvergaeForTime(TimeUtils.toInstant(60));
+        average = preAnalysis.process(TimeUtils.toInstant(20), 100f);
+        average = preAnalysis.process(TimeUtils.toInstant(30), 100f);
+        average = preAnalysis.process(TimeUtils.toInstant(40), 100f);
         
-        Assert.assertNotNull(actualAverge);
-        Assert.assertEquals(100f, actualAverge.floatValue(), 0);
+        Assert.assertEquals(100f, average, 0);
     }
     
     @Test
     public void averageWithOlderMetricThanPeriod() throws Exception{
         getInstance();
         
-        preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:00"), 10f);
-        preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:20"), 20f);
-        preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:30"), 30f);
+        float average = 0;
         
-        Assert.assertEquals(25, 
-                preAnalysis.getAvergaeForTime(TimeUtils.toInstant("2001-07-04 12:08:55")), 
-                0);
+        average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:00"), 10f);
+        average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:10"), 10f);
+        average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:20"), 30f);
+        average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:30"), 30f);
+        average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:40"), 30f);
+        average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:50"), 30f);
+        average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:09:00"), 30f);
+        
+        Assert.assertEquals(30, average, 0);
     }
     
 }

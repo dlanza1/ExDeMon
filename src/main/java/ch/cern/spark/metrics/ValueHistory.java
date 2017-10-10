@@ -39,7 +39,7 @@ public class ValueHistory implements Serializable {
         values.add(new DatedValue(time, value));
     }
     
-    public void removeRecordsOutOfPeriodForTime(Instant time) {
+    public void purge(Instant time) {
     		Instant oldest_time = time.minus(period);
         
         values = values.stream()

@@ -91,7 +91,7 @@ public class ValueHistoryTest {
         history.add(TimeUtils.toInstant("2017-04-01 11:20:01"), 13f);
         history.add(TimeUtils.toInstant("2017-04-01 11:20:10"), 14f);
         
-        history.removeRecordsOutOfPeriodForTime(TimeUtils.toInstant("2017-04-01 11:20:22"));
+        history.purge(TimeUtils.toInstant("2017-04-01 11:20:22"));
         
         List<Float> returnedValues = history.getDatedValues().stream().map(value -> value.getValue()).collect(Collectors.toList());
         

@@ -59,7 +59,7 @@ public class WeightedAveragePreAnalysis extends PreAnalysis implements HasStore{
     }
     
     public Float getAvergaeForTime(Instant metric_timestamp){
-        history.removeRecordsOutOfPeriodForTime(metric_timestamp);
+        history.purge(metric_timestamp);
         
         return computeAverageForTime(metric_timestamp);
     }

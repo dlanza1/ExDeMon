@@ -102,7 +102,7 @@ public class PercentileAnalysis extends Analysis implements HasStore{
         if(value == null)
             return AnalysisResult.buildWithStatus(AnalysisResult.Status.EXCEPTION, "Value ("+value+") cannot be parsed to float");
         
-        history.removeRecordsOutOfPeriodForTime(timestamp);
+        history.purge(timestamp);
         
         DescriptiveStatistics stats = history.getStatistics();
 

@@ -2,9 +2,9 @@ package ch.cern.spark.metrics.preanalysis.types;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.OptionalDouble;
 
 import ch.cern.spark.Properties;
-import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.preanalysis.PreAnalysis;
 import ch.cern.spark.metrics.store.HasStore;
@@ -52,34 +52,13 @@ public class AveragePreAnalysis extends PreAnalysis implements HasStore{
     @Override
     public float process(Instant metric_timestamp, float metric_value) {
         history.add(metric_timestamp, metric_value);
+        history.purge(metric_timestamp);
         
-        Float newValue = getAvergaeForTime(metric_timestamp);
+        OptionalDouble newValue = history.getDatedValues().stream()
+											.mapToDouble(value -> value.getValue())
+											.average();
         
-        return newValue != null ? newValue : metric_value;
-    }
-    
-    public Float getAvergaeForTime(Instant metric_timestamp){
-        history.removeRecordsOutOfPeriodForTime(metric_timestamp);
-        
-        return computeAverage();
-    }
-
-    private Float computeAverage() {
-        if(history.size() == 0)
-            return null;
-        
-        float acummulator = 0;
-        int count = 0;
-        
-        for (DatedValue value : history.getDatedValues()){
-            acummulator += value.getValue();
-            count++;
-        }
-        
-        if(count == 0)
-            return null;
-        
-        return acummulator / count;
+        return newValue.isPresent() ? (float) newValue.getAsDouble() : metric_value;
     }
 
     public void reset() {
