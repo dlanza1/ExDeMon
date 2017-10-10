@@ -2,6 +2,8 @@ package ch.cern.spark.metrics.preanalysis.types;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.OptionalDouble;
 
 import ch.cern.spark.Properties;
 import ch.cern.spark.metrics.DatedValue;
@@ -52,57 +54,32 @@ public class WeightedAveragePreAnalysis extends PreAnalysis implements HasStore{
     @Override
     public float process(Instant metric_timestamp, float metric_value) {
         history.add(metric_timestamp, metric_value);
-        
-        Float newValue = getAvergaeForTime(metric_timestamp);
-        
-        return newValue != null ? newValue : metric_value;
-    }
-    
-    public Float getAvergaeForTime(Instant metric_timestamp){
         history.purge(metric_timestamp);
         
-        return computeAverageForTime(metric_timestamp);
+        OptionalDouble newValue = computeAverageForTime(metric_timestamp);
+        
+        return (float) newValue.orElse(metric_value);
     }
 
-    private Float computeAverageForTime(Instant metric_timestamp) {
-        if(history.size() == 0)
-            return null;
-        
-        float total_weight = 0;
-        float acummulator = 0;
-        
-        float first_value = Float.NaN;
-        boolean all_same = true;
-        
-        for (DatedValue value : history.getDatedValues()){              
-            float weight = computeWeight(metric_timestamp, value.getInstant());
-            float value_float = value.getValue();
-            
-            total_weight += weight;
-            acummulator += value_float * weight;
-            
-            if(Float.isNaN(first_value))
-                first_value = value_float;
-            else if(first_value != value_float)
-                all_same = false;
-        }
+    private OptionalDouble computeAverageForTime(Instant time) {
+        List<DatedValue> values = history.getDatedValues();
+
+        double total_weight = values.stream().mapToDouble(value -> computeWeight(time, value.getInstant())).sum();
+        double acummulator = values.stream().mapToDouble(value -> computeWeight(time, value.getInstant()) * value.getValue() ).sum();
         
         if(total_weight == 0)
-            return null;
+            return OptionalDouble.empty();
         
-        if(all_same)
-            return first_value;
-        
-        return acummulator / total_weight;
+        return OptionalDouble.of(acummulator / total_weight);
     }
 
-    private float computeWeight(Instant time, Instant metric_timestamp) {
+    private double computeWeight(Instant time, Instant metric_timestamp) {
         Duration time_difference = Duration.between(time, metric_timestamp).abs();
         
-        if(time_difference.compareTo(period) > 0)
-            return 0;
-        else
-            return (float) (period.getSeconds() - time_difference.getSeconds()) / (float) period.getSeconds();
+        if(period.compareTo(time_difference) < 0)
+        		return 0;
+        				
+        return (float) (period.getSeconds() - time_difference.getSeconds()) / (float) period.getSeconds();
     }
 
     public void reset() {

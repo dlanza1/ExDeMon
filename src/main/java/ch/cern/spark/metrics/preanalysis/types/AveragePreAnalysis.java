@@ -58,7 +58,7 @@ public class AveragePreAnalysis extends PreAnalysis implements HasStore{
 											.mapToDouble(value -> value.getValue())
 											.average();
         
-        return newValue.isPresent() ? (float) newValue.getAsDouble() : metric_value;
+        return (float) newValue.orElse(metric_value);
     }
 
     public void reset() {

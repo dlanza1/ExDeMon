@@ -19,10 +19,6 @@ public class TimeUtils {
         return TIMESTAMP_FORMAT_DEFAULT.parse(date_string, Instant::from);
     }
 
-    public static Instant toInstant(int seconds) {
-		return Instant.ofEpochMilli(seconds * 1000);
-	}
-
 	public static LocalDateTime toLocalDateTime(Instant instant) {
 		return LocalDateTime.ofInstant(instant, ZoneOffset.systemDefault());
 	}

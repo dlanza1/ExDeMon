@@ -24,68 +24,54 @@ public class WeightedAveragePreAnalysisTest {
         
         preAnalysis.reset();
     }
-    
-    @Test
-    public void averageFromEmptyHistory() throws Exception{
-        getInstance();
-     
-        Assert.assertNull(preAnalysis.getAvergaeForTime(TimeUtils.toInstant(60)));
-    }
-    
+
     @Test
     public void average() throws Exception{
         getInstance();
         
-        int time = 60;
+        int time = 40;
         
         int metric1_time = 20;
         float metric1_value = 10;
         float weight1 = (float) (default_period - (time - metric1_time)) / default_period;
-        preAnalysis.process(TimeUtils.toInstant(metric1_time), metric1_value);
+        preAnalysis.process(Instant.ofEpochSecond(metric1_time), metric1_value);
         
         int metric2_time = 30;
         float metric2_value = 20;
         float weight2 = (float) (default_period - (time - metric2_time)) / default_period;
-        preAnalysis.process(TimeUtils.toInstant(metric2_time), metric2_value);
+        preAnalysis.process(Instant.ofEpochSecond(metric2_time), metric2_value);
         
         int metric3_time = 40;
         float metric3_value = 30;
         float weight3 = (float) (default_period - (time - metric3_time)) / default_period;
-        preAnalysis.process(TimeUtils.toInstant(metric3_time), metric3_value);
-        
-        Float actualAverge = preAnalysis.getAvergaeForTime(TimeUtils.toInstant(time));
-        
+        float avergae = preAnalysis.process(Instant.ofEpochSecond(metric3_time), metric3_value);
+
         float expectedValue = (metric1_value * weight1 
                              + metric2_value * weight2 
                              + metric3_value * weight3) / (weight1 + weight2 + weight3);
         
-        Assert.assertNotNull(actualAverge);
-        Assert.assertEquals(expectedValue, actualAverge.floatValue(), 0);
+        Assert.assertEquals(expectedValue, avergae, 0);
     }
     
     @Test
     public void averageSameValue() throws Exception{
         getInstance();
         
-        int time = 60;
-        
         int metric1_time = 20;
         float metric1_value = 100;
-        preAnalysis.process(TimeUtils.toInstant(metric1_time), metric1_value);
+        preAnalysis.process(Instant.ofEpochSecond(metric1_time), metric1_value);
         
         int metric2_time = 30;
         float metric2_value = 100;
-        preAnalysis.process(TimeUtils.toInstant(metric2_time), metric2_value);
+        preAnalysis.process(Instant.ofEpochSecond(metric2_time), metric2_value);
         
         int metric3_time = 40;
         float metric3_value = 100;
-        preAnalysis.process(TimeUtils.toInstant(metric3_time), metric3_value);
-        
-        Float actualAverge = preAnalysis.getAvergaeForTime(TimeUtils.toInstant(time));
+        float avergae = preAnalysis.process(Instant.ofEpochSecond(metric3_time), metric3_value);
         
         float expectedValue = 100f;
         
-        Assert.assertEquals(expectedValue, actualAverge.floatValue(), 0f);
+        Assert.assertEquals(expectedValue, avergae, 0f);
     }
     
     @Test
@@ -103,17 +89,15 @@ public class WeightedAveragePreAnalysisTest {
         float metric2_value = 20;
         preAnalysis.process(time2, metric2_value);
         
-        Instant time3 = TimeUtils.toInstant("2001-07-04 12:08:30");
+        Instant time3 = TimeUtils.toInstant("2001-07-04 12:08:55");
         long metric3_time = time3.getEpochSecond();
         float weight3 = (float) (default_period - (time_in_seconds - metric3_time)) / default_period;
         float metric3_value = 30;
-        preAnalysis.process(time3, metric3_value);
+        float avergae = preAnalysis.process(time3, metric3_value);
 
         float expectedValue = (metric2_value * weight2 + metric3_value * weight3) / (weight2 + weight3);
         
-        Float actualValue = preAnalysis.getAvergaeForTime(time);
-        Assert.assertNotNull(actualValue);
-        Assert.assertEquals(expectedValue, actualValue, 0);
+        Assert.assertEquals(expectedValue, avergae, 0);
     }
     
 }
