@@ -1,6 +1,6 @@
 package ch.cern.spark.metrics.preanalysis;
 
-import java.util.Date;
+import java.time.Instant;
 
 import ch.cern.spark.Component;
 
@@ -16,6 +16,6 @@ public abstract class PreAnalysis extends Component {
         super(Type.PRE_ANALYSIS, subClass, name);
     }
 
-    public abstract float process(Date metric_timestamp, float metric_value);
+    public abstract float process(Instant metric_timestamp, float metric_value);
     
 }

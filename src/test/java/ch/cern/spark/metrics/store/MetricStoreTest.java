@@ -1,11 +1,12 @@
 package ch.cern.spark.metrics.store;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import java.util.Date;
+import java.time.Instant;
 
-import org.apache.spark.streaming.Time;
 import org.junit.Test;
+
+import ch.cern.spark.TimeUtils;
 
 public class MetricStoreTest {
 
@@ -13,25 +14,25 @@ public class MetricStoreTest {
     public void elapsedTimeWithoutLastestTimestamp(){
         MetricStore store = new MetricStore();
         
-        assertEquals(0, store.elapsedTimeFromLastMetric(new Time(1000)));
+        assertEquals(0, store.elapsedTimeFromLastMetric(Instant.now()).getSeconds());
     }
     
     @Test
     public void elapsedTimeOlder(){
         MetricStore store = new MetricStore();
+
+		store.updateLastestTimestamp(TimeUtils.toInstant(20));
         
-        store.updateLastestTimestamp(new Date(20000));
-        
-        assertEquals(20, store.elapsedTimeFromLastMetric(new Time(40000)));
+        assertEquals(20, store.elapsedTimeFromLastMetric(TimeUtils.toInstant(40)).getSeconds());
     }
-    
-    @Test
+
+	@Test
     public void elapsedTimeNewer(){
         MetricStore store = new MetricStore();
         
-        store.updateLastestTimestamp(new Date(40000));
+        store.updateLastestTimestamp(TimeUtils.toInstant(40));
         
-        assertEquals(0, store.elapsedTimeFromLastMetric(new Time(20000)));
+        assertEquals(20, store.elapsedTimeFromLastMetric(TimeUtils.toInstant(20)).getSeconds());
     }
     
 }

@@ -1,6 +1,6 @@
 package ch.cern.spark.metrics.analysis.types;
 
-import java.util.Date;
+import java.time.Instant;
 
 import ch.cern.spark.Properties;
 import ch.cern.spark.metrics.analysis.Analysis;
@@ -34,7 +34,7 @@ public class FixedThresholdAnalysis extends Analysis {
     }
     
     @Override
-    public AnalysisResult process(Date timestamp, Float value) {
+    public AnalysisResult process(Instant timestamp, Float value) {
         AnalysisResult result = new AnalysisResult();
         
         result.addMonitorParam("error_upperbound", error_upperbound);

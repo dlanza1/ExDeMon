@@ -1,12 +1,12 @@
 package ch.cern.spark.metrics.analysis.types;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.Instant;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import ch.cern.spark.Properties;
 import ch.cern.spark.StringUtils;
-import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.results.AnalysisResult;
@@ -18,9 +18,8 @@ public class RecentActivityAnalysis extends Analysis implements HasStore{
     private static final long serialVersionUID = 5419076430764447352L;
     
     public static final String PERIOD_PARAM = "period";
-    public static final long PERIOD_DEFAULT = 5 * 60;
-    
-    private long period_in_seconds;
+    public static final Duration PERIOD_DEFAULT = Duration.ofMinutes(5);
+    private Duration period;
     
     public static String ERROR_UPPERBOUND_PARAM = "error.upperbound";
     private boolean error_upperbound = false;
@@ -60,14 +59,14 @@ public class RecentActivityAnalysis extends Analysis implements HasStore{
         error_ratio = properties.getFloat(ERROR_RATIO_PARAM, ERROR_RATIO_DEFAULT);
         warn_ratio = properties.getFloat(WARN_RATIO_PARAM, WARN_RATIO_DEFAULT);
         
-        period_in_seconds = getPeriod(properties);
-        history = new ValueHistory(period_in_seconds);
+        period = getPeriod(properties);
+        history = new ValueHistory(period);
     }
     
-    private long getPeriod(Properties properties) {
+    private Duration getPeriod(Properties properties) {
         String period_value = properties.getProperty(PERIOD_PARAM);
         if(period_value != null)
-            return StringUtils.parseStringWithTimeUnitToSeconds(period_value);
+            return Duration.ofSeconds(StringUtils.parseStringWithTimeUnitToSeconds(period_value));
         
         return PERIOD_DEFAULT;
     }
@@ -75,10 +74,10 @@ public class RecentActivityAnalysis extends Analysis implements HasStore{
     @Override
     public void load(Store store) {
         if(store == null){
-            history = new ValueHistory(period_in_seconds);
+            history = new ValueHistory(period);
         }else{
             history = ((ValueHistory.Store_) store).history;
-            history.setPeriod(period_in_seconds);
+            history.setPeriod(period);
         }
     }
     
@@ -92,7 +91,7 @@ public class RecentActivityAnalysis extends Analysis implements HasStore{
     }
 
     @Override
-    public AnalysisResult process(Date timestamp, Float value) {
+    public AnalysisResult process(Instant timestamp, Float value) {
         if(value == null)
             return AnalysisResult.buildWithStatus(AnalysisResult.Status.EXCEPTION, "Value ("+value+") cannot be parsed to float");
         
@@ -190,30 +189,8 @@ public class RecentActivityAnalysis extends Analysis implements HasStore{
         }
     }
 
-    @SuppressWarnings("unused")
-    private Float computeAverageForTime(Date time) {
-        if(history.size() == 0)
-            return null;
-        
-        float acummulator = 0;
-        int count = 0;
-        
-        for (DatedValue value : history.getDatedValues()){
-            boolean metricTimeIsOlder = value.getDate().compareTo(time) > 0; 
-            
-            if(metricTimeIsOlder){
-                return acummulator / count;
-            }else{
-                acummulator += value.getValue();
-                count++;
-            }
-        }
-        
-        return acummulator / count;
-    }
-
-    public long getPeriod_in_seconds() {
-        return period_in_seconds;
+    public Duration getPeriod() {
+        return period;
     }
 
     public boolean isError_upperbound() {

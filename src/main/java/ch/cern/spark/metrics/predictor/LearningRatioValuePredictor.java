@@ -4,10 +4,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoField;
 
+import ch.cern.spark.TimeUtils;
 import ch.cern.spark.metrics.store.Store;
 
 public class LearningRatioValuePredictor implements Serializable {
@@ -22,15 +23,11 @@ public class LearningRatioValuePredictor implements Serializable {
     private float[] values;
     
     private float[] variance;
-    
-    private Calendar calendar;
 
     public LearningRatioValuePredictor(float learning_ratio, Period period) {
         this.learning_ratio = learning_ratio;
         this.period = period;
-        
-        calendar = GregorianCalendar.getInstance();
-        
+
         intialize();
     }
     
@@ -68,24 +65,24 @@ public class LearningRatioValuePredictor implements Serializable {
             variance[i] = Float.NaN;
     }
 
-    public void addValue(Date timestamp, float value) {
+    public void addValue(Instant timestamp, float value) {
         int position = getCorrespondingPosition(timestamp);
         
         update(position, value);
     }
 
-    private int getCorrespondingPosition(Date timestamp) {
-        calendar.setTime(timestamp); 
-
-        int minute = calendar.get(Calendar.MINUTE);
+    private int getCorrespondingPosition(Instant timestamp) {
+    		LocalDateTime dateTime = TimeUtils.toLocalDateTime(timestamp);
+    	
+        int minute = dateTime.get(ChronoField.MINUTE_OF_HOUR);
         int hour = 0;
         int day_of_week = 0;
         
         switch(period){
         case WEEK:
-            day_of_week = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+            day_of_week = dateTime.get(ChronoField.DAY_OF_WEEK) - 1;
         case DAY:
-            hour = calendar.get(Calendar.HOUR_OF_DAY);
+            hour = dateTime.get(ChronoField.HOUR_OF_DAY);
         case HOUR:
         default:
         }
@@ -112,7 +109,7 @@ public class LearningRatioValuePredictor implements Serializable {
         }
     }
 
-    public Prediction getPredictionForTime(Date timestamp) {
+    public Prediction getPredictionForTime(Instant timestamp) {
         int position = getCorrespondingPosition(timestamp);
    
         if(Float.isNaN(values[position]))

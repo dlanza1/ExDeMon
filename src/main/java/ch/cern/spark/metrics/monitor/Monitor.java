@@ -2,7 +2,8 @@ package ch.cern.spark.metrics.monitor;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -40,7 +41,7 @@ public class Monitor implements Serializable{
     private Properties notificatorsProps;
 
     public static String MAX_PERIOD_PARAM = "missing.max-period";
-    private Long maximumMissingPeriod;
+    private Duration maximumMissingPeriod;
     
     public Monitor(String id){
         this.id = id;
@@ -55,12 +56,12 @@ public class Monitor implements Serializable{
         
         String missingMetricMaxPeriodInSeconds_config = properties.getProperty(MAX_PERIOD_PARAM);
         if(missingMetricMaxPeriodInSeconds_config != null)
-            maximumMissingPeriod = StringUtils.parseStringWithTimeUnitToSeconds(missingMetricMaxPeriodInSeconds_config);
+            maximumMissingPeriod = Duration.ofSeconds(StringUtils.parseStringWithTimeUnitToSeconds(missingMetricMaxPeriodInSeconds_config));
         
         return this;
     }
 
-    public AnalysisResult process(MetricStore store, Date timestamp, Float value) throws Exception {
+    public AnalysisResult process(MetricStore store, Instant timestamp, Float value) throws Exception {
         AnalysisResult result = null;
         
         try{
@@ -80,7 +81,7 @@ public class Monitor implements Serializable{
         return result;
     }
 
-    private AnalysisResult analysis(MetricStore store, Date timestamp, Float value) throws Exception {
+    private AnalysisResult analysis(MetricStore store, Instant timestamp, Float value) throws Exception {
         Analysis analysis = (Analysis) ComponentManager.build(Type.ANAYLSIS, store.getAnalysisStore(), analysisProps);
         
         AnalysisResult result = analysis.process(timestamp, value);
@@ -91,7 +92,7 @@ public class Monitor implements Serializable{
         return result;
     }
 
-    private Float preAnalysis(MetricStore store, Date timestamp, Float value) throws Exception {
+    private Float preAnalysis(MetricStore store, Instant timestamp, Float value) throws Exception {
         if(preAnalysisProps.getProperty("type") != null){
             PreAnalysis preAnalysis = (PreAnalysis) ComponentManager.build(Type.PRE_ANALYSIS, store.getPreAnalysisStore(), preAnalysisProps);
          
@@ -151,7 +152,7 @@ public class Monitor implements Serializable{
         return monitors;
     }
 
-    public Long getMaximumMissingPeriod() {
+    public Duration getMaximumMissingPeriod() {
         return maximumMissingPeriod;
     }
     

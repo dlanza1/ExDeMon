@@ -1,9 +1,15 @@
 package ch.cern.spark.metrics.store;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 
 import org.apache.spark.api.java.Optional;
@@ -64,7 +70,7 @@ public class UpdateMetricStatusesFTest {
         UpdateMetricStatusesF func = new UpdateMetricStatusesF(props);
         
         MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
-        Date metricTime = new Date();;
+        Instant metricTime = Instant.now();
         Optional<Metric> metricOpt = Optional.of(new Metric(metricTime , 10, new HashMap<String, String>()));
         
         @SuppressWarnings("unchecked")

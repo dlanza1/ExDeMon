@@ -50,13 +50,13 @@ public class UpdateNotificationStatusesF
         
         Notification notification = notificator.process(
                 resuktOpt.get().getStatus(),
-                resuktOpt.get().getAnalyzedMetric().getTimestamp());
+                resuktOpt.get().getAnalyzedMetric().getInstant());
         
         if(notification != null){
             notification.setMonitorID(ids.getMonitorID());
             notification.setNotificatorID(ids.getNotificatorID());
             notification.setMetricIDs(ids.getMetricIDs());
-            notification.setTimestamp(resuktOpt.get().getAnalyzedMetric().getTimestamp());
+            notification.setTimestamp(resuktOpt.get().getAnalyzedMetric().getInstant());
         }
         
         if(notificator instanceof HasStore)

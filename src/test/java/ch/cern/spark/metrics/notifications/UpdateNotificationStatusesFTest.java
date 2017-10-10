@@ -3,7 +3,7 @@ package ch.cern.spark.metrics.notifications;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Date;
+import java.time.Instant;
 
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.streaming.State;
@@ -37,11 +37,11 @@ public class UpdateNotificationStatusesFTest {
         
         State<Store> storeState = new StateImpl<Store>();
         
-        resuktOpt.get().setAnalyzedMetric(new Metric(new Date(10000), 0f, null));
+        resuktOpt.get().setAnalyzedMetric(new Metric(Instant.ofEpochSecond(1), 0f, null));
         notification = func.call(null, ids, resuktOpt, storeState);
         assertFalse(notification.isPresent());
         
-        resuktOpt.get().setAnalyzedMetric(new Metric(new Date(21000), 0f, null));
+        resuktOpt.get().setAnalyzedMetric(new Metric(Instant.ofEpochSecond(21), 0f, null));
         notification = func.call(null, ids, resuktOpt, storeState);
         assertTrue(notification.isPresent());
     }
@@ -63,15 +63,15 @@ public class UpdateNotificationStatusesFTest {
         
         State<Store> storeState = new StateImpl<Store>();
         
-        resuktOpt.get().setAnalyzedMetric(new Metric(new Date(10000), 0f, null));
+        resuktOpt.get().setAnalyzedMetric(new Metric(Instant.ofEpochSecond(10), 0f, null));
         notification = func.call(null, ids, resuktOpt, storeState);
         assertFalse(notification.isPresent());
         
-        resuktOpt.get().setAnalyzedMetric(new Metric(new Date(21000), 0f, null));
+        resuktOpt.get().setAnalyzedMetric(new Metric(Instant.ofEpochSecond(21), 0f, null));
         notification = func.call(null, ids, resuktOpt, storeState);
         assertTrue(notification.isPresent());
         
-        resuktOpt.get().setAnalyzedMetric(new Metric(new Date(31000), 0f, null));
+        resuktOpt.get().setAnalyzedMetric(new Metric(Instant.ofEpochSecond(31), 0f, null));
         notification = func.call(null, ids, resuktOpt, storeState);
         assertFalse(notification.isPresent());
     }
@@ -93,27 +93,27 @@ public class UpdateNotificationStatusesFTest {
         State<Store> storeState = new StateImpl<Store>();
         
         resuktOpt.get().setStatus(Status.ERROR, "");
-        resuktOpt.get().setAnalyzedMetric(new Metric(new Date(10000), 0f, null));
+        resuktOpt.get().setAnalyzedMetric(new Metric(Instant.ofEpochSecond(10), 0f, null));
         notification = func.call(null, ids, resuktOpt, storeState);
         assertFalse(notification.isPresent());
         
         resuktOpt.get().setStatus(Status.WARNING, "");
-        resuktOpt.get().setAnalyzedMetric(new Metric(new Date(21000), 0f, null));
+        resuktOpt.get().setAnalyzedMetric(new Metric(Instant.ofEpochSecond(21), 0f, null));
         notification = func.call(null, ids, resuktOpt, storeState);
         assertFalse(notification.isPresent());
         
         resuktOpt.get().setStatus(Status.ERROR, "");
-        resuktOpt.get().setAnalyzedMetric(new Metric(new Date(31000), 0f, null));
+        resuktOpt.get().setAnalyzedMetric(new Metric(Instant.ofEpochSecond(31), 0f, null));
         notification = func.call(null, ids, resuktOpt, storeState);
         assertFalse(notification.isPresent());
         
         resuktOpt.get().setStatus(Status.ERROR, "");
-        resuktOpt.get().setAnalyzedMetric(new Metric(new Date(35000), 0f, null));
+        resuktOpt.get().setAnalyzedMetric(new Metric(Instant.ofEpochSecond(35), 0f, null));
         notification = func.call(null, ids, resuktOpt, storeState);
         assertFalse(notification.isPresent());
         
         resuktOpt.get().setStatus(Status.ERROR, "");
-        resuktOpt.get().setAnalyzedMetric(new Metric(new Date(42000), 0f, null));
+        resuktOpt.get().setAnalyzedMetric(new Metric(Instant.ofEpochSecond(42), 0f, null));
         notification = func.call(null, ids, resuktOpt, storeState);
         assertTrue(notification.isPresent());
     }

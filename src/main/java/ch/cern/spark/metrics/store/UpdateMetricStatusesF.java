@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.store;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Map;
 
 import org.apache.spark.api.java.Optional;
@@ -17,8 +18,8 @@ import ch.cern.spark.StringUtils;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MetricStatusesS;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
-import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.monitor.Monitor;
+import ch.cern.spark.metrics.results.AnalysisResult;
 
 public class UpdateMetricStatusesF
         implements Function4<Time, MonitorIDMetricIDs, Optional<Metric>, State<MetricStore>, Optional<AnalysisResult>> {
@@ -43,8 +44,9 @@ public class UpdateMetricStatusesF
         
         Monitor monitor = getMonitor(ids.getMonitorID());
         
-        if(storeState.isTimingOut())
-            return Optional.of(AnalysisResult.buildTimingOut(ids, monitor, time));
+        if(storeState.isTimingOut()) {
+            return Optional.of(AnalysisResult.buildTimingOut(ids, monitor, Instant.ofEpochMilli(time.milliseconds())));
+        }
         
         if(!metricOpt.isPresent())
             return Optional.absent();
@@ -52,9 +54,9 @@ public class UpdateMetricStatusesF
         MetricStore store = getMetricStore(storeState);
         Metric metric = metricOpt.get();
         
-        store.updateLastestTimestamp(metric.getTimestamp());
+        store.updateLastestTimestamp(metric.getInstant());
         
-        AnalysisResult result = monitor.process(store, metric.getTimestamp(), metric.getValue());
+        AnalysisResult result = monitor.process(store, metric.getInstant(), metric.getValue());
         result.setAnalyzedMetric(metric);
         
         storeState.update(store);

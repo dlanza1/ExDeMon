@@ -1,6 +1,6 @@
 package ch.cern.spark.metrics.analysis;
 
-import java.util.Date;
+import java.time.Instant;
 
 import ch.cern.spark.Component;
 import ch.cern.spark.metrics.results.AnalysisResult;
@@ -17,7 +17,7 @@ public abstract class Analysis extends Component {
         super(Type.ANAYLSIS, subClass, name);
     }
 
-    public abstract AnalysisResult process(Date timestamp, Float value);
+    public abstract AnalysisResult process(Instant timestamp, Float value);
 
 }
     

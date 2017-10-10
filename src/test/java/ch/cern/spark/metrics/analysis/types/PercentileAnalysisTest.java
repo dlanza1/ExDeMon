@@ -1,8 +1,10 @@
 package ch.cern.spark.metrics.analysis.types;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import java.util.Date;
+import java.time.Instant;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,7 +22,7 @@ public class PercentileAnalysisTest {
         
         analysis.config(properties);
 
-        assertEquals(PercentileAnalysis.PERIOD_DEFAULT, analysis.getPeriod_in_seconds());
+        assertEquals(PercentileAnalysis.PERIOD_DEFAULT, analysis.getPeriod());
         assertEquals(PercentileAnalysis.WARN_RATIO_DEFAULT, analysis.getWarn_ratio(), 0f);
         assertEquals(PercentileAnalysis.WARN_PERCENTILE_DEFAULT, analysis.getWarn_percentile(), 0f);
         assertEquals(PercentileAnalysis.ERROR_RATIO_DEFAULT, analysis.getError_ratio(), 0f);
@@ -41,7 +43,7 @@ public class PercentileAnalysisTest {
         properties.put(PercentileAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
         analysis.config(properties);
         
-        assertEquals(180, analysis.getPeriod_in_seconds());
+        assertEquals(180, analysis.getPeriod().getSeconds());
         assertEquals(3.1f, analysis.getWarn_ratio(), 0f);
         assertEquals(3.2f, analysis.getError_ratio(), 0f);
         assertEquals(60, analysis.getWarn_percentile(), 0f);
@@ -68,21 +70,21 @@ public class PercentileAnalysisTest {
         properties.put(PercentileAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.FALSE.toString());
         analysis.config(properties);
         
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(1000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(2000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(3000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(4000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.WARNING,  analysis.process(new Date(5000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(6000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(7000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(8000), 35f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(9000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(10000), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(3), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(4), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.WARNING,  analysis.process(Instant.ofEpochSecond(5), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(6), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(7), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(8), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(9), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(10), 30f).getStatus());
         // Mean  30
         // Percentile 60 = 33
         // WARNING UP = 33 + 2 * diff(30 - 33) = 39
         
-        Assert.assertEquals(AnalysisResult.Status.WARNING,  analysis.process(new Date(9000), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.WARNING,  analysis.process(Instant.ofEpochSecond(9), 40f).getStatus());
     }
 
     @Test
@@ -101,21 +103,21 @@ public class PercentileAnalysisTest {
         properties.put(PercentileAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.FALSE.toString());
         analysis.config(properties);
         
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(1000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(2000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(3000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(4000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(5000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(6000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(7000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(8000), 35f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(9000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(10000), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(3), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(4), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(5), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(6), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(7), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(8), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(9), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(10), 30f).getStatus());
         // Median  30
         // Percentile 40 = 30
         // WARNING LOW = 30 - 2 * diff(30 - 30) = 30
         
-        Assert.assertEquals(AnalysisResult.Status.WARNING,  analysis.process(new Date(9000), 29f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.WARNING,  analysis.process(Instant.ofEpochSecond(9), 29f).getStatus());
     }
     
     @Test
@@ -134,21 +136,21 @@ public class PercentileAnalysisTest {
         properties.put(PercentileAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.FALSE.toString());
         analysis.config(properties);
         
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(1000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(2000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(3000), 35f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(4000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(5000), 35f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(6000), 35f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(7000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(8000), 35f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(9000), 35f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(10000), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(3), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(4), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(5), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(6), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(7), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(8), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(9), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(10), 35f).getStatus());
         // Median  35
         // Percentile 80 = 35
         // ERROR UP = 35 + 3 * diff(35 - 35) = 35
         
-        Assert.assertEquals(AnalysisResult.Status.ERROR,  analysis.process(new Date(9000), 36f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,  analysis.process(Instant.ofEpochSecond(9), 36f).getStatus());
     }
     
     @Test
@@ -167,21 +169,21 @@ public class PercentileAnalysisTest {
         properties.put(PercentileAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
         analysis.config(properties);
         
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(1000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(2000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(3000), 35f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(new Date(4000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(5000), 35f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(6000), 35f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(7000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(8000), 35f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(9000), 35f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(10000), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(3), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(4), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(5), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(6), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(7), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(8), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(9), 35f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(10), 35f).getStatus());
         // Median  35
         // Percentile 20 = 30
         // ERROR LOW = 30 - 3 * diff(35 - 30) = 15
         
-        Assert.assertEquals(AnalysisResult.Status.ERROR,  analysis.process(new Date(9000), 14f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,  analysis.process(Instant.ofEpochSecond(9), 14f).getStatus());
     }
     
 }

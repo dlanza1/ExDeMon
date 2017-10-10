@@ -1,12 +1,12 @@
 package ch.cern.spark.metrics.analysis.types;
 
-import java.util.Date;
+import java.time.Instant;
 
 import ch.cern.spark.Properties;
 import ch.cern.spark.metrics.analysis.Analysis;
-import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.predictor.LearningRatioValuePredictor;
 import ch.cern.spark.metrics.predictor.Prediction;
+import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.store.Store;
 
@@ -68,7 +68,7 @@ public class SeasonalAnalysis extends Analysis implements HasStore{
     }
 
     @Override
-    public AnalysisResult process(Date timestamp, Float value) {
+    public AnalysisResult process(Instant timestamp, Float value) {
         if(value == null)
             return AnalysisResult.buildWithStatus(AnalysisResult.Status.EXCEPTION, "Value ("+value+") cannot be parsed to float");
 

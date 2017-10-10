@@ -1,17 +1,13 @@
 package ch.cern.spark.metrics.preanalysis.types;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import ch.cern.spark.Properties;
+import ch.cern.spark.TimeUtils;
 
 public class AveragePreAnalysisTest {
  
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    
     private AveragePreAnalysis preAnalysis;
     
     private void getInstance() throws Exception {
@@ -29,18 +25,18 @@ public class AveragePreAnalysisTest {
     public void averageFromEmptyHistory() throws Exception{
         getInstance();
      
-        Assert.assertNull(preAnalysis.getAvergaeForTime(new Date(60000)));
+        Assert.assertNull(preAnalysis.getAvergaeForTime(TimeUtils.toInstant(60)));
     }
     
     @Test
     public void average() throws Exception{
         getInstance();
         
-        preAnalysis.process(new Date(20000), 10f);
-        preAnalysis.process(new Date(30000), 20f);
-        preAnalysis.process(new Date(40000), 30f);
+        preAnalysis.process(TimeUtils.toInstant(20), 10f);
+        preAnalysis.process(TimeUtils.toInstant(30), 20f);
+        preAnalysis.process(TimeUtils.toInstant(40), 30f);
         
-        Float actualAverge = preAnalysis.getAvergaeForTime(new Date(60000));
+        Float actualAverge = preAnalysis.getAvergaeForTime(TimeUtils.toInstant(60));
         
         Assert.assertNotNull(actualAverge);
         Assert.assertEquals(20, actualAverge.floatValue(), 0);
@@ -50,11 +46,11 @@ public class AveragePreAnalysisTest {
     public void averageSameValue() throws Exception{
         getInstance();
         
-        preAnalysis.process(new Date(20000), 100f);
-        preAnalysis.process(new Date(30000), 100f);
-        preAnalysis.process(new Date(40000), 100f);
+        preAnalysis.process(TimeUtils.toInstant(20), 100f);
+        preAnalysis.process(TimeUtils.toInstant(30), 100f);
+        preAnalysis.process(TimeUtils.toInstant(40), 100f);
         
-        Float actualAverge = preAnalysis.getAvergaeForTime(new Date(60000));
+        Float actualAverge = preAnalysis.getAvergaeForTime(TimeUtils.toInstant(60));
         
         Assert.assertNotNull(actualAverge);
         Assert.assertEquals(100f, actualAverge.floatValue(), 0);
@@ -64,12 +60,12 @@ public class AveragePreAnalysisTest {
     public void averageWithOlderMetricThanPeriod() throws Exception{
         getInstance();
         
-        preAnalysis.process(dateFormat.parse("2001-07-04 12:08:00"), 10f);
-        preAnalysis.process(dateFormat.parse("2001-07-04 12:08:20"), 20f);
-        preAnalysis.process(dateFormat.parse("2001-07-04 12:08:30"), 30f);
+        preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:00"), 10f);
+        preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:20"), 20f);
+        preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:30"), 30f);
         
         Assert.assertEquals(25, 
-                preAnalysis.getAvergaeForTime(dateFormat.parse("2001-07-04 12:08:55")), 
+                preAnalysis.getAvergaeForTime(TimeUtils.toInstant("2001-07-04 12:08:55")), 
                 0);
     }
     

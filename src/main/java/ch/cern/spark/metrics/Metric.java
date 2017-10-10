@@ -1,7 +1,7 @@
 package ch.cern.spark.metrics;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,11 +11,11 @@ public class Metric implements Serializable{
 
     private Map<String, String> ids;
     
-    private Date timestamp;
+    private Instant timestamp;
     
     private float value;
 
-    public Metric(Date timestamp, float value, Map<String, String> ids){
+    public Metric(Instant timestamp, float value, Map<String, String> ids){
         if(ids == null)
             this.ids = new HashMap<String, String>();
         else
@@ -37,11 +37,11 @@ public class Metric implements Serializable{
         return ids;
     }
     
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
     }
     
-    public Date getTimestamp(){
+    public Instant getInstant(){
         return timestamp;
     }
 

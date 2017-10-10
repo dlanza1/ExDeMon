@@ -1,6 +1,6 @@
 package ch.cern.spark.metrics.preanalysis.types;
 
-import java.util.Date;
+import java.time.Instant;
 
 import ch.cern.spark.metrics.preanalysis.PreAnalysis;
 import ch.cern.spark.metrics.store.HasStore;
@@ -17,7 +17,7 @@ public class DifferencePreAnalysis extends PreAnalysis implements HasStore {
     }
     
     @Override
-    public float process(Date metric_timestamp, float metric_value) {
+    public float process(Instant metric_timestamp, float metric_value) {
         float prePreviousValue = previousValue;
         
         previousValue = metric_value;

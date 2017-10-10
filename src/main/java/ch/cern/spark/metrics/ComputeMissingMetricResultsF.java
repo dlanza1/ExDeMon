@@ -1,5 +1,7 @@
 package ch.cern.spark.metrics;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,8 +11,8 @@ import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.streaming.Time;
 
 import ch.cern.spark.Properties.Expirable;
-import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.monitor.Monitor;
+import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.store.MetricStore;
 import scala.Tuple2;
 
@@ -20,13 +22,14 @@ public class ComputeMissingMetricResultsF implements FlatMapFunction<Tuple2<Moni
     
     private Expirable propertiesExp;
 
-    private Time time;
+    private Instant time;
 
     private Map<String, Monitor> monitors = null;
     
     public ComputeMissingMetricResultsF(Expirable propertiesExp, Time time) {
         this.propertiesExp = propertiesExp;
-        this.time = time;
+        
+        this.time = Instant.ofEpochMilli(time.milliseconds());
     }
     
     @Override
@@ -42,11 +45,11 @@ public class ComputeMissingMetricResultsF implements FlatMapFunction<Tuple2<Moni
         if(monitor == null)
             return result.iterator();
         
-        Long maximumMissingPeriod = monitor.getMaximumMissingPeriod();
+        Duration maximumMissingPeriod = monitor.getMaximumMissingPeriod();
         
-        long elapsedTime = store.elapsedTimeFromLastMetric(time);
+        Duration elapsedTime = store.elapsedTimeFromLastMetric(time);
         
-        if(maximumMissingPeriod != null && elapsedTime > maximumMissingPeriod)
+        if(maximumMissingPeriod != null && elapsedTime.compareTo(maximumMissingPeriod) > 0)
             result.add(AnalysisResult.buildMissingMetric(ids, monitor, time, elapsedTime));
         
         return result.iterator();

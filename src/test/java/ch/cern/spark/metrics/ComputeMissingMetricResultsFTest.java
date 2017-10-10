@@ -1,8 +1,10 @@
 package ch.cern.spark.metrics;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Iterator;
 
 import org.apache.spark.streaming.Time;
@@ -24,7 +26,7 @@ public class ComputeMissingMetricResultsFTest {
         ComputeMissingMetricResultsF func = new ComputeMissingMetricResultsF(propExp, new Time(50000));
         
         MetricStore metricStore = new MetricStore();
-        metricStore.updateLastestTimestamp(new Date(20000));
+        metricStore.updateLastestTimestamp(Instant.ofEpochSecond(20));
         
         MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", null);
         Tuple2<MonitorIDMetricIDs, MetricStore> tuple = new Tuple2<MonitorIDMetricIDs, MetricStore>(ids , metricStore);
@@ -41,7 +43,7 @@ public class ComputeMissingMetricResultsFTest {
         ComputeMissingMetricResultsF func = new ComputeMissingMetricResultsF(propExp, new Time(50000));
         
         MetricStore metricStore = new MetricStore();
-        metricStore.updateLastestTimestamp(new Date(20000));
+        metricStore.updateLastestTimestamp(Instant.ofEpochSecond(20));
         
         MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", null);
         Tuple2<MonitorIDMetricIDs, MetricStore> tuple = new Tuple2<MonitorIDMetricIDs, MetricStore>(ids, metricStore);

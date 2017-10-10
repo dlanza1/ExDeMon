@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.notificator.types;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,10 +21,10 @@ public class ConstantNotificator extends Notificator implements HasStore {
     private Set<Status> expectedStatuses;
     
     private static String PERIOD_PARAM = "period";
-    private static String PERIOD_DEFAULT = "15m";
-    private long period;
+    private static Duration PERIOD_DEFAULT = Duration.ofMinutes(15);
+    private Duration period = PERIOD_DEFAULT;
     
-    private Date constantlySeenFrom;
+    private Instant constantlySeenFrom;
     
     public ConstantNotificator() {
         super(ConstantNotificator.class, "constant");
@@ -38,8 +39,9 @@ public class ConstantNotificator extends Notificator implements HasStore {
         for (String statusFromConf : statusesFromConf) {
             expectedStatuses.add(Status.valueOf(statusFromConf.trim().toUpperCase()));
         }
-        
-        period = StringUtils.parseStringWithTimeUnitToSeconds(properties.getProperty(PERIOD_PARAM, PERIOD_DEFAULT));
+
+        if(properties.containsKey(PERIOD_PARAM))
+        		period = Duration.ofSeconds(StringUtils.parseStringWithTimeUnitToSeconds(properties.getProperty(PERIOD_PARAM)));
     }
     
     @Override
@@ -62,7 +64,7 @@ public class ConstantNotificator extends Notificator implements HasStore {
     }
 
     @Override
-    public Notification process(Status status, Date timestamp) {
+    public Notification process(Status status, Instant timestamp) {
         boolean isExpectedStatus = isExpectedStatus(status);
         
         if(isExpectedStatus && constantlySeenFrom == null)
@@ -74,7 +76,7 @@ public class ConstantNotificator extends Notificator implements HasStore {
         if(raise(timestamp)){
             Notification notification = new Notification();
             notification.setReason("Metric has been in state " 
-                    + expectedStatuses + " for " + StringUtils.secondsToString(getDiff(timestamp))
+                    + expectedStatuses + " for " + StringUtils.secondsToString(getDiff(timestamp).getSeconds())
                     + ".");
             
             constantlySeenFrom = null;
@@ -89,21 +91,21 @@ public class ConstantNotificator extends Notificator implements HasStore {
         return expectedStatuses.contains(status);
     }
     
-    private long getDiff(Date timestamp){
+    private Duration getDiff(Instant timestamp){
         if(constantlySeenFrom == null)
-            return 0;
+            return Duration.ZERO;
         
-        return timestamp.getTime() / 1000 - constantlySeenFrom.getTime() / 1000;
+        return Duration.between(constantlySeenFrom, timestamp).abs();
     }
 
-    private boolean raise(Date timestamp) {
-        return getDiff(timestamp) >= period;
+    private boolean raise(Instant timestamp) {
+        return getDiff(timestamp).compareTo(period) >= 0;
     }
 
     public static class Store_ implements Store{
         private static final long serialVersionUID = -1907347033980904180L;
         
-        Date constantlySeenFrom;
+        Instant constantlySeenFrom;
     }
 
 }

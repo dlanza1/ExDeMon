@@ -1,9 +1,11 @@
 package ch.cern.spark.json;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +32,7 @@ public class JSONObjectToMetricParser implements Function<JSONObject, Metric>{
     
     public static String TIMESTAMP_FORMAT_PROPERTY = PARAM_PREFIX + "timestamp.format";
     public static String TIMESTAMP_FORMAT_DEFAULT = "yyyy-MM-dd'T'HH:mm:ssZ";
-    private SimpleDateFormat timestamp_format;
+    private DateTimeFormatter timestamp_format;
     
     public static String VALUE_PROPERTY = PARAM_PREFIX + "value.property-name";
     public static String VALUE_PROPERTY_DEFAULT = "value";
@@ -40,7 +42,10 @@ public class JSONObjectToMetricParser implements Function<JSONObject, Metric>{
         id_property_names = Arrays.asList(props.getProperty(ID_PROPERTY).split(" "));
         
         timestamp_property_name = props.getProperty(TIMESTAMP_PROPERTY, TIMESTAMP_PROPERTY_DEFAULT);
-        timestamp_format = new SimpleDateFormat(props.getProperty(TIMESTAMP_FORMAT_PROPERTY, TIMESTAMP_FORMAT_DEFAULT));
+        timestamp_format = new DateTimeFormatterBuilder()
+								.appendPattern(props.getProperty(TIMESTAMP_FORMAT_PROPERTY, TIMESTAMP_FORMAT_DEFAULT))
+								.toFormatter()
+								.withZone(ZoneOffset.systemDefault());
         
         value_property_name = props.getProperty(VALUE_PROPERTY, VALUE_PROPERTY_DEFAULT);
     }
@@ -51,7 +56,7 @@ public class JSONObjectToMetricParser implements Function<JSONObject, Metric>{
 
     @Override
     public Metric call(JSONObject jsonObject) throws Exception {
-        Date timestamp = toDate(jsonObject.getProperty(timestamp_property_name));
+        Instant timestamp = toDate(jsonObject.getProperty(timestamp_property_name));
         Float value = Float.parseFloat(jsonObject.getProperty(value_property_name));
         Map<String, String> ids = mapIDsWithValues(jsonObject);
         
@@ -67,10 +72,8 @@ public class JSONObjectToMetricParser implements Function<JSONObject, Metric>{
         return map;
     }
 
-    private Date toDate(String date_string) throws ParseException {
-        Date timestamp = timestamp_format.parse(date_string);
-        
-        return timestamp;
+    private Instant toDate(String date_string) throws ParseException {
+        return timestamp_format.parse(date_string, Instant::from);
     }
 
 }

@@ -1,11 +1,10 @@
 package ch.cern.spark.metrics.results;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.spark.streaming.Time;
 
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
@@ -17,7 +16,7 @@ public class AnalysisResult implements Serializable {
 
     public enum Status {OK, WARNING, ERROR, EXCEPTION};
     
-    public Date analysis_timestamp;
+    public Instant analysis_timestamp;
     
     public Metric analyzed_metric;
     
@@ -27,7 +26,7 @@ public class AnalysisResult implements Serializable {
     private Map<String, Object> monitor_params;
     
     public AnalysisResult() {
-        analysis_timestamp = new Date();
+        analysis_timestamp = Instant.now();
         monitor_params = new HashMap<String, Object>();
     }
 
@@ -52,7 +51,7 @@ public class AnalysisResult implements Serializable {
         return status != null;
     }
     
-    public Date getAnalysisTimestamp(){
+    public Instant getAnalysisTimestamp(){
         return analysis_timestamp;
     }
     
@@ -79,19 +78,19 @@ public class AnalysisResult implements Serializable {
                 + "]";
     }
 
-    public static AnalysisResult buildTimingOut(MonitorIDMetricIDs ids, Monitor monitor, Time time) {
+    public static AnalysisResult buildTimingOut(MonitorIDMetricIDs ids, Monitor monitor, Instant time) {
         AnalysisResult result = AnalysisResult.buildWithStatus(Status.EXCEPTION, "Metric has timmed out.");
         
-        result.setAnalyzedMetric(new Metric(new Date(time.milliseconds()), 0f, ids.getMetricIDs()));
+        result.setAnalyzedMetric(new Metric(time, 0f, ids.getMetricIDs()));
         result.addMonitorParam("name", ids.getMonitorID());
         
         return result;
     }
     
-    public static AnalysisResult buildMissingMetric(MonitorIDMetricIDs ids, Monitor monitor, Time time, long elapsedTime) {
-        AnalysisResult result = AnalysisResult.buildWithStatus(Status.EXCEPTION, "Metric missing for "+elapsedTime+" seconds.");
+    public static AnalysisResult buildMissingMetric(MonitorIDMetricIDs ids, Monitor monitor, Instant time, Duration elapsedTime) {
+        AnalysisResult result = AnalysisResult.buildWithStatus(Status.EXCEPTION, "Metric missing for "+elapsedTime.getSeconds()+" seconds.");
         
-        result.setAnalyzedMetric(new Metric(new Date(time.milliseconds()), 0f, ids.getMetricIDs()));
+        result.setAnalyzedMetric(new Metric(time, 0f, ids.getMetricIDs()));
         result.addMonitorParam("name", ids.getMonitorID());
         
         return result;

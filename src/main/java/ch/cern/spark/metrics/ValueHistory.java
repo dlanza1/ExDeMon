@@ -4,148 +4,94 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Iterator;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoField;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import ch.cern.spark.TimeUtils;
 import ch.cern.spark.metrics.store.Store;
 
 public class ValueHistory implements Serializable {
 
     private static final long serialVersionUID = 9141577304066319408L;
 
-    private LinkedList<DatedValue> values;
+    private List<DatedValue> values;
     
-    private long period_in_seconds;
+    private Duration period;
 
-    private Calendar calendar;    
-
-    public ValueHistory(long period_in_seconds){
+    public ValueHistory(Duration period){
         this.values = new LinkedList<>();
         
-        this.period_in_seconds = period_in_seconds;
-        
-        calendar = GregorianCalendar.getInstance();
+        this.period = period;
     }
     
-    public void setPeriod(long period_in_seconds) {
-        this.period_in_seconds = period_in_seconds;
+    public void setPeriod(Duration period) {
+        this.period = period;
     }
 
-    public void add(Date time, Float value) {
-        int timeInSeoncds = (int) (time.getTime() / 1000);
-        
-        values.add(new DatedValue(timeInSeoncds, value));
-
-        Collections.sort(values, getComparator());
+    public void add(Instant time, Float value) {
+        values.add(new DatedValue(time, value));
     }
     
-    public void removeRecordsOutOfPeriodForTime(Date time) {
-        Iterator<DatedValue> iter = values.iterator();
+    public void removeRecordsOutOfPeriodForTime(Instant time) {
+    		Instant oldest_time = time.minus(period);
         
-        long time_in_seconds = time.getTime() / 1000;
-        
-        long oldest_time_in_seconds = time_in_seconds - period_in_seconds;
-        
-        while(iter.hasNext()){
-            long metric_time_in_seconds = iter.next().getTimeInSeconds();
-            
-            if(metric_time_in_seconds < oldest_time_in_seconds){
-                iter.remove();
-            }
-        }
-    }
-
-    private Comparator<DatedValue> getComparator() {
-        return new Comparator<DatedValue>() {
-            @Override
-            public int compare(DatedValue o1, DatedValue o2) {
-                return Integer.compare(o1.getTimeInSeconds(), o2.getTimeInSeconds());
-            }
-        };
+        values = values.stream()
+        		.filter(value -> value.getInstant().isAfter(oldest_time))
+        		.collect(Collectors.toList());
     }
 
     public int size() {
         return values.size();
     }
 
-    public LinkedList<DatedValue> getDatedValues() {
+    public List<DatedValue> getDatedValues() {
         return values;
     }
 
     @Override
     public String toString() {
-        return "ValueHistory [metrics=" + values + ", period_in_seconds=" + period_in_seconds + "]";
+        return "ValueHistory [metrics=" + values + ", period=" + period + "]";
     }
 
-    public List<Float> getHourlyValues(Date timestamp) {
-        List<Float> values = new LinkedList<>();
-        calendar.setTime(timestamp); 
-
-        int requested_minute = calendar.get(Calendar.MINUTE);
-        
-        for (DatedValue value: this.values) {
-            calendar.setTime(value.getDate());
-            
-            int metric_minute = calendar.get(Calendar.MINUTE);
-            
-            if(requested_minute == metric_minute)
-                values.add(value.getValue());
-        }
-        
-        return values;
+    public List<Float> getHourlyValues(Instant time) {
+    		LocalDateTime dateTime = TimeUtils.toLocalDateTime(time);
+    	
+        return values.stream()
+        		.filter(value -> isSameMinute(dateTime, TimeUtils.toLocalDateTime(value.getInstant()), false, false))
+        		.map(value -> value.getValue())
+        		.collect(Collectors.toList());
     }
 
-    public List<Float> getDaylyValues(Date timestamp) {
-        List<Float> values = new LinkedList<>();
-        calendar.setTime(timestamp); 
-
-        int requested_minute = calendar.get(Calendar.MINUTE);
-        int requested_hour = calendar.get(Calendar.HOUR_OF_DAY);
-        
-        for (DatedValue value: this.values) {
-            calendar.setTime(value.getDate());
-            
-            int metric_minute = calendar.get(Calendar.MINUTE);
-            int metric_hour = calendar.get(Calendar.HOUR_OF_DAY);
-            
-            if(requested_minute == metric_minute && requested_hour == metric_hour)
-                values.add(value.getValue());
-        }
-        
-        return values;
+	public List<Float> getDaylyValues(Instant time) {
+		LocalDateTime dateTime = TimeUtils.toLocalDateTime(time);
+		
+        return values.stream()
+        		.filter(value -> isSameMinute(dateTime, TimeUtils.toLocalDateTime(value.getInstant()), false, true))
+        		.map(value -> value.getValue())
+        		.collect(Collectors.toList());
     }
 
-    public List<Float> getWeeklyValues(Date timestamp) {
-        List<Float> values = new LinkedList<>();
-        calendar.setTime(timestamp); 
-
-        int requested_minute = calendar.get(Calendar.MINUTE);
-        int requested_hour = calendar.get(Calendar.HOUR_OF_DAY);
-        int requested_day_of_week = calendar.get(Calendar.DAY_OF_WEEK);
-        
-        for (DatedValue value: this.values) {
-            calendar.setTime(value.getDate());
-            
-            int metric_minute = calendar.get(Calendar.MINUTE);
-            int metric_hour = calendar.get(Calendar.HOUR_OF_DAY);
-            int metric_day_of_week = calendar.get(Calendar.DAY_OF_WEEK);
-            
-            if(requested_minute == metric_minute 
-                    && requested_hour == metric_hour
-                    && requested_day_of_week == metric_day_of_week)
-                values.add(value.getValue());
-        }
-        
-        return values;
+    public List<Float> getWeeklyValues(Instant time) {
+    		LocalDateTime dateTime = TimeUtils.toLocalDateTime(time);
+    		
+        return values.stream()
+        		.filter(value -> isSameMinute(dateTime, TimeUtils.toLocalDateTime(value.getInstant()), true, true))
+        		.map(value -> value.getValue())
+        		.collect(Collectors.toList());
     }
+    
+    private boolean isSameMinute(LocalDateTime time1, LocalDateTime time2, boolean week, boolean day) {
+		return time1.get(ChronoField.MINUTE_OF_HOUR) == time2.get(ChronoField.MINUTE_OF_HOUR)
+				&& (!day || time1.get(ChronoField.HOUR_OF_DAY) == time2.get(ChronoField.HOUR_OF_DAY))
+				&& (!week || time1.get(ChronoField.DAY_OF_WEEK) == time2.get(ChronoField.DAY_OF_WEEK));
+	}
 
     public DescriptiveStatistics getStatistics() {
         DescriptiveStatistics stats = new DescriptiveStatistics();
@@ -162,16 +108,16 @@ public class ValueHistory implements Serializable {
         public ValueHistory history;
         
         private void writeObject(ObjectOutputStream out) throws IOException{
-            LinkedList<DatedValue> datedValues = history.getDatedValues();
+            List<DatedValue> datedValues = history.getDatedValues();
             
-            long period = history.getPeriod();
+            long period = history.getPeriod().getSeconds();
             
             int[] times = new int[datedValues.size()];
             float[] values = new float[datedValues.size()];
             
             int i = 0;
             for (DatedValue value : datedValues) {
-                times[i] = value.getTimeInSeconds();
+                times[i] = (int) value.getInstant().getEpochSecond();
                 values[i] = value.getValue();
                 
                 i++;
@@ -190,9 +136,9 @@ public class ValueHistory implements Serializable {
             
             LinkedList<DatedValue> datedValues = new LinkedList<>();
             for (int i = 0; i < times.length; i++)
-                datedValues.add(new DatedValue(times[i], values[i]));
+            		datedValues.add(new DatedValue(Instant.ofEpochSecond(times[i]), values[i]));
             
-            history = new ValueHistory(period);
+            history = new ValueHistory(Duration.ofSeconds(period));
             history.setDatedValues(datedValues);
         }
         
@@ -206,8 +152,8 @@ public class ValueHistory implements Serializable {
         this.values = newValues;
     }
 
-    public long getPeriod() {
-        return period_in_seconds;
+    public Duration getPeriod() {
+        return period;
     }
     
 }

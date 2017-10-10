@@ -1,14 +1,14 @@
 package ch.cern.spark.metrics.notifications;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 
 public class Notification implements Serializable {
     
     private static final long serialVersionUID = 6730655599755849423L;
     
-    private Date timestamp;
+    private Instant timestamp;
     
     private String monitorID;
     
@@ -18,7 +18,7 @@ public class Notification implements Serializable {
     
     private String reason;
 
-    public Notification(Date timestamp, String monitorID, String notificatorID, Map<String, String> metricIDs,
+    public Notification(Instant timestamp, String monitorID, String notificatorID, Map<String, String> metricIDs,
             String reason) {
         this.timestamp = timestamp;
         this.monitorID = monitorID;
@@ -34,7 +34,7 @@ public class Notification implements Serializable {
         return serialVersionUID;
     }
 
-    public Date getTimestamp() {
+    public Instant getTimestamp() {
         return timestamp;
     }
 
@@ -54,7 +54,7 @@ public class Notification implements Serializable {
         return reason;
     }
 
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
     }
 

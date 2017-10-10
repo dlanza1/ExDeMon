@@ -1,6 +1,9 @@
 package ch.cern.spark.metrics.predictor;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -9,12 +12,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 
 import org.junit.Test;
 
-import ch.cern.spark.metrics.predictor.LearningRatioValuePredictor;
+import ch.cern.spark.TimeUtils;
 import ch.cern.spark.metrics.predictor.LearningRatioValuePredictor.Period;
 import ch.cern.spark.metrics.predictor.LearningRatioValuePredictor.Store_;
 
@@ -40,7 +43,7 @@ public class LearningRatioValuePredictorTest {
         store.predictor = new LearningRatioValuePredictor(0.5f, Period.HOUR);
         int numberOfRecords = 10;
         for (int i = 0; i < numberOfRecords; i++) 
-            store.predictor.addValue(new Date(), (float) Math.random());
+            store.predictor.addValue(Instant.ofEpochSecond(Instant.now().getEpochSecond()), (float) Math.random());
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = new ObjectOutputStream(bos);   
@@ -66,7 +69,7 @@ public class LearningRatioValuePredictorTest {
         
         LearningRatioValuePredictor predictor = new LearningRatioValuePredictor(0.5f, Period.HOUR);
      
-        Date time = new Date(10000);
+        Instant time = TimeUtils.toInstant(10);
         
         try{
             predictor.getPredictionForTime(time);
@@ -84,7 +87,7 @@ public class LearningRatioValuePredictorTest {
         
         LearningRatioValuePredictor predictor = new LearningRatioValuePredictor(0.5f, Period.HOUR);
      
-        Date time = new Date(10000);
+        Instant time = TimeUtils.toInstant(10);
         
         predictor.addValue(time, 10f);        
         assertEquals(10f, predictor.getPredictionForTime(time).getValue(), 0f);
@@ -124,7 +127,7 @@ public class LearningRatioValuePredictorTest {
         
         LearningRatioValuePredictor predictor = new LearningRatioValuePredictor(0.5f, Period.HOUR);
      
-        Date time = new Date(10000);
+        Instant time = TimeUtils.toInstant(10);
         
         predictor.addValue(time, 10f);        
         assertEquals(10f, predictor.getPredictionForTime(time).getValue(), 0f);

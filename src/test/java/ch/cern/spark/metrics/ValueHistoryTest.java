@@ -11,25 +11,24 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import ch.cern.spark.TimeUtils;
 import ch.cern.spark.metrics.ValueHistory.Store_;
 
 public class ValueHistoryTest {
     
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    
     @Test
     public void serializationSize() throws IOException, ParseException{
         ValueHistory.Store_ store = new Store_();
-        store.history = new ValueHistory(60);
+        store.history = new ValueHistory(Duration.ofSeconds(60));
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = new ObjectOutputStream(bos);   
@@ -39,7 +38,7 @@ public class ValueHistoryTest {
         
         int numberOfRecords = 10;
         for (int i = 0; i < numberOfRecords; i++) 
-            store.history.add(new Date(), (float) Math.random());
+            store.history.add(Instant.ofEpochSecond(Instant.now().getEpochSecond()), (float) Math.random());
         
         bos = new ByteArrayOutputStream();
         out = new ObjectOutputStream(bos);   
@@ -59,10 +58,10 @@ public class ValueHistoryTest {
     @Test
     public void saveAndLoad() throws IOException, ParseException, ClassNotFoundException{
         Store_ store = new Store_();
-        store.history = new ValueHistory(60);
+        store.history = new ValueHistory(Duration.ofSeconds(60));
         int numberOfRecords = 10;
         for (int i = 0; i < numberOfRecords; i++) 
-            store.history.add(new Date(), (float) Math.random());
+            store.history.add(Instant.ofEpochSecond(Instant.now().getEpochSecond()), (float) Math.random());
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = new ObjectOutputStream(bos);   
@@ -83,45 +82,36 @@ public class ValueHistoryTest {
     
     @Test
     public void expiration() throws Exception{
-        ValueHistory history = new ValueHistory(60);
+        ValueHistory history = new ValueHistory(Duration.ofSeconds(60));
         
-        history.add(dateFormat.parse("2017-04-01 11:18:12"), 9f);
-        history.add(dateFormat.parse("2017-04-01 11:18:56"), 10f);
-        history.add(dateFormat.parse("2017-04-01 11:19:12"), 11f);
-        history.add(dateFormat.parse("2017-04-01 11:19:31"), 12f);
-        history.add(dateFormat.parse("2017-04-01 11:20:01"), 13f);
-        history.add(dateFormat.parse("2017-04-01 11:20:10"), 14f);
+        history.add(TimeUtils.toInstant("2017-04-01 11:18:12"), 9f);
+        history.add(TimeUtils.toInstant("2017-04-01 11:18:56"), 10f);
+        history.add(TimeUtils.toInstant("2017-04-01 11:19:12"), 11f);
+        history.add(TimeUtils.toInstant("2017-04-01 11:19:31"), 12f);
+        history.add(TimeUtils.toInstant("2017-04-01 11:20:01"), 13f);
+        history.add(TimeUtils.toInstant("2017-04-01 11:20:10"), 14f);
         
-        history.removeRecordsOutOfPeriodForTime(dateFormat.parse("2017-04-01 11:20:22"));
+        history.removeRecordsOutOfPeriodForTime(TimeUtils.toInstant("2017-04-01 11:20:22"));
         
-        List<Float> returnedValues = getOnlyValues(history.getDatedValues());
+        List<Float> returnedValues = history.getDatedValues().stream().map(value -> value.getValue()).collect(Collectors.toList());
         
         List<Float> expected = Arrays.asList(12f, 13f, 14f);
         
         Assert.assertEquals(expected, returnedValues);
     }
-    
-    private List<Float> getOnlyValues(LinkedList<DatedValue> metrics) {
-        List<Float> values = new LinkedList<Float>();
-        
-        for (DatedValue metric : metrics)
-            values.add(metric.getValue());
-        
-        return values;
-    }
 
     @Test
     public void getHourlyValues() throws Exception{
-        ValueHistory history = new ValueHistory(50);
+        ValueHistory history = new ValueHistory(Duration.ofSeconds(50));
         
-        history.add(dateFormat.parse("2017-04-01 09:20:12"), 9f);
-        history.add(dateFormat.parse("2017-04-01 10:20:56"), 10f);
-        history.add(dateFormat.parse("2017-04-01 10:21:34"), 11f);
-        history.add(dateFormat.parse("2017-04-01 10:22:31"), 12f);
-        history.add(dateFormat.parse("2017-04-01 11:20:01"), 13f);
-        history.add(dateFormat.parse("2017-04-01 11:20:10"), 14f);
+        history.add(TimeUtils.toInstant("2017-04-01 09:20:12"), 9f);
+        history.add(TimeUtils.toInstant("2017-04-01 10:20:56"), 10f);
+        history.add(TimeUtils.toInstant("2017-04-01 10:21:34"), 11f);
+        history.add(TimeUtils.toInstant("2017-04-01 10:22:31"), 12f);
+        history.add(TimeUtils.toInstant("2017-04-01 11:20:01"), 13f);
+        history.add(TimeUtils.toInstant("2017-04-01 11:20:10"), 14f);
         
-        List<Float> returnedValues = history.getHourlyValues(dateFormat.parse("2017-04-01 10:20:02"));
+        List<Float> returnedValues = history.getHourlyValues(TimeUtils.toInstant("2017-04-01 10:20:02"));
         
         List<Float> expected = Arrays.asList(9f, 10f, 13f, 14f);
         
@@ -130,16 +120,16 @@ public class ValueHistoryTest {
     
     @Test
     public void getDaylyValues() throws Exception{
-        ValueHistory history = new ValueHistory(50);
+        ValueHistory history = new ValueHistory(Duration.ofSeconds(50));
         
-        history.add(dateFormat.parse("2016-03-07 10:20:12"), 9f);
-        history.add(dateFormat.parse("2017-04-07 10:20:56"), 10f);
-        history.add(dateFormat.parse("2017-04-08 10:21:34"), 11f);
-        history.add(dateFormat.parse("2017-04-09 10:22:31"), 12f);
-        history.add(dateFormat.parse("2017-04-09 10:20:01"), 13f);
-        history.add(dateFormat.parse("2017-04-10 11:20:10"), 14f);
+        history.add(TimeUtils.toInstant("2016-03-07 10:20:12"), 9f);
+        history.add(TimeUtils.toInstant("2017-04-07 10:20:56"), 10f);
+        history.add(TimeUtils.toInstant("2017-04-08 10:21:34"), 11f);
+        history.add(TimeUtils.toInstant("2017-04-09 10:22:31"), 12f);
+        history.add(TimeUtils.toInstant("2017-04-09 10:20:01"), 13f);
+        history.add(TimeUtils.toInstant("2017-04-10 11:20:10"), 14f);
         
-        List<Float> returnedValues = history.getDaylyValues(dateFormat.parse("2017-04-01 10:20:02"));
+        List<Float> returnedValues = history.getDaylyValues(TimeUtils.toInstant("2017-04-01 10:20:02"));
         
         List<Float> expected = Arrays.asList(9f, 10f, 13f);
         
@@ -148,16 +138,16 @@ public class ValueHistoryTest {
     
     @Test
     public void getWeeklyValues() throws Exception{
-        ValueHistory history = new ValueHistory(50);
+        ValueHistory history = new ValueHistory(Duration.ofSeconds(50));
         
-        history.add(dateFormat.parse("2016-03-05 10:20:12"), 9f);
-        history.add(dateFormat.parse("2017-04-03 10:20:56"), 10f);
-        history.add(dateFormat.parse("2017-04-03 10:21:34"), 11f);
-        history.add(dateFormat.parse("2017-04-10 10:22:31"), 12f);
-        history.add(dateFormat.parse("2017-04-10 10:20:01"), 13f);
-        history.add(dateFormat.parse("2017-04-17 11:20:10"), 14f);
+        history.add(TimeUtils.toInstant("2016-03-05 10:20:12"), 9f);
+        history.add(TimeUtils.toInstant("2017-04-03 10:20:56"), 10f);
+        history.add(TimeUtils.toInstant("2017-04-03 10:21:34"), 11f);
+        history.add(TimeUtils.toInstant("2017-04-10 10:22:31"), 12f);
+        history.add(TimeUtils.toInstant("2017-04-10 10:20:01"), 13f);
+        history.add(TimeUtils.toInstant("2017-04-17 11:20:10"), 14f);
         
-        List<Float> returnedValues = history.getWeeklyValues(dateFormat.parse("2017-04-17 10:20:02"));
+        List<Float> returnedValues = history.getWeeklyValues(TimeUtils.toInstant("2017-04-17 10:20:02"));
         
         List<Float> expected = Arrays.asList(10f, 13f);
         

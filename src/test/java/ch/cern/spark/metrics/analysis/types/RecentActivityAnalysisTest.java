@@ -1,8 +1,10 @@
 package ch.cern.spark.metrics.analysis.types;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import java.util.Date;
+import java.time.Instant;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,7 +22,7 @@ public class RecentActivityAnalysisTest {
         
         analysis.config(properties);
 
-        assertEquals(RecentActivityAnalysis.PERIOD_DEFAULT, analysis.getPeriod_in_seconds());
+        assertEquals(RecentActivityAnalysis.PERIOD_DEFAULT, analysis.getPeriod());
         assertEquals(RecentActivityAnalysis.WARN_RATIO_DEFAULT, analysis.getWarn_ratio(), 0f);
         assertEquals(RecentActivityAnalysis.ERROR_RATIO_DEFAULT, analysis.getError_ratio(), 0f);
         assertFalse(analysis.isError_lowerbound());
@@ -37,7 +39,7 @@ public class RecentActivityAnalysisTest {
         properties.put(RecentActivityAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
         analysis.config(properties);
         
-        assertEquals(180, analysis.getPeriod_in_seconds());
+        assertEquals(180, analysis.getPeriod().getSeconds());
         assertEquals(3.1f, analysis.getWarn_ratio(), 0f);
         assertEquals(3.2f, analysis.getError_ratio(), 0f);
         assertTrue(analysis.isError_lowerbound());
@@ -60,19 +62,19 @@ public class RecentActivityAnalysisTest {
         properties.put(RecentActivityAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
         analysis.config(properties);
         
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(1000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(new Date(2000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(3000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(4000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(5000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(6000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(7000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(8000), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(3), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(4), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(5), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(6), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(7), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(8), 40f).getStatus());
         // Average  35
         // Variance 5.3
         // WARNING UP = 35 + 2 * 5.3 = 45.6
         
-        Assert.assertEquals(AnalysisResult.Status.WARNING,  analysis.process(new Date(9000), 46f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.WARNING,  analysis.process(Instant.ofEpochSecond(9), 46f).getStatus());
     }
 
     @Test
@@ -89,19 +91,19 @@ public class RecentActivityAnalysisTest {
         properties.put(RecentActivityAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
         analysis.config(properties);
         
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(1000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(new Date(2000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(3000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(4000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(5000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(6000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(7000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(8000), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(3), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(4), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(5), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(6), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(7), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(8), 40f).getStatus());
         // Average  35
         // Variance 5.3
         // WARNING LOW = 35 - 2 * 5.3 = 24.4
         
-        Assert.assertEquals(AnalysisResult.Status.WARNING,  analysis.process(new Date(9000), 24f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.WARNING,  analysis.process(Instant.ofEpochSecond(9), 24f).getStatus());
     }
     
     @Test
@@ -118,19 +120,19 @@ public class RecentActivityAnalysisTest {
         properties.put(RecentActivityAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
         analysis.config(properties);
         
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(1000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(new Date(2000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(3000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(4000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(5000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(6000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(7000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(8000), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(3), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(4), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(5), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(6), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(7), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(8), 40f).getStatus());
         // Average  35
         // Variance 5.3
         // ERROR   UP = 35 + 3 * 5.3 = 50.9
         
-        Assert.assertEquals(AnalysisResult.Status.ERROR,  analysis.process(new Date(9000), 52f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,  analysis.process(Instant.ofEpochSecond(9), 52f).getStatus());
     }
     
     @Test
@@ -147,19 +149,19 @@ public class RecentActivityAnalysisTest {
         properties.put(RecentActivityAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
         analysis.config(properties);
         
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(1000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(new Date(2000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(3000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(4000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(5000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(6000), 40f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(7000), 30f).getStatus());
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(new Date(8000), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(3), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(4), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(5), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(6), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(7), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(8), 40f).getStatus());
         // Average  35
         // Variance 5.3
         // ERROR   LOW = 35 - 3 * 5.3 = 19
         
-        Assert.assertEquals(AnalysisResult.Status.ERROR,  analysis.process(new Date(9000), 18f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,  analysis.process(Instant.ofEpochSecond(9), 18f).getStatus());
     }
     
 }

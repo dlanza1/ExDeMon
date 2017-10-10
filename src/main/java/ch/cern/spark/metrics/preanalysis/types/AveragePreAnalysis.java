@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.preanalysis.types;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.Instant;
 
 import ch.cern.spark.Properties;
 import ch.cern.spark.StringUtils;
@@ -15,8 +16,8 @@ public class AveragePreAnalysis extends PreAnalysis implements HasStore{
     private static final long serialVersionUID = -8910030746737888613L;
 
     public static final String PERIOD_PARAM = "period";
-    public static final long PERIOD_DEFAULT = 5 * 60;
-    private long period_in_seconds;
+    public static final Duration PERIOD_DEFAULT = Duration.ofMinutes(5);
+    private Duration period;
     
     private ValueHistory history;
     
@@ -28,15 +29,15 @@ public class AveragePreAnalysis extends PreAnalysis implements HasStore{
     public void config(Properties properties) throws Exception {
         super.config(properties);
         
-        period_in_seconds = getPeriod(properties);
+        period = getPeriod(properties);
         
-        history = new ValueHistory(period_in_seconds);
+        history = new ValueHistory(period);
     }
 
-    private long getPeriod(Properties properties) {
+    private Duration getPeriod(Properties properties) {
         String period_value = properties.getProperty(PERIOD_PARAM);
         if(period_value != null)
-            return StringUtils.parseStringWithTimeUnitToSeconds(period_value);
+            return Duration.ofSeconds(StringUtils.parseStringWithTimeUnitToSeconds(period_value));
         
         return PERIOD_DEFAULT;
     }
@@ -45,7 +46,7 @@ public class AveragePreAnalysis extends PreAnalysis implements HasStore{
     public void load(Store store) {
         history = ((ValueHistory.Store_) store).history;
         
-        history.setPeriod(period_in_seconds);
+        history.setPeriod(period);
     }
     
     @Override
@@ -58,7 +59,7 @@ public class AveragePreAnalysis extends PreAnalysis implements HasStore{
     }
     
     @Override
-    public float process(Date metric_timestamp, float metric_value) {
+    public float process(Instant metric_timestamp, float metric_value) {
         history.add(metric_timestamp, metric_value);
         
         Float newValue = getAvergaeForTime(metric_timestamp);
@@ -66,13 +67,13 @@ public class AveragePreAnalysis extends PreAnalysis implements HasStore{
         return newValue != null ? newValue : metric_value;
     }
     
-    public Float getAvergaeForTime(Date time){
-        history.removeRecordsOutOfPeriodForTime(time);
+    public Float getAvergaeForTime(Instant metric_timestamp){
+        history.removeRecordsOutOfPeriodForTime(metric_timestamp);
         
-        return computeAverageForTime(time);
+        return computeAverage();
     }
 
-    private Float computeAverageForTime(Date time) {
+    private Float computeAverage() {
         if(history.size() == 0)
             return null;
         
@@ -80,14 +81,8 @@ public class AveragePreAnalysis extends PreAnalysis implements HasStore{
         int count = 0;
         
         for (DatedValue value : history.getDatedValues()){
-            boolean metricTimeIsOlder = value.getDate().compareTo(time) > 0; 
-            
-            if(metricTimeIsOlder){
-                return acummulator / count;
-            }else{
-                acummulator += value.getValue();
-                count++;
-            }
+            acummulator += value.getValue();
+            count++;
         }
         
         if(count == 0)

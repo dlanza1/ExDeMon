@@ -7,9 +7,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import java.util.Date;
+import java.time.Instant;
 
 import org.junit.Test;
+
+import ch.cern.spark.TimeUtils;
 
 public class DifferencePreAnalysisTest {
  
@@ -22,7 +24,7 @@ public class DifferencePreAnalysisTest {
     @Test
     public void saveAndLoad() throws Exception{
         getInstance();
-        preAnalysis.process(new Date(), 10f);
+        preAnalysis.process(Instant.now(), 10f);
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = new ObjectOutputStream(bos);   
@@ -38,16 +40,16 @@ public class DifferencePreAnalysisTest {
         
         getInstance();
         preAnalysis.load(restoredStore);
-        assertEquals(5f, preAnalysis.process(new Date(20000), 15f), 0f);
+        assertEquals(5f, preAnalysis.process(TimeUtils.toInstant(20), 15f), 0f);
     }
     
     @Test
     public void average() throws Exception{
         getInstance();
         
-        assertEquals(0f, preAnalysis.process(new Date(20000), 10f), 0f);
-        assertEquals(10f, preAnalysis.process(new Date(30000), 20f), 0f);
-        assertEquals(13f, preAnalysis.process(new Date(40000), 33f), 0f);
+        assertEquals(0f, preAnalysis.process(TimeUtils.toInstant(20), 10f), 0f);
+        assertEquals(10f, preAnalysis.process(TimeUtils.toInstant(30), 20f), 0f);
+        assertEquals(13f, preAnalysis.process(TimeUtils.toInstant(40), 33f), 0f);
     }
     
 }

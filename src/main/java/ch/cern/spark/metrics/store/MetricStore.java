@@ -1,15 +1,14 @@
 package ch.cern.spark.metrics.store;
 
 import java.io.Serializable;
-import java.util.Date;
-
-import org.apache.spark.streaming.Time;
+import java.time.Duration;
+import java.time.Instant;
 
 public class MetricStore implements Serializable{
 
     private static final long serialVersionUID = 7584623306853907073L;
     
-    private Date lastestTimestamp;
+    private Instant lastestTimestamp;
     
     private Store preAnalysisStore;
     
@@ -34,25 +33,20 @@ public class MetricStore implements Serializable{
         this.analysisStore = store;
     }
 
-    public void updateLastestTimestamp(Date newTimestamp) {
-        if(lastestTimestamp == null || lastestTimestamp.getTime() < newTimestamp.getTime())
-            lastestTimestamp = newTimestamp;
+    public void updateLastestTimestamp(Instant time) {
+        if(lastestTimestamp == null || lastestTimestamp.isBefore(time))
+            lastestTimestamp = time;
     }
     
-    public Date getLastestTimestamp() {
+    public Instant getLastestTimestamp() {
         return lastestTimestamp;
     }
 
-    public long elapsedTimeFromLastMetric(Time time) {
+    public Duration elapsedTimeFromLastMetric(Instant time) {
         if(lastestTimestamp == null)
-            return 0;
+            return Duration.ZERO;
         
-        long elapsed = time.milliseconds() - lastestTimestamp.getTime();
-        
-        if(elapsed > 0)
-            return elapsed / 1000;
-        else
-            return 0;
+        return Duration.between(lastestTimestamp, time).abs();
     }
 
 }

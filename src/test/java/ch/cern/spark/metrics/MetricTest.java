@@ -1,6 +1,6 @@
 package ch.cern.spark.metrics;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,7 +12,7 @@ public class MetricTest {
         ids.put("key2", "val2");
         ids.put("key3", "val3");
         
-        Metric metric = new Metric(new Date(1000), 100, ids);
+        Metric metric = new Metric(Instant.ofEpochMilli(1000), 100, ids);
         
         return metric;
     }
