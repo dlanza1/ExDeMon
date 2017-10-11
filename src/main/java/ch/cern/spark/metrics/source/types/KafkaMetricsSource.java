@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -124,26 +126,18 @@ public class KafkaMetricsSource extends MetricsSource {
     }
     
     private JavaDStream<Metric> parse(JavaDStream<JSONObject> inputStream) {
-        return inputStream.map(new Function<JSONObject, Metric>() {
-            private static final long serialVersionUID = -7684212727326278652L;
-
-            @Override
-            public Metric call(JSONObject jsonObject) throws Exception {
-            		Instant timestamp = toDate(jsonObject.getProperty(timestamp_attribute));
-                
-                float value = Float.parseFloat(jsonObject.getProperty(value_attribute));
-
-                Map<String, String> ids = new HashMap<>();
-                for (String attribute : attributes)
-                    ids.put(attribute, jsonObject.getProperty(attribute));
-                
-                Metric metric = new Metric(timestamp, value, ids);
-                    
-                metric.setIDs(ids);
-                
-                return metric;
-            }
-        });
+        return inputStream.map(metric -> parse(metric));
+    }
+    
+    private Metric parse(JSONObject jsonObject) throws ParseException{
+		Instant timestamp = toDate(jsonObject.getProperty(timestamp_attribute));
+        
+        float value = Float.parseFloat(jsonObject.getProperty(value_attribute));
+        
+        Map<String, String> ids = Stream.of(attributes)
+        		.collect(Collectors.toMap(String::toString, jsonObject::getProperty));
+        
+        return new Metric(timestamp, value, ids);
     }
     
     private Instant toDate(String date_string) throws ParseException {
