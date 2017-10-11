@@ -134,7 +134,7 @@ public class Monitor implements Serializable{
         
         Properties monitorsProperties = properties.getSubset("monitor");
         
-        Set<String> monitorNames = monitorsProperties.getUniqueKeyFields(0);
+        Set<String> monitorNames = monitorsProperties.getUniqueKeyFields();
         
         for (String monitorName : monitorNames) {
             Properties monitorProps = monitorsProperties.getSubset(monitorName);
@@ -155,7 +155,7 @@ public class Monitor implements Serializable{
     }
     
     public Set<String> getNotificatorIDs(){
-        return notificatorsProps.getUniqueKeyFields(0);
+        return notificatorsProps.getUniqueKeyFields();
     }
 
     public Notificator getNotificator(String id, Store store) throws Exception {

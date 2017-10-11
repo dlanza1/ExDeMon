@@ -1,7 +1,6 @@
 package ch.cern.spark.metrics.results;
 
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,18 +29,13 @@ public class ComputeIDsForAnalysisF implements PairFlatMapFunction<AnalysisResul
         String monitorID = (String) analysis.getMonitorParams().get("name");
         Map<String, String> metricIDs = analysis.getAnalyzedMetric().getIDs();
         
-        LinkedList<Tuple2<NotificatorID, AnalysisResult>> tuples = new LinkedList<>();
-        
         Monitor monitor = getMonitor(monitorID);
         Set<String> notificatorIDs = monitor.getNotificatorIDs();
         
-        for (String id : notificatorIDs) {
-            NotificatorID notificatorID = new NotificatorID(monitorID, id, metricIDs);
-            
-            tuples.add(new Tuple2<NotificatorID, AnalysisResult>(notificatorID, analysis));
-        }
-        
-        return tuples.iterator();
+        return notificatorIDs.stream()
+        		.map(id -> new NotificatorID(monitorID, id, metricIDs))
+        		.map(notID -> new Tuple2<NotificatorID, AnalysisResult>(notID, analysis))
+        		.iterator();
     }
     
     private Monitor getMonitor(String monitorID) {

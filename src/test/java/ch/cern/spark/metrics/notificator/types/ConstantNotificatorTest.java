@@ -47,7 +47,7 @@ public class ConstantNotificatorTest {
         ConstantNotificator notificator = new ConstantNotificator();
         Properties properties = new Properties();
         properties.setProperty("period", "10m");
-        properties.setProperty("statuses", "ERROR,WARNING");
+        properties.setProperty("statuses", "error,WARNING");
         notificator.config(properties);
         
         assertNull(notificator.process(Status.OK,      TimeUtils.toInstant("2017-09-19 12:56:00")));

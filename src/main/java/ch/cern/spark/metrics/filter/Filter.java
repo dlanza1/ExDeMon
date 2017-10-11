@@ -41,7 +41,7 @@ public class Filter implements Predicate<Metric>, Serializable{
         Filter filter = new Filter();
         
         Properties filterProperties = props.getSubset("attribute");
-        Set<String> attributesNames = filterProperties.getUniqueKeyFields(0);
+        Set<String> attributesNames = filterProperties.getUniqueKeyFields();
         
         for (String attributeName : attributesNames) {
             String key = "attribute." + attributeName;

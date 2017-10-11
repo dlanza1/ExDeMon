@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -71,20 +70,14 @@ public class Properties extends java.util.Properties{
         return properties;
     }
 
-    public Set<String> getUniqueKeyFields(int index) {
-        Set<String> uniqueValues = new HashSet<>();
-        
-        for (Object key_object : keySet()) {
-            String[] property_name_splits = ((String) key_object).split("\\.");
-
-            if(property_name_splits.length >= index){
-                String field = property_name_splits[index];
-                
-                uniqueValues.add(field);   
-            }
-        }
-        
-        return uniqueValues;
+    public Set<String> getUniqueKeyFields() {
+    		return keySet().stream()
+		    			.map(String::valueOf)
+		    			.map(s -> s.split("\\."))
+		    			.filter(spl -> spl.length > 0)
+		    			.map(spl -> spl[0])
+		    			.distinct()
+		    			.collect(Collectors.toSet());
     }
 
     public Float getFloat(String key) {

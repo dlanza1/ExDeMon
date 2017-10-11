@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
+import java.util.Arrays;
 
 import ch.cern.spark.TimeUtils;
 import ch.cern.spark.metrics.store.Store;
@@ -59,10 +60,8 @@ public class LearningRatioValuePredictor implements Serializable {
             break;
         }
         
-        for (int i = 0; i < values.length; i++)
-            values[i] = Float.NaN;
-        for (int i = 0; i < variance.length; i++)
-            variance[i] = Float.NaN;
+        Arrays.fill(values, Float.NaN);
+        Arrays.fill(variance, Float.NaN);
     }
 
     public void addValue(Instant timestamp, float value) {

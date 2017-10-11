@@ -2,11 +2,12 @@ package ch.cern.spark.metrics.notificator.types;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import ch.cern.spark.Pair;
 import ch.cern.spark.Properties;
@@ -44,11 +45,11 @@ public class PercentageNotificator extends Notificator implements HasStore {
     public void config(Properties properties) throws Exception {
         super.config(properties);
         
-        expectedStatuses = new HashSet<>();
-        String[] statusesFromConf = properties.getProperty(STATUSES_PARAM).toUpperCase().split(",");
-        for (String statusFromConf : statusesFromConf) {
-            expectedStatuses.add(Status.valueOf(statusFromConf.trim().toUpperCase()));
-        }
+        expectedStatuses = Stream.of(properties.getProperty(STATUSES_PARAM).split(","))
+									        		.map(String::trim)
+									        		.map(String::toUpperCase)
+									        		.map(Status::valueOf)
+									        		.collect(Collectors.toSet());
         
         period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT).get();
         
