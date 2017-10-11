@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
@@ -121,11 +122,8 @@ public class Properties extends java.util.Properties{
             setProperty(key, value);
     }
 
-	public Duration getPeriod(String key, Duration periodDefault) {
-		if(containsKey(key))
-			return TimeUtils.parsePeriod(getProperty(key));
-		
-		return periodDefault;
+	public Optional<Duration> getPeriod(String key, Duration periodDefault) {
+		return Optional.ofNullable(TimeUtils.parsePeriod(getProperty(key)).orElse(periodDefault));
 	}
 
 }

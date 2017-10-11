@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -40,7 +41,7 @@ public class Monitor implements Serializable{
     private Properties notificatorsProps;
 
     public static String MAX_PERIOD_PARAM = "missing.max-period";
-    private Duration maximumMissingPeriod;
+    private Optional<Duration> maximumMissingPeriod;
     
     public Monitor(String id){
         this.id = id;
@@ -149,7 +150,7 @@ public class Monitor implements Serializable{
         return monitors;
     }
 
-    public Duration getMaximumMissingPeriod() {
+    public Optional<Duration> getMaximumMissingPeriod() {
         return maximumMissingPeriod;
     }
     

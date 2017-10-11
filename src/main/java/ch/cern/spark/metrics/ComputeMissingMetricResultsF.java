@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.streaming.Time;
@@ -45,11 +46,11 @@ public class ComputeMissingMetricResultsF implements FlatMapFunction<Tuple2<Moni
         if(monitor == null)
             return result.iterator();
         
-        Duration maximumMissingPeriod = monitor.getMaximumMissingPeriod();
+        Optional<Duration> maximumMissingPeriod = monitor.getMaximumMissingPeriod();
         
         Duration elapsedTime = store.elapsedTimeFromLastMetric(time);
         
-        if(maximumMissingPeriod != null && elapsedTime.compareTo(maximumMissingPeriod) > 0)
+        if(maximumMissingPeriod.isPresent() && elapsedTime.compareTo(maximumMissingPeriod.get()) > 0)
             result.add(AnalysisResult.buildMissingMetric(ids, monitor, time, elapsedTime));
         
         return result.iterator();

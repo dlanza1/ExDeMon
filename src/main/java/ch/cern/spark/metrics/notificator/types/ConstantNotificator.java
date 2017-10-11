@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import ch.cern.spark.Properties;
-import ch.cern.spark.StringUtils;
+import ch.cern.spark.TimeUtils;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
@@ -40,7 +40,7 @@ public class ConstantNotificator extends Notificator implements HasStore {
             expectedStatuses.add(Status.valueOf(statusFromConf.trim().toUpperCase()));
         }
 
-        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
+        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT).get();
     }
     
     @Override
@@ -75,7 +75,7 @@ public class ConstantNotificator extends Notificator implements HasStore {
         if(raise(timestamp)){
             Notification notification = new Notification();
             notification.setReason("Metric has been in state " 
-                    + expectedStatuses + " for " + StringUtils.secondsToString(getDiff(timestamp).getSeconds())
+                    + expectedStatuses + " for " + TimeUtils.toString(getDiff(timestamp))
                     + ".");
             
             constantlySeenFrom = null;

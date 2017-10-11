@@ -10,7 +10,7 @@ import java.util.Set;
 
 import ch.cern.spark.Pair;
 import ch.cern.spark.Properties;
-import ch.cern.spark.StringUtils;
+import ch.cern.spark.TimeUtils;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
@@ -50,7 +50,7 @@ public class PercentageNotificator extends Notificator implements HasStore {
             expectedStatuses.add(Status.valueOf(statusFromConf.trim().toUpperCase()));
         }
         
-        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
+        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT).get();
         
         String percentage_s = properties.getProperty(PERCENTAGE_PARAM, PERCENTAGE_DEFAULT);
         percentage = Float.valueOf(percentage_s);
@@ -88,8 +88,7 @@ public class PercentageNotificator extends Notificator implements HasStore {
         if(raise(timestamp)){
             Notification notification = new Notification();
             notification.setReason("Metric has been " + percentage + "% of the last "
-                    + StringUtils.secondsToString(period.getSeconds())
-                    + " in state " + expectedStatuses + ".");
+                    + TimeUtils.toString(period) + " in state " + expectedStatuses + ".");
             
             hits = new LinkedList<>();
             

@@ -1,25 +1,20 @@
 package ch.cern.spark;
 
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
-import ch.cern.spark.StringUtils;
+import java.util.Optional;
+
+import org.junit.Test;
 
 public class StringUtilsTest {
     
     @Test
-    public void secondsToString(){
-        Assert.assertEquals("0 seconds", StringUtils.secondsToString(0));
-        Assert.assertEquals("1 second", StringUtils.secondsToString(1));
-        Assert.assertEquals("3 seconds", StringUtils.secondsToString(3));
-        Assert.assertEquals("1 minute", StringUtils.secondsToString(60));
-        Assert.assertEquals("2 minutes", StringUtils.secondsToString(120));
-        Assert.assertEquals("2 minutes and 5 seconds", StringUtils.secondsToString(125));
-        Assert.assertEquals("1 hour", StringUtils.secondsToString(3600));
-        Assert.assertEquals("2 hours", StringUtils.secondsToString(2 * 3600));
-        Assert.assertEquals("2 hours and 1 minute", StringUtils.secondsToString(2 * 3600 + 60));
-        Assert.assertEquals("2 hours and 6 seconds", StringUtils.secondsToString(2 * 3600 + 6));
-        Assert.assertEquals("2 hours, 2 minutes and 5 seconds", StringUtils.secondsToString(2 * 3600 + 125));
+    public void getLastCharacter(){
+        assertEquals(Optional.of('4'), StringUtils.getLastCharacter("1234"));
+        assertEquals(Optional.of('m'), StringUtils.getLastCharacter("1234 m"));
+        assertEquals(Optional.of(' '), StringUtils.getLastCharacter("1234 "));
+        assertEquals(Optional.empty(), StringUtils.getLastCharacter(""));
+    		assertEquals(Optional.empty(), StringUtils.getLastCharacter(null));
     }
     
 }
