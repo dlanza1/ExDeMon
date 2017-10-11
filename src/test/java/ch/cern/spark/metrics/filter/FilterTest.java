@@ -13,7 +13,7 @@ public class FilterTest {
     @Test
     public void filterOneID(){
         Filter filter = new Filter();
-        filter.addKeyValue("K1", "V1");
+        filter.addPredicate("K1", "V1");
         
         Map<String, String> ids = new HashMap<>();
         ids.put("K1", "V1");
@@ -27,8 +27,8 @@ public class FilterTest {
     @Test
     public void filterSeveralIDs(){
         Filter filter = new Filter();
-        filter.addKeyValue("K1", "V1");
-        filter.addKeyValue("K2", "V2");
+        filter.addPredicate("K1", "V1");
+        filter.addPredicate("K2", "V2");
         
         Map<String, String> ids = new HashMap<>();
         ids.put("K1", "V1");
@@ -44,7 +44,7 @@ public class FilterTest {
     @Test
     public void filterActualValueNull(){
         Filter filter = new Filter();
-        filter.addKeyValue("K1", "V1");
+        filter.addPredicate("K1", "V1");
         
         Map<String, String> ids = new HashMap<>();
         Metric metric = new Metric(null, 0, ids);
@@ -65,8 +65,8 @@ public class FilterTest {
     @Test
     public void filterRegex(){
         Filter filter = new Filter();
-        filter.addKeyValue("K1", "regex:V[0-9]");
-        filter.addKeyValue("K2", "regex:V.*");
+        filter.addPredicate("K1", "regex:V[0-9]");
+        filter.addPredicate("K2", "regex:V.*");
         
         Map<String, String> ids = new HashMap<>();
         ids.put("K1", "V5");

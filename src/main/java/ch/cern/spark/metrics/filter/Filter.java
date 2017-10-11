@@ -1,10 +1,8 @@
 package ch.cern.spark.metrics.filter;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import ch.cern.spark.Properties;
@@ -16,54 +14,26 @@ public class Filter implements Serializable{
 
     private static final String REGEX_PREFIX = "regex:";
 
-    private Map<String, String> keyValues;
-    
-    private Map<String, Pattern> keyPatterns;
+    private Predicate<Metric> predicate = (m -> true);
     
     public Filter(){
-        this.keyValues = new HashMap<>();
-        this.keyPatterns = new HashMap<>();
     }
     
     public boolean apply(Metric metric){
-        for (Map.Entry<String, String> keyValue : keyValues.entrySet()){
-            String expectedValue = keyValue.getValue();
-            String actualValue = metric.getIDs().get(keyValue.getKey());
-            
-            if(actualValue == null)
-                return false;
-            
-            if(!expectedValue.equals(actualValue))
-                return false;
-        }
-        
-        for (Map.Entry<String, Pattern> keyValue : keyPatterns.entrySet()){
-            Pattern pattern = keyValue.getValue();
-            String actualValue = metric.getIDs().get(keyValue.getKey());
-            
-            if(actualValue == null)
-                return false;
-            
-            if(!pattern.matcher(actualValue).matches())
-                return false;
-        }
-        
-        return true;
+        return predicate.test(metric);
     }
     
-    public void addKeyValue(String key, String value){
-        if(!value.startsWith(REGEX_PREFIX))
-            keyValues.put(key, value);
-        else
-            addKeyPattern(key, value.replace(REGEX_PREFIX, ""));
-    }
-    
-    private void addKeyPattern(String key, String pattern_string) {
-        keyPatterns.put(key, Pattern.compile(pattern_string));
-    }
-
-    public Map<String, String> getKeyValues(){
-        return keyValues;
+    public void addPredicate(String key, String value){
+		if(value.startsWith(REGEX_PREFIX)) {
+        		Pattern pattern = Pattern.compile(value.replace(REGEX_PREFIX, ""));
+        		predicate = predicate
+        				.and(m -> m.getIDs().containsKey(key))
+        				.and(m -> pattern.matcher(m.getIDs().get(key)).matches());
+		}else{			
+        		predicate = predicate
+        				.and(m -> m.getIDs().containsKey(key))
+        				.and(m -> m.getIDs().get(key).equals(value));
+		}
     }
 
     public static Filter build(Properties props) {
@@ -75,7 +45,7 @@ public class Filter implements Serializable{
         for (String attributeName : attributesNames) {
             String key = "attribute." + attributeName;
             
-            filter.addKeyValue(attributeName, props.getProperty(key));
+            filter.addPredicate(attributeName, props.getProperty(key));
         }
         
         return filter;
@@ -83,24 +53,7 @@ public class Filter implements Serializable{
 
     @Override
     public String toString() {
-        return "Filter [keyValues=" + keyValues + "]";
-    }
-
-    public boolean hasRegex() {
-        return !keyPatterns.isEmpty();
-    }
-
-    public Set<String> getKeys() {
-        Set<String> keys = new HashSet<>();
-        
-        keys.addAll(keyValues.keySet());
-        keys.addAll(keyPatterns.keySet());
-        
-        return keys;
-    }
-
-    public void setKeyValues(Map<String, String> newKeyValues) {
-        this.keyValues = newKeyValues;
+        return "Filter [predicate=" + predicate + "]";
     }
     
 }

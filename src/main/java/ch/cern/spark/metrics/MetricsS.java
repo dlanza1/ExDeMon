@@ -21,7 +21,7 @@ public class MetricsS extends Stream<JavaDStream<Metric>> {
     }
 
     public AnalysisResultsS monitor(final Expirable propertiesExp, MetricStoresRDD initialMetricStores) throws ClassNotFoundException, IOException {
-        
+    	
         JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithID = getMetricsWithIDStream(propertiesExp);
         
         MetricStatusesS statuses = UpdateMetricStatusesF.apply(metricsWithID, propertiesExp, initialMetricStores);
