@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 import ch.cern.spark.Properties;
 import ch.cern.spark.metrics.Metric;
 
-public class Filter implements Serializable{
+public class Filter implements Predicate<Metric>, Serializable{
     
     private static final long serialVersionUID = 9170996730102744051L;
 
@@ -19,9 +19,10 @@ public class Filter implements Serializable{
     public Filter(){
     }
     
-    public boolean apply(Metric metric){
-        return predicate.test(metric);
-    }
+    @Override
+	public boolean test(Metric metric) {
+		return predicate.test(metric);
+	}
     
     public void addPredicate(String key, String value){
 		if(value.startsWith(REGEX_PREFIX)) {

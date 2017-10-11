@@ -5,10 +5,10 @@ import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -49,16 +49,10 @@ public class Properties extends java.util.Properties{
     }
 
     public List<String> getKeysThatStartWith(String prefix) {
-        List<String> keys = new LinkedList<>();
-        
-        for (Object key_object : keySet()) {
-            String key = (String) key_object;
-            
-            if(key.startsWith(prefix))
-                keys.add(key);
-        }
-        
-        return keys;
+        return keySet().stream()
+                .map(String::valueOf)
+                .filter(s -> s.startsWith(prefix))
+                .collect(Collectors.toList());
     }
     
     public Properties getSubset(String topLevelKey){

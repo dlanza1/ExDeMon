@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.elasticsearch.spark.streaming.api.java.JavaEsSparkStreaming;
 
 import ch.cern.spark.Properties;
@@ -48,7 +49,9 @@ public class ElasticAnalysisResultsSink extends AnalysisResultsSink {
 
     @Override
     public void sink(AnalysisResultsS outputStream) {
-        JavaEsSparkStreaming.saveJsonToEs(outputStream.asJSON().asString(), indexName, elasticConfig);
+        JavaDStream<String> stream = outputStream.asJSON().asString();
+        
+        JavaEsSparkStreaming.saveJsonToEs(stream, indexName, elasticConfig);
     }
 
 }

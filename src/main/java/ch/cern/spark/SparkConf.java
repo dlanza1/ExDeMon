@@ -14,9 +14,9 @@ public class SparkConf extends org.apache.spark.SparkConf {
     }
 
     public void addProperties(Properties properties, String prefix) {
-        for(String key : properties.stringPropertyNames())
-            if(key.startsWith(prefix))
-                set(key, properties.getProperty(key));
+    		properties.stringPropertyNames().stream()
+    			.filter(key -> key.startsWith(prefix))
+    			.forEach(key -> set(key, properties.getProperty(key)));
     }
     
 }

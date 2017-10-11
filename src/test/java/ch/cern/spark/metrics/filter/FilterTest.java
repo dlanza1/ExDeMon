@@ -18,10 +18,10 @@ public class FilterTest {
         Map<String, String> ids = new HashMap<>();
         ids.put("K1", "V1");
         Metric metric = new Metric(null, 0, ids );
-        Assert.assertTrue(filter.apply(metric));
+        Assert.assertTrue(filter.test(metric));
         
         ids.put("K1", "V2");
-        Assert.assertFalse(filter.apply(metric));
+        Assert.assertFalse(filter.test(metric));
     }
     
     @Test
@@ -34,11 +34,11 @@ public class FilterTest {
         ids.put("K1", "V1");
         ids.put("K2", "V2");
         Metric metric = new Metric(null, 0, ids );
-        Assert.assertTrue(filter.apply(metric));
+        Assert.assertTrue(filter.test(metric));
         
         ids.put("K1", "V1");
         ids.put("K1", "V2");
-        Assert.assertFalse(filter.apply(metric));
+        Assert.assertFalse(filter.test(metric));
     }
     
     @Test
@@ -48,7 +48,7 @@ public class FilterTest {
         
         Map<String, String> ids = new HashMap<>();
         Metric metric = new Metric(null, 0, ids);
-        Assert.assertFalse(filter.apply(metric));
+        Assert.assertFalse(filter.test(metric));
     }
     
     @Test
@@ -59,7 +59,7 @@ public class FilterTest {
         ids.put("K1", "V1");
         ids.put("K1", "V2");
         Metric metric = new Metric(null, 0, ids );
-        Assert.assertTrue(filter.apply(metric));
+        Assert.assertTrue(filter.test(metric));
     }
     
     @Test
@@ -72,23 +72,23 @@ public class FilterTest {
         ids.put("K1", "V5");
         ids.put("K2", "Vfoo");
         Metric metric = new Metric(null, 0, ids );
-        Assert.assertTrue(filter.apply(metric));
+        Assert.assertTrue(filter.test(metric));
         
         ids.put("K1", "V2");
         ids.put("K2", "Vyes");
-        Assert.assertTrue(filter.apply(metric));
+        Assert.assertTrue(filter.test(metric));
         
         ids.put("K1", "V2");
         ids.put("K2", "Pno");
-        Assert.assertFalse(filter.apply(metric));
+        Assert.assertFalse(filter.test(metric));
         
         ids.put("K1", "Vno");
         ids.put("K2", "Vyes");
-        Assert.assertFalse(filter.apply(metric));
+        Assert.assertFalse(filter.test(metric));
         
         ids.put("K1", "Vno");
         ids.put("K2", "NO");
-        Assert.assertFalse(filter.apply(metric));
+        Assert.assertFalse(filter.test(metric));
     }
     
 }

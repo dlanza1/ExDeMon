@@ -7,7 +7,6 @@ import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.spark.Properties.Expirable;
-import ch.cern.spark.metrics.filter.Filter;
 import ch.cern.spark.metrics.monitor.Monitor;
 import scala.Tuple2;
 
@@ -27,19 +26,12 @@ public class ComputeIDsForMetricsF implements PairFlatMapFunction<Metric, Monito
     public Iterator<Tuple2<MonitorIDMetricIDs, Metric>> call(Metric metric) throws Exception {
         setMonitors();
         
-        LinkedList<Tuple2<MonitorIDMetricIDs, Metric>> ids = new LinkedList<>();
-        
-        for (Monitor monitor : monitors) {
-            Filter filter = monitor.getFilter();
-            
-            if(filter.apply(metric)){
-                MonitorIDMetricIDs id = new MonitorIDMetricIDs(monitor.getId(), metric.getIDs());
-                
-                ids.add(new Tuple2<MonitorIDMetricIDs, Metric>(id, metric));
-            }
-        }
-        
-        return ids.iterator();
+        return monitors.stream()
+	        		.filter(monitor -> monitor.getFilter().test(metric))
+	        		.map(Monitor::getId)
+	        		.map(monitorID -> new MonitorIDMetricIDs(monitorID, metric.getIDs()))
+	        		.map(ids -> new Tuple2<MonitorIDMetricIDs, Metric>(ids, metric))
+	        		.iterator();
     }
     
     private void setMonitors() {

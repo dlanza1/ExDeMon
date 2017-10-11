@@ -11,10 +11,6 @@
 	<properties>
 		<!-- Set default encoding to UTF-8 to remove maven complaints -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-		<!-- Java compiler configuration -->
-		<sourceJavaVersion>1.8</sourceJavaVersion>
-		<targetJavaVersion>1.8</targetJavaVersion>
 	</properties>
 	
 	<licenses>
@@ -38,8 +34,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.3</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 		</plugins>

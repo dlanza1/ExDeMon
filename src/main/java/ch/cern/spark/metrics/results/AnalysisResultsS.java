@@ -5,9 +5,9 @@ import java.io.IOException;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
-import ch.cern.spark.JavaObjectToJSONObjectParser;
 import ch.cern.spark.Properties.Expirable;
 import ch.cern.spark.Stream;
+import ch.cern.spark.json.JavaObjectToJSONObjectParser;
 import ch.cern.spark.json.JsonS;
 import ch.cern.spark.metrics.Driver;
 import ch.cern.spark.metrics.notifications.NotificationStatusesS;

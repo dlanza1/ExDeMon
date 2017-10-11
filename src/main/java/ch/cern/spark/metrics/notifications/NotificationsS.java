@@ -2,8 +2,8 @@ package ch.cern.spark.metrics.notifications;
 
 import org.apache.spark.streaming.api.java.JavaDStream;
 
-import ch.cern.spark.JavaObjectToJSONObjectParser;
 import ch.cern.spark.Stream;
+import ch.cern.spark.json.JavaObjectToJSONObjectParser;
 import ch.cern.spark.json.JsonS;
 import ch.cern.spark.metrics.notifications.sink.NotificationsSink;
 
