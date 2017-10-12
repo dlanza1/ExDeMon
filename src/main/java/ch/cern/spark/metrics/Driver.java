@@ -96,7 +96,6 @@ public final class Driver {
 		Properties analysisResultsSinkProperties = properties.get().getSubset("results.sink");
     		if(analysisResultsSinkProperties.isTypeDefined()){
 		    AnalysisResultsSink analysisResultsSink = (AnalysisResultsSink) ComponentManager.build(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
-		    results.print();
     			results.sink(analysisResultsSink);
         }
 		
