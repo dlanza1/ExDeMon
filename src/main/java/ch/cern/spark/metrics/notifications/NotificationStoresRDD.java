@@ -9,22 +9,21 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
-import ch.cern.spark.RDD;
 import ch.cern.spark.metrics.notificator.NotificatorID;
 import ch.cern.spark.metrics.store.Store;
 import scala.Tuple2;
 
-public class NotificationStoresRDD extends RDD<JavaPairRDD<NotificatorID, Store>> {
+public class NotificationStoresRDD extends JavaRDD<Tuple2<NotificatorID, Store>> {
 
     private static final long serialVersionUID = 3059823765482102618L;
 
     private static transient FileSystem fs = null;
     
-    public NotificationStoresRDD(JavaPairRDD<NotificatorID, Store> rdd) {
-        super(rdd);
+    public NotificationStoresRDD(JavaRDD<Tuple2<NotificatorID, Store>> rdd) {
+        super(rdd.rdd(), rdd.classTag());
     }
 
     public static NotificationStoresRDD load(String storing_path, JavaSparkContext context) throws IOException, ClassNotFoundException {
@@ -39,14 +38,14 @@ public class NotificationStoresRDD extends RDD<JavaPairRDD<NotificatorID, Store>
             List<Tuple2<NotificatorID, Store>> stores = 
                     (List<Tuple2<NotificatorID, Store>>) is.readObject();
             
-            return new NotificationStoresRDD(context.parallelizePairs(stores));
+            return new NotificationStoresRDD(context.parallelize(stores));
         }else{
             return empty(context);
         }
     }
     
     public static NotificationStoresRDD empty(JavaSparkContext context){
-        return new NotificationStoresRDD(context.parallelizePairs(new LinkedList<Tuple2<NotificatorID, Store>>()));
+        return new NotificationStoresRDD(context.parallelize(new LinkedList<Tuple2<NotificatorID, Store>>()));
     }
 
     public void save(String storing_path) throws IOException {
@@ -57,7 +56,7 @@ public class NotificationStoresRDD extends RDD<JavaPairRDD<NotificatorID, Store>
         
         fs.mkdirs(tmpFile.getParent());
         
-        List<Tuple2<NotificatorID, Store>> metricStores = rdd().collect();
+        List<Tuple2<NotificatorID, Store>> metricStores = collect();
 
         ObjectOutputStream oos = new ObjectOutputStream(fs.create(tmpFile, true));
         oos.writeObject(metricStores);

@@ -2,12 +2,12 @@ package ch.cern.spark.metrics.notifications;
 
 import org.apache.spark.streaming.api.java.JavaMapWithStateDStream;
 
-import ch.cern.spark.Stream;
+import ch.cern.spark.MapWithStateStream;
 import ch.cern.spark.metrics.notificator.NotificatorID;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.store.Store;
 
-public class NotificationStatusesS extends Stream<JavaMapWithStateDStream<NotificatorID, AnalysisResult, Store, Notification>> {
+public class NotificationStatusesS extends MapWithStateStream<NotificatorID, AnalysisResult, Store, Notification> {
 
     private static final long serialVersionUID = 4302779063964080084L;
     
@@ -20,7 +20,7 @@ public class NotificationStatusesS extends Stream<JavaMapWithStateDStream<Notifi
     }
 
     public NotificationsWithIdS getAllNotificationsStatusesWithID() {
-        return new NotificationsWithIdS(stream().stateSnapshots());
+        return new NotificationsWithIdS(stateSnapshots());
     }
     
 }

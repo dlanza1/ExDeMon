@@ -6,7 +6,6 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.spark.Properties.Expirable;
-import ch.cern.spark.Stream;
 import ch.cern.spark.json.JavaObjectToJSONObjectParser;
 import ch.cern.spark.json.JsonS;
 import ch.cern.spark.metrics.Driver;
@@ -18,16 +17,12 @@ import ch.cern.spark.metrics.notifications.UpdateNotificationStatusesF;
 import ch.cern.spark.metrics.notificator.NotificatorID;
 import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
 
-public class AnalysisResultsS extends Stream<JavaDStream<AnalysisResult>> {
+public class AnalysisResultsS extends JavaDStream<AnalysisResult> {
 
     private static final long serialVersionUID = -7118785350719206804L;
     
     public AnalysisResultsS(JavaDStream<AnalysisResult> stream) {
-        super(stream);
-    }
-
-    public AnalysisResultsS union(AnalysisResultsS inputStream) {
-        return new AnalysisResultsS(stream().union(inputStream.stream()));
+        super(stream.dstream(), stream.classTag());
     }
 
     public void sink(AnalysisResultsSink analysisResultsSink) {
@@ -46,11 +41,11 @@ public class AnalysisResultsS extends Stream<JavaDStream<AnalysisResult>> {
     }
 
     public JavaPairDStream<NotificatorID, AnalysisResult> getWithID(Expirable propertiesExp) {
-        return stream().flatMapToPair(new ComputeIDsForAnalysisF(propertiesExp));
+        return flatMapToPair(new ComputeIDsForAnalysisF(propertiesExp));
     }
 
     public JsonS asJSON() {
-        return new JsonS(JavaObjectToJSONObjectParser.apply(stream()));
+        return new JsonS(JavaObjectToJSONObjectParser.apply(this));
     }
 
 }

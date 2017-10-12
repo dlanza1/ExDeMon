@@ -3,29 +3,28 @@ package ch.cern.spark.metrics.store;
 import java.io.IOException;
 
 import org.apache.spark.streaming.api.java.JavaDStream;
-import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.spark.Properties.Expirable;
-import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.ComputeMissingMetricResultsF;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResultsS;
+import scala.Tuple2;
 
-public class MetricStoresS extends Stream<JavaPairDStream<MonitorIDMetricIDs, MetricStore>> {
+public class MetricStoresS extends JavaDStream<Tuple2<MonitorIDMetricIDs, MetricStore>> {
 
     private static final long serialVersionUID = -6600062851176859489L;
     
-    public MetricStoresS(JavaPairDStream<MonitorIDMetricIDs, MetricStore> stream) {
-        super(stream);
+    public MetricStoresS(JavaDStream<Tuple2<MonitorIDMetricIDs, MetricStore>> stream) {
+        super(stream.dstream(), stream.classTag());
     }
 
     public void save(final String storing_path) throws IOException {
-    		stream().foreachRDD(rdd -> new MetricStoresRDD(rdd).save(storing_path));
+    		foreachRDD(rdd -> new MetricStoresRDD(rdd).save(storing_path));
     }
 
     public AnalysisResultsS missingMetricResults(final Expirable propertiesExp) {
-    		JavaDStream<AnalysisResult> results = stream().transform((rdd, time) -> rdd.flatMap(
+    		JavaDStream<AnalysisResult> results = transform((rdd, time) -> rdd.flatMap(
     					new ComputeMissingMetricResultsF(propertiesExp, time))
     				);
     		

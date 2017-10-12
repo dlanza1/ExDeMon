@@ -41,7 +41,7 @@ public class ComputeIDsForMetricsF implements PairFlatMapFunction<Metric, Monito
 
     public static JavaPairDStream<MonitorIDMetricIDs, Metric> apply(Expirable propertiesExp, MetricsS metricsS) {
         JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithIDs = 
-                metricsS.stream().flatMapToPair(new ComputeIDsForMetricsF(propertiesExp));
+                metricsS.flatMapToPair(new ComputeIDsForMetricsF(propertiesExp));
         
         return metricsWithIDs;
     }

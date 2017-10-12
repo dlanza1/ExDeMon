@@ -9,21 +9,20 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
-import ch.cern.spark.RDD;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import scala.Tuple2;
 
-public class MetricStoresRDD extends RDD<JavaPairRDD<MonitorIDMetricIDs, MetricStore>> {
+public class MetricStoresRDD extends JavaRDD<Tuple2<MonitorIDMetricIDs, MetricStore>> {
 
     private static final long serialVersionUID = 3741287858945087706L;
     
     private static transient FileSystem fs = null;
     
-    public MetricStoresRDD(JavaPairRDD<MonitorIDMetricIDs, MetricStore> rdd) {
-        super(rdd);
+    public MetricStoresRDD(JavaRDD<Tuple2<MonitorIDMetricIDs, MetricStore>> rdd) {
+        super(rdd.rdd(), rdd.classTag());
     }
     
     public void save(String storing_path) throws IllegalArgumentException, IOException {
@@ -34,7 +33,7 @@ public class MetricStoresRDD extends RDD<JavaPairRDD<MonitorIDMetricIDs, MetricS
         
         fs.mkdirs(tmpFile.getParent());
         
-        List<Tuple2<MonitorIDMetricIDs, MetricStore>> metricStores = rdd().collect();
+        List<Tuple2<MonitorIDMetricIDs, MetricStore>> metricStores = collect();
 
         ObjectOutputStream oos = new ObjectOutputStream(fs.create(tmpFile, true));
         oos.writeObject(metricStores);
@@ -73,14 +72,14 @@ public class MetricStoresRDD extends RDD<JavaPairRDD<MonitorIDMetricIDs, MetricS
             List<Tuple2<MonitorIDMetricIDs, MetricStore>> stores = 
                     (List<Tuple2<MonitorIDMetricIDs, MetricStore>>) is.readObject();
             
-            return new MetricStoresRDD(context.parallelizePairs(stores));
+            return new MetricStoresRDD(context.parallelize(stores));
         }else{
             return empty(context);
         }
     }
     
     public static MetricStoresRDD empty(JavaSparkContext context){
-        return new MetricStoresRDD(context.parallelizePairs(new LinkedList<Tuple2<MonitorIDMetricIDs, MetricStore>>()));
+        return new MetricStoresRDD(context.parallelize(new LinkedList<Tuple2<MonitorIDMetricIDs, MetricStore>>()));
     }
     
     private static void setFileSystem() throws IOException {
