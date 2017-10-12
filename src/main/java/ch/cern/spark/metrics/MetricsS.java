@@ -19,7 +19,7 @@ public class MetricsS extends JavaDStream<Metric> {
         super(stream.dstream(), stream.classTag());
     }
 
-    public AnalysisResultsS monitor(final Expirable propertiesExp, MetricStoresRDD initialMetricStores) throws ClassNotFoundException, IOException {
+    public AnalysisResultsS monitor(Expirable propertiesExp, MetricStoresRDD initialMetricStores) throws ClassNotFoundException, IOException {
     	
         JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithID = getMetricsWithIDStream(propertiesExp);
         

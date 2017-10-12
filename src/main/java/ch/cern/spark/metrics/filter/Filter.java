@@ -27,13 +27,14 @@ public class Filter implements Predicate<Metric>, Serializable{
     public void addPredicate(String key, String value){
 		if(value.startsWith(REGEX_PREFIX)) {
         		Pattern pattern = Pattern.compile(value.replace(REGEX_PREFIX, ""));
+        		
         		predicate = predicate
-        				.and(m -> m.getIDs().containsKey(key))
-        				.and(m -> pattern.matcher(m.getIDs().get(key)).matches());
+        				.and(metric -> metric.getIDs().containsKey(key))
+        				.and(metric -> pattern.matcher(metric.getIDs().get(key)).matches());
 		}else{			
         		predicate = predicate
-        				.and(m -> m.getIDs().containsKey(key))
-        				.and(m -> m.getIDs().get(key).equals(value));
+        				.and(metric -> metric.getIDs().containsKey(key))
+        				.and(metric -> metric.getIDs().get(key).equals(value));
 		}
     }
 

@@ -2,6 +2,7 @@ package ch.cern.spark.metrics;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
@@ -14,7 +15,7 @@ public class ComputeIDsForMetricsF implements PairFlatMapFunction<Metric, Monito
     
     private static final long serialVersionUID = 2181051149359938177L;
 
-    private LinkedList<Monitor> monitors = null;
+    private List<Monitor> monitors = null;
 
     private Expirable propertiesExp;
 

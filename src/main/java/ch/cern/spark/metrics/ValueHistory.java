@@ -11,6 +11,7 @@ import java.time.temporal.ChronoField;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
@@ -96,8 +97,10 @@ public class ValueHistory implements Serializable {
     public DescriptiveStatistics getStatistics() {
         DescriptiveStatistics stats = new DescriptiveStatistics();
         
-        for (DatedValue value : values)
-            stats.addValue(value.getValue());
+        values.stream()
+        		.map(DatedValue::getValue)
+        		.mapToDouble(Double::valueOf)
+        		.forEach(stats::addValue);
         
         return stats;
     }
@@ -130,15 +133,15 @@ public class ValueHistory implements Serializable {
         
         private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException{
             long period = in.readLong();
+            history = new ValueHistory(Duration.ofSeconds(period));
             
             int[] times = (int[]) in.readObject();
             float[] values = (float[]) in.readObject();
             
-            LinkedList<DatedValue> datedValues = new LinkedList<>();
-            for (int i = 0; i < times.length; i++)
-            		datedValues.add(new DatedValue(Instant.ofEpochSecond(times[i]), values[i]));
+            List<DatedValue> datedValues = IntStream.range(0, times.length)
+								            		.mapToObj(i -> new DatedValue(Instant.ofEpochSecond(times[i]), values[i]))
+								            		.collect(Collectors.toList());
             
-            history = new ValueHistory(Duration.ofSeconds(period));
             history.setDatedValues(datedValues);
         }
         
@@ -148,7 +151,7 @@ public class ValueHistory implements Serializable {
         this.values = new LinkedList<>();
     }
 
-    public void setDatedValues(LinkedList<DatedValue> newValues) {
+    public void setDatedValues(List<DatedValue> newValues) {
         this.values = newValues;
     }
 

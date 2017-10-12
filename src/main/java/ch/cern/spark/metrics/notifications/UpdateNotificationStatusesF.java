@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.notifications;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.spark.api.java.Optional;
@@ -47,28 +48,26 @@ public class UpdateNotificationStatusesF
         
         Notificator notificator = getMonitor(ids.getMonitorID()).getNotificator(ids.getNotificatorID(), store);        
         
-        Notification notification = notificator.process(
-                resuktOpt.get().getStatus(),
-                resuktOpt.get().getAnalyzedMetric().getInstant());
-        
-        if(notification != null){
-            notification.setMonitorID(ids.getMonitorID());
-            notification.setNotificatorID(ids.getNotificatorID());
-            notification.setMetricIDs(ids.getMetricIDs());
-            notification.setTimestamp(resuktOpt.get().getAnalyzedMetric().getInstant());
-        }
+        java.util.Optional<Notification> notification = notificator.process(
+											                resuktOpt.get().getStatus(),
+											                resuktOpt.get().getAnalyzedMetric().getInstant());
+        notification.ifPresent(c -> c.setMetricIDs(new HashMap<>()));
         
         if(notificator instanceof HasStore)
             notificatorState.update(((HasStore) notificator).save());
         
-        return Optional.fromNullable(notification);
+        notification.ifPresent(n -> {
+            n.setMonitorID(ids.getMonitorID());
+            n.setNotificatorID(ids.getNotificatorID());
+            n.setMetricIDs(ids.getMetricIDs());
+            n.setTimestamp(resuktOpt.get().getAnalyzedMetric().getInstant());
+        });
+
+        return notification.isPresent() ? Optional.of(notification.get()) : Optional.empty();
     }
 
     private Store getStore(State<Store> notificatorState) {
-        if(notificatorState.exists())
-            return notificatorState.get();
-        
-        return null;
+        return notificatorState.exists() ? notificatorState.get() : null;
     }
 
     private Monitor getMonitor(String monitorID) {

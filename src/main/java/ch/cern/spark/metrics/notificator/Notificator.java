@@ -2,6 +2,7 @@ package ch.cern.spark.metrics.notificator;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Optional;
 
 import ch.cern.spark.Component;
 import ch.cern.spark.metrics.notifications.Notification;
@@ -19,6 +20,6 @@ public abstract class Notificator extends Component implements Serializable{
         super(Type.NOTIFICATOR, subClass, name);
     }
 
-    public abstract Notification process(Status status, Instant timestamp);
+    public abstract Optional<Notification> process(Status status, Instant timestamp);
 
 }

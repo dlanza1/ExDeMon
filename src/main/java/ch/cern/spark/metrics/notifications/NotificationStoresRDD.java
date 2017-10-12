@@ -25,51 +25,52 @@ public class NotificationStoresRDD extends JavaRDD<Tuple2<NotificatorID, Store>>
     public NotificationStoresRDD(JavaRDD<Tuple2<NotificatorID, Store>> rdd) {
         super(rdd.rdd(), rdd.classTag());
     }
-
-    public static NotificationStoresRDD load(String storing_path, JavaSparkContext context) throws IOException, ClassNotFoundException {
+    
+	protected static List<Tuple2<NotificatorID, Store>> load(String storing_path) throws IOException, ClassNotFoundException {
         setFileSystem();
         
         Path file = getStoringFile(storing_path);
         
-        if(fs.exists(file)){
-            ObjectInputStream is = new ObjectInputStream(fs.open(file));
-            
-            @SuppressWarnings("unchecked")
-            List<Tuple2<NotificatorID, Store>> stores = 
-                    (List<Tuple2<NotificatorID, Store>>) is.readObject();
-            
-            return new NotificationStoresRDD(context.parallelize(stores));
-        }else{
-            return empty(context);
-        }
-    }
-    
-    public static NotificationStoresRDD empty(JavaSparkContext context){
-        return new NotificationStoresRDD(context.parallelize(new LinkedList<Tuple2<NotificatorID, Store>>()));
+        if(!fs.exists(file))
+        		return new LinkedList<Tuple2<NotificatorID, Store>>();
+        
+        ObjectInputStream is = new ObjectInputStream(fs.open(file));
+        
+        @SuppressWarnings("unchecked")
+        List<Tuple2<NotificatorID, Store>> stores = (List<Tuple2<NotificatorID, Store>>) is.readObject();
+        
+        is.close();
+        
+        return stores;
+	}
+
+    public static NotificationStoresRDD load(String storing_path, JavaSparkContext context) throws IOException, ClassNotFoundException {
+    		return new NotificationStoresRDD(context.parallelize(load(storing_path)));
     }
 
     public void save(String storing_path) throws IOException {
+    		save(storing_path, collect());
+    }
+    
+	public static void save(String storing_path, List<Tuple2<NotificatorID, Store>> notifications) throws IOException {
         setFileSystem();
         
         Path finalFile = getStoringFile(storing_path);
         Path tmpFile = finalFile.suffix(".tmp");
         
         fs.mkdirs(tmpFile.getParent());
-        
-        List<Tuple2<NotificatorID, Store>> metricStores = collect();
 
         ObjectOutputStream oos = new ObjectOutputStream(fs.create(tmpFile, true));
-        oos.writeObject(metricStores);
+        oos.writeObject(notifications);
         oos.close();
         
         if(canBeRead(tmpFile)){
             fs.delete(finalFile, false);
             fs.rename(tmpFile, finalFile);
         }
-        
-    }
+	}
     
-    private boolean canBeRead(Path tmpFile) throws IOException {
+    private static boolean canBeRead(Path tmpFile) throws IOException {
         setFileSystem();
         
         try {
