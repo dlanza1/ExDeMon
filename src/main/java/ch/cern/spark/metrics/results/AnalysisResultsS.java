@@ -28,6 +28,10 @@ public class AnalysisResultsS extends JavaDStream<AnalysisResult> {
     public void sink(AnalysisResultsSink analysisResultsSink) {
         analysisResultsSink.sink(this);
     }
+    
+    public AnalysisResultsS union(AnalysisResultsS input) {
+    		return new AnalysisResultsS(super.union(input));
+    }
 
     public NotificationsS notifications(Expirable propertiesExp, NotificationStoresRDD initialNotificationStores) throws IOException {
         JavaPairDStream<NotificatorID, AnalysisResult> metricsWithID = getWithID(propertiesExp);

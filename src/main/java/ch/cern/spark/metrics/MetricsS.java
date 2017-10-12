@@ -32,7 +32,7 @@ public class MetricsS extends JavaDStream<Metric> {
         
         metricStores.save(Driver.getCheckpointDir(propertiesExp));
         
-        return new AnalysisResultsS(resultsFromAnalysis.union(missingMetricsResults));
+        return resultsFromAnalysis.union(missingMetricsResults);
     }
 
     public JavaPairDStream<MonitorIDMetricIDs, Metric> getMetricsWithIDStream(Expirable propertiesExp) {
