@@ -62,7 +62,7 @@ public class Monitor implements Serializable{
         return this;
     }
 
-    public AnalysisResult process(MetricStore store, Instant timestamp, Float value) throws Exception {
+    public AnalysisResult process(MetricStore store, Instant timestamp, float value) throws Exception {
         AnalysisResult result = null;
         
         try{

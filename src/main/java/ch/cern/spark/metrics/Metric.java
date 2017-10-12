@@ -45,7 +45,7 @@ public class Metric implements Serializable{
         return timestamp;
     }
 
-    public Float getValue() {
+    public float getValue() {
         return value;
     }
     
