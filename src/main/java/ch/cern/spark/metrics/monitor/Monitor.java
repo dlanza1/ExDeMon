@@ -68,7 +68,8 @@ public class Monitor implements Serializable{
             
             result = analysis(store, timestamp, preAnalyzedValue.orElse(value));
             
-            result.addMonitorParam("preAnalyzedValue", preAnalyzedValue);
+            if(preAnalyzedValue.isPresent())
+            		result.addMonitorParam("preAnalyzedValue", preAnalyzedValue);
         }catch(Throwable e){
             result = AnalysisResult.buildWithStatus(Status.EXCEPTION, e.getClass().getSimpleName() + ": " + e.getMessage());
             LOG.error(e.getMessage(), e);

@@ -85,7 +85,7 @@ public final class Driver {
 		ssc.checkpoint(getCheckpointDir(properties) + "/checkpoint/");
 		
 		Properties metricSourceProperties = properties.get().getSubset("source");
-		if(metricSourceProperties.getProperty("type") == null)
+		if(!metricSourceProperties.isTypeDefined())
 		    throw new RuntimeException("A metric source must be configured");
 		MetricsSource metricSource = (MetricsSource) ComponentManager.build(Type.SOURCE, metricSourceProperties);
 		MetricsS metrics = metricSource.createMetricsStream(ssc);
@@ -103,16 +103,14 @@ public final class Driver {
 		NotificationsS notifications = results.notifications(properties, initialNotificationStores);
 		
 		Properties notificationsSinkProperties = properties.get().getSubset("notifications.sink");
-        if(notificationsSinkProperties.getProperty("type") != null){
-    		NotificationsSink notificationsSink = 
-    		        (NotificationsSink) ComponentManager.build(Type.NOTIFICATIONS_SINK, notificationsSinkProperties);
-    		notifications.sink(notificationsSink);
+        if(notificationsSinkProperties.isTypeDefined()){
+    			NotificationsSink notificationsSink = 
+    					(NotificationsSink) ComponentManager.build(Type.NOTIFICATIONS_SINK, notificationsSinkProperties);
+    			notifications.sink(notificationsSink);
         }
         
-        if(analysisResultsSinkProperties.getProperty("type") == null
-                && notificationsSinkProperties.getProperty("type") == null){
+        if(!analysisResultsSinkProperties.isTypeDefined() && !notificationsSinkProperties.isTypeDefined())
             throw new RuntimeException("At least one sink must be configured");
-        }
 		
 		return ssc;
 	}
