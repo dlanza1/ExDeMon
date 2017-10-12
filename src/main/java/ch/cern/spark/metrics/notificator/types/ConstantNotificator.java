@@ -3,6 +3,7 @@ package ch.cern.spark.metrics.notificator.types;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -67,7 +68,7 @@ public class ConstantNotificator extends Notificator implements HasStore {
     }
 
     @Override
-    public Notification process(Status status, Instant timestamp) {
+    public Optional<Notification> process(Status status, Instant timestamp) {
         boolean isExpectedStatus = isExpectedStatus(status);
         
         if(isExpectedStatus && constantlySeenFrom == null)
@@ -84,9 +85,9 @@ public class ConstantNotificator extends Notificator implements HasStore {
             
             constantlySeenFrom = null;
             
-            return notification;
+            return Optional.of(notification);
         }else{
-            return null;
+            return Optional.empty();
         }
     }
     

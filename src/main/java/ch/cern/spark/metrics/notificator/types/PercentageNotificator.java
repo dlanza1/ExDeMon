@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -77,14 +78,14 @@ public class PercentageNotificator extends Notificator implements HasStore {
     }
 
     @Override
-    public Notification process(Status status, Instant timestamp) {
+    public Optional<Notification> process(Status status, Instant timestamp) {
         removeExpiredHits(timestamp);
         
         hits.add(new Pair<Instant, Boolean>(timestamp, isExpectedStatus(status)));
         
         Duration coveredPeriod = getCoveredPeriod(timestamp);
         if(coveredPeriod.compareTo(period) < 0)
-            return null;
+            return Optional.empty();
         
         if(raise(timestamp)){
             Notification notification = new Notification();
@@ -93,9 +94,9 @@ public class PercentageNotificator extends Notificator implements HasStore {
             
             hits = new LinkedList<>();
             
-            return notification;
+            return Optional.of(notification);
         }else{
-            return null;
+            return Optional.empty();
         }
     }
 
