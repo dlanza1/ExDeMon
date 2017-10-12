@@ -97,6 +97,12 @@ public class Properties extends java.util.Properties{
         
         return value == null ? null : Long.parseLong(value);
     }
+    
+    public long getLong(String key, long defaultValue) {
+    		Long value = getLong(key);
+    	
+    		return value == null ? defaultValue : value;
+	}
 
     public boolean getBoolean(String key) {
         String value = getProperty(key);

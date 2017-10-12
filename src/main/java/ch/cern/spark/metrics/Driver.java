@@ -77,9 +77,7 @@ public final class Driver {
     protected JavaStreamingContext createNewStreamingContext() 
             throws Exception {
 	    
-        Long batchInterval = properties.get().getLong(BATCH_INTERVAL_PARAM);
-        if(batchInterval == null)
-            batchInterval = 30l;
+        long batchInterval = properties.get().getLong(BATCH_INTERVAL_PARAM, 30);
         
 		JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, Durations.seconds(batchInterval));
 		ssc.checkpoint(getCheckpointDir(properties) + "/checkpoint/");
