@@ -43,9 +43,8 @@ public class UpdateMetricStatusesF
         
         Monitor monitor = getMonitor(ids.getMonitorID());
         
-        if(storeState.isTimingOut()) {
+        if(storeState.isTimingOut())
             return Optional.of(AnalysisResult.buildTimingOut(ids, monitor, Instant.ofEpochMilli(time.milliseconds())));
-        }
         
         if(!metricOpt.isPresent())
             return Optional.absent();
@@ -71,11 +70,7 @@ public class UpdateMetricStatusesF
     }
     
     private MetricStore getMetricStore(State<MetricStore> storeState) {
-        if(storeState.exists()){
-            return storeState.get();
-        }else{
-            return new MetricStore();
-        }
+        return storeState.exists() ? storeState.get() : new MetricStore();
     }
 
     public static MetricStatusesS apply(
