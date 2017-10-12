@@ -1,5 +1,6 @@
 package ch.cern.spark.metrics;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +36,7 @@ public class ComputeIDsForMetricsF implements PairFlatMapFunction<Metric, Monito
 	        		.iterator();
     }
     
-    private void setMonitors() {
+    private void setMonitors() throws IOException {
         if(monitors == null)
             monitors = new LinkedList<Monitor>(Monitor.getAll(propertiesExp).values());
     }

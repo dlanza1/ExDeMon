@@ -70,7 +70,7 @@ public class UpdateNotificationStatusesF
         return notificatorState.exists() ? notificatorState.get() : null;
     }
 
-    private Monitor getMonitor(String monitorID) {
+    private Monitor getMonitor(String monitorID) throws IOException {
         if (monitors == null)
             monitors = Monitor.getAll(propertiesExp);
 

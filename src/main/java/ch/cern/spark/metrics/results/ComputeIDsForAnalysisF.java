@@ -1,5 +1,6 @@
 package ch.cern.spark.metrics.results;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +39,7 @@ public class ComputeIDsForAnalysisF implements PairFlatMapFunction<AnalysisResul
         		.iterator();
     }
     
-    private Monitor getMonitor(String monitorID) {
+    private Monitor getMonitor(String monitorID) throws IOException {
         if (monitors == null)
             monitors = Monitor.getAll(propertiesExp);
 

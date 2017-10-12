@@ -1,5 +1,6 @@
 package ch.cern.spark.metrics;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
@@ -56,7 +57,7 @@ public class ComputeMissingMetricResultsF implements FlatMapFunction<Tuple2<Moni
         return result.iterator();
     }
     
-    private Monitor getMonitor(String monitorID) {
+    private Monitor getMonitor(String monitorID) throws IOException {
         if(monitors == null)
             monitors = Monitor.getAll(propertiesExp);
         

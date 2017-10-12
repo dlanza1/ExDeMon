@@ -9,11 +9,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
 import ch.cern.spark.Component.Type;
 import ch.cern.spark.ComponentManager;
+import ch.cern.spark.Pair;
 import ch.cern.spark.Properties;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.filter.Filter;
@@ -123,28 +125,15 @@ public class Monitor implements Serializable{
         this.id = id;
     }
     
-    public static Map<String, Monitor> getAll(Properties.Expirable propertiesExp) {
-        Map<String, Monitor> monitors = new HashMap<>();
+    public static Map<String, Monitor> getAll(Properties.Expirable propertiesExp) throws IOException {
+        Properties properties = propertiesExp.get().getSubset("monitor");
         
-        Properties properties;
-        try {
-            properties = propertiesExp.get();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Set<String> monitorNames = properties.getUniqueKeyFields();
         
-        Properties monitorsProperties = properties.getSubset("monitor");
-        
-        Set<String> monitorNames = monitorsProperties.getUniqueKeyFields();
-        
-        for (String monitorName : monitorNames) {
-            Properties monitorProps = monitorsProperties.getSubset(monitorName);
-            
-            Monitor metricMonitor = new Monitor(monitorName);
-            metricMonitor.config(monitorProps);
-            
-            monitors.put(monitorName, metricMonitor);
-        }
+        Map<String, Monitor> monitors = monitorNames.stream()
+        		.map(id -> new Pair<String, Properties>(id, properties.getSubset(id)))
+        		.map(info -> new Monitor(info.first).config(info.second))
+        		.collect(Collectors.toMap(Monitor::getId, m -> m));
         
         LOG.info("Monitors: " + monitors);
         
