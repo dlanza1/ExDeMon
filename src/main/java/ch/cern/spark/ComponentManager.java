@@ -3,6 +3,7 @@ package ch.cern.spark;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.log4j.Logger;
 
@@ -14,6 +15,7 @@ import ch.cern.spark.metrics.analysis.types.SeasonalAnalysis;
 import ch.cern.spark.metrics.notifications.sink.types.ElasticNotificationsSink;
 import ch.cern.spark.metrics.notificator.types.ConstantNotificator;
 import ch.cern.spark.metrics.notificator.types.PercentageNotificator;
+import ch.cern.spark.metrics.preanalysis.PreAnalysis;
 import ch.cern.spark.metrics.preanalysis.types.AveragePreAnalysis;
 import ch.cern.spark.metrics.preanalysis.types.DifferencePreAnalysis;
 import ch.cern.spark.metrics.preanalysis.types.WeightedAveragePreAnalysis;
@@ -128,5 +130,12 @@ public class ComponentManager {
     public static Map<String, Class<? extends Component>> getAvailableComponents(Type componentType){
         return availableComponents.get(componentType);
     }
+
+	public static Optional<PreAnalysis> buildPreAnalysis(Store store, Properties props) throws Exception {
+		if(!props.isTypeDefined())
+			return Optional.empty();
+		
+		return Optional.of((PreAnalysis) build(Type.PRE_ANALYSIS, store, props));
+	}
 
 }

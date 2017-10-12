@@ -9,14 +9,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
+import ch.cern.spark.Component;
 import ch.cern.spark.Component.Type;
 import ch.cern.spark.ComponentManager;
 import ch.cern.spark.Pair;
 import ch.cern.spark.Properties;
+import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.filter.Filter;
 import ch.cern.spark.metrics.notificator.Notificator;
@@ -62,16 +65,20 @@ public class Monitor implements Serializable{
         return this;
     }
 
-    public AnalysisResult process(MetricStore store, Instant timestamp, float value) throws Exception {
+    public AnalysisResult process(MetricStore store, Metric metric) throws Exception {
+    	
+    		Optional<PreAnalysis> preAnalysis = ComponentManager.buildPreAnalysis(store.getPreAnalysisStore(), preAnalysisProps);
+    		Analysis analysis = (Analysis) ComponentManager.build(Type.ANAYLSIS, store.getAnalysisStore(), analysisProps);
+    		
         AnalysisResult result = null;
         
         try{
-            OptionalDouble preAnalyzedValue = preAnalysis(store, timestamp, value);
-            
-            result = analysis(store, timestamp, preAnalyzedValue.orElse(value));
+        		Optional<Metric> preAnalyzedValue = preAnalysis.flatMap(metric::map);
+
+            result = preAnalyzedValue.orElse(metric).map(analysis).get();
             
             if(preAnalyzedValue.isPresent())
-            		result.addMonitorParam("preAnalyzedValue", preAnalyzedValue.getAsDouble());
+            		result.addMonitorParam("preAnalyzedValue", preAnalyzedValue.get().getValue());
         }catch(Throwable e){
             result = AnalysisResult.buildWithStatus(Status.EXCEPTION, e.getClass().getSimpleName() + ": " + e.getMessage());
             LOG.error(e.getMessage(), e);
@@ -79,33 +86,11 @@ public class Monitor implements Serializable{
         
         result.addMonitorParam("name", id);
         result.addMonitorParam("type", analysisProps.getProperty("type"));
+        
+        preAnalysis.flatMap(Component::getStore).ifPresent(store::setPreAnalysisStore);
+        analysis.getStore().ifPresent(store::setAnalysisStore);
 
         return result;
-    }
-
-    private AnalysisResult analysis(MetricStore store, Instant timestamp, double value) throws Exception {
-        Analysis analysis = (Analysis) ComponentManager.build(Type.ANAYLSIS, store.getAnalysisStore(), analysisProps);
-        
-        AnalysisResult result = analysis.process(timestamp, value);
-        
-        if(analysis instanceof HasStore)
-            store.setAnalysisStore(((HasStore) analysis).save());
-        
-        return result;
-    }
-
-    private OptionalDouble preAnalysis(MetricStore store, Instant timestamp, double value) throws Exception {
-        if(!preAnalysisProps.isTypeDefined())
-        		return OptionalDouble.empty();
-        	
-        PreAnalysis preAnalysis = (PreAnalysis) ComponentManager.build(Type.PRE_ANALYSIS, store.getPreAnalysisStore(), preAnalysisProps);
-     
-        double preAnalyzedValue = preAnalysis.process(timestamp, value);
-        
-        if(preAnalysis instanceof HasStore)
-            store.setPreAnalysisStore(((HasStore) preAnalysis).save());
-        
-        return OptionalDouble.of(preAnalyzedValue);
     }
     
     public Filter getFilter(){

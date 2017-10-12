@@ -1,6 +1,10 @@
 package ch.cern.spark;
 
 import java.io.Serializable;
+import java.util.Optional;
+
+import ch.cern.spark.metrics.store.HasStore;
+import ch.cern.spark.metrics.store.Store;
 
 public abstract class Component implements Serializable {
     
@@ -37,5 +41,12 @@ public abstract class Component implements Serializable {
     public String getName(){
         return name;
     }
+    
+	public Optional<Store> getStore() {
+		if(this instanceof HasStore)
+			return Optional.ofNullable(((HasStore) this).save());
+		else
+			return Optional.empty();
+	}
     
 }
