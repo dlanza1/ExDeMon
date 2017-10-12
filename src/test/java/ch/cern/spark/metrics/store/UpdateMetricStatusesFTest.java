@@ -2,7 +2,6 @@ package ch.cern.spark.metrics.store;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -70,7 +69,7 @@ public class UpdateMetricStatusesFTest {
         UpdateMetricStatusesF func = new UpdateMetricStatusesF(props);
         
         MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
-        Instant metricTime = Instant.now();
+        Instant metricTime = Instant.ofEpochMilli(Instant.now().toEpochMilli());        
         Optional<Metric> metricOpt = Optional.of(new Metric(metricTime , 10, new HashMap<String, String>()));
         
         @SuppressWarnings("unchecked")
@@ -83,7 +82,7 @@ public class UpdateMetricStatusesFTest {
         
         assertTrue(resultOpt.isPresent());
         verify(storeState, times(1)).update(store);
-        assertSame(metricTime, store.getLastestTimestamp());
+        assertEquals(metricTime, store.getLastestTimestamp());
     }
     
 }

@@ -2,6 +2,7 @@ package ch.cern.spark.metrics.notificator.types;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -51,14 +52,16 @@ public class ConstantNotificator extends Notificator implements HasStore {
         
         Store_ data = (Store_) store;
         
-        constantlySeenFrom = data.constantlySeenFrom;
+        if(data.constantlySeenFrom != null)
+        		constantlySeenFrom = data.constantlySeenFrom.toInstant();
     }
 
     @Override
     public Store save() {
         Store_ store = new Store_();
         
-        store.constantlySeenFrom = constantlySeenFrom;
+        if(constantlySeenFrom != null)
+        		store.constantlySeenFrom = Date.from(constantlySeenFrom);
         
         return store;
     }
@@ -105,7 +108,7 @@ public class ConstantNotificator extends Notificator implements HasStore {
     public static class Store_ implements Store{
         private static final long serialVersionUID = -1907347033980904180L;
         
-        Instant constantlySeenFrom;
+        Date constantlySeenFrom;
     }
 
 }

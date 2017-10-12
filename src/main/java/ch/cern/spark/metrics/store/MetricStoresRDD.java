@@ -26,14 +26,16 @@ public class MetricStoresRDD extends JavaRDD<Tuple2<MonitorIDMetricIDs, MetricSt
     }
     
     public void save(String storing_path) throws IllegalArgumentException, IOException {
+    		save(storing_path, collect());
+    }
+    
+    protected static void save(String storing_path, List<Tuple2<MonitorIDMetricIDs, MetricStore>> metricStores) throws IllegalArgumentException, IOException {
         setFileSystem();
         
         Path finalFile = getStoringFile(storing_path);
         Path tmpFile = finalFile.suffix(".tmp");
         
         fs.mkdirs(tmpFile.getParent());
-        
-        List<Tuple2<MonitorIDMetricIDs, MetricStore>> metricStores = collect();
 
         ObjectOutputStream oos = new ObjectOutputStream(fs.create(tmpFile, true));
         oos.writeObject(metricStores);
@@ -46,7 +48,7 @@ public class MetricStoresRDD extends JavaRDD<Tuple2<MonitorIDMetricIDs, MetricSt
             
     }
     
-    private boolean canBeRead(Path tmpFile) throws IOException {
+    private static boolean canBeRead(Path tmpFile) throws IOException {
         setFileSystem();
         
         try {
@@ -61,7 +63,7 @@ public class MetricStoresRDD extends JavaRDD<Tuple2<MonitorIDMetricIDs, MetricSt
     }
 
     @SuppressWarnings("unchecked")
-    public static MetricStoresRDD load(String storing_path, JavaSparkContext context) throws IOException, ClassNotFoundException {
+    protected static List<Tuple2<MonitorIDMetricIDs, MetricStore>> load(String storing_path) throws IOException, ClassNotFoundException {
         setFileSystem();
         
         Path file = getStoringFile(storing_path);
@@ -72,14 +74,14 @@ public class MetricStoresRDD extends JavaRDD<Tuple2<MonitorIDMetricIDs, MetricSt
             List<Tuple2<MonitorIDMetricIDs, MetricStore>> stores = 
                     (List<Tuple2<MonitorIDMetricIDs, MetricStore>>) is.readObject();
             
-            return new MetricStoresRDD(context.parallelize(stores));
+            return stores;
         }else{
-            return empty(context);
+            return new LinkedList<Tuple2<MonitorIDMetricIDs, MetricStore>>();
         }
     }
     
-    public static MetricStoresRDD empty(JavaSparkContext context){
-        return new MetricStoresRDD(context.parallelize(new LinkedList<Tuple2<MonitorIDMetricIDs, MetricStore>>()));
+    public static MetricStoresRDD load(String storing_path, JavaSparkContext context) throws IOException, ClassNotFoundException {
+    		return new MetricStoresRDD(context.parallelize(load(storing_path)));
     }
     
     private static void setFileSystem() throws IOException {
