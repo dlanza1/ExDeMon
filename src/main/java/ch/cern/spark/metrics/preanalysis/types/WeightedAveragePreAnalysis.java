@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalDouble;
 
 import ch.cern.spark.Pair;
 import ch.cern.spark.Properties;
@@ -53,16 +54,16 @@ public class WeightedAveragePreAnalysis extends PreAnalysis implements HasStore{
     }
     
     @Override
-    public float process(Instant metric_timestamp, float metric_value) {
-        history.add(metric_timestamp, metric_value);
+    public double process(Instant metric_timestamp, double metric_value) {
+        history.add(metric_timestamp, (float) metric_value);
         history.purge(metric_timestamp);
         
-        Optional<Float> newValue = computeAverageForTime(metric_timestamp);
+        OptionalDouble newValue = computeAverageForTime(metric_timestamp);
         
         return newValue.orElse(metric_value);
     }
 
-    private Optional<Float> computeAverageForTime(Instant time) {
+    private OptionalDouble computeAverageForTime(Instant time) {
         List<DatedValue> values = history.getDatedValues();
 
         Optional<Pair<Double, Double>> pairSum = values.stream()
@@ -74,12 +75,12 @@ public class WeightedAveragePreAnalysis extends PreAnalysis implements HasStore{
         									.reduce((p1, p2) -> new Pair<Double, Double>(p1.first + p2.first, p1.second + p2.second));
         
         if(!pairSum.isPresent())
-            return Optional.empty();
+            return OptionalDouble.empty();
         
         double totalWeights = pairSum.get().first;
         double weightedValues = pairSum.get().second;
         
-        return Optional.of((float) (weightedValues / totalWeights));
+        return OptionalDouble.of(weightedValues / totalWeights);
     }
 
     private float computeWeight(Instant time, Instant metric_timestamp) {

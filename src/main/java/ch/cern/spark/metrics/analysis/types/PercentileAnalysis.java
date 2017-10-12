@@ -98,15 +98,12 @@ public class PercentileAnalysis extends Analysis implements HasStore{
     }
 
     @Override
-    public AnalysisResult process(Instant timestamp, Float value) {
-        if(value == null)
-            return AnalysisResult.buildWithStatus(AnalysisResult.Status.EXCEPTION, "Value ("+value+") cannot be parsed to float");
-        
+    public AnalysisResult process(Instant timestamp, double value) {
         history.purge(timestamp);
         
         DescriptiveStatistics stats = history.getStatistics();
 
-        history.add(timestamp, value);
+        history.add(timestamp, (float) value);
         
         if(history.size() < 5)
             return AnalysisResult.buildWithStatus(Status.EXCEPTION, "Not enought historic data (min 5 points)");
@@ -126,7 +123,7 @@ public class PercentileAnalysis extends Analysis implements HasStore{
         return result;
     }
     
-    private void processErrorLowerbound(AnalysisResult result, float value, DescriptiveStatistics stats, double median) {
+    private void processErrorLowerbound(AnalysisResult result, double value, DescriptiveStatistics stats, double median) {
         if(!error_lowerbound)
             return;
         
@@ -148,7 +145,7 @@ public class PercentileAnalysis extends Analysis implements HasStore{
         }
     }
 
-    private void processWarningLowerbound(AnalysisResult result, float value, DescriptiveStatistics stats, double median) {
+    private void processWarningLowerbound(AnalysisResult result, double value, DescriptiveStatistics stats, double median) {
         if(!warning_lowerbound)
             return;
         
@@ -170,7 +167,7 @@ public class PercentileAnalysis extends Analysis implements HasStore{
         }
     }
 
-    private void processWarningUpperbound(AnalysisResult result, float value, DescriptiveStatistics stats, double median) {
+    private void processWarningUpperbound(AnalysisResult result, double value, DescriptiveStatistics stats, double median) {
         if(!warning_upperbound)
             return;
         
@@ -192,7 +189,7 @@ public class PercentileAnalysis extends Analysis implements HasStore{
         }
     }
 
-    private void processErrorUpperbound(AnalysisResult result, float value, DescriptiveStatistics stats, double median) {
+    private void processErrorUpperbound(AnalysisResult result, double value, DescriptiveStatistics stats, double median) {
         if(!error_upperbound)
             return;
         

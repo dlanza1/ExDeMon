@@ -82,20 +82,17 @@ public class RecentActivityAnalysis extends Analysis implements HasStore{
     }
 
     @Override
-    public AnalysisResult process(Instant timestamp, Float value) {
-        if(value == null)
-            return AnalysisResult.buildWithStatus(AnalysisResult.Status.EXCEPTION, "Value ("+value+") cannot be parsed to float");
-        
+    public AnalysisResult process(Instant timestamp, double value) {
         history.purge(timestamp);
         
         DescriptiveStatistics stats = history.getStatistics();
 
-        history.add(timestamp, value);
+        history.add(timestamp, (float) value);
         
         AnalysisResult result = new AnalysisResult();
         
-        float median = (float) stats.getMean();
-        float variance = (float) stats.getStandardDeviation();
+        double median = stats.getMean();
+        double variance = stats.getStandardDeviation();
         
         processErrorUpperbound(result, value, median, variance); 
         processWarningUpperbound(result, value, median, variance);
@@ -108,11 +105,11 @@ public class RecentActivityAnalysis extends Analysis implements HasStore{
         return result;
     }
     
-    private void processErrorLowerbound(AnalysisResult result, float value, float average, float variance) {
+    private void processErrorLowerbound(AnalysisResult result, double value, double average, double variance) {
         if(!error_lowerbound)
             return;
         
-        float error_lowerbound_value = average - variance * error_ratio ;
+        double error_lowerbound_value = average - variance * error_ratio ;
         result.addMonitorParam("error_lowerbound", error_lowerbound_value);
         
         if(result.hasStatus())
@@ -126,11 +123,11 @@ public class RecentActivityAnalysis extends Analysis implements HasStore{
         }
     }
 
-    private void processWarningLowerbound(AnalysisResult result, float value, float average, float variance) {
+    private void processWarningLowerbound(AnalysisResult result, double value, double average, double variance) {
         if(!warning_lowerbound)
             return;
         
-        float warning_lowerbound_value = average - variance * warn_ratio;
+        double warning_lowerbound_value = average - variance * warn_ratio;
         result.addMonitorParam("warning_lowerbound", warning_lowerbound_value);
         
         if(result.hasStatus())
@@ -144,11 +141,11 @@ public class RecentActivityAnalysis extends Analysis implements HasStore{
         }
     }
 
-    private void processWarningUpperbound(AnalysisResult result, float value, float average, float variance) {
+    private void processWarningUpperbound(AnalysisResult result, double value, double average, double variance) {
         if(!warning_upperbound)
             return;
         
-        float warning_upperbound_value = average + variance * warn_ratio;
+        double warning_upperbound_value = average + variance * warn_ratio;
         result.addMonitorParam("warning_upperbound", warning_upperbound_value);
         
         if(result.hasStatus())
@@ -162,11 +159,11 @@ public class RecentActivityAnalysis extends Analysis implements HasStore{
         }
     }
 
-    private void processErrorUpperbound(AnalysisResult result, float value, float average, float variance) {
+    private void processErrorUpperbound(AnalysisResult result, double value, double average, double variance) {
         if(!error_upperbound)
             return;
         
-        float error_upperbound_value = average + variance * error_ratio;
+        double error_upperbound_value = average + variance * error_ratio;
         result.addMonitorParam("error_upperbound", error_upperbound_value);
         
         if(result.hasStatus())

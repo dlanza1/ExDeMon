@@ -35,7 +35,7 @@ public class ValueHistory implements Serializable {
         this.period = period;
     }
 
-    public void add(Instant time, Float value) {
+    public void add(Instant time, float value) {
         values.add(new DatedValue(time, value));
     }
     

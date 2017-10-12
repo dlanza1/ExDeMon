@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -63,9 +64,9 @@ public class Monitor implements Serializable{
         AnalysisResult result = null;
         
         try{
-            Float preAnalyzedValue = preAnalysis(store, timestamp, value);
+            OptionalDouble preAnalyzedValue = preAnalysis(store, timestamp, value);
             
-            result = analysis(store, timestamp, preAnalyzedValue != null ? preAnalyzedValue : value);
+            result = analysis(store, timestamp, preAnalyzedValue.orElse(value));
             
             result.addMonitorParam("preAnalyzedValue", preAnalyzedValue);
         }catch(Throwable e){
@@ -79,7 +80,7 @@ public class Monitor implements Serializable{
         return result;
     }
 
-    private AnalysisResult analysis(MetricStore store, Instant timestamp, Float value) throws Exception {
+    private AnalysisResult analysis(MetricStore store, Instant timestamp, double value) throws Exception {
         Analysis analysis = (Analysis) ComponentManager.build(Type.ANAYLSIS, store.getAnalysisStore(), analysisProps);
         
         AnalysisResult result = analysis.process(timestamp, value);
@@ -90,19 +91,18 @@ public class Monitor implements Serializable{
         return result;
     }
 
-    private Float preAnalysis(MetricStore store, Instant timestamp, Float value) throws Exception {
-        if(preAnalysisProps.getProperty("type") != null){
-            PreAnalysis preAnalysis = (PreAnalysis) ComponentManager.build(Type.PRE_ANALYSIS, store.getPreAnalysisStore(), preAnalysisProps);
-         
-            value = preAnalysis.process(timestamp, value);
-            
-            if(preAnalysis instanceof HasStore)
-                store.setPreAnalysisStore(((HasStore) preAnalysis).save());
-            
-            return value;
-        }else{
-            return null;
-        }
+    private OptionalDouble preAnalysis(MetricStore store, Instant timestamp, double value) throws Exception {
+        if(preAnalysisProps.isTypeDefined())
+        		return OptionalDouble.empty();
+        	
+        PreAnalysis preAnalysis = (PreAnalysis) ComponentManager.build(Type.PRE_ANALYSIS, store.getPreAnalysisStore(), preAnalysisProps);
+     
+        double preAnalyzedValue = preAnalysis.process(timestamp, value);
+        
+        if(preAnalysis instanceof HasStore)
+            store.setPreAnalysisStore(((HasStore) preAnalysis).save());
+        
+        return OptionalDouble.of(preAnalyzedValue);
     }
     
     public Filter getFilter(){

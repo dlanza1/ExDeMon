@@ -34,19 +34,13 @@ public class FixedThresholdAnalysis extends Analysis {
     }
     
     @Override
-    public AnalysisResult process(Instant timestamp, Float value) {
+    public AnalysisResult process(Instant timestamp, double value) {
         AnalysisResult result = new AnalysisResult();
         
         result.addMonitorParam("error_upperbound", error_upperbound);
         result.addMonitorParam("warning_upperbound", warning_upperbound);
         result.addMonitorParam("warning_lowerbound", warning_lowerbound);
         result.addMonitorParam("error_lowerbound", error_lowerbound);
-        
-        if(value == null){
-            result.setStatus(AnalysisResult.Status.EXCEPTION, "Value ("+value+") cannot be parsed to float");
-            
-            return result;
-        }
 
         if(error_upperbound != null && value >= error_upperbound){
             result.setStatus(AnalysisResult.Status.ERROR, 

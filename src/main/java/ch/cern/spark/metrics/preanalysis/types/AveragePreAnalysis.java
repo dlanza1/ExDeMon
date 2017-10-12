@@ -50,15 +50,15 @@ public class AveragePreAnalysis extends PreAnalysis implements HasStore{
     }
     
     @Override
-    public float process(Instant metric_timestamp, float metric_value) {
-        history.add(metric_timestamp, metric_value);
+    public double process(Instant metric_timestamp, double metric_value) {
+        history.add(metric_timestamp, (float) metric_value);
         history.purge(metric_timestamp);
         
         OptionalDouble newValue = history.getDatedValues().stream()
 											.mapToDouble(value -> value.getValue())
 											.average();
         
-        return (float) newValue.orElse(metric_value);
+        return newValue.orElse(metric_value);
     }
 
     public void reset() {

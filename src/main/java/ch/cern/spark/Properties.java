@@ -108,6 +108,10 @@ public class Properties extends java.util.Properties{
         if(!containsKey(key))
             setProperty(key, value);
     }
+    
+    public boolean isTypeDefined() {
+    		return getProperty("type") != null;
+    }
 
 	public Optional<Duration> getPeriod(String key, Duration periodDefault) {
 		return Optional.ofNullable(TimeUtils.parsePeriod(getProperty(key)).orElse(periodDefault));

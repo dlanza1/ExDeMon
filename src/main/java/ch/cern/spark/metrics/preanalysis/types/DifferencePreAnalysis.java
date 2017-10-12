@@ -10,19 +10,19 @@ public class DifferencePreAnalysis extends PreAnalysis implements HasStore {
 
     private static final long serialVersionUID = -7637460204263005199L;
 
-    private float previousValue = Float.NaN;
+    private double previousValue = Double.NaN;
     
     public DifferencePreAnalysis() {
         super(DifferencePreAnalysis.class, "difference");
     }
     
     @Override
-    public float process(Instant metric_timestamp, float metric_value) {
-        float prePreviousValue = previousValue;
+    public double process(Instant metric_timestamp, double metric_value) {
+    		double prePreviousValue = previousValue;
         
         previousValue = metric_value;
         
-        if(!Float.isNaN(prePreviousValue))
+        if(!Double.isNaN(prePreviousValue))
             return metric_value - prePreviousValue;
         else
             return 0;
@@ -47,7 +47,7 @@ public class DifferencePreAnalysis extends PreAnalysis implements HasStore {
     public static class Store_ implements Store{
         private static final long serialVersionUID = 101968781882733133L;
         
-        private float previousValue;
+        private double previousValue;
     }
 
 }

@@ -68,10 +68,7 @@ public class SeasonalAnalysis extends Analysis implements HasStore{
     }
 
     @Override
-    public AnalysisResult process(Instant timestamp, Float value) {
-        if(value == null)
-            return AnalysisResult.buildWithStatus(AnalysisResult.Status.EXCEPTION, "Value ("+value+") cannot be parsed to float");
-
+    public AnalysisResult process(Instant timestamp, double value) {
         AnalysisResult result = new AnalysisResult();
         try{
             Prediction prediction = predictor.getPredictionForTime(timestamp);
@@ -89,12 +86,12 @@ public class SeasonalAnalysis extends Analysis implements HasStore{
             result.setStatus(AnalysisResult.Status.EXCEPTION, e.getClass().getSimpleName() + ": " + e.getMessage());
         }
         
-        predictor.addValue(timestamp, value);
+        predictor.addValue(timestamp, (float) value);
         
         return result;
     }
     
-    private void processErrorLowerbound(AnalysisResult result, float value, Prediction prediction) {
+    private void processErrorLowerbound(AnalysisResult result, double value, Prediction prediction) {
         float threshold = prediction.getValue() - prediction.getStandardDeviation() * error_ratio;
         result.addMonitorParam("error_lowerbound", threshold);
         
@@ -107,7 +104,7 @@ public class SeasonalAnalysis extends Analysis implements HasStore{
         }
     }
 
-    private void processWarningLowerbound(AnalysisResult result, float value, Prediction prediction) {
+    private void processWarningLowerbound(AnalysisResult result, double value, Prediction prediction) {
         float threshold = prediction.getValue() - prediction.getStandardDeviation() * warning_ratio;
         result.addMonitorParam("warning_lowerbound", threshold);
         
@@ -120,7 +117,7 @@ public class SeasonalAnalysis extends Analysis implements HasStore{
         }
     }
 
-    private void processWarningUpperbound(AnalysisResult result, float value, Prediction prediction) {
+    private void processWarningUpperbound(AnalysisResult result, double value, Prediction prediction) {
         float threshold = prediction.getValue() + prediction.getStandardDeviation() * warning_ratio;
         result.addMonitorParam("warning_upperbound", threshold);
         
@@ -133,7 +130,7 @@ public class SeasonalAnalysis extends Analysis implements HasStore{
         }
     }
 
-    private void processErrorUpperbound(AnalysisResult result, float value, Prediction prediction) {
+    private void processErrorUpperbound(AnalysisResult result, double value, Prediction prediction) {
         float threshold = prediction.getValue() + prediction.getStandardDeviation() * error_ratio;
         result.addMonitorParam("error_upperbound", threshold);
         

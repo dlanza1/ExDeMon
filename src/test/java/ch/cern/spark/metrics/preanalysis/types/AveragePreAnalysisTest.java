@@ -27,7 +27,7 @@ public class AveragePreAnalysisTest {
     public void average() throws Exception{
         getInstance();
         
-        float average = 0;
+        double average = 0;
         
         average = preAnalysis.process(Instant.ofEpochSecond(20), 10f);
         average = preAnalysis.process(Instant.ofEpochSecond(30), 20f);
@@ -40,7 +40,7 @@ public class AveragePreAnalysisTest {
     public void averageSameValue() throws Exception{
         getInstance();
         
-        float average = 0;
+        double average = 0;
         
         average = preAnalysis.process(Instant.ofEpochSecond(20), 100f);
         average = preAnalysis.process(Instant.ofEpochSecond(30), 100f);
@@ -53,7 +53,7 @@ public class AveragePreAnalysisTest {
     public void averageWithOlderMetricThanPeriod() throws Exception{
         getInstance();
         
-        float average = 0;
+        double average = 0;
         
         average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:00"), 10f);
         average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:10"), 10f);

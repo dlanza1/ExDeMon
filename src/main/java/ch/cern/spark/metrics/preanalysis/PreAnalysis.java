@@ -16,6 +16,6 @@ public abstract class PreAnalysis extends Component {
         super(Type.PRE_ANALYSIS, subClass, name);
     }
 
-    public abstract float process(Instant metric_timestamp, float metric_value);
+    public abstract double process(Instant metric_timestamp, double metric_value);
     
 }

@@ -44,13 +44,13 @@ public class WeightedAveragePreAnalysisTest {
         int metric3_time = 40;
         float metric3_value = 30;
         float weight3 = (float) (default_period - (time - metric3_time)) / default_period;
-        float avergae = preAnalysis.process(Instant.ofEpochSecond(metric3_time), metric3_value);
+        double avergae = preAnalysis.process(Instant.ofEpochSecond(metric3_time), metric3_value);
 
         float expectedValue = (metric1_value * weight1 
                              + metric2_value * weight2 
                              + metric3_value * weight3) / (weight1 + weight2 + weight3);
         
-        Assert.assertEquals(expectedValue, avergae, 0);
+        Assert.assertEquals(expectedValue, avergae, 0.000001f);
     }
     
     @Test
@@ -67,7 +67,7 @@ public class WeightedAveragePreAnalysisTest {
         
         int metric3_time = 40;
         float metric3_value = 100;
-        float avergae = preAnalysis.process(Instant.ofEpochSecond(metric3_time), metric3_value);
+        double avergae = preAnalysis.process(Instant.ofEpochSecond(metric3_time), metric3_value);
         
         float expectedValue = 100f;
         
@@ -93,11 +93,11 @@ public class WeightedAveragePreAnalysisTest {
         long metric3_time = time3.getEpochSecond();
         float weight3 = (float) (default_period - (time_in_seconds - metric3_time)) / default_period;
         float metric3_value = 30;
-        float avergae = preAnalysis.process(time3, metric3_value);
+        double avergae = preAnalysis.process(time3, metric3_value);
 
         float expectedValue = (metric2_value * weight2 + metric3_value * weight3) / (weight2 + weight3);
         
-        Assert.assertEquals(expectedValue, avergae, 0);
+        Assert.assertEquals(expectedValue, avergae, 0.000001f);
     }
     
 }
