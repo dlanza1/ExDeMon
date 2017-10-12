@@ -16,9 +16,6 @@ import java.util.stream.Stream;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
@@ -76,36 +73,24 @@ public class KafkaMetricsSource extends MetricsSource {
     protected JavaDStream<Metric> createStream(JavaStreamingContext ssc) {
         JavaDStream<JSONObject> inputStream = createKafkaInputStream(ssc);
 
-        JavaDStream<Metric> metricStream = parse(inputStream); 
+        JavaDStream<Metric> metricStream = inputStream.map(metric -> parse(metric));
         
         return metricStream;
     }
     
     public JavaDStream<JSONObject> createKafkaInputStream(JavaStreamingContext ssc) {
-        final JavaInputDStream<ConsumerRecord<String, JSONObject>> inputStream = KafkaUtils.createDirectStream(
+        JavaInputDStream<ConsumerRecord<String, JSONObject>> inputStream = KafkaUtils.createDirectStream(
                 ssc,
                 LocationStrategies.PreferConsistent(),
                 ConsumerStrategies.<String, JSONObject>Subscribe(kafkaTopics, kafkaParams));
         
-        inputStream.foreachRDD(new VoidFunction<JavaRDD<ConsumerRecord<String,JSONObject>>>() {
-            private static final long serialVersionUID = -7317892726324251129L;
+        inputStream.foreachRDD(rdd -> {
+        			OffsetRange[] offsetRanges = ((HasOffsetRanges) rdd.rdd()).offsetRanges();
 
-            @Override
-            public void call(JavaRDD<ConsumerRecord<String, JSONObject>> rdd) throws Exception {
-                OffsetRange[] offsetRanges = ((HasOffsetRanges) rdd.rdd()).offsetRanges();
-
-                ((CanCommitOffsets) inputStream.inputDStream()).commitAsync(offsetRanges);
-            }
-        });
+            		((CanCommitOffsets) inputStream.inputDStream()).commitAsync(offsetRanges);
+        		});
         
-        return inputStream.map(new Function<ConsumerRecord<String,JSONObject>, JSONObject>() {
-            private static final long serialVersionUID = 2782425224401441788L;
-
-            @Override
-            public JSONObject call(ConsumerRecord<String, JSONObject> record) throws Exception {
-                return record.value();
-            }
-        });
+        return inputStream.map(ConsumerRecord::value);
     }
 
     private Map<String, Object> getKafkaConsumerParams(Properties props) {
@@ -123,10 +108,6 @@ public class KafkaMetricsSource extends MetricsSource {
         }
         
         return kafkaParams;
-    }
-    
-    private JavaDStream<Metric> parse(JavaDStream<JSONObject> inputStream) {
-        return inputStream.map(metric -> parse(metric));
     }
     
     private Metric parse(JSONObject jsonObject) throws ParseException{
