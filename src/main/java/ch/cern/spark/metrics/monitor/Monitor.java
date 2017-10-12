@@ -93,7 +93,7 @@ public class Monitor implements Serializable{
     }
 
     private OptionalDouble preAnalysis(MetricStore store, Instant timestamp, double value) throws Exception {
-        if(preAnalysisProps.isTypeDefined())
+        if(!preAnalysisProps.isTypeDefined())
         		return OptionalDouble.empty();
         	
         PreAnalysis preAnalysis = (PreAnalysis) ComponentManager.build(Type.PRE_ANALYSIS, store.getPreAnalysisStore(), preAnalysisProps);
