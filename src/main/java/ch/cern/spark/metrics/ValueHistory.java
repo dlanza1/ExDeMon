@@ -24,7 +24,7 @@ public class ValueHistory implements Serializable {
 
     private List<DatedValue> values;
     
-    private Duration period;
+    private Duration period = Duration.ofMinutes(30);
 
     public ValueHistory(Duration period){
         this.values = new LinkedList<>();
@@ -43,9 +43,7 @@ public class ValueHistory implements Serializable {
     public void purge(Instant time) {
     		Instant oldest_time = time.minus(period);
         
-        values = values.stream()
-        		.filter(value -> value.getInstant().isAfter(oldest_time))
-        		.collect(Collectors.toList());
+    		values.removeIf(value -> value.getInstant().isBefore(oldest_time));
     }
 
     public int size() {

@@ -56,7 +56,7 @@ public class AveragePreAnalysisTest {
         double average = 0;
         
         average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:00"), 10f);
-        average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:10"), 10f);
+        average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:10"), 30f);
         average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:20"), 30f);
         average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:30"), 30f);
         average = preAnalysis.process(TimeUtils.toInstant("2001-07-04 12:08:40"), 30f);
