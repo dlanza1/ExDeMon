@@ -14,7 +14,6 @@ public class StringUtilsTest {
         assertEquals(Optional.of('m'), StringUtils.getLastCharacter("1234 m"));
         assertEquals(Optional.of(' '), StringUtils.getLastCharacter("1234 "));
         assertEquals(Optional.empty(), StringUtils.getLastCharacter(""));
-    		assertEquals(Optional.empty(), StringUtils.getLastCharacter(null));
     }
     
 }

@@ -52,7 +52,7 @@ public class PercentageNotificator extends Notificator implements HasStore {
 									        		.map(Status::valueOf)
 									        		.collect(Collectors.toSet());
         
-        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT));
+        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
         
         String percentage_s = properties.getProperty(PERCENTAGE_PARAM, PERCENTAGE_DEFAULT);
         percentage = Float.valueOf(percentage_s);
