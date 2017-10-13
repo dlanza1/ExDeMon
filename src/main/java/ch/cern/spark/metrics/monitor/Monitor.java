@@ -55,7 +55,7 @@ public class Monitor implements Serializable{
         analysisProps = properties.getSubset("analysis");
         notificatorsProps = properties.getSubset("notificator");
         
-        maximumMissingPeriod = properties.getPeriod(MAX_PERIOD_PARAM, null);
+        maximumMissingPeriod = properties.getPeriod(MAX_PERIOD_PARAM);
         
         return this;
     }

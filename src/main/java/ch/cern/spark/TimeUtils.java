@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.util.Objects;
 import java.util.Optional;
 
 public class TimeUtils {
@@ -24,10 +25,9 @@ public class TimeUtils {
 		return LocalDateTime.ofInstant(instant, ZoneOffset.systemDefault());
 	}
 	
-    public static Optional<Duration> parsePeriod(String input) {
-    		if(input == null)
-    			return Optional.empty();
-    	
+    public static Duration parsePeriod(String input) {
+    		Objects.requireNonNull(input);
+    		
         Optional<Character> unit = StringUtils.getLastCharacter(input).filter(Character::isLetter);
         
         if(unit.isPresent()) {
@@ -36,15 +36,15 @@ public class TimeUtils {
 
             switch (unit.get()) {
             case 'h':
-                return Optional.of(Duration.ofHours(number));
+                return Duration.ofHours(number);
             case 'm':
-                return Optional.of(Duration.ofMinutes(number));
+                return Duration.ofMinutes(number);
             case 's':            
-                return Optional.of(Duration.ofSeconds(number));
+                return Duration.ofSeconds(number);
             }
         }
         
-        return Optional.of(Duration.ofSeconds(Long.parseLong(input)));     
+        return Duration.ofSeconds(Long.parseLong(input));     
     }
 
 

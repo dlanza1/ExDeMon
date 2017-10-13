@@ -43,7 +43,7 @@ public class ConstantNotificator extends Notificator implements HasStore {
 					        		.map(Status::valueOf)
 					        		.collect(Collectors.toSet());
 
-        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT).get();
+        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
     }
     
     @Override

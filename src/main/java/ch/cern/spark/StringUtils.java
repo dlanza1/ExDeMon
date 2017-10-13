@@ -1,12 +1,12 @@
 package ch.cern.spark;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public class StringUtils {
 	
     public static Optional<Character> getLastCharacter(String input) {
-        if(input == null)
-            return Optional.empty();
+        Objects.requireNonNull(input);
         
         int lenght = input.length();
         

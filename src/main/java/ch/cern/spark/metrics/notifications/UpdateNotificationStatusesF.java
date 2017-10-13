@@ -75,7 +75,7 @@ public class UpdateNotificationStatusesF
     public static NotificationStatusesS apply(JavaPairDStream<NotificatorID, AnalysisResult> resultsWithId,
             Expirable propertiesExp, NotificationStoresRDD initialNotificationStores) throws IOException {
 
-        java.time.Duration dataExpirationPeriod = propertiesExp.get().getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT).get();
+        java.time.Duration dataExpirationPeriod = propertiesExp.get().getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);
 
         StateSpec<NotificatorID, AnalysisResult, Store, Notification> statusSpec = StateSpec
                 .function(new UpdateNotificationStatusesF(propertiesExp)).initialState(initialNotificationStores.rdd())

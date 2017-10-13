@@ -28,7 +28,7 @@ public class AveragePreAnalysis extends PreAnalysis implements HasStore{
     public void config(Properties properties) throws Exception {
         super.config(properties);
         
-        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT).get();
+        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
         
         history = new ValueHistory(period);
     }

@@ -74,7 +74,7 @@ public class PercentileAnalysis extends Analysis implements HasStore{
         error_ratio = properties.getFloat(ERROR_RATIO_PARAM, ERROR_RATIO_DEFAULT);
         warn_ratio = properties.getFloat(WARN_RATIO_PARAM, WARN_RATIO_DEFAULT);
         
-        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT).get();
+        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
         history = new ValueHistory(period);
     }
     

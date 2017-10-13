@@ -78,7 +78,7 @@ public class UpdateMetricStatusesF
             Expirable propertiesExp, 
             MetricStoresRDD initialMetricStores) throws IOException {
         
-    		java.time.Duration dataExpirationPeriod = propertiesExp.get().getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT).get();
+    		java.time.Duration dataExpirationPeriod = propertiesExp.get().getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);
         
         StateSpec<MonitorIDMetricIDs, Metric, MetricStore, AnalysisResult> statusSpec = StateSpec
                 .function(new UpdateMetricStatusesF(propertiesExp))

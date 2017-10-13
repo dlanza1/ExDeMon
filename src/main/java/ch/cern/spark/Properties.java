@@ -119,8 +119,17 @@ public class Properties extends java.util.Properties{
     		return getProperty("type") != null;
     }
 
-	public Optional<Duration> getPeriod(String key, Duration periodDefault) {
-		return Optional.ofNullable(TimeUtils.parsePeriod(getProperty(key)).orElse(periodDefault));
+	public Duration getPeriod(String key, Duration periodDefault) {
+		String value = getProperty(key);
+		
+		if(value == null)
+			return periodDefault;
+		
+		return TimeUtils.parsePeriod(value);
+	}
+
+	public Optional<Duration> getPeriod(String key) {
+		return Optional.ofNullable(getPeriod(key, null));
 	}
 
 }
