@@ -2,6 +2,7 @@ package ch.cern.spark.metrics.results;
 
 import java.io.IOException;
 
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
@@ -33,10 +34,14 @@ public class AnalysisResultsS extends JavaDStream<AnalysisResult> {
     		return new AnalysisResultsS(super.union(input));
     }
 
-    public NotificationsS notifications(Expirable propertiesExp, NotificationStoresRDD initialNotificationStores) throws IOException {
-        JavaPairDStream<NotificatorID, AnalysisResult> metricsWithID = getWithID(propertiesExp);
+    public NotificationsS notifications(Expirable propertiesExp) throws IOException, ClassNotFoundException {
+        JavaPairDStream<NotificatorID, AnalysisResult> analysisWithID = getWithNotificatorID(propertiesExp);
         
-        NotificationStatusesS statuses = UpdateNotificationStatusesF.apply(metricsWithID, propertiesExp, initialNotificationStores);
+        NotificationStoresRDD initialNotificationStores = NotificationStoresRDD.load(
+														        		Driver.getCheckpointDir(propertiesExp), 
+														        		JavaSparkContext.fromSparkContext(context().sparkContext()));
+        
+        NotificationStatusesS statuses = UpdateNotificationStatusesF.apply(analysisWithID, propertiesExp, initialNotificationStores);
         
         NotificationsWithIdS allNotificationsStatuses = statuses.getAllNotificationsStatusesWithID();
         allNotificationsStatuses.save(Driver.getCheckpointDir(propertiesExp));
@@ -44,7 +49,7 @@ public class AnalysisResultsS extends JavaDStream<AnalysisResult> {
         return statuses.getThrownNotifications();
     }
 
-    public JavaPairDStream<NotificatorID, AnalysisResult> getWithID(Expirable propertiesExp) {
+    public JavaPairDStream<NotificatorID, AnalysisResult> getWithNotificatorID(Expirable propertiesExp) {
         return flatMapToPair(new ComputeIDsForAnalysisF(propertiesExp));
     }
 

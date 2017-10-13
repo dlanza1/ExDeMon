@@ -14,13 +14,11 @@ import ch.cern.spark.ComponentManager;
 import ch.cern.spark.Properties;
 import ch.cern.spark.Properties.Expirable;
 import ch.cern.spark.SparkConf;
-import ch.cern.spark.metrics.notifications.NotificationStoresRDD;
 import ch.cern.spark.metrics.notifications.NotificationsS;
 import ch.cern.spark.metrics.notifications.sink.NotificationsSink;
 import ch.cern.spark.metrics.results.AnalysisResultsS;
 import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
 import ch.cern.spark.metrics.source.MetricsSource;
-import ch.cern.spark.metrics.store.MetricStoresRDD;
 
 public final class Driver {
     
@@ -77,30 +75,21 @@ public final class Driver {
 
     protected JavaStreamingContext createNewStreamingContext() 
             throws Exception {
-	    
-        long batchInterval = properties.get().getLong(BATCH_INTERVAL_PARAM, 30);
         
-		JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, Durations.seconds(batchInterval));
-		ssc.checkpoint(getCheckpointDir(properties) + "/checkpoint/");
+		JavaStreamingContext ssc = newStreamingContext();
 		
-		Properties metricSourceProperties = properties.get().getSubset("source");
-		if(!metricSourceProperties.isTypeDefined())
-		    throw new RuntimeException("A metric source must be configured");
-		MetricsSource metricSource = ComponentManager.build(Type.SOURCE, metricSourceProperties);
+		MetricsSource metricSource = getMetricSource();
+		Optional<AnalysisResultsSink> analysisResultsSink = getAnalysisResultsSink();
+		Optional<NotificationsSink> notificationsSink = getNotificationsSink();
+	    
 		MetricsS metrics = metricSource.createMetricsStream(ssc);
 		
-        MetricStoresRDD initialMetricStores = MetricStoresRDD.load(getCheckpointDir(properties), ssc.sparkContext());
-		AnalysisResultsS results = metrics.monitor(properties, initialMetricStores);
-		
-		Properties analysisResultsSinkProperties = properties.get().getSubset("results.sink");
-		Optional<AnalysisResultsSink> analysisResultsSink = ComponentManager.buildOptional(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
+		AnalysisResultsS results = metrics.monitor(properties);
+
 		analysisResultsSink.ifPresent(results::sink);
 		
-		NotificationStoresRDD initialNotificationStores = NotificationStoresRDD.load(getCheckpointDir(properties), ssc.sparkContext());
-		NotificationsS notifications = results.notifications(properties, initialNotificationStores);
+		NotificationsS notifications = results.notifications(properties);
 		
-		Properties notificationsSinkProperties = properties.get().getSubset("notifications.sink");
-    		Optional<NotificationsSink> notificationsSink = ComponentManager.buildOptional(Type.NOTIFICATIONS_SINK, notificationsSinkProperties);
     		notificationsSink.ifPresent(notifications::sink);
         
         if(!analysisResultsSink.isPresent() && !notificationsSink.isPresent())
@@ -109,7 +98,44 @@ public final class Driver {
 		return ssc;
 	}
     
-    public static String getCheckpointDir(Expirable propertiesExp) throws IOException {
+    private Optional<NotificationsSink> getNotificationsSink() throws Exception {
+    		Properties notificationsSinkProperties = properties.get().getSubset("notifications.sink");
+
+    		Optional<NotificationsSink> notificationsSink = ComponentManager.buildOptional(Type.NOTIFICATIONS_SINK, notificationsSinkProperties);
+		
+    		return notificationsSink;
+	}
+
+	private Optional<AnalysisResultsSink> getAnalysisResultsSink() throws Exception {
+		Properties analysisResultsSinkProperties = properties.get().getSubset("results.sink");
+		
+		Optional<AnalysisResultsSink> analysisResultsSink = ComponentManager.buildOptional(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
+		
+		return analysisResultsSink;
+	}
+
+	private MetricsSource getMetricSource() throws Exception {
+    		Properties metricSourceProperties = properties.get().getSubset("source");
+		
+    		if(!metricSourceProperties.isTypeDefined())
+		    throw new RuntimeException("A metric source must be configured");
+		
+		MetricsSource metricSource = ComponentManager.build(Type.SOURCE, metricSourceProperties);
+		
+		return metricSource;
+	}
+
+	private JavaStreamingContext newStreamingContext() throws IOException {
+    		long batchInterval = properties.get().getLong(BATCH_INTERVAL_PARAM, 30);
+		
+    		JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, Durations.seconds(batchInterval));
+		
+		ssc.checkpoint(getCheckpointDir(properties) + "/checkpoint/");
+		
+		return ssc;
+	}
+
+	public static String getCheckpointDir(Expirable propertiesExp) throws IOException {
         return propertiesExp.get().getProperty(Driver.CHECKPOINT_DIR_PARAM, Driver.CHECKPOINT_DIR_DEFAULT);
     }
 

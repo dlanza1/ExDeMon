@@ -2,6 +2,7 @@ package ch.cern.spark.metrics;
 
 import java.io.IOException;
 
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
@@ -19,20 +20,22 @@ public class MetricsS extends JavaDStream<Metric> {
         super(stream.dstream(), stream.classTag());
     }
 
-    public AnalysisResultsS monitor(Expirable propertiesExp, MetricStoresRDD initialMetricStores) throws ClassNotFoundException, IOException {
+    public AnalysisResultsS monitor(Expirable propertiesExp) throws ClassNotFoundException, IOException {
     	
         JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithID = getMetricsWithIDStream(propertiesExp);
         
+        MetricStoresRDD initialMetricStores = MetricStoresRDD.load(
+										        		Driver.getCheckpointDir(propertiesExp), 
+										        		JavaSparkContext.fromSparkContext(context().sparkContext()));
+        
         MetricStatusesS statuses = UpdateMetricStatusesF.apply(metricsWithID, propertiesExp, initialMetricStores);
-        AnalysisResultsS resultsFromAnalysis = statuses.getAnalysisResultsStream();
         
         MetricStoresS metricStores = statuses.getMetricStoresStatuses();
+        metricStores.save(Driver.getCheckpointDir(propertiesExp));
         
         AnalysisResultsS missingMetricsResults = metricStores.missingMetricResults(propertiesExp);
         
-        metricStores.save(Driver.getCheckpointDir(propertiesExp));
-        
-        return resultsFromAnalysis.union(missingMetricsResults);
+        return statuses.getAnalysisResultsStream().union(missingMetricsResults);
     }
 
     public JavaPairDStream<MonitorIDMetricIDs, Metric> getMetricsWithIDStream(Expirable propertiesExp) {
