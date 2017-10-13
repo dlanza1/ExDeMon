@@ -42,8 +42,12 @@ public abstract class Component implements Serializable {
         return name;
     }
     
+    public boolean hasStore() {
+    		return this instanceof HasStore;
+    }
+    
 	public Optional<Store> getStore() {
-		if(this instanceof HasStore)
+		if(hasStore())
 			return Optional.ofNullable(((HasStore) this).save());
 		else
 			return Optional.empty();

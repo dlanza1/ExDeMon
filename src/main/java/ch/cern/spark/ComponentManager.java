@@ -68,7 +68,7 @@ public class ComponentManager {
         return build(componentType, null, properties);
     }
     
-    public static<C extends Component> C build(Component.Type componentType, Store store, Properties properties) throws Exception {
+    public static<C extends Component> C build(Component.Type componentType, Optional<Store> store, Properties properties) throws Exception {
         String type = properties.getProperty("type");
         
         if(type == null)
@@ -91,9 +91,9 @@ public class ComponentManager {
         
         component.config(properties);
         
-        if(store != null && component instanceof HasStore)
+        if(component.hasStore())
             try{
-                ((HasStore) component).load(store);
+            		store.ifPresent(((HasStore) component)::load);
             } catch(ClassCastException e){
                 // In case Store has changed, we may get ClassCastException
                 // We do nothing, proper Store will be set when saving
@@ -132,7 +132,7 @@ public class ComponentManager {
         return availableComponents.get(componentType);
     }
 
-	public static<C extends Component> Optional<C> buildOptional(Type type, Store store, Properties props) throws Exception {
+	public static<C extends Component> Optional<C> buildOptional(Type type, Optional<Store> store, Properties props) throws Exception {
 		if(!props.isTypeDefined())
 			return Optional.empty();
 		

@@ -3,13 +3,9 @@ package ch.cern.spark.metrics.monitor;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
@@ -26,7 +22,6 @@ import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.preanalysis.PreAnalysis;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
-import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.store.MetricStore;
 import ch.cern.spark.metrics.store.Store;
 
@@ -133,7 +128,7 @@ public class Monitor implements Serializable{
         return notificatorsProps.getUniqueKeyFields();
     }
 
-    public Notificator getNotificator(String id, Store store) throws Exception {
+    public Notificator getNotificator(String id, Optional<Store> store) throws Exception {
         Properties props = notificatorsProps.getSubset(id);
         
         return ComponentManager.build(Type.NOTIFICATOR, store, props);

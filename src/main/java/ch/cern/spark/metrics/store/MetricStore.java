@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 
 public class MetricStore implements Serializable{
 
@@ -18,12 +19,12 @@ public class MetricStore implements Serializable{
     public MetricStore(){
     }
 
-    public Store getPreAnalysisStore() {
-        return preAnalysisStore;
+    public Optional<Store> getPreAnalysisStore() {
+        return Optional.ofNullable(preAnalysisStore);
     }
 
-    public Store getAnalysisStore() {
-        return analysisStore;
+    public Optional<Store> getAnalysisStore() {
+        return Optional.ofNullable(analysisStore);
     }
 
     public void setPreAnalysisStore(Store store) {
@@ -39,8 +40,8 @@ public class MetricStore implements Serializable{
             lastestTimestamp = Date.from(time);
     }
     
-    public Instant getLastestTimestamp() {
-        return lastestTimestamp != null ? lastestTimestamp.toInstant() : null;
+    public Optional<Instant> getLastestTimestamp() {
+        return lastestTimestamp != null ? Optional.of(lastestTimestamp.toInstant()) : Optional.empty();
     }
 
     public Duration elapsedTimeFromLastMetric(Instant time) {

@@ -5,6 +5,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
@@ -99,5 +102,11 @@ public class AnalysisResult implements Serializable {
     public Map<String, Object> getMonitorParams() {
         return monitor_params;
     }
+    
+	public<R> Optional<R> map(Function<AnalysisResult, ? extends R> mapper) {
+        Objects.requireNonNull(mapper);
+
+        return Optional.ofNullable(mapper.apply(this));
+	}
     
 }

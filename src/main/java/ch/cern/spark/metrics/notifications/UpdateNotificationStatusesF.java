@@ -1,7 +1,6 @@
 package ch.cern.spark.metrics.notifications;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.spark.api.java.Optional;
@@ -18,7 +17,6 @@ import ch.cern.spark.metrics.monitor.Monitor;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.notificator.NotificatorID;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.store.Store;
 
 public class UpdateNotificationStatusesF
@@ -38,36 +36,33 @@ public class UpdateNotificationStatusesF
     }
 
     @Override
-    public Optional<Notification> call(Time time, NotificatorID ids, Optional<AnalysisResult> resuktOpt,
+    public Optional<Notification> call(Time time, NotificatorID ids, Optional<AnalysisResult> resultOpt,
             State<Store> notificatorState) throws Exception {
 
-        if (notificatorState.isTimingOut() || !resuktOpt.isPresent())
+        if (notificatorState.isTimingOut() || !resultOpt.isPresent())
             return Optional.absent();
         
-        Store store = getStore(notificatorState);
+        Monitor monitor = getMonitor(ids.getMonitorID());
+        Notificator notificator = monitor.getNotificator(ids.getNotificatorID(), toOptional(notificatorState));        
         
-        Notificator notificator = getMonitor(ids.getMonitorID()).getNotificator(ids.getNotificatorID(), store);        
+        java.util.Optional<Notification> notification = notificator.apply(resultOpt.get());
         
-        java.util.Optional<Notification> notification = notificator.process(
-											                resuktOpt.get().getStatus(),
-											                resuktOpt.get().getAnalyzedMetric().getInstant());
-        notification.ifPresent(c -> c.setMetricIDs(new HashMap<>()));
-        
-        if(notificator instanceof HasStore)
-            notificatorState.update(((HasStore) notificator).save());
+        notificator.getStore().ifPresent(notificatorState::update);
         
         notification.ifPresent(n -> {
             n.setMonitorID(ids.getMonitorID());
             n.setNotificatorID(ids.getNotificatorID());
             n.setMetricIDs(ids.getMetricIDs());
-            n.setTimestamp(resuktOpt.get().getAnalyzedMetric().getInstant());
+            n.setTimestamp(resultOpt.get().getAnalyzedMetric().getInstant());
         });
 
         return notification.isPresent() ? Optional.of(notification.get()) : Optional.empty();
     }
 
-    private Store getStore(State<Store> notificatorState) {
-        return notificatorState.exists() ? notificatorState.get() : null;
+    private java.util.Optional<Store> toOptional(State<Store> notificatorState) {
+        return notificatorState.exists() ? 
+        				java.util.Optional.of(notificatorState.get()) 
+        				: java.util.Optional.empty();
     }
 
     private Monitor getMonitor(String monitorID) throws IOException {
