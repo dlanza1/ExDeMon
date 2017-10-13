@@ -15,10 +15,10 @@ import ch.cern.spark.metrics.analysis.types.SeasonalAnalysis;
 import ch.cern.spark.metrics.notifications.sink.types.ElasticNotificationsSink;
 import ch.cern.spark.metrics.notificator.types.ConstantNotificator;
 import ch.cern.spark.metrics.notificator.types.PercentageNotificator;
-import ch.cern.spark.metrics.preanalysis.PreAnalysis;
 import ch.cern.spark.metrics.preanalysis.types.AveragePreAnalysis;
 import ch.cern.spark.metrics.preanalysis.types.DifferencePreAnalysis;
 import ch.cern.spark.metrics.preanalysis.types.WeightedAveragePreAnalysis;
+import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
 import ch.cern.spark.metrics.results.sink.types.ElasticAnalysisResultsSink;
 import ch.cern.spark.metrics.source.types.KafkaMetricsSource;
 import ch.cern.spark.metrics.store.HasStore;
@@ -64,17 +64,17 @@ public class ComponentManager {
         availableComponents.get(type).put(name, clazz);
     }
     
-    public static Component build(Type componentType, Properties properties) throws Exception {
+    public static<C extends Component> C build(Type componentType, Properties properties) throws Exception {
         return build(componentType, null, properties);
     }
     
-    public static Component build(Component.Type componentType, Store store, Properties properties) throws Exception {
+    public static<C extends Component> C build(Component.Type componentType, Store store, Properties properties) throws Exception {
         String type = properties.getProperty("type");
         
         if(type == null)
             throw new ExceptionInInitializerError("Component type cannot be null.");
         
-        Component component = buildFromAvailableComponents(componentType, type);
+        C component = buildFromAvailableComponents(componentType, type);
         
         if(component == null){
             try {
@@ -102,7 +102,7 @@ public class ComponentManager {
         return component;
     }
 
-    private static Component buildFromAvailableComponents(Type componentType, String type) throws Exception {
+    private static<C extends Component> C buildFromAvailableComponents(Type componentType, String type) throws Exception {
         Map<String, Class<? extends Component>> availableComponents = getAvailableComponents(componentType);
         
         if(availableComponents == null)
@@ -115,15 +115,16 @@ public class ComponentManager {
         return null;
     }
 
-    private static Component getComponentInstance(String clazzName) throws Exception {
+    @SuppressWarnings("unchecked")
+	private static<C extends Component> C getComponentInstance(String clazzName) throws Exception {
         Class<?> clazz = Class.forName(clazzName);
         
         try {
             Constructor<?> componentNameConstructor = clazz.getConstructor();
             
-            return (Component) componentNameConstructor.newInstance();
+            return (C) componentNameConstructor.newInstance();
         } catch (NoSuchMethodException e) {
-            return (Component) clazz.newInstance();
+            return (C) clazz.newInstance();
         }
     }
 
@@ -131,11 +132,18 @@ public class ComponentManager {
         return availableComponents.get(componentType);
     }
 
-	public static Optional<PreAnalysis> buildPreAnalysis(Store store, Properties props) throws Exception {
+	public static<C extends Component> Optional<C> buildOptional(Type type, Store store, Properties props) throws Exception {
 		if(!props.isTypeDefined())
 			return Optional.empty();
 		
-		return Optional.of((PreAnalysis) build(Type.PRE_ANALYSIS, store, props));
+		return Optional.of(build(type, store, props));
+	}
+
+	public static <C extends Component> Optional<C> buildOptional(Type type, Properties props) throws Exception {
+		if(!props.isTypeDefined())
+			return Optional.empty();
+		
+		return Optional.of(build(type, props));
 	}
 
 }

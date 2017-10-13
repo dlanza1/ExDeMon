@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -8,6 +9,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
+import ch.cern.spark.Component;
 import ch.cern.spark.Component.Type;
 import ch.cern.spark.ComponentManager;
 import ch.cern.spark.Properties;
@@ -85,29 +87,24 @@ public final class Driver {
 		Properties metricSourceProperties = properties.get().getSubset("source");
 		if(!metricSourceProperties.isTypeDefined())
 		    throw new RuntimeException("A metric source must be configured");
-		MetricsSource metricSource = (MetricsSource) ComponentManager.build(Type.SOURCE, metricSourceProperties);
+		MetricsSource metricSource = ComponentManager.build(Type.SOURCE, metricSourceProperties);
 		MetricsS metrics = metricSource.createMetricsStream(ssc);
 		
         MetricStoresRDD initialMetricStores = MetricStoresRDD.load(getCheckpointDir(properties), ssc.sparkContext());
 		AnalysisResultsS results = metrics.monitor(properties, initialMetricStores);
 		
 		Properties analysisResultsSinkProperties = properties.get().getSubset("results.sink");
-    		if(analysisResultsSinkProperties.isTypeDefined()){
-		    AnalysisResultsSink analysisResultsSink = (AnalysisResultsSink) ComponentManager.build(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
-    			results.sink(analysisResultsSink);
-        }
+		Optional<AnalysisResultsSink> analysisResultsSink = ComponentManager.buildOptional(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
+		analysisResultsSink.ifPresent(results::sink);
 		
 		NotificationStoresRDD initialNotificationStores = NotificationStoresRDD.load(getCheckpointDir(properties), ssc.sparkContext());
 		NotificationsS notifications = results.notifications(properties, initialNotificationStores);
 		
 		Properties notificationsSinkProperties = properties.get().getSubset("notifications.sink");
-        if(notificationsSinkProperties.isTypeDefined()){
-    			NotificationsSink notificationsSink = 
-    					(NotificationsSink) ComponentManager.build(Type.NOTIFICATIONS_SINK, notificationsSinkProperties);
-    			notifications.sink(notificationsSink);
-        }
+    		Optional<NotificationsSink> notificationsSink = ComponentManager.buildOptional(Type.NOTIFICATIONS_SINK, notificationsSinkProperties);
+    		notificationsSink.ifPresent(notifications::sink);
         
-        if(!analysisResultsSinkProperties.isTypeDefined() && !notificationsSinkProperties.isTypeDefined())
+        if(!analysisResultsSink.isPresent() && !notificationsSink.isPresent())
             throw new RuntimeException("At least one sink must be configured");
 		
 		return ssc;

@@ -67,8 +67,8 @@ public class Monitor implements Serializable{
 
     public AnalysisResult process(MetricStore store, Metric metric) throws Exception {
     	
-    		Optional<PreAnalysis> preAnalysis = ComponentManager.buildPreAnalysis(store.getPreAnalysisStore(), preAnalysisProps);
-    		Analysis analysis = (Analysis) ComponentManager.build(Type.ANAYLSIS, store.getAnalysisStore(), analysisProps);
+    		Optional<PreAnalysis> preAnalysis = ComponentManager.buildOptional(Type.PRE_ANALYSIS, store.getPreAnalysisStore(), preAnalysisProps);
+    		Analysis analysis = ComponentManager.build(Type.ANAYLSIS, store.getAnalysisStore(), analysisProps);
     		
         AnalysisResult result = null;
         
@@ -136,7 +136,7 @@ public class Monitor implements Serializable{
     public Notificator getNotificator(String id, Store store) throws Exception {
         Properties props = notificatorsProps.getSubset(id);
         
-        return (Notificator) ComponentManager.build(Type.NOTIFICATOR, store, props);
+        return ComponentManager.build(Type.NOTIFICATOR, store, props);
     }
 
 }
