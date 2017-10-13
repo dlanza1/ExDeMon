@@ -34,7 +34,7 @@ public class AnalysisResultsS extends JavaDStream<AnalysisResult> {
     		return new AnalysisResultsS(super.union(input));
     }
 
-    public NotificationsS notifications(Expirable propertiesExp) throws IOException, ClassNotFoundException {
+    public NotificationsS notify(Expirable propertiesExp) throws IOException, ClassNotFoundException {
         JavaPairDStream<NotificatorID, AnalysisResult> analysisWithID = getWithNotificatorID(propertiesExp);
         
         NotificationStoresRDD initialNotificationStores = NotificationStoresRDD.load(

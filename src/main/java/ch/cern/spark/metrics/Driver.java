@@ -88,7 +88,7 @@ public final class Driver {
 
 		analysisResultsSink.ifPresent(results::sink);
 		
-		NotificationsS notifications = results.notifications(properties);
+		NotificationsS notifications = results.notify(properties);
 		
     		notificationsSink.ifPresent(notifications::sink);
         
