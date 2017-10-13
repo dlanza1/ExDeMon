@@ -1,6 +1,5 @@
 package ch.cern.spark;
 
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -18,7 +17,6 @@ import ch.cern.spark.metrics.notificator.types.PercentageNotificator;
 import ch.cern.spark.metrics.preanalysis.types.AveragePreAnalysis;
 import ch.cern.spark.metrics.preanalysis.types.DifferencePreAnalysis;
 import ch.cern.spark.metrics.preanalysis.types.WeightedAveragePreAnalysis;
-import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
 import ch.cern.spark.metrics.results.sink.types.ElasticAnalysisResultsSink;
 import ch.cern.spark.metrics.source.types.KafkaMetricsSource;
 import ch.cern.spark.metrics.store.HasStore;
@@ -115,17 +113,11 @@ public class ComponentManager {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
 	private static<C extends Component> C getComponentInstance(String clazzName) throws Exception {
-        Class<?> clazz = Class.forName(clazzName);
-        
-        try {
-            Constructor<?> componentNameConstructor = clazz.getConstructor();
-            
-            return (C) componentNameConstructor.newInstance();
-        } catch (NoSuchMethodException e) {
-            return (C) clazz.newInstance();
-        }
+		@SuppressWarnings("unchecked")
+		Class<C> clazz = (Class<C>) Class.forName(clazzName).asSubclass(Component.class);
+		
+		return clazz.newInstance();
     }
 
     public static Map<String, Class<? extends Component>> getAvailableComponents(Type componentType){

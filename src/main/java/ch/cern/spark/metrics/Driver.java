@@ -9,7 +9,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
-import ch.cern.spark.Component;
 import ch.cern.spark.Component.Type;
 import ch.cern.spark.ComponentManager;
 import ch.cern.spark.Properties;
