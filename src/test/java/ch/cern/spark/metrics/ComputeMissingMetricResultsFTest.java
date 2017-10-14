@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import ch.cern.spark.Properties;
 import ch.cern.spark.PropertiesTest;
+import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.store.MetricStore;
 import scala.Tuple2;
@@ -22,8 +23,9 @@ public class ComputeMissingMetricResultsFTest {
     public void noMissingMetric() throws Exception{
         Properties.PropertiesCache propExp = PropertiesTest.mockedExpirable();
         propExp.get().setProperty("monitor.ID.missing.max-period", "60");
+        Monitors monitors = new Monitors(propExp, null, null, null);
         
-        ComputeMissingMetricResultsF func = new ComputeMissingMetricResultsF(propExp, new Time(50000));
+        ComputeMissingMetricResultsF func = new ComputeMissingMetricResultsF(monitors, new Time(50000));
         
         MetricStore metricStore = new MetricStore();
         metricStore.updateLastestTimestamp(Instant.ofEpochSecond(20));
@@ -39,8 +41,9 @@ public class ComputeMissingMetricResultsFTest {
     public void missingMetric() throws Exception{
         Properties.PropertiesCache propExp = PropertiesTest.mockedExpirable();
         propExp.get().setProperty("monitor.ID.missing.max-period", "10");
+        Monitors monitors = new Monitors(propExp, null, null, null);
         
-        ComputeMissingMetricResultsF func = new ComputeMissingMetricResultsF(propExp, new Time(50000));
+        ComputeMissingMetricResultsF func = new ComputeMissingMetricResultsF(monitors, new Time(50000));
         
         MetricStore metricStore = new MetricStore();
         metricStore.updateLastestTimestamp(Instant.ofEpochSecond(20));

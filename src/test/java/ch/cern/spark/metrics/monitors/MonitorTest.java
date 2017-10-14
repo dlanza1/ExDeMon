@@ -1,4 +1,4 @@
-package ch.cern.spark.metrics.monitor;
+package ch.cern.spark.metrics.monitors;
 
 import static org.junit.Assert.assertEquals;
 
@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import ch.cern.spark.Properties;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.store.MetricStore;
 

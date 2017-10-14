@@ -11,7 +11,7 @@ import java.util.function.Function;
 
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
-import ch.cern.spark.metrics.monitor.Monitor;
+import ch.cern.spark.metrics.monitors.Monitor;
 
 public class AnalysisResult implements Serializable {
 

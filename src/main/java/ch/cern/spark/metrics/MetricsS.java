@@ -1,16 +1,10 @@
 package ch.cern.spark.metrics;
 
-import java.io.IOException;
-
-import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
-import ch.cern.spark.Properties.PropertiesCache;
-import ch.cern.spark.metrics.results.AnalysisResultsS;
-import ch.cern.spark.metrics.store.MetricStoresRDD;
-import ch.cern.spark.metrics.store.MetricStoresS;
-import ch.cern.spark.metrics.store.UpdateMetricStatusesF;
+import ch.cern.spark.metrics.monitors.Monitors;
 
 public class MetricsS extends JavaDStream<Metric> {
 
@@ -20,26 +14,12 @@ public class MetricsS extends JavaDStream<Metric> {
         super(stream.dstream(), stream.classTag());
     }
 
-    public AnalysisResultsS monitor(PropertiesCache propertiesExp) throws ClassNotFoundException, IOException {
-    	
-        JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithID = getMetricsWithIDStream(propertiesExp);
-        
-        MetricStoresRDD initialMetricStores = MetricStoresRDD.load(
-										        		Driver.getCheckpointDir(propertiesExp), 
-										        		JavaSparkContext.fromSparkContext(context().sparkContext()));
-        
-        MetricStatusesS statuses = UpdateMetricStatusesF.apply(metricsWithID, propertiesExp, initialMetricStores);
-        
-        MetricStoresS metricStores = statuses.getMetricStoresStatuses();
-        metricStores.save(Driver.getCheckpointDir(propertiesExp));
-        
-        AnalysisResultsS missingMetricsResults = metricStores.missingMetricResults(propertiesExp);
-        
-        return statuses.getAnalysisResultsStream().union(missingMetricsResults);
+    public JavaPairDStream<MonitorIDMetricIDs, Metric> withID(Monitors monitorsCache) {
+        return flatMapToPair(new ComputeIDsForMetricsF(monitorsCache));
     }
-
-    public JavaPairDStream<MonitorIDMetricIDs, Metric> getMetricsWithIDStream(PropertiesCache propertiesExp) {
-        return flatMapToPair(new ComputeIDsForMetricsF(propertiesExp));
+    
+    public <R> R mapS(Function<MetricsS, R> f) throws Exception {
+    		return f.call(this);
     }
     
 }

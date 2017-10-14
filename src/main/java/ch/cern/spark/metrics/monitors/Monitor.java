@@ -1,19 +1,15 @@
-package ch.cern.spark.metrics.monitor;
+package ch.cern.spark.metrics.monitors;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.time.Duration;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
 import ch.cern.spark.Component;
 import ch.cern.spark.Component.Type;
 import ch.cern.spark.ComponentManager;
-import ch.cern.spark.Pair;
 import ch.cern.spark.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.analysis.Analysis;
@@ -103,21 +99,6 @@ public class Monitor implements Serializable{
 
     public void setId(String id) {
         this.id = id;
-    }
-    
-    public static Map<String, Monitor> getAll(Properties.PropertiesCache propertiesExp) throws IOException {
-        Properties properties = propertiesExp.get().getSubset("monitor");
-        
-        Set<String> monitorNames = properties.getUniqueKeyFields();
-        
-        Map<String, Monitor> monitors = monitorNames.stream()
-        		.map(id -> new Pair<String, Properties>(id, properties.getSubset(id)))
-        		.map(info -> new Monitor(info.first).config(info.second))
-        		.collect(Collectors.toMap(Monitor::getId, m -> m));
-        
-        LOG.info("Monitors: " + monitors);
-        
-        return monitors;
     }
 
     public Optional<Duration> getMaximumMissingPeriod() {

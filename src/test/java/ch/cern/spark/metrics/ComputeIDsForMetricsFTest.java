@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.PropertiesTest;
+import ch.cern.spark.metrics.monitors.Monitors;
 import scala.Tuple2;
 
 public class ComputeIDsForMetricsFTest {
@@ -20,10 +21,11 @@ public class ComputeIDsForMetricsFTest {
         PropertiesCache prop = PropertiesTest.mockedExpirable();
         prop.get().setProperty("monitor.ID-1.attribute.key1", "val1");
         prop.get().setProperty("monitor.ID-1.attribute.key2", "val2");
+        Monitors monitors = new Monitors(prop, null, null, null);
         
         Metric metric = MetricTest.build();
         
-        Iterator<Tuple2<MonitorIDMetricIDs, Metric>> result = new ComputeIDsForMetricsF(prop).call(metric);
+        Iterator<Tuple2<MonitorIDMetricIDs, Metric>> result = new ComputeIDsForMetricsF(monitors).call(metric);
         
         assertResult(result, metric, "ID-1");
         
@@ -40,10 +42,11 @@ public class ComputeIDsForMetricsFTest {
         prop.get().setProperty("monitor.ID-3.filter.attribute.key2", "val2");
         prop.get().setProperty("monitor.ID-3.filter.attribute.key3", "val3");
         prop.get().setProperty("monitor.ID-4.filter.attribute.key3", "NO");
+        Monitors monitors = new Monitors(prop, null, null, null);
         
         Metric metric = MetricTest.build();
         
-        Iterator<Tuple2<MonitorIDMetricIDs, Metric>> result = new ComputeIDsForMetricsF(prop).call(metric);
+        Iterator<Tuple2<MonitorIDMetricIDs, Metric>> result = new ComputeIDsForMetricsF(monitors).call(metric);
         
         assertResult(result, metric, "ID-2");
         assertResult(result, metric, "ID-3");

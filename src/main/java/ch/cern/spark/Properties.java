@@ -16,40 +16,7 @@ import org.apache.hadoop.fs.Path;
 public class Properties extends java.util.Properties{
 	
 	private static final long serialVersionUID = 2510326766802151233L;
-	
-	public static class PropertiesCache extends Cache<Properties> implements Serializable{
-		private static final long serialVersionUID = -5361682529035003933L;
-		
-		private String path;
-		
-		public PropertiesCache(String path) {
-		    super(Duration.ofMinutes(5));
-		    
-			this.path = path;
-		}
 
-		public PropertiesCache(String path, Duration max_life_time) {
-		    super(max_life_time);
-		    
-			this.path = path;
-		}
-		
-		@Override
-		protected Properties load() throws IOException {
-			Properties props = new Properties();
-			
-	        FileSystem fs = FileSystem.get(new Configuration());
-
-	        InputStreamReader is = new InputStreamReader(fs.open(new Path(path)));
-			
-	        props.load(is);
-
-			is.close();
-
-			return props;
-		}
-	}
-	
 	public Properties() {
     }
 
@@ -138,4 +105,37 @@ public class Properties extends java.util.Properties{
 		return Optional.ofNullable(getPeriod(key, null));
 	}
 
+	public static class PropertiesCache extends Cache<Properties> implements Serializable{
+		private static final long serialVersionUID = -5361682529035003933L;
+		
+		private String path;
+		
+		public PropertiesCache(String path) {
+		    super(Duration.ofMinutes(5));
+		    
+			this.path = path;
+		}
+
+		public PropertiesCache(String path, Duration max_life_time) {
+		    super(max_life_time);
+		    
+			this.path = path;
+		}
+		
+		@Override
+		protected Properties load() throws IOException {
+			Properties props = new Properties();
+			
+	        FileSystem fs = FileSystem.get(new Configuration());
+
+	        InputStreamReader is = new InputStreamReader(fs.open(new Path(path)));
+			
+	        props.load(is);
+
+			is.close();
+
+			return props;
+		}
+	}
+	
 }

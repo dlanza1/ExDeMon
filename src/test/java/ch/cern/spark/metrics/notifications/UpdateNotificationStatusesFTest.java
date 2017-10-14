@@ -13,6 +13,7 @@ import org.junit.Test;
 import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.PropertiesTest;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.notificator.NotificatorID;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
@@ -26,8 +27,9 @@ public class UpdateNotificationStatusesFTest {
         props.get().setProperty("monitor.monID.notificator.notID.type", "constant");
         props.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
         props.get().setProperty("monitor.monID.notificator.notID.period", "10s");
+        Monitors monitors = new Monitors(props, null, null, null);
         
-        UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(props);
+        UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(monitors);
         
         Optional<Notification> notification = null;
                 
@@ -52,8 +54,9 @@ public class UpdateNotificationStatusesFTest {
         props.get().setProperty("monitor.monID.notificator.notID.type", "constant");
         props.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
         props.get().setProperty("monitor.monID.notificator.notID.period", "10s");
+        Monitors monitors = new Monitors(props, null, null, null);
         
-        UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(props);
+        UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(monitors);
         
         Optional<Notification> notification = null;
                 
@@ -82,8 +85,9 @@ public class UpdateNotificationStatusesFTest {
         props.get().setProperty("monitor.monID.notificator.notID.type", "constant");
         props.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
         props.get().setProperty("monitor.monID.notificator.notID.period", "10s");
+        Monitors monitors = new Monitors(props, null, null, null);
         
-        UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(props);
+        UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(monitors);
         
         Optional<Notification> notification = null;
                 

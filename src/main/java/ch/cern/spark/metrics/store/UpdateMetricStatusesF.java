@@ -2,7 +2,6 @@ package ch.cern.spark.metrics.store;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Map;
 
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.Function4;
@@ -12,12 +11,11 @@ import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
-import ch.cern.spark.Properties;
-import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MetricStatusesS;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
-import ch.cern.spark.metrics.monitor.Monitor;
+import ch.cern.spark.metrics.monitors.Monitor;
+import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
 public class UpdateMetricStatusesF
@@ -28,12 +26,10 @@ public class UpdateMetricStatusesF
     public static String DATA_EXPIRATION_PARAM = "data.expiration";
     public static java.time.Duration DATA_EXPIRATION_DEFAULT = java.time.Duration.ofHours(3);
 
-    private Map<String, Monitor> monitors = null;
-
-    private Properties.PropertiesCache propertiesExp;
+    private Monitors monitorsCache;
     
-    public UpdateMetricStatusesF(Properties.PropertiesCache propertiesExp) {
-        this.propertiesExp = propertiesExp;
+    public UpdateMetricStatusesF(Monitors monitorsCache) {
+        this.monitorsCache = monitorsCache;
     }
 
     @Override
@@ -41,7 +37,7 @@ public class UpdateMetricStatusesF
             Time time, MonitorIDMetricIDs ids, Optional<Metric> metricOpt, State<MetricStore> storeState) 
             throws Exception {
         
-        Monitor monitor = getMonitor(ids.getMonitorID());
+        Monitor monitor = monitorsCache.get(ids.getMonitorID());
         
         if(storeState.isTimingOut())
             return Optional.of(AnalysisResult.buildTimingOut(ids, monitor, Instant.ofEpochMilli(time.milliseconds())));
@@ -61,13 +57,6 @@ public class UpdateMetricStatusesF
         
         return Optional.of(result);
     }
-
-    private Monitor getMonitor(String monitorID) throws IOException {
-        if(monitors == null)
-            monitors = Monitor.getAll(propertiesExp);
-        
-        return monitors.get(monitorID);
-    }
     
     private MetricStore getMetricStore(State<MetricStore> storeState) {
         return storeState.exists() ? storeState.get() : new MetricStore();
@@ -75,13 +64,11 @@ public class UpdateMetricStatusesF
 
     public static MetricStatusesS apply(
             JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithID,
-            PropertiesCache propertiesExp, 
-            MetricStoresRDD initialMetricStores) throws IOException {
-        
-    		java.time.Duration dataExpirationPeriod = propertiesExp.get().getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);
+            Monitors monitorsCache, 
+            MetricStoresRDD initialMetricStores, java.time.Duration dataExpirationPeriod) throws IOException {
         
         StateSpec<MonitorIDMetricIDs, Metric, MetricStore, AnalysisResult> statusSpec = StateSpec
-                .function(new UpdateMetricStatusesF(propertiesExp))
+                .function(new UpdateMetricStatusesF(monitorsCache))
                 .initialState(initialMetricStores.rdd())
                 .timeout(new Duration(dataExpirationPeriod.toMillis()));
         

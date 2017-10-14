@@ -20,6 +20,7 @@ import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.PropertiesTest;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
+import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
 public class UpdateMetricStatusesFTest {
@@ -27,8 +28,9 @@ public class UpdateMetricStatusesFTest {
     @Test
     public void timingOutMetric() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
+        Monitors monitors = new Monitors(props, null, null, null);
         
-        UpdateMetricStatusesF func = new UpdateMetricStatusesF(props);
+        UpdateMetricStatusesF func = new UpdateMetricStatusesF(monitors);
         
         Time time = new Time(1000);
         MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
@@ -47,8 +49,9 @@ public class UpdateMetricStatusesFTest {
     @Test
     public void noMetric() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
+        Monitors monitors = new Monitors(props, null, null, null);
         
-        UpdateMetricStatusesF func = new UpdateMetricStatusesF(props);
+        UpdateMetricStatusesF func = new UpdateMetricStatusesF(monitors);
         
         Time time = new Time(1000);
         MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
@@ -65,8 +68,9 @@ public class UpdateMetricStatusesFTest {
     public void updateLastestTimestamp() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("monitor.ID.analysis.type", "fixed-threshold");
+        Monitors monitors = new Monitors(props, null, null, null);
         
-        UpdateMetricStatusesF func = new UpdateMetricStatusesF(props);
+        UpdateMetricStatusesF func = new UpdateMetricStatusesF(monitors);
         
         MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
         Instant metricTime = Instant.ofEpochMilli(Instant.now().toEpochMilli());        

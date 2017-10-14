@@ -13,9 +13,10 @@ public class DriverTest {
     public void notConfiguredMetricSource() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("spark.driver.allowMultipleContexts", "true");
-        Driver driver = new Driver(props);
         
         try{
+            Driver driver = new Driver(props);
+
             driver.createNewStreamingContext();
             
             fail();
@@ -32,9 +33,9 @@ public class DriverTest {
         props.get().setProperty("source.topics", "topic");
         props.get().setProperty("source.parser.attributes", "att1 att2");
         
-        Driver driver = new Driver(props);
-        
         try{
+        		Driver driver = new Driver(props);
+        	
             driver.createNewStreamingContext();
             
             fail();

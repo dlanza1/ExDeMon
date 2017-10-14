@@ -4,9 +4,9 @@ import java.io.IOException;
 
 import org.apache.spark.streaming.api.java.JavaDStream;
 
-import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.metrics.ComputeMissingMetricResultsF;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
+import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResultsS;
 import scala.Tuple2;
@@ -23,9 +23,9 @@ public class MetricStoresS extends JavaDStream<Tuple2<MonitorIDMetricIDs, Metric
     		foreachRDD(rdd -> new MetricStoresRDD(rdd).save(storing_path));
     }
 
-    public AnalysisResultsS missingMetricResults(final PropertiesCache propertiesExp) {
+    public AnalysisResultsS missingMetricResults(final Monitors monitorsCache) {
     		JavaDStream<AnalysisResult> results = transform((rdd, time) -> rdd.flatMap(
-    					new ComputeMissingMetricResultsF(propertiesExp, time))
+    					new ComputeMissingMetricResultsF(monitorsCache, time))
     				);
     		
 		return new AnalysisResultsS(results);
