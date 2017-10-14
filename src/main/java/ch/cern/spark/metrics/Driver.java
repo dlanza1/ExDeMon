@@ -29,15 +29,28 @@ public final class Driver {
     
     private PropertiesCache properties;
     
-    private SparkConf sparkConf;
+    private JavaStreamingContext ssc;
+    
+	private MetricsSource metricSource;
+	private Optional<AnalysisResultsSink> analysisResultsSink;
+	private Optional<NotificationsSink> notificationsSink;
 
-	public Driver(PropertiesCache props) throws IOException {
+	public Driver(PropertiesCache props) throws Exception {
 	    this.properties = props;
 
-        sparkConf = new SparkConf();
+        SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("MetricsMonitorStreamingJob");
         sparkConf.runLocallyIfMasterIsNotConfigured();
         sparkConf.addProperties(this.properties.get(), "spark.");
+        
+        ssc = newStreamingContext(sparkConf);
+        
+        metricSource = getMetricSource(properties.get());
+		analysisResultsSink = getAnalysisResultsSink(properties.get());
+		notificationsSink = getNotificationsSink(properties.get());
+		
+		if(!analysisResultsSink.isPresent() && !notificationsSink.isPresent())
+            throw new RuntimeException("At least one sink must be configured");
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -75,12 +88,6 @@ public final class Driver {
 
     protected JavaStreamingContext createNewStreamingContext() 
             throws Exception {
-        
-		JavaStreamingContext ssc = newStreamingContext();
-		
-		MetricsSource metricSource = getMetricSource();
-		Optional<AnalysisResultsSink> analysisResultsSink = getAnalysisResultsSink();
-		Optional<NotificationsSink> notificationsSink = getNotificationsSink();
 	    
 		MetricsS metrics = metricSource.createMetricsStream(ssc);
 		
@@ -91,31 +98,28 @@ public final class Driver {
 		NotificationsS notifications = results.notify(properties);
 		
     		notificationsSink.ifPresent(notifications::sink);
-        
-        if(!analysisResultsSink.isPresent() && !notificationsSink.isPresent())
-            throw new RuntimeException("At least one sink must be configured");
 		
 		return ssc;
 	}
     
-    private Optional<NotificationsSink> getNotificationsSink() throws Exception {
-    		Properties notificationsSinkProperties = properties.get().getSubset("notifications.sink");
+    private Optional<NotificationsSink> getNotificationsSink(Properties properties) throws Exception {
+    		Properties notificationsSinkProperties = properties.getSubset("notifications.sink");
 
     		Optional<NotificationsSink> notificationsSink = ComponentManager.buildOptional(Type.NOTIFICATIONS_SINK, notificationsSinkProperties);
 		
     		return notificationsSink;
 	}
 
-	private Optional<AnalysisResultsSink> getAnalysisResultsSink() throws Exception {
-		Properties analysisResultsSinkProperties = properties.get().getSubset("results.sink");
+	private Optional<AnalysisResultsSink> getAnalysisResultsSink(Properties properties) throws Exception {
+		Properties analysisResultsSinkProperties = properties.getSubset("results.sink");
 		
 		Optional<AnalysisResultsSink> analysisResultsSink = ComponentManager.buildOptional(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
 		
 		return analysisResultsSink;
 	}
 
-	private MetricsSource getMetricSource() throws Exception {
-    		Properties metricSourceProperties = properties.get().getSubset("source");
+	private MetricsSource getMetricSource(Properties properties) throws Exception {
+    		Properties metricSourceProperties = properties.getSubset("source");
 		
     		if(!metricSourceProperties.isTypeDefined())
 		    throw new RuntimeException("A metric source must be configured");
@@ -125,7 +129,7 @@ public final class Driver {
 		return metricSource;
 	}
 
-	private JavaStreamingContext newStreamingContext() throws IOException {
+	private JavaStreamingContext newStreamingContext(SparkConf sparkConf) throws IOException {
     		long batchInterval = properties.get().getLong(BATCH_INTERVAL_PARAM, 30);
 		
     		JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, Durations.seconds(batchInterval));
