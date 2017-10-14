@@ -6,7 +6,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.json.JavaObjectToJSONObjectParser;
 import ch.cern.spark.json.JsonS;
 import ch.cern.spark.metrics.Driver;
@@ -34,7 +34,7 @@ public class AnalysisResultsS extends JavaDStream<AnalysisResult> {
     		return new AnalysisResultsS(super.union(input));
     }
 
-    public NotificationsS notify(Expirable propertiesExp) throws IOException, ClassNotFoundException {
+    public NotificationsS notify(PropertiesCache propertiesExp) throws IOException, ClassNotFoundException {
         JavaPairDStream<NotificatorID, AnalysisResult> analysisWithID = getWithNotificatorID(propertiesExp);
         
         NotificationStoresRDD initialNotificationStores = NotificationStoresRDD.load(
@@ -49,7 +49,7 @@ public class AnalysisResultsS extends JavaDStream<AnalysisResult> {
         return statuses.getThrownNotifications();
     }
 
-    public JavaPairDStream<NotificatorID, AnalysisResult> getWithNotificatorID(Expirable propertiesExp) {
+    public JavaPairDStream<NotificatorID, AnalysisResult> getWithNotificatorID(PropertiesCache propertiesExp) {
         return flatMapToPair(new ComputeIDsForAnalysisF(propertiesExp));
     }
 

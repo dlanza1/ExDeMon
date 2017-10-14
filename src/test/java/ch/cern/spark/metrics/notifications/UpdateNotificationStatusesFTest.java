@@ -10,7 +10,7 @@ import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateImpl;
 import org.junit.Test;
 
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.PropertiesTest;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.notificator.NotificatorID;
@@ -22,7 +22,7 @@ public class UpdateNotificationStatusesFTest {
 
     @Test
     public void raiseAlwaysSameStatus() throws Exception{
-        Expirable props = PropertiesTest.mockedExpirable();
+        PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("monitor.monID.notificator.notID.type", "constant");
         props.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
         props.get().setProperty("monitor.monID.notificator.notID.period", "10s");
@@ -48,7 +48,7 @@ public class UpdateNotificationStatusesFTest {
     
     @Test
     public void notRaiseAfterRaising() throws Exception{
-        Expirable props = PropertiesTest.mockedExpirable();
+        PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("monitor.monID.notificator.notID.type", "constant");
         props.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
         props.get().setProperty("monitor.monID.notificator.notID.period", "10s");
@@ -78,7 +78,7 @@ public class UpdateNotificationStatusesFTest {
     
     @Test
     public void raiseChangingStatus() throws Exception{
-        Expirable props = PropertiesTest.mockedExpirable();
+        PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("monitor.monID.notificator.notID.type", "constant");
         props.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
         props.get().setProperty("monitor.monID.notificator.notID.period", "10s");

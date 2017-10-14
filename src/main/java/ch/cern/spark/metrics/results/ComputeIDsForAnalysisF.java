@@ -8,7 +8,7 @@ import java.util.Set;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 
 import ch.cern.spark.Properties;
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.metrics.monitor.Monitor;
 import ch.cern.spark.metrics.notificator.NotificatorID;
 import scala.Tuple2;
@@ -19,9 +19,9 @@ public class ComputeIDsForAnalysisF implements PairFlatMapFunction<AnalysisResul
     
     private Map<String, Monitor> monitors = null;
 
-    private Properties.Expirable propertiesExp;
+    private Properties.PropertiesCache propertiesExp;
 
-    public ComputeIDsForAnalysisF(Expirable propertiesExp) {
+    public ComputeIDsForAnalysisF(PropertiesCache propertiesExp) {
         this.propertiesExp = propertiesExp;
     }
 

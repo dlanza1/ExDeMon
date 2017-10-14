@@ -13,7 +13,7 @@ import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.spark.Properties;
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MetricStatusesS;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
@@ -30,9 +30,9 @@ public class UpdateMetricStatusesF
 
     private Map<String, Monitor> monitors = null;
 
-    private Properties.Expirable propertiesExp;
+    private Properties.PropertiesCache propertiesExp;
     
-    public UpdateMetricStatusesF(Properties.Expirable propertiesExp) {
+    public UpdateMetricStatusesF(Properties.PropertiesCache propertiesExp) {
         this.propertiesExp = propertiesExp;
     }
 
@@ -75,7 +75,7 @@ public class UpdateMetricStatusesF
 
     public static MetricStatusesS apply(
             JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithID,
-            Expirable propertiesExp, 
+            PropertiesCache propertiesExp, 
             MetricStoresRDD initialMetricStores) throws IOException {
         
     		java.time.Duration dataExpirationPeriod = propertiesExp.get().getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);

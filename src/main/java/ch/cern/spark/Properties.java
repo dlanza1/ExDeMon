@@ -17,25 +17,25 @@ public class Properties extends java.util.Properties{
 	
 	private static final long serialVersionUID = 2510326766802151233L;
 	
-	public static class Expirable extends ObjectExpirable<Properties> implements Serializable{
+	public static class PropertiesCache extends Cache<Properties> implements Serializable{
 		private static final long serialVersionUID = -5361682529035003933L;
 		
 		private String path;
 		
-		public Expirable(String path) {
+		public PropertiesCache(String path) {
 		    super(Duration.ofMinutes(5));
 		    
 			this.path = path;
 		}
 
-		public Expirable(String path, Duration max_life_time) {
+		public PropertiesCache(String path, Duration max_life_time) {
 		    super(max_life_time);
 		    
 			this.path = path;
 		}
 		
 		@Override
-		protected Properties loadObject() throws IOException {
+		protected Properties load() throws IOException {
 			Properties props = new Properties();
 			
 	        FileSystem fs = FileSystem.get(new Configuration());

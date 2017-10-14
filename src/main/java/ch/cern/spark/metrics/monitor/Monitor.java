@@ -105,7 +105,7 @@ public class Monitor implements Serializable{
         this.id = id;
     }
     
-    public static Map<String, Monitor> getAll(Properties.Expirable propertiesExp) throws IOException {
+    public static Map<String, Monitor> getAll(Properties.PropertiesCache propertiesExp) throws IOException {
         Properties properties = propertiesExp.get().getSubset("monitor");
         
         Set<String> monitorNames = properties.getUniqueKeyFields();

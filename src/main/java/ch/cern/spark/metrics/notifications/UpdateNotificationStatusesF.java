@@ -12,7 +12,7 @@ import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.spark.Properties;
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.metrics.monitor.Monitor;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.notificator.NotificatorID;
@@ -29,9 +29,9 @@ public class UpdateNotificationStatusesF
 
     private Map<String, Monitor> monitors = null;
 
-    private Properties.Expirable propertiesExp;
+    private Properties.PropertiesCache propertiesExp;
 
-    public UpdateNotificationStatusesF(Properties.Expirable propertiesExp) {
+    public UpdateNotificationStatusesF(Properties.PropertiesCache propertiesExp) {
         this.propertiesExp = propertiesExp;
     }
 
@@ -73,7 +73,7 @@ public class UpdateNotificationStatusesF
     }
 
     public static NotificationStatusesS apply(JavaPairDStream<NotificatorID, AnalysisResult> resultsWithId,
-            Expirable propertiesExp, NotificationStoresRDD initialNotificationStores) throws IOException {
+            PropertiesCache propertiesExp, NotificationStoresRDD initialNotificationStores) throws IOException {
 
         java.time.Duration dataExpirationPeriod = propertiesExp.get().getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);
 

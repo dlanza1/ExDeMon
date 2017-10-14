@@ -4,14 +4,14 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.PropertiesTest;
 
 public class DriverTest {
 
     @Test
     public void notConfiguredMetricSource() throws Exception{
-        Expirable props = PropertiesTest.mockedExpirable();
+        PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("spark.driver.allowMultipleContexts", "true");
         Driver driver = new Driver(props);
         
@@ -26,7 +26,7 @@ public class DriverTest {
     
     @Test
     public void notConfiguredSinks() throws Exception{
-        Expirable props = PropertiesTest.mockedExpirable();
+        PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("spark.driver.allowMultipleContexts", "true");
         props.get().setProperty("source.type", "kafka");
         props.get().setProperty("source.topics", "topic");
@@ -45,7 +45,7 @@ public class DriverTest {
     
     @Test
     public void configurationWithAnalysisResultsSink() throws Exception{
-        Expirable props = PropertiesTest.mockedExpirable();
+        PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("spark.driver.allowMultipleContexts", "true");
         props.get().setProperty("source.type", "kafka");
         props.get().setProperty("source.topics", "topic");
@@ -59,7 +59,7 @@ public class DriverTest {
     
     @Test
     public void configurationWithNotificationsSink() throws Exception{
-        Expirable props = PropertiesTest.mockedExpirable();
+        PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("spark.driver.allowMultipleContexts", "true");
         props.get().setProperty("source.type", "kafka");
         props.get().setProperty("source.topics", "topic");

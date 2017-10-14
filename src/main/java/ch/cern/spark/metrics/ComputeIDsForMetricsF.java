@@ -8,7 +8,7 @@ import java.util.List;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.metrics.monitor.Monitor;
 import scala.Tuple2;
 
@@ -18,9 +18,9 @@ public class ComputeIDsForMetricsF implements PairFlatMapFunction<Metric, Monito
 
     private List<Monitor> monitors = null;
 
-    private Expirable propertiesExp;
+    private PropertiesCache propertiesExp;
 
-    public ComputeIDsForMetricsF(Expirable propertiesExp) {
+    public ComputeIDsForMetricsF(PropertiesCache propertiesExp) {
         this.propertiesExp = propertiesExp;
     }
 
@@ -41,7 +41,7 @@ public class ComputeIDsForMetricsF implements PairFlatMapFunction<Metric, Monito
             monitors = new LinkedList<Monitor>(Monitor.getAll(propertiesExp).values());
     }
 
-    public static JavaPairDStream<MonitorIDMetricIDs, Metric> apply(Expirable propertiesExp, MetricsS metricsS) {
+    public static JavaPairDStream<MonitorIDMetricIDs, Metric> apply(PropertiesCache propertiesExp, MetricsS metricsS) {
         JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithIDs = 
                 metricsS.flatMapToPair(new ComputeIDsForMetricsF(propertiesExp));
         

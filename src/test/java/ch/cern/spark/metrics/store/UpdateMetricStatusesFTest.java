@@ -16,7 +16,7 @@ import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 import org.junit.Test;
 
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.PropertiesTest;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
@@ -26,7 +26,7 @@ public class UpdateMetricStatusesFTest {
 
     @Test
     public void timingOutMetric() throws Exception{
-        Expirable props = PropertiesTest.mockedExpirable();
+        PropertiesCache props = PropertiesTest.mockedExpirable();
         
         UpdateMetricStatusesF func = new UpdateMetricStatusesF(props);
         
@@ -46,7 +46,7 @@ public class UpdateMetricStatusesFTest {
     
     @Test
     public void noMetric() throws Exception{
-        Expirable props = PropertiesTest.mockedExpirable();
+        PropertiesCache props = PropertiesTest.mockedExpirable();
         
         UpdateMetricStatusesF func = new UpdateMetricStatusesF(props);
         
@@ -63,7 +63,7 @@ public class UpdateMetricStatusesFTest {
     
     @Test
     public void updateLastestTimestamp() throws Exception{
-        Expirable props = PropertiesTest.mockedExpirable();
+        PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("monitor.ID.analysis.type", "fixed-threshold");
         
         UpdateMetricStatusesF func = new UpdateMetricStatusesF(props);

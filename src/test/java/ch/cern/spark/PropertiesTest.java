@@ -10,7 +10,7 @@ import java.time.Duration;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 
 public class PropertiesTest {
     
@@ -28,7 +28,7 @@ public class PropertiesTest {
 
 	@Test
 	public void expiration() throws IOException{
-		Properties.Expirable prop = new Properties.Expirable("src/test/resources/config.properties", Duration.ofSeconds(1));
+		Properties.PropertiesCache prop = new Properties.PropertiesCache("src/test/resources/config.properties", Duration.ofSeconds(1));
 		
 		Properties p1 = prop.get();
 		
@@ -68,8 +68,8 @@ public class PropertiesTest {
         Assert.assertArrayEquals(expectedValue, uniq);
 	}
 
-    public static Expirable mockedExpirable() {
-        Properties.Expirable propExp = mock(Properties.Expirable.class, withSettings().serializable());
+    public static PropertiesCache mockedExpirable() {
+        Properties.PropertiesCache propExp = mock(Properties.PropertiesCache.class, withSettings().serializable());
         
         try {
             when(propExp.get()).thenReturn(new Properties());

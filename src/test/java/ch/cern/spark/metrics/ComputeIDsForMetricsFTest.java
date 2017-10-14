@@ -9,7 +9,7 @@ import java.util.Iterator;
 
 import org.junit.Test;
 
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.PropertiesTest;
 import scala.Tuple2;
 
@@ -17,7 +17,7 @@ public class ComputeIDsForMetricsFTest {
 
     @Test
     public void oneMonitor() throws Exception{
-        Expirable prop = PropertiesTest.mockedExpirable();
+        PropertiesCache prop = PropertiesTest.mockedExpirable();
         prop.get().setProperty("monitor.ID-1.attribute.key1", "val1");
         prop.get().setProperty("monitor.ID-1.attribute.key2", "val2");
         
@@ -32,7 +32,7 @@ public class ComputeIDsForMetricsFTest {
 
     @Test
     public void severalMonitors() throws Exception{
-        Expirable prop = PropertiesTest.mockedExpirable();
+        PropertiesCache prop = PropertiesTest.mockedExpirable();
         prop.get().setProperty("monitor.ID-1.filter.attribute.key1", "val1");
         prop.get().setProperty("monitor.ID-1.filter.attribute.key2", "val2");
         prop.get().setProperty("monitor.ID-3.filter.attribute.key1", "val1");

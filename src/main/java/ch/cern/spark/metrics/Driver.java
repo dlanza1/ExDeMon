@@ -12,7 +12,7 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import ch.cern.spark.Component.Type;
 import ch.cern.spark.ComponentManager;
 import ch.cern.spark.Properties;
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.SparkConf;
 import ch.cern.spark.metrics.notifications.NotificationsS;
 import ch.cern.spark.metrics.notifications.sink.NotificationsSink;
@@ -27,11 +27,11 @@ public final class Driver {
     
     public static String BATCH_INTERVAL_PARAM = "spark.batch.time";
     
-    private Properties.Expirable properties;
+    private PropertiesCache properties;
     
     private SparkConf sparkConf;
 
-	public Driver(Properties.Expirable props) throws IOException {
+	public Driver(PropertiesCache props) throws IOException {
 	    this.properties = props;
 
         sparkConf = new SparkConf();
@@ -46,7 +46,7 @@ public final class Driver {
 	        throw new RuntimeException("A single argument must be specified with the path to the configuration file.");
 	    
 	    String propertyFilePath = args[0];
-	    Properties.Expirable props = new Properties.Expirable(propertyFilePath);
+	    PropertiesCache props = new PropertiesCache(propertyFilePath);
 	    
 	    Driver driver = new Driver(props);
 
@@ -135,7 +135,7 @@ public final class Driver {
 		return ssc;
 	}
 
-	public static String getCheckpointDir(Expirable propertiesExp) throws IOException {
+	public static String getCheckpointDir(PropertiesCache propertiesExp) throws IOException {
         return propertiesExp.get().getProperty(Driver.CHECKPOINT_DIR_PARAM, Driver.CHECKPOINT_DIR_DEFAULT);
     }
 

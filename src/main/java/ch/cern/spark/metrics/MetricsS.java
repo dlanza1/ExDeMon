@@ -6,7 +6,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.metrics.results.AnalysisResultsS;
 import ch.cern.spark.metrics.store.MetricStoresRDD;
 import ch.cern.spark.metrics.store.MetricStoresS;
@@ -20,7 +20,7 @@ public class MetricsS extends JavaDStream<Metric> {
         super(stream.dstream(), stream.classTag());
     }
 
-    public AnalysisResultsS monitor(Expirable propertiesExp) throws ClassNotFoundException, IOException {
+    public AnalysisResultsS monitor(PropertiesCache propertiesExp) throws ClassNotFoundException, IOException {
     	
         JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithID = getMetricsWithIDStream(propertiesExp);
         
@@ -38,7 +38,7 @@ public class MetricsS extends JavaDStream<Metric> {
         return statuses.getAnalysisResultsStream().union(missingMetricsResults);
     }
 
-    public JavaPairDStream<MonitorIDMetricIDs, Metric> getMetricsWithIDStream(Expirable propertiesExp) {
+    public JavaPairDStream<MonitorIDMetricIDs, Metric> getMetricsWithIDStream(PropertiesCache propertiesExp) {
         return flatMapToPair(new ComputeIDsForMetricsF(propertiesExp));
     }
     

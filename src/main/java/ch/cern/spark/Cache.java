@@ -6,12 +6,10 @@ import java.time.Instant;
 
 /**
  * Represents an object which is not serialized, so it needs to be reloaded in every batch
- * 
- * @author dlanza
  *
  * @param <T> Object type
  */
-public abstract class ObjectExpirable<T> {
+public abstract class Cache<T> {
 
     private Duration max_life_time; 
     
@@ -19,11 +17,11 @@ public abstract class ObjectExpirable<T> {
     
 	private transient T object;
 	
-	protected ObjectExpirable(){
+	protected Cache(){
 		max_life_time = null;
 	}
 	
-	protected ObjectExpirable(Duration max_life_time){
+	protected Cache(Duration max_life_time){
 	    this.max_life_time = max_life_time;
     }
 	
@@ -32,15 +30,15 @@ public abstract class ObjectExpirable<T> {
 	        object = null;
 	    
 		if(object == null)
-			object = load();
+			object = loadCache();
 		
 		return object;
 	}
 
-	private T load() throws IOException {
+	private T loadCache() throws IOException {
 	    loadTime = Instant.now();;
 	    
-        return loadObject();
+        return load();
     }
 
     private boolean hasExpired() {
@@ -54,6 +52,6 @@ public abstract class ObjectExpirable<T> {
         return lifeTime.compareTo(max_life_time) > 1;
     }
 
-    protected abstract T loadObject() throws IOException;
+    protected abstract T load() throws IOException;
 	
 }

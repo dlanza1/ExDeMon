@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.apache.spark.streaming.api.java.JavaDStream;
 
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.metrics.ComputeMissingMetricResultsF;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import ch.cern.spark.metrics.results.AnalysisResult;
@@ -23,7 +23,7 @@ public class MetricStoresS extends JavaDStream<Tuple2<MonitorIDMetricIDs, Metric
     		foreachRDD(rdd -> new MetricStoresRDD(rdd).save(storing_path));
     }
 
-    public AnalysisResultsS missingMetricResults(final Expirable propertiesExp) {
+    public AnalysisResultsS missingMetricResults(final PropertiesCache propertiesExp) {
     		JavaDStream<AnalysisResult> results = transform((rdd, time) -> rdd.flatMap(
     					new ComputeMissingMetricResultsF(propertiesExp, time))
     				);

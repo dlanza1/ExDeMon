@@ -12,7 +12,7 @@ import java.util.Optional;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.streaming.Time;
 
-import ch.cern.spark.Properties.Expirable;
+import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.metrics.monitor.Monitor;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.store.MetricStore;
@@ -22,13 +22,13 @@ public class ComputeMissingMetricResultsF implements FlatMapFunction<Tuple2<Moni
 
     private static final long serialVersionUID = 806231785227390268L;
     
-    private Expirable propertiesExp;
+    private PropertiesCache propertiesExp;
 
     private Instant time;
 
     private Map<String, Monitor> monitors = null;
     
-    public ComputeMissingMetricResultsF(Expirable propertiesExp, Time time) {
+    public ComputeMissingMetricResultsF(PropertiesCache propertiesExp, Time time) {
         this.propertiesExp = propertiesExp;
         
         this.time = Instant.ofEpochMilli(time.milliseconds());

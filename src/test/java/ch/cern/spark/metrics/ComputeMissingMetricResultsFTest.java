@@ -20,7 +20,7 @@ public class ComputeMissingMetricResultsFTest {
     
     @Test
     public void noMissingMetric() throws Exception{
-        Properties.Expirable propExp = PropertiesTest.mockedExpirable();
+        Properties.PropertiesCache propExp = PropertiesTest.mockedExpirable();
         propExp.get().setProperty("monitor.ID.missing.max-period", "60");
         
         ComputeMissingMetricResultsF func = new ComputeMissingMetricResultsF(propExp, new Time(50000));
@@ -37,7 +37,7 @@ public class ComputeMissingMetricResultsFTest {
 
     @Test
     public void missingMetric() throws Exception{
-        Properties.Expirable propExp = PropertiesTest.mockedExpirable();
+        Properties.PropertiesCache propExp = PropertiesTest.mockedExpirable();
         propExp.get().setProperty("monitor.ID.missing.max-period", "10");
         
         ComputeMissingMetricResultsF func = new ComputeMissingMetricResultsF(propExp, new Time(50000));
