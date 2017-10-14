@@ -68,16 +68,16 @@ public class MetricStoresRDD extends JavaRDD<Tuple2<MonitorIDMetricIDs, MetricSt
         
         Path file = getStoringFile(storing_path);
         
-        if(fs.exists(file)){
-            ObjectInputStream is = new ObjectInputStream(fs.open(file));
-            
-            List<Tuple2<MonitorIDMetricIDs, MetricStore>> stores = 
-                    (List<Tuple2<MonitorIDMetricIDs, MetricStore>>) is.readObject();
-            
-            return stores;
-        }else{
-            return new LinkedList<Tuple2<MonitorIDMetricIDs, MetricStore>>();
-        }
+        if(!fs.exists(file))
+        		file = file.suffix(".tmp");
+        if(!fs.exists(file))
+        		return new LinkedList<Tuple2<MonitorIDMetricIDs, MetricStore>>();
+        
+        ObjectInputStream is = new ObjectInputStream(fs.open(file));
+        
+        List<Tuple2<MonitorIDMetricIDs, MetricStore>> stores =  (List<Tuple2<MonitorIDMetricIDs, MetricStore>>) is.readObject();
+        
+        return stores;
     }
     
     public static MetricStoresRDD load(String storing_path, JavaSparkContext context) throws IOException, ClassNotFoundException {

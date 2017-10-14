@@ -32,6 +32,8 @@ public class NotificationStoresRDD extends JavaRDD<Tuple2<NotificatorID, Store>>
         Path file = getStoringFile(storing_path);
         
         if(!fs.exists(file))
+    			file = file.suffix(".tmp");
+        if(!fs.exists(file))
         		return new LinkedList<Tuple2<NotificatorID, Store>>();
         
         ObjectInputStream is = new ObjectInputStream(fs.open(file));
