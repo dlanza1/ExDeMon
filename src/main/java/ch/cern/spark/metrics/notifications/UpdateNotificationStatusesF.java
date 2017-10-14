@@ -15,6 +15,7 @@ import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.notificator.NotificatorID;
 import ch.cern.spark.metrics.results.AnalysisResult;
+import ch.cern.spark.metrics.results.AnalysisResultsS;
 import ch.cern.spark.metrics.store.Store;
 
 public class UpdateNotificationStatusesF
@@ -58,14 +59,16 @@ public class UpdateNotificationStatusesF
         				: java.util.Optional.empty();
     }
 
-    public static NotificationStatusesS apply(JavaPairDStream<NotificatorID, AnalysisResult> resultsWithId,
+    public static NotificationStatusesS apply(AnalysisResultsS results,
             Monitors monitorsCache, NotificationStoresRDD initialNotificationStores, java.time.Duration dataExpirationPeriod) throws IOException {
 
+    		JavaPairDStream<NotificatorID, AnalysisResult> analysisWithID = results.withNotificatorID(monitorsCache);
+    		
         StateSpec<NotificatorID, AnalysisResult, Store, Notification> statusSpec = StateSpec
                 .function(new UpdateNotificationStatusesF(monitorsCache)).initialState(initialNotificationStores.rdd())
                 .timeout(new Duration(dataExpirationPeriod.toMillis()));
 
-        NotificationStatusesS statuses = new NotificationStatusesS(resultsWithId.mapWithState(statusSpec));
+        NotificationStatusesS statuses = new NotificationStatusesS(analysisWithID.mapWithState(statusSpec));
 
         return statuses;
     }

@@ -43,7 +43,7 @@ public final class Driver {
         ssc = newStreamingContext(properties.get());
         
         metricSource = getMetricSource(properties.get());
-        monitors = getMonitorsCache(properties, ssc);
+        monitors = getMonitors(properties, ssc);
 		analysisResultsSink = getAnalysisResultsSink(properties.get());
 		notificationsSink = getNotificationsSink(properties.get());
 		
@@ -51,7 +51,7 @@ public final class Driver {
             throw new RuntimeException("At least one sink must be configured");
 	}
 
-	private Monitors getMonitorsCache(PropertiesCache properties, JavaStreamingContext ssc2) throws IOException {
+	private Monitors getMonitors(PropertiesCache properties, JavaStreamingContext ssc2) throws IOException {
 		return new Monitors(properties, 
 									ssc.sparkContext(), 
 									properties.get().getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT),

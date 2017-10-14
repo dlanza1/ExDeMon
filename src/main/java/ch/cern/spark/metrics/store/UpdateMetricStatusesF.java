@@ -13,6 +13,7 @@ import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MetricStatusesS;
+import ch.cern.spark.metrics.MetricsS;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.monitors.Monitors;
@@ -63,9 +64,11 @@ public class UpdateMetricStatusesF
     }
 
     public static MetricStatusesS apply(
-            JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithID,
+            MetricsS metrics,
             Monitors monitorsCache, 
             MetricStoresRDD initialMetricStores, java.time.Duration dataExpirationPeriod) throws IOException {
+    	
+    		JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithID = metrics.withID(monitorsCache);
         
         StateSpec<MonitorIDMetricIDs, Metric, MetricStore, AnalysisResult> statusSpec = StateSpec
                 .function(new UpdateMetricStatusesF(monitorsCache))

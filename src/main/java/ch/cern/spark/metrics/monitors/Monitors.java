@@ -10,23 +10,18 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.spark.Cache;
 import ch.cern.spark.Pair;
 import ch.cern.spark.Properties;
 import ch.cern.spark.Properties.PropertiesCache;
-import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MetricStatusesS;
 import ch.cern.spark.metrics.MetricsS;
-import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import ch.cern.spark.metrics.notifications.NotificationStatusesS;
 import ch.cern.spark.metrics.notifications.NotificationStoresRDD;
 import ch.cern.spark.metrics.notifications.NotificationsS;
 import ch.cern.spark.metrics.notifications.NotificationsWithIdS;
 import ch.cern.spark.metrics.notifications.UpdateNotificationStatusesF;
-import ch.cern.spark.metrics.notificator.NotificatorID;
-import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResultsS;
 import ch.cern.spark.metrics.store.MetricStoresRDD;
 import ch.cern.spark.metrics.store.MetricStoresS;
@@ -77,11 +72,10 @@ public class Monitors extends Cache<Map<String, Monitor>> implements Serializabl
 	}
 	
 	public AnalysisResultsS analyze(MetricsS metrics) throws IOException, ClassNotFoundException {
-        JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithID = metrics.withID(this);
         
         MetricStoresRDD initialMetricStores = MetricStoresRDD.load(checkpointDir, sparkContext);
         
-        MetricStatusesS statuses = UpdateMetricStatusesF.apply(metricsWithID, this, initialMetricStores, dataExpirationPeriod);
+        MetricStatusesS statuses = UpdateMetricStatusesF.apply(metrics, this, initialMetricStores, dataExpirationPeriod);
         
         MetricStoresS metricStores = statuses.getMetricStoresStatuses();
         metricStores.save(checkpointDir);
@@ -92,11 +86,10 @@ public class Monitors extends Cache<Map<String, Monitor>> implements Serializabl
 	}
 
 	public NotificationsS notify(AnalysisResultsS results) throws IOException, ClassNotFoundException {
-        JavaPairDStream<NotificatorID, AnalysisResult> analysisWithID = results.withNotificatorID(this);
         
         NotificationStoresRDD initialNotificationStores = NotificationStoresRDD.load(checkpointDir, sparkContext);
         
-        NotificationStatusesS statuses = UpdateNotificationStatusesF.apply(analysisWithID, this, initialNotificationStores, dataExpirationPeriod);
+        NotificationStatusesS statuses = UpdateNotificationStatusesF.apply(results, this, initialNotificationStores, dataExpirationPeriod);
         
         NotificationsWithIdS allNotificationsStatuses = statuses.getAllNotificationsStatusesWithID();
         allNotificationsStatuses.save(checkpointDir);
