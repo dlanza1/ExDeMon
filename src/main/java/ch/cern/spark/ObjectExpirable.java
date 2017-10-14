@@ -1,6 +1,8 @@
 package ch.cern.spark;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 
 /**
  * Represents an object which is not serialized, so it needs to be reloaded in every batch
@@ -11,17 +13,18 @@ import java.io.IOException;
  */
 public abstract class ObjectExpirable<T> {
 
-    private int max_life_time_in_seconds; 
+    private Duration max_life_time; 
     
-    private transient long loadTime;
+    private transient Instant loadTime;
     
 	private transient T object;
 	
 	protected ObjectExpirable(){
+		max_life_time = null;
 	}
 	
-	protected ObjectExpirable(int max_life_time_in_seconds){
-	    this.max_life_time_in_seconds = max_life_time_in_seconds;
+	protected ObjectExpirable(Duration max_life_time){
+	    this.max_life_time = max_life_time;
     }
 	
 	public final T get() throws IOException{
@@ -35,17 +38,20 @@ public abstract class ObjectExpirable<T> {
 	}
 
 	private T load() throws IOException {
-	    loadTime = System.currentTimeMillis() / 1000;
+	    loadTime = Instant.now();;
 	    
         return loadObject();
     }
 
     private boolean hasExpired() {
-        long currentTime = System.currentTimeMillis() / 1000;
+    		if(max_life_time == null)
+    			return false;
+    	
+        Instant currentTime = Instant.now();
         
-	    long lifeTime = currentTime - loadTime;
+	    Duration lifeTime = Duration.between(loadTime, currentTime).abs();
 	    
-        return lifeTime > max_life_time_in_seconds;
+        return lifeTime.compareTo(max_life_time) > 1;
     }
 
     protected abstract T loadObject() throws IOException;

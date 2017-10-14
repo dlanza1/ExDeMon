@@ -23,11 +23,17 @@ public class Properties extends java.util.Properties{
 		private String path;
 		
 		public Expirable(String path) {
-		    super(5);
+		    super(Duration.ofMinutes(5));
 		    
 			this.path = path;
 		}
 
+		public Expirable(String path, Duration max_life_time) {
+		    super(max_life_time);
+		    
+			this.path = path;
+		}
+		
 		@Override
 		protected Properties loadObject() throws IOException {
 			Properties props = new Properties();

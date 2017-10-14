@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
 import java.io.IOException;
+import java.time.Duration;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,12 +28,29 @@ public class PropertiesTest {
 
 	@Test
 	public void expiration() throws IOException{
-		Properties.Expirable prop = new Properties.Expirable("src/test/resources/config.properties");
+		Properties.Expirable prop = new Properties.Expirable("src/test/resources/config.properties", Duration.ofSeconds(1));
 		
 		Properties p1 = prop.get();
+		
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 		Properties p2 = prop.get();
 		
 		Assert.assertSame(p1, p2);
+		
+		try {
+			Thread.sleep(600);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		Properties p3 = prop.get();
+		
+		Assert.assertNotSame(p1, p3);
 	}
 	
 	@Test
