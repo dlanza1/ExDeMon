@@ -1,12 +1,12 @@
 package ch.cern.spark.metrics;
 
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaMapWithStateDStream;
 
 import ch.cern.spark.MapWithStateStream;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import ch.cern.spark.metrics.results.AnalysisResultsS;
 import ch.cern.spark.metrics.store.MetricStore;
-import ch.cern.spark.metrics.store.MetricStoresS;
+import scala.Tuple2;
 
 public class MetricStatusesS extends MapWithStateStream<MonitorIDMetricIDs, Metric, MetricStore, AnalysisResult>{
 
@@ -16,12 +16,12 @@ public class MetricStatusesS extends MapWithStateStream<MonitorIDMetricIDs, Metr
         super(stream);
     }
 
-    public MetricStoresS getMetricStoresStatuses() {
-        return new MetricStoresS(stateSnapshots());
+    public JavaDStream<Tuple2<MonitorIDMetricIDs, MetricStore>> getMetricStoresStatuses() {
+        return stateSnapshots();
     }
     
-    public AnalysisResultsS getAnalysisResultsStream(){
-        return new AnalysisResultsS(stream());
+    public JavaDStream<AnalysisResult> getAnalysisResultsStream(){
+        return stream();
     }
 
 }

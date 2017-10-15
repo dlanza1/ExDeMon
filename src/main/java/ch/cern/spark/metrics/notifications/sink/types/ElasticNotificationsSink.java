@@ -8,7 +8,8 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.elasticsearch.spark.streaming.api.java.JavaEsSparkStreaming;
 
 import ch.cern.spark.Properties;
-import ch.cern.spark.metrics.notifications.NotificationsS;
+import ch.cern.spark.json.JSONParser;
+import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notifications.sink.NotificationsSink;
 
 public class ElasticNotificationsSink extends NotificationsSink {
@@ -48,8 +49,8 @@ public class ElasticNotificationsSink extends NotificationsSink {
     }
 
     @Override
-    public void sink(NotificationsS outputStream) {
-        JavaDStream<String> jsonStringsStream = outputStream.asJSON().asString();
+    public void sink(JavaDStream<Notification> outputStream) {
+        JavaDStream<String> jsonStringsStream = outputStream.map(JSONParser::parse).map(Object::toString);
         
         JavaEsSparkStreaming.saveJsonToEs(jsonStringsStream, indexName, elasticConfig);
     }

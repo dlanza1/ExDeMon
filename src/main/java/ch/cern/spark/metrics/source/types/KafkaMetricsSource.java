@@ -70,7 +70,7 @@ public class KafkaMetricsSource extends MetricsSource {
     }
     
     @Override
-    protected JavaDStream<Metric> createStream(JavaStreamingContext ssc) {
+	public JavaDStream<Metric> createStream(JavaStreamingContext ssc) {
         JavaDStream<JSONObject> inputStream = createKafkaInputStream(ssc);
 
         JavaDStream<Metric> metricStream = inputStream.map(metric -> parse(metric));

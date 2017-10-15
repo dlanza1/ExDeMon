@@ -13,10 +13,10 @@ import org.junit.Test;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
-public class JavaObjectToJSONObjectParserTest{
+public class JSONParserTest{
 
 	public static DateTimeFormatter TIMESTAMP_FORMAT_DEFAULT = new DateTimeFormatterBuilder()
-			.appendPattern(JavaObjectToJSONObjectParser.TIMESTAMP_OUTPUT_FORMAT)
+			.appendPattern(JSONParser.TIMESTAMP_OUTPUT_FORMAT)
 			.toFormatter()
 			.withZone(ZoneOffset.systemDefault());
 	
@@ -31,9 +31,7 @@ public class JavaObjectToJSONObjectParserTest{
         Metric metric = new Metric(timestamp, 12f, ids);
         analysisResult.setAnalyzedMetric(metric);
         
-        JavaObjectToJSONObjectParser<AnalysisResult> parser = new JavaObjectToJSONObjectParser<AnalysisResult>();
-        
-        JSONObject jsonObject = parser.call(analysisResult);
+        JSONObject jsonObject = JSONParser.parse(analysisResult);
         
         Assert.assertEquals("val_id1", jsonObject.getProperty("analyzed_metric.ids.id1"));
         Assert.assertEquals("val_id2", jsonObject.getProperty("analyzed_metric.ids.id2"));
@@ -49,9 +47,7 @@ public class JavaObjectToJSONObjectParserTest{
         
         AnalysisResult analysisResult = new AnalysisResult();
         
-        JavaObjectToJSONObjectParser<AnalysisResult> parser = new JavaObjectToJSONObjectParser<AnalysisResult>();
-        
-        JSONObject jsonObject = parser.call(analysisResult);
+        JSONObject jsonObject = JSONParser.parse(analysisResult);
         
         Assert.assertNull(jsonObject.getProperty("actual_value"));
     }
@@ -59,9 +55,7 @@ public class JavaObjectToJSONObjectParserTest{
     @Test
     public void parseNull() throws Exception{
         
-        JavaObjectToJSONObjectParser<AnalysisResult> parser = new JavaObjectToJSONObjectParser<AnalysisResult>();
-        
-        JSONObject jsonObject = parser.call(null);
+        JSONObject jsonObject = JSONParser.parse(null);
         
         Assert.assertNull(jsonObject);
     }

@@ -3,6 +3,7 @@ package ch.cern.spark.metrics;
 import java.util.Iterator;
 
 import org.apache.spark.api.java.function.PairFlatMapFunction;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.spark.metrics.monitors.Monitor;
@@ -29,7 +30,7 @@ public class ComputeIDsForMetricsF implements PairFlatMapFunction<Metric, Monito
 	        		.iterator();
     }
 
-    public static JavaPairDStream<MonitorIDMetricIDs, Metric> apply(Monitors monitorsCache, MetricsS metricsS) {
+    public static JavaPairDStream<MonitorIDMetricIDs, Metric> apply(Monitors monitorsCache, JavaDStream<Metric> metricsS) {
         JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithIDs = 
                 metricsS.flatMapToPair(new ComputeIDsForMetricsF(monitorsCache));
         

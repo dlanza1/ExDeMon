@@ -2,12 +2,14 @@ package ch.cern.spark.metrics.notifications;
 
 import java.io.IOException;
 
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.Time;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.spark.metrics.monitors.Monitor;
@@ -15,8 +17,9 @@ import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.notificator.NotificatorID;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import ch.cern.spark.metrics.results.AnalysisResultsS;
+import ch.cern.spark.metrics.results.ComputeIDsForAnalysisF;
 import ch.cern.spark.metrics.store.Store;
+import scala.Tuple2;
 
 public class UpdateNotificationStatusesF
         implements Function4<Time, NotificatorID, Optional<AnalysisResult>, State<Store>, Optional<Notification>> {
@@ -59,12 +62,12 @@ public class UpdateNotificationStatusesF
         				: java.util.Optional.empty();
     }
 
-    public static NotificationStatusesS apply(AnalysisResultsS results,
-            Monitors monitorsCache, NotificationStoresRDD initialNotificationStores, java.time.Duration dataExpirationPeriod) throws IOException {
+    public static NotificationStatusesS apply(JavaDStream<AnalysisResult> results,
+            Monitors monitorsCache, JavaRDD<Tuple2<NotificatorID, Store>> initialNotificationStores, java.time.Duration dataExpirationPeriod) throws IOException {
 
-    		JavaPairDStream<NotificatorID, AnalysisResult> analysisWithID = results.withNotificatorID(monitorsCache);
+    		JavaPairDStream<NotificatorID, AnalysisResult> analysisWithID = results.flatMapToPair(new ComputeIDsForAnalysisF(monitorsCache));
     		
-        StateSpec<NotificatorID, AnalysisResult, Store, Notification> statusSpec = StateSpec
+		StateSpec<NotificatorID, AnalysisResult, Store, Notification> statusSpec = StateSpec
                 .function(new UpdateNotificationStatusesF(monitorsCache)).initialState(initialNotificationStores.rdd())
                 .timeout(new Duration(dataExpirationPeriod.toMillis()));
 

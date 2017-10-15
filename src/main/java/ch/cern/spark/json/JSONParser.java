@@ -6,9 +6,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.streaming.api.java.JavaDStream;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -16,13 +13,11 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
-public class JavaObjectToJSONObjectParser<T> implements Function<T, JSONObject>{
+public class JSONParser {
 
-    private static final long serialVersionUID = -2793508300018983992L;
-    
     public static String TIMESTAMP_OUTPUT_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
     
-    private transient static Gson gson = new GsonBuilder()
+    private final transient static  Gson gson = new GsonBuilder()
     		.registerTypeAdapter(Instant.class, new JsonSerializer<Instant>() {
     				DateTimeFormatter formatter = DateTimeFormatter.ofPattern(TIMESTAMP_OUTPUT_FORMAT);
 			
@@ -33,15 +28,7 @@ public class JavaObjectToJSONObjectParser<T> implements Function<T, JSONObject>{
     			})
     		.create();
 
-    public JavaObjectToJSONObjectParser(){
-    }
-    
-    public static <T> JavaDStream<JSONObject> apply(JavaDStream<T> analysisResultsStream) {
-        return analysisResultsStream.map(new JavaObjectToJSONObjectParser<T>());
-    }
-
-    @Override
-    public JSONObject call(T javaObject) throws Exception {    	
+    public static<T> JSONObject parse(T javaObject) throws Exception {    	
         return javaObject == null ? null : new JSONObject(gson.toJson(javaObject));
     }
 

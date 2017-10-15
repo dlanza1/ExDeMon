@@ -1,7 +1,9 @@
 package ch.cern.spark.metrics.notifications.sink;
 
+import org.apache.spark.streaming.api.java.JavaDStream;
+
 import ch.cern.spark.Component;
-import ch.cern.spark.metrics.notifications.NotificationsS;
+import ch.cern.spark.metrics.notifications.Notification;
 
 public abstract class NotificationsSink extends Component{
 
@@ -15,6 +17,6 @@ public abstract class NotificationsSink extends Component{
         super(Type.NOTIFICATIONS_SINK, subClass, name);
     }
 
-    public abstract void sink(NotificationsS notifications);
+    public abstract void sink(JavaDStream<Notification> notifications);
     
 }
