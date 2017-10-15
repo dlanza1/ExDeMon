@@ -8,7 +8,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.streaming.Durations;
-import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import ch.cern.spark.Component.Type;
@@ -16,6 +15,7 @@ import ch.cern.spark.ComponentManager;
 import ch.cern.spark.Properties;
 import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.SparkConf;
+import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notifications.sink.NotificationsSink;
@@ -94,13 +94,13 @@ public final class Driver {
 
     protected JavaStreamingContext createNewStreamingContext() throws Exception {
 	    
-    		JavaDStream<Metric> metrics = metricSource.createStream(ssc);
+    		Stream<Metric> metrics = metricSource.createStream(ssc);
 		
-		JavaDStream<AnalysisResult> results = monitors.analyze(metrics);
+		Stream<AnalysisResult> results = metrics.mapS(monitors::analyze);
 		
 		analysisResultsSink.ifPresent(sink -> sink.sink(results));
 		
-		JavaDStream<Notification> notifications = monitors.notify(results);
+		Stream<Notification> notifications = results.mapS(monitors::notify);
 		
     		notificationsSink.ifPresent(sink -> sink.sink(notifications));
 		

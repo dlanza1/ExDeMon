@@ -15,21 +15,22 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 
 import ch.cern.spark.Cache;
 import ch.cern.spark.Pair;
+import ch.cern.spark.PairStream;
 import ch.cern.spark.Properties;
 import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.RDDHelper;
+import ch.cern.spark.StatusStream;
+import ch.cern.spark.Stream;
+import ch.cern.spark.metrics.ComputeIDsForMetricsF;
 import ch.cern.spark.metrics.ComputeMissingMetricResultsF;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.MetricStatusesS;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import ch.cern.spark.metrics.notifications.Notification;
-import ch.cern.spark.metrics.notifications.NotificationStatusesS;
-import ch.cern.spark.metrics.notifications.NotificationStoresRDD;
 import ch.cern.spark.metrics.notifications.UpdateNotificationStatusesF;
 import ch.cern.spark.metrics.notificator.NotificatorID;
 import ch.cern.spark.metrics.results.AnalysisResult;
+import ch.cern.spark.metrics.results.ComputeIDsForAnalysisF;
 import ch.cern.spark.metrics.store.MetricStore;
-import ch.cern.spark.metrics.store.MetricStoresRDD;
 import ch.cern.spark.metrics.store.Store;
 import ch.cern.spark.metrics.store.UpdateMetricStatusesF;
 import scala.Tuple2;
@@ -78,32 +79,37 @@ public class Monitors extends Cache<Map<String, Monitor>> implements Serializabl
 		return get().get(monitorID);
 	}
 	
-	public JavaDStream<AnalysisResult> analyze(JavaDStream<Metric> metrics) throws IOException, ClassNotFoundException {
+	public Stream<AnalysisResult> analyze(Stream<Metric> metrics) throws Exception {
         
 		JavaRDD<Tuple2<MonitorIDMetricIDs, MetricStore>> initialMetricStores = RDDHelper.<Tuple2<MonitorIDMetricIDs, MetricStore>>load(checkpointDir, sparkContext);
         
-        MetricStatusesS statuses = UpdateMetricStatusesF.apply(metrics, this, initialMetricStores, dataExpirationPeriod);
+		StatusStream<MonitorIDMetricIDs, Metric, MetricStore, AnalysisResult> statuses = metrics.mapWithState(initialMetricStores, 
+																									new ComputeIDsForMetricsF(this), 
+																									new UpdateMetricStatusesF(this), 
+																									dataExpirationPeriod);
         
-        JavaDStream<Tuple2<MonitorIDMetricIDs, MetricStore>> metricStores = statuses.getMetricStoresStatuses();
-        metricStores.foreachRDD(rdd -> new MetricStoresRDD(rdd).save(checkpointDir));
+        PairStream<MonitorIDMetricIDs, MetricStore> metricStores = statuses.getStatuses();
+        metricStores.save(checkpointDir);
         
-        JavaDStream<AnalysisResult> missingMetricsResults = metricStores.transform((rdd, time) -> rdd.flatMap(
+        JavaDStream<AnalysisResult> missingMetricsResults = metricStores.asJavaPairDStream().transform((rdd, time) -> rdd.flatMap(
 																		new ComputeMissingMetricResultsF(this, time))
 																	);
         
-        return statuses.getAnalysisResultsStream().union(missingMetricsResults);
+        return statuses.stream().union(missingMetricsResults);
 	}
 
-	public JavaDStream<Notification> notify(JavaDStream<AnalysisResult> results) throws IOException, ClassNotFoundException {
+	public Stream<Notification> notify(Stream<AnalysisResult> results) throws IOException, ClassNotFoundException {
         
         JavaRDD<Tuple2<NotificatorID, Store>> initialNotificationStores = RDDHelper.<Tuple2<NotificatorID, Store>>load(checkpointDir, sparkContext);
         
-        NotificationStatusesS statuses = UpdateNotificationStatusesF.apply(results, this, initialNotificationStores, dataExpirationPeriod);
+        StatusStream<NotificatorID, AnalysisResult, Store, Notification> statuses = results.mapWithState(initialNotificationStores, 
+													        											new ComputeIDsForAnalysisF(this),
+													        											new UpdateNotificationStatusesF(this), 
+													        											dataExpirationPeriod);
         
-        JavaDStream<Tuple2<NotificatorID, Store>> allNotificationsStatuses = statuses.getAllNotificationsStatusesWithID();
-        allNotificationsStatuses.foreachRDD(rdd -> new NotificationStoresRDD(rdd).save(checkpointDir));
+        statuses.getStatuses().save(checkpointDir);
         
-        return statuses.getThrownNotifications();
+        return statuses.stream();
 	}
 	
 }

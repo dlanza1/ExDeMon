@@ -9,12 +9,20 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+
+import scala.Tuple2;
 
 public class RDDHelper {
 
 	private static transient FileSystem fs = null;
+	
+	public static<T> JavaRDD<T> load(String storing_path, JavaSparkContext context)
+			throws IOException, ClassNotFoundException {
+		return context.parallelize(load(storing_path));
+	}
 
 	protected static <T> List<T> load(String storing_path) throws IOException, ClassNotFoundException {
 		setFileSystem();
@@ -38,11 +46,10 @@ public class RDDHelper {
 		return elements;
 	}
 
-	public static<T> JavaRDD<T> load(String storing_path, JavaSparkContext context)
-			throws IOException, ClassNotFoundException {
-		return context.parallelize(load(storing_path));
+	public static<K, V> void save(JavaPairRDD<K, V> rdd, String checkpointDir) throws IllegalArgumentException, IOException {
+		save(rdd.map(pair -> new Tuple2<K, V>(pair._1, pair._2)), checkpointDir);
 	}
-
+	
 	public static<T> void save(JavaRDD<T> input, String storing_path) throws IllegalArgumentException, IOException {
 		save(storing_path, input.collect());
 	}

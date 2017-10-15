@@ -4,6 +4,7 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import ch.cern.spark.Component;
+import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.Metric;
 
 public abstract class MetricsSource extends Component{
@@ -18,6 +19,10 @@ public abstract class MetricsSource extends Component{
         super(Type.SOURCE, subClass, name);
     }
 
-    public abstract JavaDStream<Metric> createStream(JavaStreamingContext ssc);
+    public Stream<Metric> createStream(JavaStreamingContext ssc){
+    		return Stream.from(createJavaDStream(ssc));
+    }
+    
+    public abstract JavaDStream<Metric> createJavaDStream(JavaStreamingContext ssc);
     
 }

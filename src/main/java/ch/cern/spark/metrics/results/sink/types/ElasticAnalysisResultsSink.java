@@ -8,7 +8,7 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.elasticsearch.spark.streaming.api.java.JavaEsSparkStreaming;
 
 import ch.cern.spark.Properties;
-import ch.cern.spark.json.JSONParser;
+import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
 
@@ -49,8 +49,8 @@ public class ElasticAnalysisResultsSink extends AnalysisResultsSink {
     }
 
     @Override
-    public void sink(JavaDStream<AnalysisResult> outputStream) {
-        JavaDStream<String> stream = outputStream.map(JSONParser::parse).map(Object::toString);
+    public void sink(Stream<AnalysisResult> outputStream) {
+        JavaDStream<String> stream = outputStream.asJSON().asString().asJavaDStream();
         
         JavaEsSparkStreaming.saveJsonToEs(stream, indexName, elasticConfig);
     }
