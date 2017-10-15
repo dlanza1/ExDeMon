@@ -13,6 +13,7 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.json.JSONParser;
+import ch.cern.spark.metrics.Sink;
 import scala.Tuple2;
 
 public class Stream<V> {
@@ -66,8 +67,12 @@ public class Stream<V> {
 		return stream;
 	}
 
-	public <R> Stream<R> mapS(Function<Stream<V>, Stream<R>> mapStreamFucntion) throws Exception {
+	public <R> Stream<R> transform(Function<Stream<V>, Stream<R>> mapStreamFucntion) throws Exception {
 		return mapStreamFucntion.call(this);
+	}
+	
+	public void sink(Sink<V> sink) {
+		sink.sink(this);
 	}
 	
 }

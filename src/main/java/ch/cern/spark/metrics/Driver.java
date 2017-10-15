@@ -96,13 +96,13 @@ public final class Driver {
 	    
     		Stream<Metric> metrics = metricSource.createStream(ssc);
 		
-		Stream<AnalysisResult> results = metrics.mapS(monitors::analyze);
+		Stream<AnalysisResult> results = metrics.transform(monitors::analyze);
 		
-		analysisResultsSink.ifPresent(sink -> sink.sink(results));
+		analysisResultsSink.ifPresent(results::sink);
 		
-		Stream<Notification> notifications = results.mapS(monitors::notify);
+		Stream<Notification> notifications = results.transform(monitors::notify);
 		
-    		notificationsSink.ifPresent(sink -> sink.sink(notifications));
+    		notificationsSink.ifPresent(notifications::sink);
 		
 		return ssc;
 	}

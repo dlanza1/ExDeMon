@@ -1,10 +1,10 @@
 package ch.cern.spark.metrics.results.sink;
 
 import ch.cern.spark.Component;
-import ch.cern.spark.Stream;
+import ch.cern.spark.metrics.Sink;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
-public abstract class AnalysisResultsSink extends Component{
+public abstract class AnalysisResultsSink extends Component implements Sink<AnalysisResult>{
     
     private static final long serialVersionUID = -2336360271932362626L;
 
@@ -15,7 +15,5 @@ public abstract class AnalysisResultsSink extends Component{
     public AnalysisResultsSink(Class<? extends Component> subClass, String name) {
         super(Type.ANALYSIS_RESULTS_SINK, subClass, name);
     }
-    
-    public abstract void sink(Stream<AnalysisResult> results);
-    
+
 }
