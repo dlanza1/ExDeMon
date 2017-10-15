@@ -29,14 +29,16 @@ public class NotificationStoresRDD extends JavaRDD<Tuple2<NotificatorID, Store>>
 	protected static List<Tuple2<NotificatorID, Store>> load(String storing_path) throws IOException, ClassNotFoundException {
         setFileSystem();
         
-        Path file = getStoringFile(storing_path);
+        Path finalFile = getStoringFile(storing_path);
+        Path tmpFile = finalFile.suffix(".tmp");
         
-        if(!fs.exists(file))
-    			file = file.suffix(".tmp");
-        if(!fs.exists(file))
+        if(!fs.exists(finalFile) && fs.exists(tmpFile))
+    			fs.rename(tmpFile, finalFile);
+        
+        if(!fs.exists(finalFile))
         		return new LinkedList<Tuple2<NotificatorID, Store>>();
         
-        ObjectInputStream is = new ObjectInputStream(fs.open(file));
+        ObjectInputStream is = new ObjectInputStream(fs.open(finalFile));
         
         @SuppressWarnings("unchecked")
         List<Tuple2<NotificatorID, Store>> stores = (List<Tuple2<NotificatorID, Store>>) is.readObject();

@@ -66,14 +66,16 @@ public class MetricStoresRDD extends JavaRDD<Tuple2<MonitorIDMetricIDs, MetricSt
     protected static List<Tuple2<MonitorIDMetricIDs, MetricStore>> load(String storing_path) throws IOException, ClassNotFoundException {
         setFileSystem();
         
-        Path file = getStoringFile(storing_path);
+        Path finalFile = getStoringFile(storing_path);
+        Path tmpFile = finalFile.suffix(".tmp");
         
-        if(!fs.exists(file))
-        		file = file.suffix(".tmp");
-        if(!fs.exists(file))
+        if(!fs.exists(finalFile) && fs.exists(tmpFile))
+    			fs.rename(tmpFile, finalFile);
+        
+        if(!fs.exists(finalFile))
         		return new LinkedList<Tuple2<MonitorIDMetricIDs, MetricStore>>();
         
-        ObjectInputStream is = new ObjectInputStream(fs.open(file));
+        ObjectInputStream is = new ObjectInputStream(fs.open(finalFile));
         
         List<Tuple2<MonitorIDMetricIDs, MetricStore>> stores =  (List<Tuple2<MonitorIDMetricIDs, MetricStore>>) is.readObject();
         
