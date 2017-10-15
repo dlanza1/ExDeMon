@@ -24,7 +24,7 @@ public class RDDHelper {
 		return context.parallelize(load(storing_path));
 	}
 
-	protected static <T> List<T> load(String storing_path) throws IOException, ClassNotFoundException {
+	public static <T> List<T> load(String storing_path) throws IOException, ClassNotFoundException {
 		setFileSystem();
 
 		Path finalFile = getStoringFile(storing_path);
@@ -54,7 +54,7 @@ public class RDDHelper {
 		save(storing_path, input.collect());
 	}
 
-	protected static void save(String storing_path, List<?> elements) throws IllegalArgumentException, IOException {
+	public static void save(String storing_path, List<?> elements) throws IllegalArgumentException, IOException {
 		setFileSystem();
 
 		Path finalFile = getStoringFile(storing_path);

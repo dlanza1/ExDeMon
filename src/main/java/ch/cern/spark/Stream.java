@@ -47,10 +47,6 @@ public class Stream<V> {
 		return Stream.from(stream.union(input.stream));
 	}
 	
-	public Stream<V> union(JavaDStream<V> input) {
-		return Stream.from(stream.union(input));
-	}
-	
 	public<R> Stream<R> map(Function<V, R> mapFunction) {
 		return Stream.from(stream.map(mapFunction));
 	}
@@ -67,7 +63,7 @@ public class Stream<V> {
 		return stream;
 	}
 
-	public <R> Stream<R> transform(Function<Stream<V>, Stream<R>> mapStreamFucntion) throws Exception {
+	public <R> Stream<R> mapS(Function<Stream<V>, Stream<R>> mapStreamFucntion) throws Exception {
 		return mapStreamFucntion.call(this);
 	}
 	

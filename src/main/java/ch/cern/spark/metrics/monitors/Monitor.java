@@ -27,7 +27,7 @@ public class Monitor implements Serializable{
     
     private final static Logger LOG = Logger.getLogger(Monitor.class.getName());
     
-    protected String id;
+    private String id;
     
     private Filter filter;
 

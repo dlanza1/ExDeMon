@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.streaming.api.java.JavaDStream;
 
 import ch.cern.spark.Cache;
 import ch.cern.spark.Pair;
@@ -91,9 +90,7 @@ public class Monitors extends Cache<Map<String, Monitor>> implements Serializabl
         PairStream<MonitorIDMetricIDs, MetricStore> metricStores = statuses.getStatuses();
         metricStores.save(checkpointDir);
         
-        JavaDStream<AnalysisResult> missingMetricsResults = metricStores.asJavaPairDStream().transform((rdd, time) -> rdd.flatMap(
-																		new ComputeMissingMetricResultsF(this, time))
-																	);
+        Stream<AnalysisResult> missingMetricsResults = metricStores.transform((rdd, time) -> rdd.flatMap(new ComputeMissingMetricResultsF(this, time)));
         
         return statuses.stream().union(missingMetricsResults);
 	}

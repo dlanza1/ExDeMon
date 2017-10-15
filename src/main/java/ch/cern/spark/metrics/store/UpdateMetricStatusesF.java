@@ -1,26 +1,17 @@
 package ch.cern.spark.metrics.store;
 
-import java.io.IOException;
 import java.time.Instant;
 
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.Function4;
-import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.State;
-import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.Time;
-import org.apache.spark.streaming.api.java.JavaDStream;
-import org.apache.spark.streaming.api.java.JavaPairDStream;
 
-import ch.cern.spark.metrics.ComputeIDsForMetricsF;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.MetricStatusesS;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import scala.Tuple2;
 
 public class UpdateMetricStatusesF
         implements Function4<Time, MonitorIDMetricIDs, Optional<Metric>, State<MetricStore>, Optional<AnalysisResult>> {
@@ -64,24 +55,6 @@ public class UpdateMetricStatusesF
     
     private MetricStore getMetricStore(State<MetricStore> storeState) {
         return storeState.exists() ? storeState.get() : new MetricStore();
-    }
-
-    public static MetricStatusesS apply(
-    			JavaDStream<Metric> metrics,
-            Monitors monitorsCache, 
-            JavaRDD<Tuple2<MonitorIDMetricIDs, MetricStore>> initialMetricStores, 
-            java.time.Duration dataExpirationPeriod) throws IOException {
-    	
-    		JavaPairDStream<MonitorIDMetricIDs, Metric> metricsWithID = metrics.flatMapToPair(new ComputeIDsForMetricsF(monitorsCache));
-        
-        StateSpec<MonitorIDMetricIDs, Metric, MetricStore, AnalysisResult> statusSpec = StateSpec
-                .function(new UpdateMetricStatusesF(monitorsCache))
-                .initialState(initialMetricStores.rdd())
-                .timeout(new Duration(dataExpirationPeriod.toMillis()));
-        
-        MetricStatusesS statuses = new MetricStatusesS(metricsWithID.mapWithState(statusSpec));
-        
-        return statuses;
     }
 
 }

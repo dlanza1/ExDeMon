@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import ch.cern.spark.RDDHelper;
 import ch.cern.spark.metrics.notificator.NotificatorID;
 import ch.cern.spark.metrics.store.Store;
 import ch.cern.spark.metrics.store.TestStore;
@@ -29,9 +30,9 @@ public class NotificationStoresRDDTest {
 		store = new TestStore(2);
 		expectedNotifications.add(new Tuple2<NotificatorID, Store>(id, store));
 
-		NotificationStoresRDD.save(path, expectedNotifications);
+		RDDHelper.save(path, expectedNotifications);
     		
-		List<Tuple2<NotificatorID, Store>> loadedNotifications = NotificationStoresRDD.load(path);
+		List<Tuple2<NotificatorID, Store>> loadedNotifications = RDDHelper.<Tuple2<NotificatorID, Store>>load(path);
 
 		assertEquals(expectedNotifications, loadedNotifications);
     }

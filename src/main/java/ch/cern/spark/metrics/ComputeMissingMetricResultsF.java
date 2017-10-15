@@ -16,7 +16,7 @@ import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.store.MetricStore;
 import scala.Tuple2;
 
-public class ComputeMissingMetricResultsF implements FlatMapFunction<Tuple2<MonitorIDMetricIDs,MetricStore>, AnalysisResult> {
+public class ComputeMissingMetricResultsF implements FlatMapFunction<Tuple2<MonitorIDMetricIDs, MetricStore>, AnalysisResult> {
 
     private static final long serialVersionUID = 806231785227390268L;
     

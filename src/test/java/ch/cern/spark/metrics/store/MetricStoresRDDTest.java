@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import ch.cern.spark.RDDHelper;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import scala.Tuple2;
 
@@ -35,9 +36,9 @@ public class MetricStoresRDDTest {
 		store.setAnalysisStore(new TestStore(5));
 		expectedStores.add(new Tuple2<MonitorIDMetricIDs, MetricStore>(id, store));
     		
-		MetricStoresRDD.save(path, expectedStores);
+		RDDHelper.save(path, expectedStores);
     		
-		List<Tuple2<MonitorIDMetricIDs, MetricStore>> loadedStores = MetricStoresRDD.load(path);
+		List<Tuple2<MonitorIDMetricIDs, MetricStore>> loadedStores = RDDHelper.<Tuple2<MonitorIDMetricIDs, MetricStore>>load(path);
 		
 		assertEquals(expectedStores.get(0)._1, loadedStores.get(0)._1);
 		assertEquals(expectedStores.get(0)._2.getLastestTimestamp(), loadedStores.get(0)._2.getLastestTimestamp());
@@ -49,7 +50,7 @@ public class MetricStoresRDDTest {
 		assertEquals(expectedStores.get(1)._2.getPreAnalysisStore(), loadedStores.get(1)._2.getPreAnalysisStore());
 		assertEquals(expectedStores.get(1)._2.getAnalysisStore(), loadedStores.get(1)._2.getAnalysisStore());
 		
-		assertEquals(expectedStores, MetricStoresRDD.load(path));
+		assertEquals(expectedStores, RDDHelper.<Tuple2<MonitorIDMetricIDs, MetricStore>>load(path));
     }
 
 }

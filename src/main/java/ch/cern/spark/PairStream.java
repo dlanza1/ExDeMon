@@ -3,6 +3,7 @@ package ch.cern.spark;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.Optional;
+import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.Duration;
@@ -48,6 +49,10 @@ public class PairStream<K, V> {
 
 	public void save(String checkpointDir) {
 		foreachRDD(rdd -> RDDHelper.save(rdd, checkpointDir));
+	}
+
+	public<R> Stream<R> transform(Function2<JavaPairRDD<K, V>, Time, JavaRDD<R>> transformFunc) {
+		return Stream.from(pairStream.transform(transformFunc));
 	}
 
 }
