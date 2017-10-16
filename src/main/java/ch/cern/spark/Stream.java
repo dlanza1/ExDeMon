@@ -2,10 +2,14 @@ package ch.cern.spark;
 
 import java.io.IOException;
 
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
+import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaDStream;
@@ -47,6 +51,14 @@ public class Stream<V> {
 	public<R> Stream<R> map(Function<V, R> mapFunction) {
 		return Stream.from(stream.map(mapFunction));
 	}
+	
+	public void foreachRDD(VoidFunction<JavaRDD<V>> function) {
+		stream.foreachRDD(function);
+	}
+	
+	public<R> Stream<R> transform(Function2<JavaRDD<V>, Time, JavaRDD<R>> transformFunc) {
+		return Stream.from(stream.transform(transformFunc));
+	}
 
 	public Stream<JSONObject> asJSON() {
 		return map(JSONParser::parse);
@@ -66,6 +78,14 @@ public class Stream<V> {
 	
 	public void sink(Sink<V> sink) {
 		sink.sink(this);
+	}
+	
+	public void save(String id) {
+		foreachRDD(rdd -> RDDHelper.save(rdd, id));
+	}
+	
+	public JavaSparkContext getSparkContext() {
+		return JavaSparkContext.fromSparkContext(stream.context().sparkContext());
 	}
 	
 }

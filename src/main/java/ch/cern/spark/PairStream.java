@@ -3,13 +3,10 @@ package ch.cern.spark;
 import java.io.IOException;
 
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.Optional;
-import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.Function4;
-import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateSpec;
@@ -18,15 +15,13 @@ import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import scala.Tuple2;
 
-public class PairStream<K, V> {
+public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 	
 	public static final String CHECKPPOINT_DURATION_PARAM = "spark.streaming.mapWithState.timeout";
 	public static final String CHECKPPOINT_DURATION_DEFAULT = java.time.Duration.ofHours(3).toString();
 	
-	private JavaPairDStream<K, V> pairStream;
-	
 	private PairStream(JavaPairDStream<K, V> stream) {
-		this.pairStream = stream;
+		super(stream.map(tuple -> tuple));
 	}
 
 	public static<K, V> PairStream<K, V> from(JavaPairDStream<K, V> input) {
@@ -42,7 +37,7 @@ public class PairStream<K, V> {
 							                .initialState(initialStates.rdd())
 							                .timeout(getDataExpirationPeriod());
         
-        StatusStream<K, V, S, R> statusStream = StatusStream.from(pairStream.mapWithState(statusSpec));
+        StatusStream<K, V, S, R> statusStream = StatusStream.from(asJavaPairDStream().mapWithState(statusSpec));
         
         	statusStream.getStatuses().save(id);
         		
@@ -58,24 +53,8 @@ public class PairStream<K, V> {
 		return new Duration(java.time.Duration.parse(valueString).toMillis());
 	}
 
-	private JavaSparkContext getSparkContext() {
-		return JavaSparkContext.fromSparkContext(pairStream.context().sparkContext());
-	}
-
-	public void foreachRDD(VoidFunction<JavaPairRDD<K, V>> function) {
-		pairStream.foreachRDD(function);
-	}
-
 	public JavaPairDStream<K, V> asJavaPairDStream() {
-		return pairStream;
-	}
-
-	public void save(String id) {
-		foreachRDD(rdd -> RDDHelper.save(rdd, id));
-	}
-
-	public<R> Stream<R> transform(Function2<JavaPairRDD<K, V>, Time, JavaRDD<R>> transformFunc) {
-		return Stream.from(pairStream.transform(transformFunc));
+		return asJavaDStream().mapToPair(val -> (Tuple2<K, V>) val);
 	}
 
 }

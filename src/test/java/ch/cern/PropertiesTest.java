@@ -34,7 +34,7 @@ public class PropertiesTest {
 		Properties p1 = prop.get();
 		
 		try {
-			Thread.sleep(500);
+			Thread.sleep(100);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -44,7 +44,7 @@ public class PropertiesTest {
 		Assert.assertSame(p1, p2);
 		
 		try {
-			Thread.sleep(600);
+			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
