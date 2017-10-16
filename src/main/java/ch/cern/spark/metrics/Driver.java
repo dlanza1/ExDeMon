@@ -119,7 +119,7 @@ public final class Driver {
 	}
 
 	private MetricsSource getMetricSource(Properties properties) throws Exception {
-    		Properties metricSourceProperties = properties.getSubset("source");
+    		Properties metricSourceProperties = properties.getSubset("metrics.source");
 		
     		if(!metricSourceProperties.isTypeDefined())
 		    throw new RuntimeException("A metric source must be configured");

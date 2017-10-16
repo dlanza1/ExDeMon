@@ -29,9 +29,9 @@ public class DriverTest {
     public void notConfiguredSinks() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("spark.driver.allowMultipleContexts", "true");
-        props.get().setProperty("source.type", "kafka");
-        props.get().setProperty("source.topics", "topic");
-        props.get().setProperty("source.parser.attributes", "att1 att2");
+        props.get().setProperty("metrics.source.type", "kafka");
+        props.get().setProperty("metrics.source.topics", "topic");
+        props.get().setProperty("metrics.source.parser.attributes", "att1 att2");
         
         try{
         		Driver driver = new Driver(props);
@@ -48,9 +48,9 @@ public class DriverTest {
     public void configurationWithAnalysisResultsSink() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("spark.driver.allowMultipleContexts", "true");
-        props.get().setProperty("source.type", "kafka");
-        props.get().setProperty("source.topics", "topic");
-        props.get().setProperty("source.parser.attributes", "att1 att2");
+        props.get().setProperty("metrics.source.type", "kafka");
+        props.get().setProperty("metrics.source.topics", "topic");
+        props.get().setProperty("metrics.source.parser.attributes", "att1 att2");
         props.get().setProperty("results.sink.type", "elastic");
         
         Driver driver = new Driver(props);
@@ -62,9 +62,9 @@ public class DriverTest {
     public void configurationWithNotificationsSink() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("spark.driver.allowMultipleContexts", "true");
-        props.get().setProperty("source.type", "kafka");
-        props.get().setProperty("source.topics", "topic");
-        props.get().setProperty("source.parser.attributes", "att1 att2");
+        props.get().setProperty("metrics.source.type", "kafka");
+        props.get().setProperty("metrics.source.topics", "topic");
+        props.get().setProperty("metrics.source.parser.attributes", "att1 att2");
         props.get().setProperty("notifications.sink.type", "elastic");
         
         Driver driver = new Driver(props);

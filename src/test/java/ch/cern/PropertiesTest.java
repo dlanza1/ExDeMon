@@ -58,7 +58,7 @@ public class PropertiesTest {
 	public void propertiesFromSource() throws Exception{
 		Properties.PropertiesCache prop = new Properties.PropertiesCache("src/test/resources/config.properties", Duration.ofSeconds(1));
 
-		assertNotEquals("not-valid-already-declared", prop.get().getProperty("source.type"));
+		assertNotEquals("not-valid-already-declared", prop.get().getProperty("metrics.source.type"));
 		assertNotEquals("not-valid-already-declared", prop.get().getProperty("results.sink.type"));
 		
 		assertEquals("val1", prop.get().getProperty("key1"));

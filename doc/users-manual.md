@@ -20,15 +20,17 @@ Each monitor and notificator must have a different ID.
 checkpoint.dir = <path_to_store_stateful_data> (default: /tmp/)
 spark.batch.time = <seconds> (default: 30)
 
+# Optional
 properties.source.type = <properties_source_type>
 properties.source.<other_confs> = <value>
 
-source.type = <metric_source_type>
-source.<other_confs> = <value>
+# Mandatory
+metrics.source.type = <metric_source_type>
+metrics.source.<other_confs> = <value>
 
+# At least one sink must be declared
 results.sink.type = <analysis_results_sink_type>
 results.sink.<other_confs> = <value>
-
 notifications.sink.type = <notifications_sink_type>
 notifications.sink.<other_confs> = <value>
 
@@ -44,14 +46,14 @@ An example of full configuration can be:
 checkpoint.dir = /tmp/spark-metrics-job/
 
 # Metric comes from a Kafka cluster
-source.type = kafka
-source.consumer.bootstrap.servers = habench101.cern.ch:9092,habench102.cern.ch:9092,habench103.cern.ch:9092
-source.consumer.group.id = spark_metric_analyzer
-source.topics = db-logging-platform
-# These two parameters are extracted from metrics (they are enought to identify a metric)
-source.parser.attributes = INSTANCE_NAME METRIC_NAME
-source.parser.value.attribute = VALUE
-source.parser.timestamp.attribute = END_TIME
+metrics.source.type = kafka
+metrics.source.consumer.bootstrap.servers = habench101.cern.ch:9092,habench102.cern.ch:9092,habench103.cern.ch:9092
+metrics.source.consumer.group.id = spark_metric_analyzer
+metrics.source.topics = db-logging-platform
+# These two parameters are extracted from metrics (they are enough to identify a metric)
+metrics.source.parser.attributes = INSTANCE_NAME METRIC_NAME
+metrics.source.parser.value.attribute = VALUE
+metrics.source.parser.timestamp.attribute = END_TIME
 
 # Analysis results are sinked to Elastic
 results.sink.type = elastic
@@ -164,16 +166,16 @@ It expects documents as JSON.
 
 Configuration:
 ```
-source.type = kafka
-source.topics = <consumer topic>
-source.consumer.bootstrap.servers = <bootstrap_servers separated by comma>
-source.consumer.group.id = <consumer_group_id>
+metrics.source.type = kafka
+metrics.source.topics = <consumer topic>
+metrics.source.consumer.bootstrap.servers = <bootstrap_servers separated by comma>
+metrics.source.consumer.group.id = <consumer_group_id>
 # All these parameters (source.consumer.) will by passed to the consumer
-source.consumer.<any_other_key> = <any_other_value>
-source.parser.attributes = <attributs to extract from the JSON>
-source.parser.value.attribute = <attribute that represent the value>
-source.parser.timestamp.attribute = <attribute that represent the time>
-source.parser.timestamp.format = <timestamp_format> (default: yyyy-MM-dd'T'HH:mm:ssZ)
+metrics.source.consumer.<any_other_key> = <any_other_value>
+metrics.source.parser.attributes = <attributs to extract from the JSON>
+metrics.source.parser.value.attribute = <attribute that represent the value>
+metrics.source.parser.timestamp.attribute = <attribute that represent the time>
+metrics.source.parser.timestamp.format = <timestamp_format> (default: yyyy-MM-dd'T'HH:mm:ssZ)
 ```
 
 ### Metric pre-analysis
