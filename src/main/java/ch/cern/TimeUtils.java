@@ -10,6 +10,8 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.Objects;
 import java.util.Optional;
 
+import static ch.cern.StringUtils.getLastCharacter;
+
 public class TimeUtils {
 	
     public static DateTimeFormatter TIMESTAMP_FORMAT_DEFAULT = new DateTimeFormatterBuilder()
@@ -28,7 +30,7 @@ public class TimeUtils {
     public static Duration parsePeriod(String input) {
     		Objects.requireNonNull(input);
     		
-        Optional<Character> unit = StringUtils.getLastCharacter(input).filter(Character::isLetter);
+        Optional<Character> unit = getLastCharacter(input).filter(Character::isLetter);
         
         if(unit.isPresent()) {
         		String number_string = input.substring(0, input.length() - 1);
