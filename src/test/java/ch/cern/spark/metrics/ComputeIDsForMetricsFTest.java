@@ -21,7 +21,7 @@ public class ComputeIDsForMetricsFTest {
         PropertiesCache prop = PropertiesTest.mockedExpirable();
         prop.get().setProperty("monitor.ID-1.attribute.key1", "val1");
         prop.get().setProperty("monitor.ID-1.attribute.key2", "val2");
-        Monitors monitors = new Monitors(prop, null, null, null);
+        Monitors monitors = new Monitors(prop);
         
         Metric metric = MetricTest.build();
         
@@ -42,7 +42,7 @@ public class ComputeIDsForMetricsFTest {
         prop.get().setProperty("monitor.ID-3.filter.attribute.key2", "val2");
         prop.get().setProperty("monitor.ID-3.filter.attribute.key3", "val3");
         prop.get().setProperty("monitor.ID-4.filter.attribute.key3", "NO");
-        Monitors monitors = new Monitors(prop, null, null, null);
+        Monitors monitors = new Monitors(prop);
         
         Metric metric = MetricTest.build();
         

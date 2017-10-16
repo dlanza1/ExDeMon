@@ -5,8 +5,8 @@ import static ch.cern.test.Utils.assertPresent;
 
 import org.junit.Test;
 
+import ch.cern.TimeUtils;
 import ch.cern.spark.Properties;
-import ch.cern.spark.TimeUtils;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 
 public class ConstantNotificatorTest {

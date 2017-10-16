@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
 import ch.cern.spark.RDDHelper;
@@ -19,7 +20,7 @@ public class NotificationStoresRDDTest {
 	
 	@Test
     public void saveAndLoad() throws ClassNotFoundException, IOException{
-    		String path = "/tmp/checkpoint-testing/";
+		Path storingPath = new Path("/tmp/" + NotificationStoresRDDTest.class.toString());
     	
     		List<Tuple2<NotificatorID, Store>> expectedNotifications = new LinkedList<>();
     		NotificatorID id = new NotificatorID("moni1", "notif1", new HashMap<>());
@@ -30,9 +31,9 @@ public class NotificationStoresRDDTest {
 		store = new TestStore(2);
 		expectedNotifications.add(new Tuple2<NotificatorID, Store>(id, store));
 
-		RDDHelper.save(path, expectedNotifications);
+		RDDHelper.save(storingPath, expectedNotifications);
     		
-		List<Tuple2<NotificatorID, Store>> loadedNotifications = RDDHelper.<Tuple2<NotificatorID, Store>>load(path);
+		List<Tuple2<NotificatorID, Store>> loadedNotifications = RDDHelper.<Tuple2<NotificatorID, Store>>load(storingPath);
 
 		assertEquals(expectedNotifications, loadedNotifications);
     }

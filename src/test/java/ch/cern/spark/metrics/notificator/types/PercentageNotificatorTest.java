@@ -8,8 +8,8 @@ import java.time.Instant;
 
 import org.junit.Test;
 
+import ch.cern.TimeUtils;
 import ch.cern.spark.Properties;
-import ch.cern.spark.TimeUtils;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 
 public class PercentageNotificatorTest {
@@ -40,7 +40,7 @@ public class PercentageNotificatorTest {
         assertNotPresent(notificator.process(Status.ERROR,   TimeUtils.toInstant("2017-09-19 13:07:00")));
         assertNotPresent(notificator.process(Status.ERROR,   TimeUtils.toInstant("2017-09-19 13:08:00")));
         assertNotPresent(notificator.process(Status.ERROR,   TimeUtils.toInstant("2017-09-19 13:09:00")));
-        assertPresent(notificator.process(Status.ERROR,TimeUtils.toInstant("2017-09-19 13:10:00")));
+        assertPresent(notificator.process(Status.ERROR,		TimeUtils.toInstant("2017-09-19 13:10:00")));
         assertNotPresent(notificator.process(Status.ERROR,   TimeUtils.toInstant("2017-09-19 13:11:00")));
     }
     

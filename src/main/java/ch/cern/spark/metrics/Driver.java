@@ -12,7 +12,9 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import ch.cern.spark.Component.Type;
 import ch.cern.spark.ComponentManager;
+import ch.cern.spark.PairStream;
 import ch.cern.spark.Properties;
+import ch.cern.spark.RDDHelper;
 import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.SparkConf;
 import ch.cern.spark.Stream;
@@ -53,10 +55,7 @@ public final class Driver {
 	}
 
 	private Monitors getMonitors(PropertiesCache properties, JavaStreamingContext ssc2) throws IOException {
-		return new Monitors(properties, 
-									ssc.sparkContext(), 
-									properties.get().getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT),
-									properties.get().getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT));
+		return new Monitors(properties);
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -110,17 +109,13 @@ public final class Driver {
     private Optional<NotificationsSink> getNotificationsSink(Properties properties) throws Exception {
     		Properties notificationsSinkProperties = properties.getSubset("notifications.sink");
 
-    		Optional<NotificationsSink> notificationsSink = ComponentManager.buildOptional(Type.NOTIFICATIONS_SINK, notificationsSinkProperties);
-		
-    		return notificationsSink;
+    		return ComponentManager.buildOptional(Type.NOTIFICATIONS_SINK, notificationsSinkProperties);
 	}
 
 	private Optional<AnalysisResultsSink> getAnalysisResultsSink(Properties properties) throws Exception {
 		Properties analysisResultsSinkProperties = properties.getSubset("results.sink");
 		
-		Optional<AnalysisResultsSink> analysisResultsSink = ComponentManager.buildOptional(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
-		
-		return analysisResultsSink;
+		return ComponentManager.buildOptional(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
 	}
 
 	private MetricsSource getMetricSource(Properties properties) throws Exception {
@@ -129,23 +124,27 @@ public final class Driver {
     		if(!metricSourceProperties.isTypeDefined())
 		    throw new RuntimeException("A metric source must be configured");
 		
-		MetricsSource metricSource = ComponentManager.build(Type.SOURCE, metricSourceProperties);
-		
-		return metricSource;
+		return ComponentManager.build(Type.SOURCE, metricSourceProperties);
 	}
 
 	private JavaStreamingContext newStreamingContext(Properties properties) throws IOException {
-        
+		
 		SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("MetricsMonitorStreamingJob");
         sparkConf.runLocallyIfMasterIsNotConfigured();
         sparkConf.addProperties(properties, "spark.");
         
+        String checkpointDir = properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT);
+        sparkConf.set(RDDHelper.CHECKPPOINT_DIR_PARAM, checkpointDir);
+        
+        Duration dataExpirationPeriod = properties.getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);
+        sparkConf.set(PairStream.CHECKPPOINT_DURATION_PARAM, dataExpirationPeriod.toString());
+        
     		long batchInterval = properties.getLong(BATCH_INTERVAL_PARAM, 30);
 		
     		JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, Durations.seconds(batchInterval));
 		
-		ssc.checkpoint(properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT) + "/checkpoint/");
+		ssc.checkpoint(checkpointDir + "/checkpoint/");
 		
 		return ssc;
 	}

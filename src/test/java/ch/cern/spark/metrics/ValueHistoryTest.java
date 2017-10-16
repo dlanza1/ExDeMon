@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ch.cern.spark.TimeUtils;
+import ch.cern.TimeUtils;
 import ch.cern.spark.metrics.ValueHistory.Store_;
 
 public class ValueHistoryTest {

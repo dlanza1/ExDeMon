@@ -1,4 +1,4 @@
-package ch.cern.spark;
+package ch.cern;
 
 import static org.junit.Assert.assertEquals;
 

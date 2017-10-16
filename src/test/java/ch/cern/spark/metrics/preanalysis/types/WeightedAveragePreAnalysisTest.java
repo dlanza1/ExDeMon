@@ -5,8 +5,8 @@ import java.time.Instant;
 import org.junit.Assert;
 import org.junit.Test;
 
+import ch.cern.TimeUtils;
 import ch.cern.spark.Properties;
-import ch.cern.spark.TimeUtils;
 
 public class WeightedAveragePreAnalysisTest {
  

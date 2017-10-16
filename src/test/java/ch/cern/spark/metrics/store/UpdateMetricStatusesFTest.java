@@ -28,7 +28,7 @@ public class UpdateMetricStatusesFTest {
     @Test
     public void timingOutMetric() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
-        Monitors monitors = new Monitors(props, null, null, null);
+        Monitors monitors = new Monitors(props);
         
         UpdateMetricStatusesF func = new UpdateMetricStatusesF(monitors);
         
@@ -49,7 +49,7 @@ public class UpdateMetricStatusesFTest {
     @Test
     public void noMetric() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
-        Monitors monitors = new Monitors(props, null, null, null);
+        Monitors monitors = new Monitors(props);
         
         UpdateMetricStatusesF func = new UpdateMetricStatusesF(monitors);
         
@@ -68,7 +68,7 @@ public class UpdateMetricStatusesFTest {
     public void updateLastestTimestamp() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("monitor.ID.analysis.type", "fixed-threshold");
-        Monitors monitors = new Monitors(props, null, null, null);
+        Monitors monitors = new Monitors(props);
         
         UpdateMetricStatusesF func = new UpdateMetricStatusesF(monitors);
         

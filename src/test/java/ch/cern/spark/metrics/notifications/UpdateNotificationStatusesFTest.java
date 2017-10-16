@@ -27,7 +27,7 @@ public class UpdateNotificationStatusesFTest {
         props.get().setProperty("monitor.monID.notificator.notID.type", "constant");
         props.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
         props.get().setProperty("monitor.monID.notificator.notID.period", "10s");
-        Monitors monitors = new Monitors(props, null, null, null);
+        Monitors monitors = new Monitors(props);
         
         UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(monitors);
         
@@ -54,7 +54,7 @@ public class UpdateNotificationStatusesFTest {
         props.get().setProperty("monitor.monID.notificator.notID.type", "constant");
         props.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
         props.get().setProperty("monitor.monID.notificator.notID.period", "10s");
-        Monitors monitors = new Monitors(props, null, null, null);
+        Monitors monitors = new Monitors(props);
         
         UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(monitors);
         
@@ -85,7 +85,7 @@ public class UpdateNotificationStatusesFTest {
         props.get().setProperty("monitor.monID.notificator.notID.type", "constant");
         props.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
         props.get().setProperty("monitor.monID.notificator.notID.period", "10s");
-        Monitors monitors = new Monitors(props, null, null, null);
+        Monitors monitors = new Monitors(props);
         
         UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(monitors);
         

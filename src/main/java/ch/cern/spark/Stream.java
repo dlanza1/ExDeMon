@@ -1,8 +1,7 @@
 package ch.cern.spark;
 
-import java.time.Duration;
+import java.io.IOException;
 
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function4;
@@ -14,13 +13,12 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.Sink;
-import scala.Tuple2;
 
 public class Stream<V> {
 
 	private JavaDStream<V> stream;
 	
-	private Stream(JavaDStream<V> stream) {
+	protected Stream(JavaDStream<V> stream) {
 		this.stream = stream;
 	}
 	
@@ -33,14 +31,13 @@ public class Stream<V> {
 	}
 
 	public<K, S, R> StatusStream<K, V, S, R> mapWithState(
-			JavaRDD<Tuple2<K, S>> initialStates,
+			String id,
 			PairFlatMapFunction<V, K, V> toPairFunction, 
-			Function4<Time, K, Optional<V>, State<S>, Optional<R>> updateStatusFunction,
-			Duration dataExpirationPeriod) {
+			Function4<Time, K, Optional<V>, State<S>, Optional<R>> updateStatusFunction) throws ClassNotFoundException, IOException {
 
 		PairStream<K, V> keyValuePairs = toPair(toPairFunction);
 		
-		return keyValuePairs.mapWithState(initialStates, updateStatusFunction, dataExpirationPeriod);
+		return keyValuePairs.mapWithState(id, updateStatusFunction);
 	}
 
 	public Stream<V> union(Stream<V> input) {

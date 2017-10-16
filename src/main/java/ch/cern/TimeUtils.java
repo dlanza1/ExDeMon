@@ -1,4 +1,4 @@
-package ch.cern.spark;
+package ch.cern;
 
 import java.text.ParseException;
 import java.time.Duration;
