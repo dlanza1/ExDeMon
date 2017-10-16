@@ -3,7 +3,7 @@ package ch.cern.spark.metrics.analysis;
 import java.time.Instant;
 import java.util.function.Function;
 
-import ch.cern.spark.Component;
+import ch.cern.Component;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.results.AnalysisResult;
 

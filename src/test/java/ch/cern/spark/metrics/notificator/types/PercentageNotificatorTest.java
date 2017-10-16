@@ -8,8 +8,8 @@ import java.time.Instant;
 
 import org.junit.Test;
 
+import ch.cern.Properties;
 import ch.cern.TimeUtils;
-import ch.cern.spark.Properties;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 
 public class PercentageNotificatorTest {

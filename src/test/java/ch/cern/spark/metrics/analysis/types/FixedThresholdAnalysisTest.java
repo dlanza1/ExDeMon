@@ -3,7 +3,7 @@ package ch.cern.spark.metrics.analysis.types;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ch.cern.spark.Properties;
+import ch.cern.Properties;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
 public class FixedThresholdAnalysisTest {

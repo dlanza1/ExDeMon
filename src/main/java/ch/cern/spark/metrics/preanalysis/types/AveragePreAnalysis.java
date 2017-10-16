@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.OptionalDouble;
 
-import ch.cern.spark.Properties;
+import ch.cern.Properties;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.preanalysis.PreAnalysis;
 import ch.cern.spark.metrics.store.HasStore;

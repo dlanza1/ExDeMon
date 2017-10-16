@@ -10,8 +10,8 @@ import java.util.Iterator;
 import org.apache.spark.streaming.Time;
 import org.junit.Test;
 
-import ch.cern.spark.Properties;
-import ch.cern.spark.PropertiesTest;
+import ch.cern.Properties;
+import ch.cern.PropertiesTest;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.store.MetricStore;

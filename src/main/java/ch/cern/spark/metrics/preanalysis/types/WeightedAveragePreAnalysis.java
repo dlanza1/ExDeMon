@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
 
+import ch.cern.Properties;
 import ch.cern.spark.Pair;
-import ch.cern.spark.Properties;
 import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.preanalysis.PreAnalysis;

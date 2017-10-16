@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-import ch.cern.spark.Properties;
+import ch.cern.Properties;
 import ch.cern.spark.metrics.Metric;
 
 public class Filter implements Predicate<Metric>, Serializable{

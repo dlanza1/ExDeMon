@@ -9,10 +9,10 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
-import ch.cern.spark.Cache;
+import ch.cern.Cache;
+import ch.cern.Properties;
+import ch.cern.Properties.PropertiesCache;
 import ch.cern.spark.Pair;
-import ch.cern.spark.Properties;
-import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.StatusStream;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.ComputeIDsForMetricsF;

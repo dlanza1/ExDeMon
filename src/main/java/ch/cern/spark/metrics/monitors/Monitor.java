@@ -7,10 +7,10 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import ch.cern.spark.Component;
-import ch.cern.spark.Component.Type;
-import ch.cern.spark.ComponentManager;
-import ch.cern.spark.Properties;
+import ch.cern.Component;
+import ch.cern.ComponentManager;
+import ch.cern.Properties;
+import ch.cern.Component.Type;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.filter.Filter;

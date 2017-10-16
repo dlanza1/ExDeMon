@@ -1,4 +1,4 @@
-package ch.cern.spark;
+package ch.cern;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import org.apache.log4j.Logger;
 
-import ch.cern.spark.Component.Type;
+import ch.cern.Component.Type;
 import ch.cern.spark.metrics.analysis.types.FixedThresholdAnalysis;
 import ch.cern.spark.metrics.analysis.types.PercentileAnalysis;
 import ch.cern.spark.metrics.analysis.types.RecentActivityAnalysis;

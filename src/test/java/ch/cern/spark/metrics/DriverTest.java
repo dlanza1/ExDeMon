@@ -4,8 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import ch.cern.spark.Properties.PropertiesCache;
-import ch.cern.spark.PropertiesTest;
+import ch.cern.PropertiesTest;
+import ch.cern.Properties.PropertiesCache;
 
 public class DriverTest {
 

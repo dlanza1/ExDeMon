@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 import org.junit.Test;
 
-import ch.cern.spark.Properties;
+import ch.cern.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.results.AnalysisResult;

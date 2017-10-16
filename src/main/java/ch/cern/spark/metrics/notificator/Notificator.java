@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Function;
 
-import ch.cern.spark.Component;
+import ch.cern.Component;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;

@@ -10,8 +10,8 @@ import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateImpl;
 import org.junit.Test;
 
-import ch.cern.spark.Properties.PropertiesCache;
-import ch.cern.spark.PropertiesTest;
+import ch.cern.PropertiesTest;
+import ch.cern.Properties.PropertiesCache;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.notificator.NotificatorID;

@@ -3,7 +3,7 @@ package ch.cern.spark.metrics.source;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
-import ch.cern.spark.Component;
+import ch.cern.Component;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.Metric;
 

@@ -5,7 +5,7 @@ import java.time.Instant;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import ch.cern.spark.Properties;
+import ch.cern.Properties;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.results.AnalysisResult;

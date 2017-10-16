@@ -1,5 +1,7 @@
 package ch.cern.spark;
 
+import ch.cern.Properties;
+
 public class SparkConf extends org.apache.spark.SparkConf {
 
     private static final long serialVersionUID = 2168292945784881986L;

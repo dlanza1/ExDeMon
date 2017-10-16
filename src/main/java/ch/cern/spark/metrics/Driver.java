@@ -10,12 +10,12 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
-import ch.cern.spark.Component.Type;
-import ch.cern.spark.ComponentManager;
+import ch.cern.ComponentManager;
+import ch.cern.Properties;
+import ch.cern.Component.Type;
+import ch.cern.Properties.PropertiesCache;
 import ch.cern.spark.PairStream;
-import ch.cern.spark.Properties;
 import ch.cern.spark.RDDHelper;
-import ch.cern.spark.Properties.PropertiesCache;
 import ch.cern.spark.SparkConf;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.monitors.Monitors;

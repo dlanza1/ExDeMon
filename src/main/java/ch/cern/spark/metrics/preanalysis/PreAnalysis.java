@@ -3,7 +3,7 @@ package ch.cern.spark.metrics.preanalysis;
 import java.time.Instant;
 import java.util.function.Function;
 
-import ch.cern.spark.Component;
+import ch.cern.Component;
 import ch.cern.spark.metrics.Metric;
 
 public abstract class PreAnalysis extends Component implements Function<Metric, Metric>{

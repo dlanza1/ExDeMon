@@ -1,4 +1,4 @@
-package ch.cern.spark;
+package ch.cern;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -10,7 +10,8 @@ import java.time.Duration;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ch.cern.spark.Properties.PropertiesCache;
+import ch.cern.Properties;
+import ch.cern.Properties.PropertiesCache;
 
 public class PropertiesTest {
     

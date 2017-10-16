@@ -26,7 +26,7 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import org.apache.spark.streaming.kafka010.OffsetRange;
 
-import ch.cern.spark.Properties;
+import ch.cern.Properties;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.json.JSONObjectDeserializer;
 import ch.cern.spark.metrics.Metric;

@@ -1,4 +1,4 @@
-package ch.cern.spark;
+package ch.cern;
 
 import java.io.IOException;
 import java.time.Duration;

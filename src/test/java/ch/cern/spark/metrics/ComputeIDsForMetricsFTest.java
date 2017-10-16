@@ -9,8 +9,8 @@ import java.util.Iterator;
 
 import org.junit.Test;
 
-import ch.cern.spark.Properties.PropertiesCache;
-import ch.cern.spark.PropertiesTest;
+import ch.cern.PropertiesTest;
+import ch.cern.Properties.PropertiesCache;
 import ch.cern.spark.metrics.monitors.Monitors;
 import scala.Tuple2;
 

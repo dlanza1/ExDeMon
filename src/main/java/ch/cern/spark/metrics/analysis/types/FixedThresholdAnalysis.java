@@ -2,7 +2,7 @@ package ch.cern.spark.metrics.analysis.types;
 
 import java.time.Instant;
 
-import ch.cern.spark.Properties;
+import ch.cern.Properties;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
