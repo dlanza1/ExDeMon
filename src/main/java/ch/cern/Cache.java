@@ -1,6 +1,5 @@
 package ch.cern;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -25,7 +24,7 @@ public abstract class Cache<T> {
 	    this.max_life_time = max_life_time;
     }
 	
-	public final T get() throws IOException{
+	public final T get() throws Exception{
 	    if(object != null && hasExpired())
 	        object = null;
 	    
@@ -35,7 +34,7 @@ public abstract class Cache<T> {
 		return object;
 	}
 
-	private T loadCache() throws IOException {
+	private T loadCache() throws Exception {
 	    loadTime = Instant.now();;
 	    
         return load();
@@ -52,6 +51,6 @@ public abstract class Cache<T> {
         return lifeTime.compareTo(max_life_time) > 1;
     }
 
-    protected abstract T load() throws IOException;
+    protected abstract T load() throws Exception;
 	
 }

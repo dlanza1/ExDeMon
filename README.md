@@ -17,7 +17,7 @@ Notifications can be raised if certain statuses like error or warning are mainta
 - Components: metrics source, pre-analysis, analysis, analysis results sink, notificator and notification sink. They can be replaced. 
 - Some built-in components: Kafka source, different pre-analysis and analysis, Elastic sink, notificators, ...
 - Metrics at different frequencies.
-- Monitors configuration can be updated while running.
+- Monitors configuration can be updated while running. Configuration could come from an external source (Apache Zookeeper, HTTP request, data base, ...).
 - Detection of missing metrics.
 
 An image that describes some of the previous concepts and shows the data flow in the streaming job can be seen here.  
@@ -38,6 +38,12 @@ Results from analysis and notifications can be sunk to an external storage.
 They are considered parts of the processing pipeline that can be easily replaced by other built-in components or by an externally developed component.
 
 If you are willing to develop any component, look at the [developers guide](doc/developers-guide.md).
+
+### Properties source
+
+This component is meant to consume configuration properties from an external source.
+
+This source will be continuously queried and the job will be updated with coming properties.
 
 ### Metric source
 

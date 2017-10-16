@@ -124,7 +124,7 @@ public final class Driver {
     		if(!metricSourceProperties.isTypeDefined())
 		    throw new RuntimeException("A metric source must be configured");
 		
-		return ComponentManager.build(Type.SOURCE, metricSourceProperties);
+		return ComponentManager.build(Type.METRIC_SOURCE, metricSourceProperties);
 	}
 
 	private JavaStreamingContext newStreamingContext(Properties properties) throws IOException {

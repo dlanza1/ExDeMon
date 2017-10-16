@@ -10,7 +10,13 @@ public abstract class Component implements Serializable {
     
     private static final long serialVersionUID = -2299173239147440553L;
     
-    public enum Type {SOURCE, PRE_ANALYSIS, ANAYLSIS, ANALYSIS_RESULTS_SINK, NOTIFICATOR, NOTIFICATIONS_SINK, };
+    public enum Type {PROPERTIES_SOURCE,
+    						METRIC_SOURCE, 
+    						PRE_ANALYSIS, 
+    						ANAYLSIS, 
+    						ANALYSIS_RESULTS_SINK, 
+    						NOTIFICATOR, 
+    						NOTIFICATIONS_SINK};
     private Type type;
     
     private Class<? extends Component> subClass;

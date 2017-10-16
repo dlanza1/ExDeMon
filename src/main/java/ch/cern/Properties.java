@@ -1,6 +1,5 @@
 package ch.cern;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.time.Duration;
@@ -13,6 +12,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
+import ch.cern.Component.Type;
 import ch.cern.utils.TimeUtils;
 
 public class Properties extends java.util.Properties{
@@ -125,17 +125,25 @@ public class Properties extends java.util.Properties{
 		}
 		
 		@Override
-		protected Properties load() throws IOException {
+		protected Properties load() throws Exception {
 			Properties props = new Properties();
 			
 	        FileSystem fs = FileSystem.get(new Configuration());
-
 	        InputStreamReader is = new InputStreamReader(fs.open(new Path(path)));
-			
 	        props.load(is);
-
 			is.close();
+			
+			Optional<PropertiesSource> propertiesSource = ComponentManager.buildOptional(Type.PROPERTIES_SOURCE, props.getSubset("properties.source"));
 
+			if(propertiesSource.isPresent()){
+				Properties fixedProps = props;
+				Properties extraProps = propertiesSource.get().load();
+				
+				props = new Properties();
+				props.putAll(extraProps);
+				props.putAll(fixedProps);
+			}
+			
 			return props;
 		}
 	}

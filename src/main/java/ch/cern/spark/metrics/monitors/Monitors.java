@@ -38,7 +38,7 @@ public class Monitors extends Cache<Map<String, Monitor>> implements Serializabl
 	}
 
 	@Override
-	protected Map<String, Monitor> load() throws IOException {
+	protected Map<String, Monitor> load() throws Exception {
         Properties properties = propertiesCache.get().getSubset("monitor");
         
         Set<String> monitorNames = properties.getUniqueKeyFields();
@@ -53,11 +53,11 @@ public class Monitors extends Cache<Map<String, Monitor>> implements Serializabl
         return monitors;
 	}
 	
-	public Collection<Monitor> values() throws IOException {
+	public Collection<Monitor> values() throws Exception {
 		return get().values();
 	}
 
-	public Monitor get(String monitorID) throws IOException {
+	public Monitor get(String monitorID) throws Exception {
 		return get().get(monitorID);
 	}
 	

@@ -1,16 +1,16 @@
 package ch.cern;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
-import java.io.IOException;
 import java.time.Duration;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import ch.cern.Properties;
 import ch.cern.Properties.PropertiesCache;
 
 public class PropertiesTest {
@@ -28,7 +28,7 @@ public class PropertiesTest {
     }
 
 	@Test
-	public void expiration() throws IOException{
+	public void expiration() throws Exception{
 		Properties.PropertiesCache prop = new Properties.PropertiesCache("src/test/resources/config.properties", Duration.ofSeconds(1));
 		
 		Properties p1 = prop.get();
@@ -55,6 +55,17 @@ public class PropertiesTest {
 	}
 	
 	@Test
+	public void propertiesFromSource() throws Exception{
+		Properties.PropertiesCache prop = new Properties.PropertiesCache("src/test/resources/config.properties", Duration.ofSeconds(1));
+
+		assertNotEquals("not-valid-already-declared", prop.get().getProperty("source.type"));
+		assertNotEquals("not-valid-already-declared", prop.get().getProperty("results.sink.type"));
+		
+		assertEquals("val1", prop.get().getProperty("key1"));
+		assertEquals("val2", prop.get().getProperty("key2"));
+	}
+	
+	@Test
 	public void getUniqueKeyFields() {
 		Properties prop = new Properties();
         prop.setProperty("prop1", "val1");
@@ -70,11 +81,11 @@ public class PropertiesTest {
 	}
 
     public static PropertiesCache mockedExpirable() {
-        Properties.PropertiesCache propExp = mock(Properties.PropertiesCache.class, withSettings().serializable());
+        PropertiesCache propExp = mock(PropertiesCache.class, withSettings().serializable());
         
         try {
             when(propExp.get()).thenReturn(new Properties());
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         

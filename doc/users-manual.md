@@ -20,6 +20,9 @@ Each monitor and notificator must have a different ID.
 checkpoint.dir = <path_to_store_stateful_data> (default: /tmp/)
 spark.batch.time = <seconds> (default: 30)
 
+properties.source.type = <properties_source_type>
+properties.source.<other_confs> = <value>
+
 source.type = <metric_source_type>
 source.<other_confs> = <value>
 
@@ -137,6 +140,21 @@ monitor.<monitor-id>.missing.max-period = <period like 1h, 3m or 45s>
 ## Componenets
 
 For any of the components, type must be specified. Type can be any of the built-in components or a FQCN of an external component.
+
+### Properties source
+
+As mentioned, configuration is dynamic and can be changed while running. 
+Configuration parameters come from the configuration file but these parameters can be merged with parameters coming from an external source. 
+Note that parameters from configuration file will not be overwritten by parameters coming from the external source. 
+
+This source will be continuously queried and the job will be updated with coming properties.
+
+To configure an external source of properties:
+
+```
+properties.source.type = <properties_source_type>
+properties.source.<other_confs> = <value>
+```
 
 ### Metric sources
 

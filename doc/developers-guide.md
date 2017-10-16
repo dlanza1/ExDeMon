@@ -12,23 +12,30 @@ Any component can override the config() method. Properties parameter will contai
 
 ### Store for stateful components
 
-Pre-analysis, analysis and notificators may need to keep some historical data. If so, implemented component can implement the interface ch.cern.spark.metrics.store.HasStore.
+Pre-analysis, analysis and notificators may need to keep some historical data. If so, implemeanted component can implemeant the interface ch.cern.spark.metrics.store.HasStore.
 
-The save() method must return an object which implements the interface Store and contains only the data that needs to be stored.
+The save() method must return an object which implemeants the interface Store and contains only the data that needs to be stored.
 
 The load() method receives the previous saved store.
 
 Data contained in Store will be serialized and may thousands of these are stored. Taking into account that, the Store should contain as less data as possible.
 
+### Properties source 
+
+This component is meant to produce a set of properties that will be merged with the properties from the configuration file.
+Properties from the configuration file cannot be overwritten.
+
+Externally developed properties sources must extend ch.cern.PropertiesSource.
+
 ### Metric source
 
-This component is ment to consume metrics from a source and generate an stream of metrics. 
+This component is meant to consume metrics from a source and generate an stream of metrics. 
 
 Externally developed sources must extend ch.cern.spark.metrics.source.MetricsSource.
 
 ### Metric pre-analysis
 
-This component is ment to transform incoming metrics before the analysis. If a pre-analysis is applied, the produced value will be the value used by the analysis.
+This component is meant to transform incoming metrics before the analysis. If a pre-analysis is applied, the produced value will be the value used by the analysis.
 
 Externally developed pre-analysis must extend ch.cern.spark.metrics.preanalysis.PreAnalysis.
 
@@ -36,7 +43,7 @@ If same data need to be kept, this component can make use of an [Store](#store-f
 
 ### Metric analysis
 
-This component is ment to determine the status (error, warning, exception, ok) of each of the incoming metrics (pre-analyzed or not).  
+This component is meant to determine the status (error, warning, exception, ok) of each of the incoming metrics (pre-analyzed or not).  
 
 Externally developed analysis must extend ch.cern.spark.metrics.analysis.Analysis.
 
