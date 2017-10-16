@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.util.Arrays;
 
-import ch.cern.TimeUtils;
 import ch.cern.spark.metrics.store.Store;
+import ch.cern.utils.TimeUtils;
 
 public class LearningRatioValuePredictor implements Serializable {
     

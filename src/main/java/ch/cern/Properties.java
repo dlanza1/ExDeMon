@@ -13,6 +13,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
+import ch.cern.utils.TimeUtils;
+
 public class Properties extends java.util.Properties{
 	
 	private static final long serialVersionUID = 2510326766802151233L;

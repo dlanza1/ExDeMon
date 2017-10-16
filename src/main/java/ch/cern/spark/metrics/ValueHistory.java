@@ -15,8 +15,8 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import ch.cern.TimeUtils;
 import ch.cern.spark.metrics.store.Store;
+import ch.cern.utils.TimeUtils;
 
 public class ValueHistory implements Serializable {
 

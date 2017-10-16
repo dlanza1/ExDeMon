@@ -6,7 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import ch.cern.Properties;
-import ch.cern.TimeUtils;
+import ch.cern.utils.TimeUtils;
 
 public class AveragePreAnalysisTest {
  

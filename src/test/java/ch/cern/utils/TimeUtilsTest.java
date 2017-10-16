@@ -1,4 +1,4 @@
-package ch.cern;
+package ch.cern.utils;
 
 import java.time.Duration;
 

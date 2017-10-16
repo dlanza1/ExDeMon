@@ -1,4 +1,4 @@
-package ch.cern;
+package ch.cern.utils;
 
 import java.util.Objects;
 import java.util.Optional;

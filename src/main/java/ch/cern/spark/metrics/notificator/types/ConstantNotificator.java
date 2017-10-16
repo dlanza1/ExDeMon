@@ -9,12 +9,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import ch.cern.Properties;
-import ch.cern.TimeUtils;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.store.Store;
+import ch.cern.utils.TimeUtils;
 
 public class ConstantNotificator extends Notificator implements HasStore {
     

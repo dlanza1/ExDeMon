@@ -1,4 +1,4 @@
-package ch.cern;
+package ch.cern.utils;
 
 import static org.junit.Assert.assertEquals;
 
