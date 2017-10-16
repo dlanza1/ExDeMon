@@ -52,8 +52,8 @@ public class Stream<V> {
 		return Stream.from(stream.map(mapFunction));
 	}
 	
-	public void foreachRDD(VoidFunction<JavaRDD<V>> function) {
-		stream.foreachRDD(function);
+	public void foreachRDD(VoidFunction<RDD<V>> function) {
+		stream.foreachRDD(rdd -> function.call(RDD.from(rdd)));
 	}
 	
 	public<R> Stream<R> transform(Function2<JavaRDD<V>, Time, JavaRDD<R>> transformFunc) {
@@ -81,7 +81,7 @@ public class Stream<V> {
 	}
 	
 	public void save(String id) {
-		foreachRDD(rdd -> RDDHelper.save(rdd, id));
+		foreachRDD(rdd -> rdd.save(id));
 	}
 	
 	public JavaSparkContext getSparkContext() {

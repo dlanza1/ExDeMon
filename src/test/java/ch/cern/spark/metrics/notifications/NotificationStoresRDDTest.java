@@ -10,7 +10,7 @@ import java.util.List;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
-import ch.cern.spark.RDDHelper;
+import ch.cern.spark.RDD;
 import ch.cern.spark.metrics.notificator.NotificatorID;
 import ch.cern.spark.metrics.store.Store;
 import ch.cern.spark.metrics.store.TestStore;
@@ -31,9 +31,9 @@ public class NotificationStoresRDDTest {
 		store = new TestStore(2);
 		expectedNotifications.add(new Tuple2<NotificatorID, Store>(id, store));
 
-		RDDHelper.save(storingPath, expectedNotifications);
+		RDD.save(storingPath, expectedNotifications);
     		
-		List<Tuple2<NotificatorID, Store>> loadedNotifications = RDDHelper.<Tuple2<NotificatorID, Store>>load(storingPath);
+		List<Tuple2<NotificatorID, Store>> loadedNotifications = RDD.<Tuple2<NotificatorID, Store>>load(storingPath);
 
 		assertEquals(expectedNotifications, loadedNotifications);
     }

@@ -10,57 +10,33 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
-import scala.Tuple2;
-
-public class RDDHelper {
+public class RDD <T> {
 	
 	public static final String CHECKPPOINT_DIR_PARAM = "spark.streaming.rdd.checkpoint.directory";
 
+	private JavaRDD<T> rdd;
+	
 	private static transient FileSystem fs = null;
 	
-	public static<T> JavaRDD<T> load(JavaSparkContext context, String id)
-			throws IOException, ClassNotFoundException {
-		
-		Path storingPath = getStoringFile(context, id);
-		
-		return context.parallelize(load(storingPath));
-	}
-
-	public static <T> List<T> load(Path storingPath) throws IOException, ClassNotFoundException {
-		setFileSystem();
-
-		Path tmpFile = storingPath.suffix(".tmp");
-
-		if (!fs.exists(storingPath) && fs.exists(tmpFile))
-			fs.rename(tmpFile, storingPath);
-
-		if (!fs.exists(storingPath))
-			return new LinkedList<T>();
-
-		ObjectInputStream is = new ObjectInputStream(fs.open(storingPath));
-
-		@SuppressWarnings("unchecked")
-		List<T> elements = (List<T>) is.readObject();
-
-		is.close();
-
-		return elements;
-	}
-
-	public static<K, V> void save(JavaPairRDD<K, V> rdd, String id) throws IllegalArgumentException, IOException {
-		save(rdd.map(pair -> new Tuple2<K, V>(pair._1, pair._2)), id);
+	private RDD(JavaRDD<T> rdd) {
+		this.rdd = rdd;
 	}
 	
-	public static<T> void save(JavaRDD<T> input, String id) throws IllegalArgumentException, IOException {
-		Path storingPath = getStoringFile(getJavaSparkContext(input), id);
-		
-		save(storingPath, input.collect());
+	public static <T> RDD<T> from(JavaRDD<T> rdd) {
+		return new RDD<T>(rdd);
 	}
 
+	public JavaRDD<T> asJavaRDD(){
+		return rdd;
+	}
+	
+	public void save(String id) throws IllegalArgumentException, IOException {
+		save(getStoringFile(getJavaSparkContext(), id), rdd.collect());
+	}
+	
 	public static void save(Path storingPath, List<?> elements) throws IllegalArgumentException, IOException {
 		setFileSystem();
 
@@ -92,10 +68,34 @@ public class RDDHelper {
             return false;
         }
     }
+    
+	public static<T> JavaRDD<T> load(JavaSparkContext context, String id)
+			throws IOException, ClassNotFoundException {
+		
+		Path storingPath = getStoringFile(context, id);
+		
+		return context.parallelize(load(storingPath));
+	}
 
-	private static void setFileSystem() throws IOException {
-		if (fs == null)
-			fs = FileSystem.get(new Configuration());
+	public static <T> List<T> load(Path storingPath) throws IOException, ClassNotFoundException {
+		setFileSystem();
+
+		Path tmpFile = storingPath.suffix(".tmp");
+
+		if (!fs.exists(storingPath) && fs.exists(tmpFile))
+			fs.rename(tmpFile, storingPath);
+
+		if (!fs.exists(storingPath))
+			return new LinkedList<T>();
+
+		ObjectInputStream is = new ObjectInputStream(fs.open(storingPath));
+
+		@SuppressWarnings("unchecked")
+		List<T> elements = (List<T>) is.readObject();
+
+		is.close();
+
+		return elements;
 	}
 
 	private static Path getStoringFile(JavaSparkContext context, String id) {
@@ -106,8 +106,13 @@ public class RDDHelper {
 		return checkpointPath.suffix("/" + id).suffix("/latest");
 	}
 	
-	private static JavaSparkContext getJavaSparkContext(JavaRDD<?> anyRDD) {
-		return JavaSparkContext.fromSparkContext(anyRDD.context());
+	public JavaSparkContext getJavaSparkContext() {
+		return JavaSparkContext.fromSparkContext(rdd.context());
 	}
-
+	
+	private static void setFileSystem() throws IOException {
+		if (fs == null)
+			fs = FileSystem.get(new Configuration());
+	}
+	
 }

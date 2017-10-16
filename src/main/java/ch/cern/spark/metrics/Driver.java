@@ -10,12 +10,12 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
+import ch.cern.Component.Type;
 import ch.cern.ComponentManager;
 import ch.cern.Properties;
-import ch.cern.Component.Type;
 import ch.cern.Properties.PropertiesCache;
 import ch.cern.spark.PairStream;
-import ch.cern.spark.RDDHelper;
+import ch.cern.spark.RDD;
 import ch.cern.spark.SparkConf;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.monitors.Monitors;
@@ -135,7 +135,7 @@ public final class Driver {
         sparkConf.addProperties(properties, "spark.");
         
         String checkpointDir = properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT);
-        sparkConf.set(RDDHelper.CHECKPPOINT_DIR_PARAM, checkpointDir);
+        sparkConf.set(RDD.CHECKPPOINT_DIR_PARAM, checkpointDir);
         
         Duration dataExpirationPeriod = properties.getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);
         sparkConf.set(PairStream.CHECKPPOINT_DURATION_PARAM, dataExpirationPeriod.toString());

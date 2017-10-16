@@ -30,7 +30,7 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 
 	public<S, R> StatusStream<K, V, S, R> mapWithState(String id, Function4<Time, K, Optional<V>, State<S>, Optional<R>> updateStatusFunction) throws ClassNotFoundException, IOException {
 		
-		JavaRDD<Tuple2<K, S>> initialStates = RDDHelper.<Tuple2<K, S>>load(getSparkContext(), id);
+		JavaRDD<Tuple2<K, S>> initialStates = RDD.<Tuple2<K, S>>load(getSparkContext(), id);
 
         StateSpec<K, V, S, R> statusSpec = StateSpec
 							                .function(updateStatusFunction)
