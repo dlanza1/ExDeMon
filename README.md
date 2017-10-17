@@ -23,7 +23,7 @@ Notifications can be raised if certain statuses like error or warning are mainta
 - Detection of missing metrics.
 
 An image that describes some of the previous concepts and shows the data flow in the streaming job can be seen here.  
-![Data flow](/doc/img/data-flow.png)
+![Data flow](/doc/img/dataflow.png)
 
 ## Define new metrics
 
