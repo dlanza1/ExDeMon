@@ -26,21 +26,6 @@ public class DefinedMetricsTest {
 		DefinedMetrics definedMetrics = new DefinedMetrics(props);
 		Map<String, DefinedMetric> map = definedMetrics.get();
 		assertEquals(0, map.size());
-		
-		//At least a metric must be described.
-		props = PropertiesTest.mockedExpirable();
-		props.get().setProperty("metrics.define.md1.value", "x * 10");
-		definedMetrics = new DefinedMetrics(props);
-		map = definedMetrics.get();
-		assertEquals(0, map.size());
-		
-		//Equation contain variables that have not been described.
-		props = PropertiesTest.mockedExpirable();
-		props.get().setProperty("metrics.define.md1.value", "x * 10");
-		props.get().setProperty("metrics.define.md1.metric.y.filter.attribute.AA", "metricAA");
-		definedMetrics = new DefinedMetrics(props);
-		map = definedMetrics.get();
-		assertEquals(0, map.size());
 	}
 
     public static DefinedMetrics mockedExpirable() {

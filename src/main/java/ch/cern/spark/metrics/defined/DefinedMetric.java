@@ -63,12 +63,18 @@ public class DefinedMetric implements Serializable{
 		
 		metricsWhen = new HashSet<String>();
 		String whenValue = properties.getProperty("when");
-		if(whenValue != null && whenValue.equals("ANY"))
+		if(whenValue != null && whenValue.equals("ANY")) {
 			metricsWhen.addAll(metrics.keySet());
-		else if(whenValue != null)
-			metricsWhen.addAll(Arrays.stream(whenValue.split(",")).map(String::trim).collect(Collectors.toSet()));
-		else
+		}else if(whenValue != null) {
+			Set<String> metricsWhenConfig = Arrays.stream(whenValue.split(",")).map(String::trim).collect(Collectors.toSet());
+			
+			if(!metrics.keySet().containsAll(metricsWhenConfig))
+				throw new ConfigurationException("Metrics listed in when parameter must be declared.");
+			
+			metricsWhen.addAll(metricsWhenConfig);
+		}else{
 			metricsWhen.add(metricNames.stream().sorted().findFirst().get());
+		}
 		
 		return this;
 	}

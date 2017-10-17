@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,6 +18,50 @@ import ch.cern.Properties;
 import ch.cern.spark.metrics.Metric;
 
 public class DefinedMetricTest {
+	
+	@Test
+	public void configNotValid() {
+		
+		Properties props = new Properties();
+		
+		//Value must be specified.
+		props.setProperty("metric.y.filter.attribute.AA", "metricAA");
+		DefinedMetric metric = new DefinedMetric(null);
+		try{
+			metric.config(props);
+			fail();
+		}catch(ConfigurationException e) {}
+		
+		//At least a metric must be described.
+		props = new Properties();
+		props.setProperty("value", "x * 10");
+		metric = new DefinedMetric(null);
+		try{
+			metric.config(props);
+			fail();
+		}catch(ConfigurationException e) {}
+		
+		//Equation contain variables that have not been described.
+		props = new Properties();
+		props.setProperty("value", "x * 10");
+		props.setProperty("metric.y.filter.attribute.AA", "metricAA");
+		metric = new DefinedMetric(null);
+		try{
+			metric.config(props);
+			fail();
+		}catch(ConfigurationException e) {}
+		
+		//Metrics listed in when parameter must be declared.
+		props = new Properties();
+		props.setProperty("value", "x * 10");
+		props.setProperty("when", "y");
+		props.setProperty("metric.x.filter.attribute.AA", "metricAA");
+		metric = new DefinedMetric(null);
+		try{
+			metric.config(props);
+			fail();
+		}catch(ConfigurationException e) {}
+	}
 
 	@Test
 	public void config() throws ConfigurationException {
