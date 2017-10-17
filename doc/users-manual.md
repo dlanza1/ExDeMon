@@ -145,6 +145,8 @@ A meta-attribute is set in the generated metrics. The attribute name is $defined
 monitor.<monitor_id>.filter.attribute.$defined_metric = <deined-metric-id>
 ```
 
+Configuration of defined metrics can be updated while running.
+
 Some examples of declared metrics can be:
 
 - Multiply all metrics by 10
@@ -202,6 +204,8 @@ monitor.<monitor-id>.notificator.<notificator-id>.type = <notificator-type>
 monitor.<monitor-id>.notificator.<notificator-id>.<other_confs> = <value>
 monitor.<monitor-id>.notificator.<notificator-id>... (as many notificators as needed)
 ```
+
+Configuration of monitors can be updated while running.
 
 #### Filter
 
