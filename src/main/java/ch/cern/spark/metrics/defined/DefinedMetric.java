@@ -47,15 +47,23 @@ public class DefinedMetric implements Serializable{
 			.map(pair -> new Pair<String, Filter>(pair.first, Filter.build(pair.second.getSubset("filter"))))
 			.collect(Collectors.toMap(Pair::first, Pair::second));
 
+		if(metrics.isEmpty())
+			throw new RuntimeException("At least a metric must be described.");
 		
+		// Equation should be able to compute the result with all metrics
+		Optional<Float> resultTest = equation.compute(metrics.keySet().stream()
+			.map(name -> new Pair<String, Float>(name, (float) Math.random()))
+			.collect(Collectors.toMap(Pair::first, Pair::second)));
+		if(!resultTest.isPresent())
+			throw new RuntimeException("Equation contain variables that have not been described.");
 		
 		metricsWhen = new HashSet<String>();
 		String whenValue = properties.getProperty("when");
-		if(whenValue != null)
-			metricsWhen.addAll(Arrays.stream(whenValue.split(",")).map(String::trim).collect(Collectors.toSet()));
-		else if(metricNames.equals("ANY"))
+		if(whenValue != null && whenValue.equals("ANY"))
 			metricsWhen.addAll(metrics.keySet());
-		else if(!metricNames.isEmpty())
+		else if(whenValue != null)
+			metricsWhen.addAll(Arrays.stream(whenValue.split(",")).map(String::trim).collect(Collectors.toSet()));
+		else
 			metricsWhen.add(metricNames.stream().sorted().findFirst().get());
 		
 		return this;
