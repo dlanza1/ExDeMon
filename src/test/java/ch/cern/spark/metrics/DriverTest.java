@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import ch.cern.PropertiesTest;
+import ch.cern.ConfigurationException;
 import ch.cern.Properties.PropertiesCache;
 
 public class DriverTest {
@@ -20,7 +21,7 @@ public class DriverTest {
             driver.createNewStreamingContext();
             
             fail();
-        }catch(RuntimeException e){
+        }catch(ConfigurationException e){
             assertEquals("At least one metric source must be configured", e.getMessage());
         }
     }
@@ -39,7 +40,7 @@ public class DriverTest {
             driver.createNewStreamingContext();
             
             fail();
-        }catch(RuntimeException e){
+        }catch(ConfigurationException e){
             assertEquals("At least one sink must be configured", e.getMessage());
         }
     }
