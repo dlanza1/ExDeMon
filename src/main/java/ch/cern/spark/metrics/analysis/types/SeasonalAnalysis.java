@@ -2,6 +2,7 @@ package ch.cern.spark.metrics.analysis.types;
 
 import java.time.Instant;
 
+import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.predictor.LearningRatioValuePredictor;
@@ -35,7 +36,7 @@ public class SeasonalAnalysis extends Analysis implements HasStore{
         super(SeasonalAnalysis.class, "seasonal");
     }
 
-    public void config(Properties properties) throws Exception {
+    public void config(Properties properties) throws ConfigurationException {
         super.config(properties);
         
         learning_ratio = properties.getFloat(LEARNING_RATIO_PARAM, LEARNING_RATIO_DEFAULT);
@@ -81,8 +82,8 @@ public class SeasonalAnalysis extends Analysis implements HasStore{
             
             if(!result.hasStatus())
                 result.setStatus(AnalysisResult.Status.OK, "Metric between thresholds");
-            
-        }catch(RuntimeException e){
+        
+        }catch(Exception e){
             result.setStatus(AnalysisResult.Status.EXCEPTION, e.getClass().getSimpleName() + ": " + e.getMessage());
         }
         

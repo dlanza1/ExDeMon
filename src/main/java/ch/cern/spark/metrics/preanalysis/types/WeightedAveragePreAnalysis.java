@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
 
+import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.DatedValue;
@@ -29,7 +30,7 @@ public class WeightedAveragePreAnalysis extends PreAnalysis implements HasStore{
     }
 
     @Override
-    public void config(Properties properties) throws Exception {
+    public void config(Properties properties) throws ConfigurationException {
         super.config(properties);
         
         period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);

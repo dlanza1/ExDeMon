@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.spark.api.java.Optional;
 
+import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.Metric;

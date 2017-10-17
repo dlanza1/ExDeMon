@@ -33,7 +33,7 @@ public abstract class Component implements Serializable {
         this.name = name;
     }
     
-    public void config(Properties properties) throws Exception {
+    public void config(Properties properties) throws ConfigurationException {
     }
 
     public Type getType(){

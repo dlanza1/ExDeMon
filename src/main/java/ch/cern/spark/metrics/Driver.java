@@ -15,6 +15,7 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import ch.cern.Component.Type;
 import ch.cern.ComponentManager;
+import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.Properties.PropertiesCache;
 import ch.cern.spark.PairStream;
@@ -57,13 +58,13 @@ public final class Driver {
 		notificationsSink = getNotificationsSink(properties.get());
 		
 		if(!analysisResultsSink.isPresent() && !notificationsSink.isPresent())
-            throw new RuntimeException("At least one sink must be configured");
+            throw new ConfigurationException("At least one sink must be configured");
 	}
 
 	public static void main(String[] args) throws Exception {
 
 	    if(args.length != 1)
-	        throw new RuntimeException("A single argument must be specified with the path to the configuration file.");
+	        throw new ConfigurationException("A single argument must be specified with the path to the configuration file.");
 	    
 	    String propertyFilePath = args[0];
 	    PropertiesCache props = new PropertiesCache(propertyFilePath);
@@ -145,7 +146,7 @@ public final class Driver {
 		}
     		
     		if(metricSources.size() < 1)
-		    throw new RuntimeException("At least one metric source must be configured");
+		    throw new ConfigurationException("At least one metric source must be configured");
 		
 		return metricSources;
 	}

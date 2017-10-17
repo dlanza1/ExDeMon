@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.OptionalDouble;
 
+import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.preanalysis.PreAnalysis;
@@ -25,7 +26,7 @@ public class AveragePreAnalysis extends PreAnalysis implements HasStore{
     }
 
     @Override
-    public void config(Properties properties) throws Exception {
+    public void config(Properties properties) throws ConfigurationException {
         super.config(properties);
         
         period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);

@@ -2,6 +2,7 @@ package ch.cern.spark.metrics.analysis.types;
 
 import java.time.Instant;
 
+import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.results.AnalysisResult;
@@ -26,7 +27,7 @@ public class FixedThresholdAnalysis extends Analysis {
         super(FixedThresholdAnalysis.class, "fixed-threshold");
     }
 
-    public void config(Properties properties) throws Exception {
+    public void config(Properties properties) throws ConfigurationException {
         error_upperbound = properties.getFloat(ERROR_UPPERBOUND_PARAM);
         warning_upperbound = properties.getFloat(WARNING_UPPERBOUND_PARAM);
         warning_lowerbound = properties.getFloat(WARNING_LOWERBOUND_PARAM);

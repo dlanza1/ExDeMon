@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notificator.Notificator;
@@ -34,7 +35,7 @@ public class ConstantNotificator extends Notificator implements HasStore {
     }
 
     @Override
-    public void config(Properties properties) throws Exception {
+    public void config(Properties properties) throws ConfigurationException {
         super.config(properties);
         
         expectedStatuses = Stream.of(properties.getProperty(STATUSES_PARAM).split(","))

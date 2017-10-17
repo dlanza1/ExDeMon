@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 
 import ch.cern.Cache;
+import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.Properties.PropertiesCache;
 import ch.cern.spark.Pair;

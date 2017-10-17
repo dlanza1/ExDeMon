@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.elasticsearch.spark.streaming.api.java.JavaEsSparkStreaming;
 
+import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.results.AnalysisResult;
@@ -25,7 +26,7 @@ public class ElasticAnalysisResultsSink extends AnalysisResultsSink {
     }
 
     @Override
-    public void config(Properties properties) throws Exception {
+    public void config(Properties properties) throws ConfigurationException {
         super.config(properties);
         
         indexName = properties.getProperty("index");

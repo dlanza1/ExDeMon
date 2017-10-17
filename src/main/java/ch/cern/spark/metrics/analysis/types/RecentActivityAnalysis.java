@@ -5,6 +5,7 @@ import java.time.Instant;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.analysis.Analysis;
@@ -47,7 +48,7 @@ public class RecentActivityAnalysis extends Analysis implements HasStore{
     }
 
     @Override
-    public void config(Properties properties) throws Exception {
+    public void config(Properties properties) throws ConfigurationException {
         super.config(properties);
         
         error_upperbound = properties.getBoolean(ERROR_UPPERBOUND_PARAM);

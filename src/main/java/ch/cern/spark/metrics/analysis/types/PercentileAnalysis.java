@@ -5,6 +5,7 @@ import java.time.Instant;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.analysis.Analysis;
@@ -56,7 +57,7 @@ public class PercentileAnalysis extends Analysis implements HasStore{
     }
 
     @Override
-    public void config(Properties properties) throws Exception {
+    public void config(Properties properties) throws ConfigurationException {
         super.config(properties);
         
         error_upperbound = properties.getBoolean(ERROR_UPPERBOUND_PARAM);
@@ -66,10 +67,10 @@ public class PercentileAnalysis extends Analysis implements HasStore{
         
         error_percentile = properties.getFloat(ERROR_PERCENTILE_PARAM, ERROR_PERCENTILE_DEFAULT);
         if(error_percentile > 100 || error_percentile <=50)
-            throw new RuntimeException(ERROR_PERCENTILE_PARAM + " must be between 50 and 100");
+            throw new ConfigurationException(ERROR_PERCENTILE_PARAM + " must be between 50 and 100");
         warn_percentile = properties.getFloat(WARN_PERCENTILE_PARAM, WARN_PERCENTILE_DEFAULT);
         if(warn_percentile > 100 || warn_percentile <=50)
-            throw new RuntimeException(WARN_PERCENTILE_PARAM + " must be between 50 and 100");
+            throw new ConfigurationException(WARN_PERCENTILE_PARAM + " must be between 50 and 100");
         
         error_ratio = properties.getFloat(ERROR_RATIO_PARAM, ERROR_RATIO_DEFAULT);
         warn_ratio = properties.getFloat(WARN_RATIO_PARAM, WARN_RATIO_DEFAULT);
