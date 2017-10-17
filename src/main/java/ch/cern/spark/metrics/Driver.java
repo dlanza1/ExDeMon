@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -96,7 +95,9 @@ public final class Driver {
 
     protected JavaStreamingContext createNewStreamingContext() throws Exception {
 	    
-    		Stream<Metric> metrics = metricsFromAllSources();
+    		Stream<Metric> metrics = metricSources.stream()
+										.map(source -> source.createStream(ssc))
+										.reduce((str, stro) -> str.union(stro)).get();
     		
 		metrics = metrics.union(metrics.mapS(definedMetrics::generate));
     		
@@ -109,14 +110,6 @@ public final class Driver {
     		notificationsSink.ifPresent(notifications::sink);
 		
 		return ssc;
-	}
-    
-	private Stream<Metric> metricsFromAllSources() {
-		List<Stream<Metric>> streams = metricSources.stream()
-											.map(source -> source.createStream(ssc))
-											.collect(Collectors.toList());
-		
-		return streams.get(0).union(streams.subList(1, streams.size()));
 	}
 
 	private DefinedMetrics getDefinedMetrics(PropertiesCache properties) {
