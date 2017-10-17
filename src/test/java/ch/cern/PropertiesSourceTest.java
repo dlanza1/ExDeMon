@@ -8,7 +8,7 @@ public class PropertiesSourceTest extends PropertiesSource {
 	public Properties load() {
 		Properties properties = new Properties();
 		
-		properties.setProperty("metrics.source.type", "not-valid-already-declared");
+		properties.setProperty("metrics.source.kafka-prod.type", "not-valid-already-declared");
 		properties.setProperty("results.sink.type", "not-valid-already-declared");
 		
 		properties.setProperty("key1", "val1");

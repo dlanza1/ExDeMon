@@ -2,7 +2,11 @@ package ch.cern.spark.metrics;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -38,7 +42,7 @@ public final class Driver {
     
     private JavaStreamingContext ssc;
     
-	private MetricsSource metricSource;
+	private List<MetricsSource> metricSources;
 	private DefinedMetrics definedMetrics;
 	private Monitors monitors;
 	private Optional<AnalysisResultsSink> analysisResultsSink;
@@ -47,7 +51,7 @@ public final class Driver {
 	public Driver(PropertiesCache properties) throws Exception {
         ssc = newStreamingContext(properties.get());
         
-        metricSource = getMetricSource(properties.get());
+        metricSources = getMetricSources(properties.get());
         definedMetrics = getDefinedMetrics(properties);
         monitors = getMonitors(properties, ssc);
 		analysisResultsSink = getAnalysisResultsSink(properties.get());
@@ -92,8 +96,8 @@ public final class Driver {
 
     protected JavaStreamingContext createNewStreamingContext() throws Exception {
 	    
-    		Stream<Metric> metrics = metricSource.createStream(ssc);
-		
+    		Stream<Metric> metrics = metricsFromAllSources();
+    		
 		metrics = metrics.union(metrics.mapS(definedMetrics::generate));
     		
 		Stream<AnalysisResult> results = metrics.mapS(monitors::analyze);
@@ -107,6 +111,14 @@ public final class Driver {
 		return ssc;
 	}
     
+	private Stream<Metric> metricsFromAllSources() {
+		List<Stream<Metric>> streams = metricSources.stream()
+											.map(source -> source.createStream(ssc))
+											.collect(Collectors.toList());
+		
+		return streams.get(0).union(streams.subList(1, streams.size()));
+	}
+
 	private DefinedMetrics getDefinedMetrics(PropertiesCache properties) {
 		return new DefinedMetrics(properties);
 	}
@@ -123,13 +135,26 @@ public final class Driver {
 		return ComponentManager.buildOptional(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
 	}
 
-	private MetricsSource getMetricSource(Properties properties) throws Exception {
-    		Properties metricSourceProperties = properties.getSubset("metrics.source");
+	private List<MetricsSource> getMetricSources(Properties properties) throws Exception {
+		List<MetricsSource> metricSources = new LinkedList<>();
 		
-    		if(!metricSourceProperties.isTypeDefined())
-		    throw new RuntimeException("A metric source must be configured");
+    		Properties metricSourcesProperties = properties.getSubset("metrics.source");
 		
-		return ComponentManager.build(Type.METRIC_SOURCE, metricSourceProperties);
+    		Set<String> ids = metricSourcesProperties.getUniqueKeyFields();
+    		
+    		for (String id : ids) {
+    			Properties props = metricSourcesProperties.getSubset(id);
+			
+    			MetricsSource source = ComponentManager.build(Type.METRIC_SOURCE, props);
+    			source.setId(id);
+    			
+    			metricSources.add(source);
+		}
+    		
+    		if(metricSources.size() < 1)
+		    throw new RuntimeException("At least one metric source must be configured");
+		
+		return metricSources;
 	}
 
 	private Monitors getMonitors(PropertiesCache properties, JavaStreamingContext ssc2) throws IOException {

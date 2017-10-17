@@ -21,7 +21,7 @@ public class DriverTest {
             
             fail();
         }catch(RuntimeException e){
-            assertEquals("A metric source must be configured", e.getMessage());
+            assertEquals("At least one metric source must be configured", e.getMessage());
         }
     }
     
@@ -29,9 +29,9 @@ public class DriverTest {
     public void notConfiguredSinks() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("spark.driver.allowMultipleContexts", "true");
-        props.get().setProperty("metrics.source.type", "kafka");
-        props.get().setProperty("metrics.source.topics", "topic");
-        props.get().setProperty("metrics.source.parser.attributes", "att1 att2");
+        props.get().setProperty("metrics.source.kafka.type", "kafka");
+        props.get().setProperty("metrics.source.kafka.topics", "topic");
+        props.get().setProperty("metrics.source.kafka.parser.attributes", "att1 att2");
         
         try{
         		Driver driver = new Driver(props);
@@ -48,9 +48,9 @@ public class DriverTest {
     public void configurationWithAnalysisResultsSink() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("spark.driver.allowMultipleContexts", "true");
-        props.get().setProperty("metrics.source.type", "kafka");
-        props.get().setProperty("metrics.source.topics", "topic");
-        props.get().setProperty("metrics.source.parser.attributes", "att1 att2");
+        props.get().setProperty("metrics.source.kafka.type", "kafka");
+        props.get().setProperty("metrics.source.kafka.topics", "topic");
+        props.get().setProperty("metrics.source.kafka.parser.attributes", "att1 att2");
         props.get().setProperty("results.sink.type", "elastic");
         
         Driver driver = new Driver(props);
@@ -62,9 +62,9 @@ public class DriverTest {
     public void configurationWithNotificationsSink() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
         props.get().setProperty("spark.driver.allowMultipleContexts", "true");
-        props.get().setProperty("metrics.source.type", "kafka");
-        props.get().setProperty("metrics.source.topics", "topic");
-        props.get().setProperty("metrics.source.parser.attributes", "att1 att2");
+        props.get().setProperty("metrics.source.kafka.type", "kafka");
+        props.get().setProperty("metrics.source.kafka.topics", "topic");
+        props.get().setProperty("metrics.source.kafka.parser.attributes", "att1 att2");
         props.get().setProperty("notifications.sink.type", "elastic");
         
         Driver driver = new Driver(props);

@@ -1,6 +1,7 @@
 package ch.cern.spark;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -48,6 +49,21 @@ public class Stream<V> {
 		return Stream.from(stream.union(input.stream));
 	}
 	
+	public Stream<V> union(List<Stream<V>> list) {
+		if(list.size() == 0)
+			return this;
+		
+		Stream<V> streams = null;
+			
+		for (Stream<V> stream : list)
+			if(streams == null)
+				streams = stream;
+			else
+				streams = streams.union(stream);
+
+		return streams;
+	}
+	
 	public<R> Stream<R> map(Function<V, R> mapFunction) {
 		return Stream.from(stream.map(mapFunction));
 	}
@@ -87,5 +103,6 @@ public class Stream<V> {
 	public JavaSparkContext getSparkContext() {
 		return JavaSparkContext.fromSparkContext(stream.context().sparkContext());
 	}
+
 	
 }

@@ -24,9 +24,11 @@ spark.batch.time = <seconds> (default: 30)
 properties.source.type = <properties_source_type>
 properties.source.<other_confs> = <value>
 
-# Mandatory
-metrics.source.type = <metric_source_type>
-metrics.source.<other_confs> = <value>
+# At least one source is mandatory
+metrics.source.<metric-source-id-1>.type = <metric_source_type>
+metrics.source.<metric-source-id-1>.<other_confs> = <value>
+metrics.source.<metric-source-id-2>...
+metrics.source.<metric-source-id-n>...
 
 # Optional
 metrics.define.<defined-metric-1>...
@@ -51,14 +53,14 @@ An example of full configuration can be:
 checkpoint.dir = /tmp/spark-metrics-job/
 
 # Metric comes from a Kafka cluster
-metrics.source.type = kafka
-metrics.source.consumer.bootstrap.servers = habench101.cern.ch:9092,habench102.cern.ch:9092,habench103.cern.ch:9092
-metrics.source.consumer.group.id = spark_metric_analyzer
-metrics.source.topics = db-logging-platform
+metrics.source.kafka-prod.type = kafka
+metrics.source.kafka-prod.consumer.bootstrap.servers = habench101.cern.ch:9092,habench102.cern.ch:9092,habench103.cern.ch:9092
+metrics.source.kafka-prod.consumer.group.id = spark_metric_analyzer
+metrics.source.kafka-prod.topics = db-logging-platform
 # These two parameters are extracted from metrics (they are enough to identify a metric)
-metrics.source.parser.attributes = INSTANCE_NAME METRIC_NAME
-metrics.source.parser.value.attribute = VALUE
-metrics.source.parser.timestamp.attribute = END_TIME
+metrics.source.kafka-prod.parser.attributes = INSTANCE_NAME METRIC_NAME
+metrics.source.kafka-prod.parser.value.attribute = VALUE
+metrics.source.kafka-prod.parser.timestamp.attribute = END_TIME
 
 metrics.define.DBCPUUsagePercentage.value = DBCPUUsagePerSec / HostCPUUsagePerSec
 metrics.define.DBCPUUsagePercentage.metric.groupby = INSTANCE_NAME
@@ -185,6 +187,15 @@ metrics.define.diff_temp.metric.tempoutside.filter.attribute.PLACE = Outside
 metrics.define.diff_temp.metric.tempoutside.filter.attribute.METRIC = Temperature
 ``` 
 
+- Compare values of production and development environments:
+```
+metrics.define.diff-prod-dev.value = valueprod - valuedev
+metrics.define.diff-prod-dev.metric.groupby = INSTANCE_NAME METRIC_NAME
+# Metrics contain $source attribute with <metric-source-id>, it can be used to filter
+metrics.define.diff-prod-dev.metric.valueprod.filter.attribute.$source = kafka-prod
+metrics.define.diff-prod-dev.metric.valuedev.filter.attribute.$source = kafka-dev
+```
+
 ### Monitors
 
 ```
@@ -220,6 +231,16 @@ monitor.<monitor_id>.filter.attribute.<attribute_key> = <value>
 or a regex expression:
 ```
 monitor.<monitor_id>.filter.attribute.<attribute_key> = regex:<regex_expression>
+```
+
+Metrics can be filtered by metric source:
+```
+monitor.<monitor_id>.filter.attribute.$source = <metric-source-id>
+```
+
+Or they can be filtered by defined metric:
+```
+monitor.<monitor_id>.filter.attribute.$defined_metric = <defined-metric-id>
 ```
 
 #### Missing metric maximum period
