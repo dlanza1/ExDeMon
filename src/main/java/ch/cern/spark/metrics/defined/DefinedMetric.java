@@ -47,10 +47,14 @@ public class DefinedMetric implements Serializable{
 			.map(pair -> new Pair<String, Filter>(pair.first, Filter.build(pair.second.getSubset("filter"))))
 			.collect(Collectors.toMap(Pair::first, Pair::second));
 
+		
+		
 		metricsWhen = new HashSet<String>();
 		String whenValue = properties.getProperty("when");
 		if(whenValue != null)
 			metricsWhen.addAll(Arrays.stream(whenValue.split(",")).map(String::trim).collect(Collectors.toSet()));
+		else if(metricNames.equals("ANY"))
+			metricsWhen.addAll(metrics.keySet());
 		else if(!metricNames.isEmpty())
 			metricsWhen.add(metricNames.stream().sorted().findFirst().get());
 		

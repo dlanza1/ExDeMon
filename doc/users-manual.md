@@ -121,7 +121,7 @@ monitor.all-seasonal.notificator.warn-constant.period = 20m
 
 ```
 metrics.define.<deined-metric-id>.value = <methematical equation containing <metric-ids>>
-metrics.define.<deined-metric-id>.when = <comma separated list of metric-ids> (default: the first one after sorting)
+metrics.define.<deined-metric-id>.when = <ALL|comma separated list of metric-ids> (default: the first metric after sorting)
 metrics.define.<deined-metric-id>.metric.groupby = <notSet/ALL/comma separated attribute names> (default: not set)
 metrics.define.<deined-metric-id>.metric.<metrid-id-1>.filter.attribute.<attribute-name-1> = <value-1>
 metrics.define.<deined-metric-id>.metric.<metrid-id-1>.filter.attribute.<attribute-name-2> = <value-2>
@@ -136,7 +136,7 @@ New metrics can be defined. The value of these defined metrics is computed from 
 
 Equation (value parameter) can do addition (+), subtraction (-), multiplication (*), division(/), exponentiation (^), and a few functions like sqrt(x), sin(x), cos(x) and tan(x). It supports grouping using (), and it applies the operator precedence and associativity rules.
 
-The computation and further generation of a new metric will be produced when the metric/s listed in the "when" parameter arrive. By default, a new metric is produced when the first (after sorting alphabetically by <metric-id>) declared metric arrive. Last value of the other metrics will be used for the computation.
+The computation and further generation of a new metric will be trigger when the metric/s listed in the "when" parameter arrive. By default, a new metric is produced when the first (after sorting alphabetically by <metric-id>) declared metric arrive. Last value of the other metrics will be used for the computation. You can set "when" to ANY, it will trigger the generation when any of the metrics arrive.
 
 Metrics can be grouped by (e.g. machine) with the "groupby" parameter in order to apply the equation to a set of metrics. Group by can be set to ALL, then each metric will be treated independently.
 
