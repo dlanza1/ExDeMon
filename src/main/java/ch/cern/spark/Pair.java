@@ -20,4 +20,12 @@ public class Pair<K, V> implements Serializable{
         return "Pair [first=" + first + ", second=" + second + "]";
     }
     
+    public K first() {
+    		return first;
+    }
+    
+    public V second() {
+		return second;
+    }
+    
 }

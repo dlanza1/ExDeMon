@@ -18,6 +18,7 @@ import ch.cern.spark.PairStream;
 import ch.cern.spark.RDD;
 import ch.cern.spark.SparkConf;
 import ch.cern.spark.Stream;
+import ch.cern.spark.metrics.defined.DefinedMetrics;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notifications.sink.NotificationsSink;
@@ -38,6 +39,7 @@ public final class Driver {
     private JavaStreamingContext ssc;
     
 	private MetricsSource metricSource;
+	private DefinedMetrics definedMetrics;
 	private Monitors monitors;
 	private Optional<AnalysisResultsSink> analysisResultsSink;
 	private Optional<NotificationsSink> notificationsSink;
@@ -46,16 +48,13 @@ public final class Driver {
         ssc = newStreamingContext(properties.get());
         
         metricSource = getMetricSource(properties.get());
+        definedMetrics = getDefinedMetrics(properties);
         monitors = getMonitors(properties, ssc);
 		analysisResultsSink = getAnalysisResultsSink(properties.get());
 		notificationsSink = getNotificationsSink(properties.get());
 		
 		if(!analysisResultsSink.isPresent() && !notificationsSink.isPresent())
             throw new RuntimeException("At least one sink must be configured");
-	}
-
-	private Monitors getMonitors(PropertiesCache properties, JavaStreamingContext ssc2) throws IOException {
-		return new Monitors(properties);
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -95,6 +94,8 @@ public final class Driver {
 	    
     		Stream<Metric> metrics = metricSource.createStream(ssc);
 		
+		metrics = metrics.union(metrics.mapS(definedMetrics::generate));
+    		
 		Stream<AnalysisResult> results = metrics.mapS(monitors::analyze);
 		
 		analysisResultsSink.ifPresent(results::sink);
@@ -104,6 +105,10 @@ public final class Driver {
     		notificationsSink.ifPresent(notifications::sink);
 		
 		return ssc;
+	}
+    
+	private DefinedMetrics getDefinedMetrics(PropertiesCache properties) {
+		return new DefinedMetrics(properties);
 	}
     
     private Optional<NotificationsSink> getNotificationsSink(Properties properties) throws Exception {
@@ -127,6 +132,10 @@ public final class Driver {
 		return ComponentManager.build(Type.METRIC_SOURCE, metricSourceProperties);
 	}
 
+	private Monitors getMonitors(PropertiesCache properties, JavaStreamingContext ssc2) throws IOException {
+		return new Monitors(properties);
+	}
+	
 	private JavaStreamingContext newStreamingContext(Properties properties) throws IOException {
 		
 		SparkConf sparkConf = new SparkConf();

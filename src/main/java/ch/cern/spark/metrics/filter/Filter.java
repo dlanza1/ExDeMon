@@ -31,7 +31,7 @@ public class Filter implements Predicate<Metric>, Serializable{
         		predicate = predicate
         				.and(metric -> metric.getIDs().containsKey(key))
         				.and(metric -> pattern.matcher(metric.getIDs().get(key)).matches());
-		}else{			
+		}else{
         		predicate = predicate
         				.and(metric -> metric.getIDs().containsKey(key))
         				.and(metric -> metric.getIDs().get(key).equals(value));

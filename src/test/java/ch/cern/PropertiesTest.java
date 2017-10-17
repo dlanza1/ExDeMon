@@ -79,6 +79,27 @@ public class PropertiesTest {
         String[] expectedValue = {"prop2", "prop1", "prop3"};
         Assert.assertArrayEquals(expectedValue, uniq);
 	}
+	
+	@Test
+	public void getSubSet() {
+		Properties prop = new Properties();
+        prop.setProperty("prop1", "val1");
+        prop.setProperty("prop2.prop21", "val2");
+        prop.setProperty("prop2.prop22", "val2");
+        prop.setProperty("prop2.prop23", "val2");
+        prop.setProperty("prop3.prop31", "val2");
+        prop.setProperty("prop3.prop31.p1", "val2");
+        prop.setProperty("prop3.prop31.p2", "val2");
+        prop.setProperty("prop3.prop31.p3", "val2");
+        prop.setProperty("prop3.prop31.p4", "val2");
+        prop.setProperty("prop3.prop32", "val2");
+        
+        Properties subset = prop.getSubset("prop2");
+        assertEquals(3, subset.size());
+        
+        subset = prop.getSubset("prop3.prop31");
+        assertEquals(4, subset.size());
+	}
 
     public static PropertiesCache mockedExpirable() {
         PropertiesCache propExp = mock(PropertiesCache.class, withSettings().serializable());

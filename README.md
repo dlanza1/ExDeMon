@@ -1,7 +1,7 @@
 # Spark Streaming job for monitoring metrics
 
 A general purpose metric monitor using Apache Spark. 
-Metrics coming from Kafka or any other source, results and notifications can be sunk to Elastic or any other system, different analysis can be applied, notifications, configuration can be updated without restarting, it can detect missing metrics, ...
+Metrics coming from Kafka or any other source, results and notifications can be sunk to Elastic or any other system, new metrics can be defined combining other metrics, different analysis can be applied, notifications, configuration can be updated without restarting, it can detect missing metrics, ...
 
 [User's manual](doc/users-manual.md)
 
@@ -10,11 +10,12 @@ Notifications can be raised if certain statuses like error or warning are mainta
 
 ![Example of monitored metric](/doc/img/example-monitored-metric.png)
 
-### Key concepts
+### Key features
 
+- New metrics can be defined. Mathematical operations can be applied. Value of new metrics can be computed by aggregating different incoming metrics. 
 - Several monitors can be declared, each monitor can have a metric filter, a metric pre-analysis, a metric analysis and notificators. 
 - Only a metric source, analysis result sink and notifications sink can be declared. They are shared by all monitors. 
-- Components: metrics source, pre-analysis, analysis, analysis results sink, notificator and notification sink. They can be replaced. 
+- Components: properties source, metrics source, pre-analysis, analysis, analysis results sink, notificator and notification sink. They can be replaced. 
 - Some built-in components: Kafka source, different pre-analysis and analysis, Elastic sink, notificators, ...
 - Metrics at different frequencies.
 - Monitors configuration can be updated while running. Configuration could come from an external source (Apache Zookeeper, HTTP request, data base, ...).
@@ -22,6 +23,19 @@ Notifications can be raised if certain statuses like error or warning are mainta
 
 An image that describes some of the previous concepts and shows the data flow in the streaming job can be seen here.  
 ![Data flow](/doc/img/data-flow.png)
+
+## Define new metrics
+
+The value of these defined metrics is computed from a mathematical equation which is configured. 
+
+This equation can have or not variables, these variables represent incoming metrics. So, values from several metrics can be aggregated in order to compute the value for the new metric.
+
+Metrics can be grouped by (e.g. machine) in order to apply the equation to a set of metrics.
+
+Some possibilities of defined metrics could be:
+- Multiply all metrics by 10: value * 100
+- Compute the ratio read/write for all machines: (groupby: hostname) readbytes / writebytes
+- Temperature inside minus temperature outside: tempinside - tempoutside 
 
 ## Monitors
 

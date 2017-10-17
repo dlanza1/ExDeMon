@@ -28,6 +28,11 @@ properties.source.<other_confs> = <value>
 metrics.source.type = <metric_source_type>
 metrics.source.<other_confs> = <value>
 
+# Optional
+metrics.define.<defined-metric-1>...
+metrics.define.<defined-metric-2>...
+metrics.define.<defined-metric-n>...
+
 # At least one sink must be declared
 results.sink.type = <analysis_results_sink_type>
 results.sink.<other_confs> = <value>
@@ -55,6 +60,11 @@ metrics.source.parser.attributes = INSTANCE_NAME METRIC_NAME
 metrics.source.parser.value.attribute = VALUE
 metrics.source.parser.timestamp.attribute = END_TIME
 
+metrics.define.DBCPUUsagePercentage.value = DBCPUUsagePerSec / HostCPUUsagePerSec
+metrics.define.DBCPUUsagePercentage.metric.groupby = INSTANCE_NAME
+metrics.define.DBCPUUsagePercentage.metric.DBCPUUsagePerSec.filter.attribute.METRIC_NAME = CPU Usage Per Sec
+metrics.define.DBCPUUsagePercentage.metric.HostCPUUsagePerSec.filter.attribute.METRIC_NAME = Host CPU Usage Per 
+
 # Analysis results are sinked to Elastic
 results.sink.type = elastic
 results.sink.index = itdb_db-metric-results/log
@@ -78,6 +88,16 @@ monitor.CPUUsage.analysis.warn.upperbound  = 600
 monitor.CPUUsage.analysis.error.lowerbound = -1
 # This monitor does not produce notifications
 
+# Monitor percentage of DB usage of all instances
+monitor.DBCPU.filter.attribute.$defined_metric = DBCPUUsagePercentage
+monitor.DBCPU.pre-analysis.type = weighted-average
+monitor.DBCPU.pre-analysis.period = 10m
+monitor.DBCPU.analysis.type = fixed-threshold
+monitor.DBCPU.analysis.error.upperbound = 800DBCPU
+monitor.DBCPU.analysis.warn.upperbound  = 600
+monitor.DBCPU.analysis.error.lowerbound = -1
+# This monitor does not produce notifications
+
 # Monitor all metrics (no filter)
 monitor.all-seasonal.missing.max-period = 3m
 monitor.all-seasonal.pre-analysis.type = weighted-average
@@ -94,6 +114,74 @@ monitor.all-seasonal.notificator.warn-constant.type = constant
 monitor.all-seasonal.notificator.warn-constant.statuses = WARNING
 monitor.all-seasonal.notificator.warn-constant.period = 20m
 ```
+
+## Define new metrics
+
+```
+metrics.define.<deined-metric-id>.value = <methematical equation containing <metric-ids>>
+metrics.define.<deined-metric-id>.when = <comma separated list of metric-ids> (default: the first one after sorting)
+metrics.define.<deined-metric-id>.metric.groupby = <notSet/ALL/comma separated attribute names> (default: not set)
+metrics.define.<deined-metric-id>.metric.<metrid-id-1>.filter.attribute.<attribute-name-1> = <value-1>
+metrics.define.<deined-metric-id>.metric.<metrid-id-1>.filter.attribute.<attribute-name-2> = <value-2>
+metrics.define.<deined-metric-id>.metric.<metrid-id-1>.filter.attribute....
+metrics.define.<deined-metric-id>.metric.<metrid-id-2>.filter.attribute....
+metrics.define.<deined-metric-id>.metric....
+
+# With different ids, more metrics can be declared
+```
+
+New metrics can be defined. The value of these defined metrics is computed from a mathematical equation  configured with the "value" parameter. This equation can have or not variables, these variables represent incoming metrics. So, values from several metrics can be aggregated in order to compute the value for the new metric.
+
+Equation (value parameter) can do addition (+), subtraction (-), multiplication (*), division(/), exponentiation (^), and a few functions like sqrt(x), sin(x), cos(x) and tan(x). It supports grouping using (), and it applies the operator precedence and associativity rules.
+
+The computation and further generation of a new metric will be produced when the metric/s listed in the "when" parameter arrive. By default, a new metric is produced when the first (after sorting alphabetically by <metric-id>) declared metric arrive. Last value of the other metrics will be used for the computation.
+
+Metrics can be grouped by (e.g. machine) with the "groupby" parameter in order to apply the equation to a set of metrics. Group by can be set to ALL, then each metric will be treated independently.
+
+You need to specify what the variables in your equation represent by declaring metrics (&lt;metrid-id-X&gt;). Then, ID can be used in the equation. Even tough you do not use any variable in the equation, at least one metric must be declared to trigger the computation.
+
+A meta-attribute is set in the generated metrics. The attribute name is $defined_metric and his value the &lt;deined-metric-id&gt;. This attribute can later be used to filter the defined metrics in a monitor like:
+```
+monitor.<monitor_id>.filter.attribute.$defined_metric = <deined-metric-id>
+```
+
+Some examples of declared metrics can be:
+
+- Multiply all metrics by 10
+```
+metrics.define.all-multiply-by-10.value = value * 10
+metrics.define.all-multiply-by-10.metric.groupby = ALL
+# One of the following two would be enough
+metrics.define.all-multiply-by-10.metric.value.filter.attribute.INSTANCE_NAME = regex:.*
+metrics.define.all-multiply-by-10.metric.value.filter.attribute.METRIC_NAME = regex:.*
+```
+
+- Divide CPU usage coming from all machines by 1000
+```
+metrics.define.cpu-percentage = value / 1000
+metrics.define.cpu-percentage.metric.groupby = ALL
+# Same effect if we specify INSTANCE_NAME=regex:.* or not
+#metrics.define.cpu-percentage.metric.value.filter.attribute.INSTANCE_NAME = regex:.*
+metrics.define.cpu-percentage.metric.value.filter.attribute.METRIC_NAME = CPU Usage Per Sec
+```
+
+- Compute the ratio read/write for all machines:
+```
+metrics.define.ratio_read_write.value = readbytes / writebytes
+metrics.define.ratio_read_write.metric.groupby = HOSTNAME
+metrics.define.ratio_read_write.metric.readbytes.filter.attribute.METRIC_NAME = Read Bytes Per Sec
+metrics.define.ratio_read_write.metric.writebytes.filter.attribute.METRIC_NAME = Write Bytes Per Sec
+```
+
+- Temperature inside minus temperature outside in Fahrenheits: 
+```
+metrics.define.diff_temp.value = (tempinside - tempoutside) * 9/5 + 32
+# We do not group by, so that we can aggregate any metrics
+metrics.define.diff_temp.metric.tempinside.filter.attribute.PLACE = Living Room
+metrics.define.diff_temp.metric.tempinside.filter.attribute.METRIC = Temperature
+metrics.define.diff_temp.metric.tempoutside.filter.attribute.PLACE = Outside
+metrics.define.diff_temp.metric.tempoutside.filter.attribute.METRIC = Temperature
+``` 
 
 ### Monitors
 
