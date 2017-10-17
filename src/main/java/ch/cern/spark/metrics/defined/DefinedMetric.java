@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.spark.api.java.Optional;
 
 import ch.cern.Properties;
@@ -33,8 +34,11 @@ public class DefinedMetric implements Serializable{
 		this.name = name;
 	}
 
-	public DefinedMetric config(Properties properties) {
-		equation = new Equation(properties.getProperty("value"));
+	public DefinedMetric config(Properties properties) throws ConfigurationException {
+		String equationString = properties.getProperty("value");
+		if(equationString == null)
+			throw new ConfigurationException("Value must be specified.");
+		equation = new Equation(equationString);
 		
 		String groupByVal = properties.getProperty("metric.groupby");
 		if(groupByVal != null)
@@ -48,14 +52,14 @@ public class DefinedMetric implements Serializable{
 			.collect(Collectors.toMap(Pair::first, Pair::second));
 
 		if(metrics.isEmpty())
-			throw new RuntimeException("At least a metric must be described.");
+			throw new ConfigurationException("At least a metric must be described.");
 		
 		// Equation should be able to compute the result with all metrics
 		Optional<Float> resultTest = equation.compute(metrics.keySet().stream()
 			.map(name -> new Pair<String, Float>(name, (float) Math.random()))
 			.collect(Collectors.toMap(Pair::first, Pair::second)));
 		if(!resultTest.isPresent())
-			throw new RuntimeException("Equation contain variables that have not been described.");
+			throw new ConfigurationException("Equation (value) contain variables that have not been described.");
 		
 		metricsWhen = new HashSet<String>();
 		String whenValue = properties.getProperty("when");

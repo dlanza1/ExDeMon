@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.junit.Test;
 
 import ch.cern.Properties;
@@ -18,7 +19,7 @@ import ch.cern.spark.metrics.Metric;
 public class DefinedMetricTest {
 
 	@Test
-	public void config() {
+	public void config() throws ConfigurationException {
 		DefinedMetric metric = new DefinedMetric("A");
 		
 		Properties properties = new Properties();
@@ -41,7 +42,7 @@ public class DefinedMetricTest {
 	}
 	
 	@Test
-	public void testIfAny() {
+	public void testIfAny() throws ConfigurationException {
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
 		Properties properties = new Properties();
@@ -71,7 +72,7 @@ public class DefinedMetricTest {
 	}
 	
 	@Test
-	public void getGruopByMetricIDs() {
+	public void getGruopByMetricIDs() throws ConfigurationException {
 		
 DefinedMetric definedMetric = new DefinedMetric("A");
 		
