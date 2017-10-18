@@ -18,7 +18,7 @@ import scala.Tuple2;
 public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 	
 	public static final String CHECKPPOINT_DURATION_PARAM = "spark.streaming.mapWithState.timeout";
-	public static final String CHECKPPOINT_DURATION_DEFAULT = java.time.Duration.ofHours(3).toString();
+	public static final String CHECKPPOINT_DURATION_DEFAULT = java.time.Duration.ofMinutes(30).toString();
 	
 	private PairStream(JavaPairDStream<K, V> stream) {
 		super(stream.map(tuple -> tuple));

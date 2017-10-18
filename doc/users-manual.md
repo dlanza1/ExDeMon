@@ -18,7 +18,10 @@ Each monitor and notificator must have a different ID.
 
 ```
 checkpoint.dir = <path_to_store_stateful_data> (default: /tmp/)
-spark.batch.time = <seconds> (default: 30)
+spark.batch.time = <period like 1h, 3m or 45s> (default: 1m)
+
+# Data for metrics that are not coming will expire 
+data.expiration = <period like 1h, 3m or 45s> (default: 30m)
 
 # Optional
 properties.source.type = <properties_source_type>
@@ -63,9 +66,13 @@ metrics.source.kafka-prod.parser.value.attribute = VALUE
 metrics.source.kafka-prod.parser.timestamp.attribute = END_TIME
 
 metrics.define.DBCPUUsagePercentage.value = DBCPUUsagePerSec / HostCPUUsagePerSec
-metrics.define.DBCPUUsagePercentage.metric.groupby = INSTANCE_NAME
-metrics.define.DBCPUUsagePercentage.metric.DBCPUUsagePerSec.filter.attribute.METRIC_NAME = CPU Usage Per Sec
-metrics.define.DBCPUUsagePercentage.metric.HostCPUUsagePerSec.filter.attribute.METRIC_NAME = Host CPU Usage Per 
+metrics.define.DBCPUUsagePercentage.metrics.groupby = INSTANCE_NAME
+metrics.define.DBCPUUsagePercentage.variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME = CPU Usage Per Sec
+metrics.define.DBCPUUsagePercentage.variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME = Host CPU Usage Per 
+
+metrics.define.cluster-total-read-bytes.metrics.groupby = CLUSTER_NAME
+metrics.define.cluster-total-read-bytes.variables.readbytes.filter.attribute.METRIC_NAME = Read Bytes
+metrics.define.cluster-total-read-bytes.variables.readbytes.aggregate = sum
 
 # Analysis results are sinked to Elastic
 results.sink.type = elastic
@@ -120,80 +127,123 @@ monitor.all-seasonal.notificator.warn-constant.period = 20m
 ## Define new metrics
 
 ```
-metrics.define.<deined-metric-id>.value = <methematical equation containing <metric-ids>>
-metrics.define.<deined-metric-id>.when = <ALL|comma separated list of metric-ids> (default: the first metric after sorting)
-metrics.define.<deined-metric-id>.metric.groupby = <notSet/ALL/comma separated attribute names> (default: not set)
-metrics.define.<deined-metric-id>.metric.<metrid-id-1>.filter.attribute.<attribute-name-1> = <value-1>
-metrics.define.<deined-metric-id>.metric.<metrid-id-1>.filter.attribute.<attribute-name-2> = <value-2>
-metrics.define.<deined-metric-id>.metric.<metrid-id-1>.filter.attribute....
-metrics.define.<deined-metric-id>.metric.<metrid-id-2>.filter.attribute....
-metrics.define.<deined-metric-id>.metric....
+metrics.define.<defined-metric-id>.value = <methematical equation containing <variable-ids>> (default: <variable-id> if only one variable has been declared)
+metrics.define.<defined-metric-id>.when = <ALL|comma separated list of variable-ids> (default: the first variable after sorting)
+metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/comma separated attribute names> (default: not set)
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name-1> = <value-1>
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name-2> = <value-2>
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute....
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate = <not set|sum|avg|count|max|min>
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.expire = <never|period like 1h, 3m or 45s> (default: 10m)
+metrics.define.<defined-metric-id>.variables.<variable-id-2>.filter.attribute....
+metrics.define.<defined-metric-id>.variables....
 
-# With different ids, more metrics can be declared
+# With different id, more metrics can be defined
 ```
 
-New metrics can be defined. The value of these defined metrics is computed from a mathematical equation  configured with the "value" parameter. This equation can have or not variables, these variables represent incoming metrics. So, values from several metrics can be aggregated in order to compute the value for the new metric.
+New metrics can be defined. The value of these defined metrics is computed from a mathematical equation configured with the "value" parameter. This equation can have or not variables, these variables represent incoming metrics. So, values from several metrics can be aggregated in order to compute the value for the new metric. By default, in case only one variable is declared, value will return this variable.
 
 Equation (value parameter) can do addition (+), subtraction (-), multiplication (*), division(/), exponentiation (^), and a few functions like sqrt(x), sin(x), cos(x) and tan(x). It supports grouping using (), and it applies the operator precedence and associativity rules.
 
-The computation and further generation of a new metric will be trigger when the metric/s listed in the "when" parameter arrive. By default, a new metric is produced when the first (after sorting alphabetically by <metric-id>) declared metric arrive. Last value of the other metrics will be used for the computation. You can set "when" to ANY, it will trigger the generation when any of the metrics arrive.
+The computation and further generation of a new metric will be trigger when the variables listed in the "when" parameter are updated. By default, a new metric is produced when the first (after sorting alphabetically by &lt;variable-id&gt;) declared variable is updated with a new value. Last value of the other variables will be used for the computation. You can set "when" to ANY, it will trigger the generation when any of the variables is updated.
 
-Metrics can be grouped by (e.g. machine) with the "groupby" parameter in order to apply the equation to a set of metrics. Group by can be set to ALL, then each metric will be treated independently.
+Metrics can be grouped by (e.g. machine) with the "metrics.groupby" parameter in order to apply the equation to a set of metrics. Group by can be set to ALL, then each metric will be treated independently.
 
-You need to specify what the variables in your equation represent by declaring metrics (&lt;metrid-id-X&gt;). Then, ID can be used in the equation. Even tough you do not use any variable in the equation, at least one metric must be declared to trigger the computation.
+You need to specify what the variables in your equation represent by declaring variables. Then, &lt;variable-id-X&gt; can be used in the equation. Even tough you do not use any variable in the equation, at least one variable must be declared to trigger the computation.
 
-A meta-attribute is set in the generated metrics. The attribute name is $defined_metric and his value the &lt;deined-metric-id&gt;. This attribute can later be used to filter the defined metrics in a monitor like:
+Variables are supposed to be updated periodically. In case they are not updated, its value expires after the period of time specified with the parameter "expire". You can make variables to never expire configuring expire parameter to "never". By default, variables get expired after 10 minutes. If a variable gets expired and this variable should be used for the computation, no metrics will be produced. For aggregations, individual metrics are removed from the aggregation if they are not updated after such period. For example, if all of them expire, count is 0.
+
+A variable could be the result of an aggregation of values. Values from all metrics that pass the specified filter (and after grouping) will be aggregated. This can be configured using the "aggregate" parameter, where you configure the operation to perform the aggregation, it can be sum, avg, count, max or min. The maximum number of different metrics that can be aggregated is 1000, if more, results might be inconsistent. 
+
+A meta-attribute is set in the generated metrics. The meta attribute name is $defined_metric and his value the &lt;defined-metric-id&gt;. This attribute can later be used to filter the defined metrics in a monitor like:
 ```
-monitor.<monitor_id>.filter.attribute.$defined_metric = <deined-metric-id>
+monitor.<monitor_id>.filter.attribute.$defined_metric = <defined-metric-id>
 ```
 
 Configuration of defined metrics can be updated while running.
 
-Some examples of declared metrics can be:
+Some examples of defined metrics can be:
 
 - Multiply all metrics by 10
 ```
 metrics.define.all-multiply-by-10.value = value * 10
-metrics.define.all-multiply-by-10.metric.groupby = ALL
+metrics.define.all-multiply-by-10.metrics.groupby = ALL
 # One of the following two would be enough
-metrics.define.all-multiply-by-10.metric.value.filter.attribute.INSTANCE_NAME = regex:.*
-metrics.define.all-multiply-by-10.metric.value.filter.attribute.METRIC_NAME = regex:.*
+metrics.define.all-multiply-by-10.variables.value.filter.attribute.INSTANCE_NAME = regex:.*
+metrics.define.all-multiply-by-10.variables.value.filter.attribute.METRIC_NAME = regex:.*
 ```
 
 - Divide CPU usage coming from all machines by 1000
 ```
 metrics.define.cpu-percentage = value / 1000
-metrics.define.cpu-percentage.metric.groupby = ALL
+metrics.define.cpu-percentage.metrics.groupby = ALL
 # Same effect if we specify INSTANCE_NAME=regex:.* or not
-#metrics.define.cpu-percentage.metric.value.filter.attribute.INSTANCE_NAME = regex:.*
-metrics.define.cpu-percentage.metric.value.filter.attribute.METRIC_NAME = CPU Usage Per Sec
+#metrics.define.cpu-percentage.variables.value.filter.attribute.INSTANCE_NAME = regex:.*
+metrics.define.cpu-percentage.variables.value.filter.attribute.METRIC_NAME = CPU Usage Per Sec
 ```
 
 - Compute the ratio read/write for all machines:
 ```
 metrics.define.ratio_read_write.value = readbytes / writebytes
-metrics.define.ratio_read_write.metric.groupby = HOSTNAME
-metrics.define.ratio_read_write.metric.readbytes.filter.attribute.METRIC_NAME = Read Bytes Per Sec
-metrics.define.ratio_read_write.metric.writebytes.filter.attribute.METRIC_NAME = Write Bytes Per Sec
+metrics.define.ratio_read_write.metrics.groupby = HOSTNAME
+metrics.define.ratio_read_write.variables.readbytes.filter.attribute.METRIC_NAME = Read Bytes Per Sec
+metrics.define.ratio_read_write.variables.writebytes.filter.attribute.METRIC_NAME = Write Bytes Per Sec
 ```
 
 - Temperature inside minus temperature outside in Fahrenheits: 
 ```
 metrics.define.diff_temp.value = (tempinside - tempoutside) * 9/5 + 32
 # We do not group by, so that we can aggregate any metrics
-metrics.define.diff_temp.metric.tempinside.filter.attribute.PLACE = Living Room
-metrics.define.diff_temp.metric.tempinside.filter.attribute.METRIC = Temperature
-metrics.define.diff_temp.metric.tempoutside.filter.attribute.PLACE = Outside
-metrics.define.diff_temp.metric.tempoutside.filter.attribute.METRIC = Temperature
+metrics.define.diff_temp.variables.tempinside.filter.attribute.PLACE = Living Room
+metrics.define.diff_temp.variables.tempinside.filter.attribute.METRIC = Temperature
+metrics.define.diff_temp.variables.tempoutside.filter.attribute.PLACE = Outside
+metrics.define.diff_temp.variables.tempoutside.filter.attribute.METRIC = Temperature
 ``` 
 
 - Compare values of production and development environments:
 ```
 metrics.define.diff-prod-dev.value = valueprod - valuedev
-metrics.define.diff-prod-dev.metric.groupby = INSTANCE_NAME METRIC_NAME
+metrics.define.diff-prod-dev.metrics.groupby = INSTANCE_NAME METRIC_NAME
 # Metrics contain $source attribute with <metric-source-id>, it can be used to filter
-metrics.define.diff-prod-dev.metric.valueprod.filter.attribute.$source = kafka-prod
-metrics.define.diff-prod-dev.metric.valuedev.filter.attribute.$source = kafka-dev
+metrics.define.diff-prod-dev.variables.valueprod.filter.attribute.$source = kafka-prod
+metrics.define.diff-prod-dev.variables.valuedev.filter.attribute.$source = kafka-dev
+```
+
+- Aggregate metrics for all machines for each cluster and environment
+
+All metrics that belongs to the same cluster will be averaged. They will be grouped by METRIC_NAME.
+Metrics coming from the same HOSTNAME, will update its previous value in the aggregation.
+
+``` 
+metrics.define.avg-metric-per-cluster.metrics.groupby = CLUSTER_NAME METRIC_NAME
+metrics.define.avg-metric-per-cluster.variables.average-value.aggregate = avg
+```
+
+- Aggregate metrics for all machines in production for each cluster
+
+All metrics that belongs to the same cluster (groupby), name is "Read Bytes" and environment is "production" will be accumulated.
+Metrics coming from the same HOSTNAME, will update its previous value in the aggregation.
+
+``` 
+metrics.define.clusterprod-read-bytes.metrics.groupby = CLUSTER_NAME
+metrics.define.clusterprod-read-bytes.variables.readbytes.filter.attribute.ENVIRONMENT = production
+metrics.define.clusterprod-read-bytes.variables.readbytes.filter.attribute.METRIC_NAME = Read Bytes
+metrics.define.clusterprod-read-bytes.variables.readbytes.aggregate = sum
+# Value parameter is optional since there is only one variable and it has the desired value
+metrics.define.clusterprod-read-bytes.value = readbytes
+```
+
+- Count number of machines running per cluster
+
+Scenario: a machine that is running, produce a metric of type "running". If the machine stops, no metric are sent.
+
+If the machine do not send the metric after 5 minutes, its corresponding metric is removed from the aggregation. 
+
+``` 
+metrics.define.cluster-machines-running.metrics.groupby = CLUSTER_NAME
+metrics.define.cluster-machines-running.variables.value.filter.attribute.TYPE = "running"
+metrics.define.cluster-machines-running.variables.value.aggregate = count
+metrics.define.cluster-machines-running.variables.value.expire = 5m
 ```
 
 ### Monitors

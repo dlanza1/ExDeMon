@@ -2,9 +2,8 @@ package ch.cern.spark.metrics.defined;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.regex.Pattern;
-
-import org.apache.spark.api.java.Optional;
 
 public class Equation {
 
@@ -14,13 +13,13 @@ public class Equation {
 		this.formula = equationString;
 	}
 
-	public Optional<Float> compute(Map<String, Float> values) {
+	public Optional<Double> compute(Map<String, Double> values) {
 		String formulaWithValues = replaceVariables(values);
 		
 		if(canBeComputed(formulaWithValues))
 			return Optional.empty();
 		
-		float value = (float) eval(formulaWithValues);
+		double value = eval(formulaWithValues);
 		
 		return Optional.of(value);
 	}
@@ -34,15 +33,15 @@ public class Equation {
 		return Pattern.matches(".*[a-zA-Z]+.*", formulaWithValues);
 	}
 
-	private String replaceVariables(Map<String, Float> values) {
+	private String replaceVariables(Map<String, Double> values) {
 		if(values == null)
 			return formula;
 		
 		String formulaWithValues = formula; 
 		
-		for (Entry<String, Float> entry : values.entrySet()) {
+		for (Entry<String, Double> entry : values.entrySet()) {
 			String name = entry.getKey();
-			String value = Float.toString(entry.getValue());
+			String value = Double.toString(entry.getValue());
 			
 			formulaWithValues = formulaWithValues.replaceAll(name, value);
 		}

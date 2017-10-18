@@ -36,7 +36,9 @@ Metrics can be grouped by (e.g. machine) in order to apply the equation to a set
 Some possibilities of defined metrics could be:
 - Multiply all metrics by 10: value * 100
 - Compute the ratio read/write for all machines: (groupby: hostname) readbytes / writebytes
-- Temperature inside minus temperature outside: tempinside - tempoutside 
+- Temperature inside minus temperature outside: tempinside - tempoutside
+- Average of CPU usage of all machines per cluster
+- Total throughput of machines per cluster in production 
 
 ## Monitors
 

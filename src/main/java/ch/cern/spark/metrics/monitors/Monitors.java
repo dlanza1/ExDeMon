@@ -3,16 +3,15 @@ package ch.cern.spark.metrics.monitors;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
 import ch.cern.Cache;
 import ch.cern.Properties;
 import ch.cern.Properties.PropertiesCache;
-import ch.cern.spark.Pair;
 import ch.cern.spark.StatusStream;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.ComputeIDsForMetricsF;
@@ -43,11 +42,13 @@ public class Monitors extends Cache<Map<String, Monitor>> implements Serializabl
         
         Set<String> monitorNames = properties.getUniqueKeyFields();
         
-        Map<String, Monitor> monitors = monitorNames.stream()
-        		.map(id -> new Pair<String, Properties>(id, properties.getSubset(id)))
-        		.map(info -> new Monitor(info.first).config(info.second))
-        		.collect(Collectors.toMap(Monitor::getId, m -> m));
-        
+        Map<String, Monitor> monitors = new HashMap<>();
+        for (String monitorName : monitorNames) {
+			Properties monitorProps = properties.getSubset(monitorName);
+			
+			monitors.put(monitorName, new Monitor(monitorName).config(monitorProps));
+		}
+
         LOG.info("Loaded Monitors: " + monitors);
         
         return monitors;

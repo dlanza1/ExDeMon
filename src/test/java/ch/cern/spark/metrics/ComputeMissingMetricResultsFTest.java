@@ -61,7 +61,7 @@ public class ComputeMissingMetricResultsFTest {
         AnalysisResult result = resultIt.next();
         
         assertEquals(AnalysisResult.Status.EXCEPTION, result.getStatus());
-        assertEquals("Metric missing for " + delay + " seconds.", result.getStatusReason());
+        assertEquals("Metric missing for " + delay + " seconds", result.getStatusReason());
         
         assertFalse(resultIt.hasNext());
     }

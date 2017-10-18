@@ -4,6 +4,7 @@ import java.util.Iterator;
 
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 
+import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.Metric;
 import scala.Tuple2;
 
@@ -20,10 +21,12 @@ public class ComputeIDsForDefinedMetricsF implements PairFlatMapFunction<Metric,
 	@Override
 	public Iterator<Tuple2<DefinedMetricID, Metric>> call(Metric metric) throws Exception {
         return definedMetricsCache.get().values().stream()
-			        		.filter(definedMetric -> definedMetric.testIfAnyFilter(metric))
-			        		.map(definedMetric -> new DefinedMetricID(definedMetric.getName(), definedMetric.getGruopByMetricIDs(metric.getIDs())))
-			        		.map(ids -> new Tuple2<DefinedMetricID, Metric>(ids, metric))
-			        		.iterator();
+		        		.filter(definedMetric -> definedMetric.testIfApplyForAnyVariable(metric))
+		        		.map(definedMetric -> new Pair<>(definedMetric.getName(), definedMetric.getGroupByMetricIDs(metric.getIDs())))
+		        		.filter(pair -> pair.second.isPresent())
+		        		.map(pair -> new DefinedMetricID(pair.first, pair.second.get()))
+		        		.map(ids -> new Tuple2<DefinedMetricID, Metric>(ids, metric))
+		        		.iterator();
 	}
 
 }

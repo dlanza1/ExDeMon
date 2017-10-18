@@ -94,16 +94,20 @@ public class Properties extends java.util.Properties{
     		return getProperty("type") != null;
     }
 
-	public Duration getPeriod(String key, Duration periodDefault) {
+	public Duration getPeriod(String key, Duration periodDefault) throws ConfigurationException {
 		String value = getProperty(key);
 		
 		if(value == null)
 			return periodDefault;
 		
-		return TimeUtils.parsePeriod(value);
+		try{
+			return TimeUtils.parsePeriod(value);
+		}catch(NumberFormatException e) {
+			throw new ConfigurationException("For key=" + key + ": " + e.getMessage());
+		}
 	}
 
-	public Optional<Duration> getPeriod(String key) {
+	public Optional<Duration> getPeriod(String key) throws ConfigurationException {
 		return Optional.ofNullable(getPeriod(key, null));
 	}
 

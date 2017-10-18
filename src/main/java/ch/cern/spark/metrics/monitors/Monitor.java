@@ -1,6 +1,5 @@
 package ch.cern.spark.metrics.monitors;
 
-import java.io.Serializable;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.Set;
@@ -8,9 +7,10 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 import ch.cern.Component;
-import ch.cern.ComponentManager;
-import ch.cern.Properties;
 import ch.cern.Component.Type;
+import ch.cern.ComponentManager;
+import ch.cern.ConfigurationException;
+import ch.cern.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.filter.Filter;
@@ -20,10 +20,9 @@ import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.metrics.store.MetricStore;
 import ch.cern.spark.metrics.store.Store;
+import ch.cern.utils.TimeUtils;
 
-public class Monitor implements Serializable{
-
-    private static final long serialVersionUID = -3695000414623885877L;
+public class Monitor {
     
     private final static Logger LOG = Logger.getLogger(Monitor.class.getName());
     
@@ -38,6 +37,7 @@ public class Monitor implements Serializable{
     private Properties notificatorsProps;
 
     public static String MAX_PERIOD_PARAM = "missing.max-period";
+    private String maximumMissingPeriodPropertyValue;
     private Optional<Duration> maximumMissingPeriod;
     
     public Monitor(String id){
@@ -51,12 +51,13 @@ public class Monitor implements Serializable{
         analysisProps = properties.getSubset("analysis");
         notificatorsProps = properties.getSubset("notificator");
         
-        maximumMissingPeriod = properties.getPeriod(MAX_PERIOD_PARAM);
+        maximumMissingPeriodPropertyValue = properties.getProperty(MAX_PERIOD_PARAM);
         
         return this;
     }
 
     public AnalysisResult process(MetricStore store, Metric metric) throws Exception {
+    		setMaximumMissingPeriod();
     	
     		Optional<PreAnalysis> preAnalysis = ComponentManager.buildOptional(Type.PRE_ANALYSIS, store.getPreAnalysisStore(), preAnalysisProps);
     		Analysis analysis = ComponentManager.build(Type.ANAYLSIS, store.getAnalysisStore(), analysisProps);
@@ -84,7 +85,18 @@ public class Monitor implements Serializable{
         return result;
     }
     
-    public Filter getFilter(){
+    private void setMaximumMissingPeriod() throws ConfigurationException {
+    		if(maximumMissingPeriodPropertyValue == null)
+    			return;
+    		
+    		try {
+    			maximumMissingPeriod = Optional.of(TimeUtils.parsePeriod(maximumMissingPeriodPropertyValue));
+    		}catch(NumberFormatException e){
+    			throw new ConfigurationException("For key=" + MAX_PERIOD_PARAM + ": " + e.getMessage());
+    		}
+	}
+
+	public Filter getFilter(){
         return filter;
     }
 
@@ -101,8 +113,10 @@ public class Monitor implements Serializable{
         this.id = id;
     }
 
-    public Optional<Duration> getMaximumMissingPeriod() {
-        return maximumMissingPeriod;
+    public Optional<Duration> getMaximumMissingPeriod() throws ConfigurationException {
+    		setMaximumMissingPeriod();
+    	
+        return maximumMissingPeriod == null ? Optional.empty() : maximumMissingPeriod;
     }
     
     public Set<String> getNotificatorIDs(){

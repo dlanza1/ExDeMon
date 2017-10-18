@@ -117,6 +117,19 @@ public class ComputeIDsForDefinedMetricsFTest {
 	}
 	
 	@Test
+	public void metricMissingGrouByAttributeShouldNotPass() throws Exception {
+		ComputeIDsForDefinedMetricsF function = getTwoDefinedMetricsWithOneGroupByAttribute();
+		
+		Map<String, String> ids = new HashMap<>();
+//		ids.put("INSTANCE_NAME", null); <- INSTANCE_NAME is in groupby
+		ids.put("METRIC_NAME", "CPU Usage Per Sec");
+		Metric metric = new Metric(null, 0f, ids);
+		
+		Iterator<Tuple2<DefinedMetricID, Metric>> result = function.call(metric);
+		assertFalse(result.hasNext());
+	}
+	
+	@Test
 	public void groupByAllDoNotPassAnyFIlter() throws Exception {
 		ComputeIDsForDefinedMetricsF function = getGroupByAll();
 		
@@ -187,19 +200,19 @@ public class ComputeIDsForDefinedMetricsFTest {
 		definedMetricsCache.get().put("defM1", new DefinedMetric("defM1"));
 		Properties properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
-		properties.setProperty("metric.groupby", "INSTANCE_NAME");
-		properties.setProperty("metric.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
-		properties.setProperty("metric.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
-		properties.setProperty("metric.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
-		properties.setProperty("metric.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
+		properties.setProperty("metrics.groupby", "INSTANCE_NAME");
+		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
+		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		definedMetricsCache.get().get("defM1").config(properties);
 		
 		definedMetricsCache.get().put("defM2", new DefinedMetric("defM2"));
 		properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
-		properties.setProperty("metric.groupby", "INSTANCE_NAME");
-		properties.setProperty("metric.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
-		properties.setProperty("metric.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
+		properties.setProperty("metrics.groupby", "INSTANCE_NAME");
+		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		definedMetricsCache.get().get("defM2").config(properties);
 		
 		return new ComputeIDsForDefinedMetricsF(definedMetricsCache);
@@ -210,11 +223,11 @@ public class ComputeIDsForDefinedMetricsFTest {
 		definedMetricsCache.get().put("defMAll", new DefinedMetric("defMAll"));
 		Properties properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
-		properties.setProperty("metric.groupby", "ALL");
-		properties.setProperty("metric.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
-		properties.setProperty("metric.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
-		properties.setProperty("metric.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
-		properties.setProperty("metric.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
+		properties.setProperty("metrics.groupby", "ALL");
+		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
+		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		definedMetricsCache.get().get("defMAll").config(properties);
 		
 		return new ComputeIDsForDefinedMetricsF(definedMetricsCache);
@@ -226,10 +239,10 @@ public class ComputeIDsForDefinedMetricsFTest {
 		Properties properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 //		properties.setProperty("metric.groupby", null);
-		properties.setProperty("metric.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
-		properties.setProperty("metric.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
-		properties.setProperty("metric.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
-		properties.setProperty("metric.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
+		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
+		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		definedMetricsCache.get().get("defMNone").config(properties);
 		
 		return new ComputeIDsForDefinedMetricsF(definedMetricsCache);

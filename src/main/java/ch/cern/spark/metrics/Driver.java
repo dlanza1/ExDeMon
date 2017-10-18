@@ -155,7 +155,7 @@ public final class Driver {
 		return new Monitors(properties);
 	}
 	
-	private JavaStreamingContext newStreamingContext(Properties properties) throws IOException {
+	private JavaStreamingContext newStreamingContext(Properties properties) throws IOException, ConfigurationException {
 		
 		SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("MetricsMonitorStreamingJob");
@@ -168,7 +168,7 @@ public final class Driver {
         Duration dataExpirationPeriod = properties.getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);
         sparkConf.set(PairStream.CHECKPPOINT_DURATION_PARAM, dataExpirationPeriod.toString());
         
-    		long batchInterval = properties.getLong(BATCH_INTERVAL_PARAM, 30);
+    		long batchInterval = properties.getPeriod(BATCH_INTERVAL_PARAM, Duration.ofMinutes(1)).getSeconds();
 		
     		JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, Durations.seconds(batchInterval));
 		

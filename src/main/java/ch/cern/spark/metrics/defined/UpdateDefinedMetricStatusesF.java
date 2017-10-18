@@ -1,7 +1,5 @@
 package ch.cern.spark.metrics.defined;
 
-import java.util.Set;
-
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.streaming.State;
@@ -32,12 +30,14 @@ public class UpdateDefinedMetricStatusesF
 		
 		Metric metric = metricOpt.get();
 		
-		Set<String> metricIDs = definedMetric.getMetricIDs(metric);
-		for (String metricID : metricIDs)
-			store.updateValue(metricID, metric.getValue());
+		definedMetric.updateStore(store, metric);
 		status.update(store);
 		
-		return definedMetric.generate(store, metric, id.getGroupByMetricIDs());
+		return toOptional(definedMetric.generate(store, metric, id.getGroupByMetricIDs()));
+	}
+
+	private Optional<Metric> toOptional(java.util.Optional<Metric> javaOptional) {
+		return javaOptional.isPresent() ? Optional.of(javaOptional.get()) : Optional.empty();
 	}
 
 	private DefinedMetricStore getStore(State<DefinedMetricStore> status) {

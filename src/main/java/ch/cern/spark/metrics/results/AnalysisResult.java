@@ -12,6 +12,7 @@ import java.util.function.Function;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import ch.cern.spark.metrics.monitors.Monitor;
+import ch.cern.utils.TimeUtils;
 
 public class AnalysisResult implements Serializable {
 
@@ -91,7 +92,7 @@ public class AnalysisResult implements Serializable {
     }
     
     public static AnalysisResult buildMissingMetric(MonitorIDMetricIDs ids, Monitor monitor, Instant time, Duration elapsedTime) {
-        AnalysisResult result = AnalysisResult.buildWithStatus(Status.EXCEPTION, "Metric missing for "+elapsedTime.getSeconds()+" seconds.");
+        AnalysisResult result = AnalysisResult.buildWithStatus(Status.EXCEPTION, "Metric missing for " + TimeUtils.toString(elapsedTime));
         
         result.setAnalyzedMetric(new Metric(time, 0f, ids.getMetricIDs()));
         result.addMonitorParam("name", ids.getMonitorID());
