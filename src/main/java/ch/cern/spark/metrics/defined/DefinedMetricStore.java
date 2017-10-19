@@ -16,7 +16,7 @@ public class DefinedMetricStore implements Serializable{
 	
 	private static final long serialVersionUID = 3020679839103994736L;
 	
-	public static final int MAX_AGGREGATION_SIZE = 1000;
+	public static final int MAX_AGGREGATION_SIZE = 100;
 	
 	private Map<String, DatedValue> values;
 	

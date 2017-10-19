@@ -95,6 +95,7 @@ monitor.CPUUsage.analysis.type = fixed-threshold
 monitor.CPUUsage.analysis.error.upperbound = 800
 monitor.CPUUsage.analysis.warn.upperbound  = 600
 monitor.CPUUsage.analysis.error.lowerbound = -1
+monitor.CPUUsage.tags.email = procurement-team@cern.ch
 # This monitor does not produce notifications
 
 # Monitor percentage of DB usage of all instances
@@ -105,6 +106,7 @@ monitor.DBCPU.analysis.type = fixed-threshold
 monitor.DBCPU.analysis.error.upperbound = 800DBCPU
 monitor.DBCPU.analysis.warn.upperbound  = 600
 monitor.DBCPU.analysis.error.lowerbound = -1
+monitor.DBCPU.tags.email = databases-team@cern.ch
 # This monitor does not produce notifications
 
 # Monitor all metrics (no filter)
@@ -153,7 +155,7 @@ You need to specify what the variables in your equation represent by declaring v
 
 Variables are supposed to be updated periodically. In case they are not updated, its value expires after the period of time specified with the parameter "expire". You can make variables to never expire configuring expire parameter to "never". By default, variables get expired after 10 minutes. If a variable gets expired and this variable should be used for the computation, no metrics will be produced. For aggregations, individual metrics are removed from the aggregation if they are not updated after such period. In the case all of them expire, count is 0.
 
-A variable could be the result of an aggregation of values. Values from all metrics that pass the specified filter (and after grouping) will be aggregated. This can be configured using the "aggregate" parameter, where you configure the operation to perform the aggregation, it can be sum, avg, count, max or min. The maximum number of different metrics that can be aggregated is 1000, if more, results might be inconsistent. 
+A variable could be the result of an aggregation of values. Values from all metrics that pass the specified filter (and after grouping) will be aggregated. This can be configured using the "aggregate" parameter, where you configure the operation to perform the aggregation, it can be sum, avg, count, max or min. The maximum number of different metrics that can be aggregated is 100, if more, results might be inconsistent. 
 
 A meta-attribute is set in the generated metrics. The meta attribute name is $defined_metric and his value the &lt;defined-metric-id&gt;. This attribute can later be used to filter the defined metrics in a monitor like:
 ```
@@ -264,6 +266,9 @@ monitor.<monitor-id>.analysis.<other_confs> = <value>
 monitor.<monitor-id>.notificator.<notificator-id>.type = <notificator-type>
 monitor.<monitor-id>.notificator.<notificator-id>.<other_confs> = <value>
 monitor.<monitor-id>.notificator.<notificator-id>... (as many notificators as needed)
+monitor.<monitor-id>.tags.<tag-key-1> = <value-1>
+monitor.<monitor-id>.tags.<tag-key-2> = <value-2>
+monitor.<monitor-id>.tags.<tag-key-n> = <value-n>
 ```
 
 Configuration of monitors can be updated while running.
@@ -300,6 +305,19 @@ For each monitor, a maximun period missing a metric can be configured. If a metr
 To configure that:
 ```
 monitor.<monitor-id>.missing.max-period = <period like 1h, 3m or 45s>
+```
+
+#### Tags
+
+Each monitor can have different tags that are included in the analysis results and notifications that the monitor produces.
+
+They could be used to later discriminate the data, to aggregate, to target notifications (email, group, system), etc.
+
+They can be configured as:
+```
+monitor.<monitor-id>.tags.<tag-key-1> = <value-1>
+monitor.<monitor-id>.tags.<tag-key-2> = <value-2>
+monitor.<monitor-id>.tags.<tag-key-n> = <value-n>
 ```
 
 ## Componenets

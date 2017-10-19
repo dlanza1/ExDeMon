@@ -104,6 +104,20 @@ public class AnalysisResult implements Serializable {
         return monitor_params;
     }
     
+	public void setTags(Map<String, String> tags) {
+		monitor_params.put("tags", tags);
+	}
+    
+    @SuppressWarnings("unchecked")
+	public Map<String, String> getTags() {
+    		Object tags = monitor_params.get("tags");
+    	
+    		if(tags instanceof HashMap)
+	    		return (Map<String, String>) monitor_params.get("tags");
+    		else
+    			return new HashMap<>();
+	}
+    
 	public<R> Optional<R> map(Function<AnalysisResult, ? extends R> mapper) {
         Objects.requireNonNull(mapper);
 

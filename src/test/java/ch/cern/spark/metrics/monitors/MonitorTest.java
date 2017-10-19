@@ -14,6 +14,30 @@ import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.store.MetricStore;
 
 public class MonitorTest {
+
+	@Test
+	public void tagsShouldBePropagated() throws Exception {
+		
+		Properties properties = new Properties();
+		properties.setProperty("analysis.type", "fixed-threshold");
+		properties.setProperty("analysis.error.upperbound", "20");
+		properties.setProperty("analysis.error.lowerbound", "10");
+		properties.setProperty("tags.email", "1234@cern.ch");
+		properties.setProperty("tags.group", "IT_DB");
+		Monitor monitor = new Monitor(null).config(properties);
+		
+		MetricStore store = new MetricStore();
+		
+		AnalysisResult result = monitor.process(store, new Metric(Instant.now(), 0f, new HashMap<>()));
+		assertEquals(AnalysisResult.Status.ERROR, result.getStatus());
+		assertEquals("1234@cern.ch", result.getTags().get("email"));
+		assertEquals("IT_DB", result.getTags().get("group"));
+		
+		result = monitor.process(store, new Metric(Instant.now(), 15f, new HashMap<>()));
+		assertEquals(AnalysisResult.Status.OK, result.getStatus());
+		assertEquals("1234@cern.ch", result.getTags().get("email"));
+		assertEquals("IT_DB", result.getTags().get("group"));
+	}
 	
 	@Test
 	public void monitorWithOutPreAnalysis() throws Exception {

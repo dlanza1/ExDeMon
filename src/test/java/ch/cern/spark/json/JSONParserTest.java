@@ -31,6 +31,11 @@ public class JSONParserTest{
         Metric metric = new Metric(timestamp, 12f, ids);
         analysisResult.setAnalyzedMetric(metric);
         
+        HashMap<String, String> tags = new HashMap<>();
+        tags.put("email", "1234@cern.ch");
+        tags.put("group", "IT_DB");
+		analysisResult.setTags(tags);
+        
         JSONObject jsonObject = JSONParser.parse(analysisResult);
         
         Assert.assertEquals("val_id1", jsonObject.getProperty("analyzed_metric.ids.id1"));
@@ -40,6 +45,9 @@ public class JSONParserTest{
         Assert.assertEquals(expected_timestamp, jsonObject.getProperty("analyzed_metric.timestamp"));
         
         Assert.assertEquals("12.0", jsonObject.getProperty("analyzed_metric.value"));
+        
+        Assert.assertEquals("1234@cern.ch", jsonObject.getProperty("monitor_params.tags.email"));
+        Assert.assertEquals("IT_DB", jsonObject.getProperty("monitor_params.tags.group"));
     }
     
     @Test

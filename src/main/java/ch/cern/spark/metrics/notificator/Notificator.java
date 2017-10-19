@@ -23,7 +23,11 @@ public abstract class Notificator extends Component implements Function<Analysis
     }
     
     public Optional<Notification> apply(AnalysisResult result) {
-    		return process(result.getStatus(), result.getAnalyzedMetric().getInstant());
+    		Optional<Notification> notificationOpt = process(result.getStatus(), result.getAnalyzedMetric().getInstant());
+    		
+    		notificationOpt.ifPresent(notif -> notif.setTags(result.getTags()));
+    		
+    		return notificationOpt;
     }
 
     public abstract Optional<Notification> process(Status status, Instant timestamp);

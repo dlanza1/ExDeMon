@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.monitors;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 
@@ -39,6 +40,8 @@ public class Monitor {
     public static String MAX_PERIOD_PARAM = "missing.max-period";
     private String maximumMissingPeriodPropertyValue;
     private Optional<Duration> maximumMissingPeriod;
+
+	private HashMap<String, String> tags;
     
     public Monitor(String id){
         this.id = id;
@@ -52,6 +55,11 @@ public class Monitor {
         notificatorsProps = properties.getSubset("notificator");
         
         maximumMissingPeriodPropertyValue = properties.getProperty(MAX_PERIOD_PARAM);
+        
+        tags = new HashMap<>();
+        Properties tagsProps = properties.getSubset("tags");
+        Set<String> tagKeys = tagsProps.getUniqueKeyFields();
+        tagKeys.forEach(key -> tags.put(key, tagsProps.getProperty(key)));
         
         return this;
     }
@@ -78,6 +86,7 @@ public class Monitor {
         
         result.addMonitorParam("name", id);
         result.addMonitorParam("type", analysisProps.getProperty("type"));
+        result.setTags(tags);
         
         preAnalysis.flatMap(Component::getStore).ifPresent(store::setPreAnalysisStore);
         analysis.getStore().ifPresent(store::setAnalysisStore);

@@ -18,6 +18,8 @@ public class Notification implements Serializable {
     
     private String reason;
 
+	private Map<String, String> tags;
+
     public Notification(Instant timestamp, String monitorID, String notificatorID, Map<String, String> metricIDs,
             String reason) {
         this.timestamp = timestamp;
@@ -73,5 +75,13 @@ public class Notification implements Serializable {
     public void setReason(String reason) {
         this.reason = reason;
     }
+
+	public void setTags(Map<String, String> tags) {
+		this.tags = tags;
+	}
+	
+	public Map<String, String> getTags() {
+		return tags;
+	}
     
 }
