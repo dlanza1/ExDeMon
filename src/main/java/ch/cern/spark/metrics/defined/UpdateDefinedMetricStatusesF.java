@@ -25,7 +25,13 @@ public class UpdateDefinedMetricStatusesF
 		if(status.isTimingOut() || !metricOpt.isPresent())
 			return Optional.empty();
 		
-		DefinedMetric definedMetric = definedMetrics.get().get(id.getDefinedMetricName());
+		java.util.Optional<DefinedMetric> definedMetricOpt = definedMetrics.get(id.getDefinedMetricName());
+		if(!definedMetricOpt.isPresent()) {
+			status.remove();
+			return Optional.empty();
+		}
+		DefinedMetric definedMetric = definedMetricOpt.get();
+			
 		DefinedMetricStore store = getStore(status);
 		
 		Metric metric = metricOpt.get();

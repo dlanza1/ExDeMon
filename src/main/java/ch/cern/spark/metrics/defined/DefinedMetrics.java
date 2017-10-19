@@ -3,6 +3,7 @@ package ch.cern.spark.metrics.defined;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,6 +55,12 @@ public class DefinedMetrics extends Cache<Map<String, DefinedMetric>> implements
 	
 	public Stream<Metric> generate(Stream<Metric> metrics) throws ClassNotFoundException, IOException{
         return metrics.mapWithState("definedMetrics", new ComputeIDsForDefinedMetricsF(this), new UpdateDefinedMetricStatusesF(this));
+	}
+	
+	public Optional<DefinedMetric> get(String definedMetricName) throws Exception {
+		DefinedMetric definedMetric = get().get(definedMetricName);
+		
+		return Optional.ofNullable(definedMetric);
 	}
 
 }

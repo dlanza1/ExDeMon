@@ -1,4 +1,4 @@
-package ch.cern.spark.metrics.store;
+package ch.cern.spark.metrics;
 
 import java.time.Instant;
 
@@ -7,11 +7,10 @@ import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
-import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
+import ch.cern.spark.metrics.store.MetricStore;
 
 public class UpdateMetricStatusesF
         implements Function4<Time, MonitorIDMetricIDs, Optional<Metric>, State<MetricStore>, Optional<AnalysisResult>> {
@@ -32,7 +31,12 @@ public class UpdateMetricStatusesF
             Time time, MonitorIDMetricIDs ids, Optional<Metric> metricOpt, State<MetricStore> storeState) 
             throws Exception {
         
-        Monitor monitor = monitorsCache.get(ids.getMonitorID());
+        java.util.Optional<Monitor> monitorOpt = monitorsCache.get(ids.getMonitorID());
+        if(!monitorOpt.isPresent()) {
+        		storeState.remove();
+	        	return Optional.empty();
+        }
+        Monitor monitor = monitorOpt.get();
         
         if(storeState.isTimingOut())
             return Optional.of(AnalysisResult.buildTimingOut(ids, monitor, Instant.ofEpochMilli(time.milliseconds())));

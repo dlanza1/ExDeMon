@@ -20,6 +20,7 @@ import ch.cern.PropertiesTest;
 import ch.cern.Properties.PropertiesCache;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
+import ch.cern.spark.metrics.UpdateMetricStatusesF;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
@@ -28,6 +29,7 @@ public class UpdateMetricStatusesFTest {
     @Test
     public void timingOutMetric() throws Exception{
         PropertiesCache props = PropertiesTest.mockedExpirable();
+        props.get().setProperty("monitor.ID.analysis.type", "fixed-threshold");
         Monitors monitors = new Monitors(props);
         
         UpdateMetricStatusesF func = new UpdateMetricStatusesF(monitors);

@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -18,12 +19,12 @@ import ch.cern.spark.metrics.ComputeIDsForMetricsF;
 import ch.cern.spark.metrics.ComputeMissingMetricResultsF;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
+import ch.cern.spark.metrics.UpdateMetricStatusesF;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notifications.UpdateNotificationStatusesF;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.ComputeIDsForAnalysisF;
 import ch.cern.spark.metrics.store.MetricStore;
-import ch.cern.spark.metrics.store.UpdateMetricStatusesF;
 
 public class Monitors extends Cache<Map<String, Monitor>> implements Serializable{
 	private static final long serialVersionUID = 2628296754660438034L;
@@ -58,8 +59,8 @@ public class Monitors extends Cache<Map<String, Monitor>> implements Serializabl
 		return get().values();
 	}
 
-	public Monitor get(String monitorID) throws Exception {
-		return get().get(monitorID);
+	public Optional<Monitor> get(String monitorID) throws Exception {
+		return Optional.ofNullable(get().get(monitorID));
 	}
 	
 	public Stream<AnalysisResult> analyze(Stream<Metric> metrics) throws Exception {

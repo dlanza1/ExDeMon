@@ -39,9 +39,10 @@ public class ComputeMissingMetricResultsF implements FlatMapFunction<Tuple2<Moni
         MonitorIDMetricIDs ids = pair._1;
         MetricStore store = pair._2;
         
-        Monitor monitor = monitorsCache.get(ids.getMonitorID());
-        if(monitor == null)
+        Optional<Monitor> monitorOpt = monitorsCache.get(ids.getMonitorID());
+        if(!monitorOpt.isPresent())
             return result.iterator();
+        Monitor monitor = monitorOpt.get();
         
         Optional<Duration> maximumMissingPeriod = monitor.getMaximumMissingPeriod();
         

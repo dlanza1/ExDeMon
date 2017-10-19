@@ -30,7 +30,11 @@ public class UpdateNotificationStatusesF
         if (notificatorState.isTimingOut() || !resultOpt.isPresent())
             return Optional.absent();
         
-        Monitor monitor = monitorsCache.get(ids.getMonitorID());
+        java.util.Optional<Monitor> monitorOpt = monitorsCache.get(ids.getMonitorID());
+        if(!monitorOpt.isPresent())
+        		return Optional.empty();
+        Monitor monitor = monitorOpt.get();
+        
         Notificator notificator = monitor.getNotificator(ids.getNotificatorID(), toOptional(notificatorState));        
         
         java.util.Optional<Notification> notification = notificator.apply(resultOpt.get());
