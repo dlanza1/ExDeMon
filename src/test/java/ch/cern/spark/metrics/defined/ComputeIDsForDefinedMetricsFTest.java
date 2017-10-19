@@ -201,9 +201,9 @@ public class ComputeIDsForDefinedMetricsFTest {
 		Properties properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 		properties.setProperty("metrics.groupby", "INSTANCE_NAME");
-		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
+		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
-		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		definedMetricsCache.get().get("defM1").config(properties);
 		
@@ -224,9 +224,9 @@ public class ComputeIDsForDefinedMetricsFTest {
 		Properties properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 		properties.setProperty("metrics.groupby", "ALL");
-		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
+		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
-		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		definedMetricsCache.get().get("defMAll").config(properties);
 		
@@ -239,9 +239,9 @@ public class ComputeIDsForDefinedMetricsFTest {
 		Properties properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 //		properties.setProperty("metric.groupby", null);
-		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
+		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
-		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:prod-.*");
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		definedMetricsCache.get().get("defMNone").config(properties);
 		

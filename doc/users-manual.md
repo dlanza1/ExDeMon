@@ -86,8 +86,8 @@ spark.es.nodes=es-itdb.cern.ch
 spark.es.port=9203
 
 # Monitor CPU of all instances
-# attribute.INSTANCE_NAME does not need to be specified, same efect as regex:.*
-monitor.CPUUsage.filter.attribute.INSTANCE_NAME = regex:.*
+# attribute.INSTANCE_NAME does not need to be specified, same efect as .*
+monitor.CPUUsage.filter.attribute.INSTANCE_NAME = .*
 monitor.CPUUsage.filter.attribute.METRIC_NAME = CPU Usage Per Sec
 monitor.CPUUsage.pre-analysis.type = weighted-average
 monitor.CPUUsage.pre-analysis.period = 10m
@@ -171,16 +171,16 @@ Some examples of defined metrics can be:
 metrics.define.all-multiply-by-10.value = value * 10
 metrics.define.all-multiply-by-10.metrics.groupby = ALL
 # One of the following two would be enough
-metrics.define.all-multiply-by-10.variables.value.filter.attribute.INSTANCE_NAME = regex:.*
-metrics.define.all-multiply-by-10.variables.value.filter.attribute.METRIC_NAME = regex:.*
+metrics.define.all-multiply-by-10.variables.value.filter.attribute.INSTANCE_NAME = .*
+metrics.define.all-multiply-by-10.variables.value.filter.attribute.METRIC_NAME = .*
 ```
 
 - Divide CPU usage coming from all machines by 1000
 ```
 metrics.define.cpu-percentage = value / 1000
 metrics.define.cpu-percentage.metrics.groupby = ALL
-# Same effect if we specify INSTANCE_NAME=regex:.* or not
-#metrics.define.cpu-percentage.variables.value.filter.attribute.INSTANCE_NAME = regex:.*
+# Same effect if we specify INSTANCE_NAME = .* or not
+#metrics.define.cpu-percentage.variables.value.filter.attribute.INSTANCE_NAME = .*
 metrics.define.cpu-percentage.variables.value.filter.attribute.METRIC_NAME = CPU Usage Per Sec
 ```
 
@@ -252,7 +252,7 @@ metrics.define.cluster-machines-running.variables.value.expire = 5m
 
 ```
 ## filter (optional)
-monitor.<monitor-id>.filter.attribute.<metric_attribute_key> = regex:<regex_for_value>|<exact_value>
+monitor.<monitor-id>.filter.attribute.<metric_attribute_key> = <[!]regex_or_exact_value>
 monitor.<monitor-id>.filter.attribute... (as many attributes as needed)
 ## missing metric (optional)
 monitor.<monitor-id>.missing.max-period = <period like 1h, 3m or 45s>
@@ -279,13 +279,11 @@ The filter determine the rules a metric must pass in order to accept the metric 
 
 It acts on the attributes of the metrics. Only configured attributes are checked.
 
-It can specify an exact value for the attribute:
+You can negate the condition by placing "!" as first character in the value. That would mean: attribute should not be the specified value or should not match the regular expression.
+
+It can specify a regular expression or an exact value for the attribute:
 ```
-monitor.<monitor_id>.filter.attribute.<attribute_key> = <value>
-```
-or a regex expression:
-```
-monitor.<monitor_id>.filter.attribute.<attribute_key> = regex:<regex_expression>
+monitor.<monitor_id>.filter.attribute.<attribute_key> = <[!]regex_or_exact_value>
 ```
 
 Metrics can be filtered by metric source:

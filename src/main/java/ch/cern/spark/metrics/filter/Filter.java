@@ -12,8 +12,6 @@ public class Filter implements Predicate<Metric>, Serializable{
     
     private static final long serialVersionUID = 9170996730102744051L;
 
-    private static final String REGEX_PREFIX = "regex:";
-
     private Predicate<Metric> predicate = (m -> true);
     
     public Filter(){
@@ -25,17 +23,21 @@ public class Filter implements Predicate<Metric>, Serializable{
 	}
     
     public void addPredicate(String key, String value){
-		if(value.startsWith(REGEX_PREFIX)) {
-        		Pattern pattern = Pattern.compile(value.replace(REGEX_PREFIX, ""));
+    		if(value.charAt(0) == '!') {
+    			Pattern pattern = Pattern.compile(value.substring(1));
+    			
+    			Predicate<Metric> notExist = metric -> !metric.getIDs().containsKey(key);
+    			Predicate<Metric> notMatch = metric -> !pattern.matcher(metric.getIDs().get(key)).matches();
         		
-        		predicate = predicate
-        				.and(metric -> metric.getIDs().containsKey(key))
-        				.and(metric -> pattern.matcher(metric.getIDs().get(key)).matches());
-		}else{
-        		predicate = predicate
-        				.and(metric -> metric.getIDs().containsKey(key))
-        				.and(metric -> metric.getIDs().get(key).equals(value));
-		}
+        		predicate = predicate.and(notExist.or(notMatch));
+    		}else{
+    			Pattern pattern = Pattern.compile(value);
+    			
+    			Predicate<Metric> exist = metric -> metric.getIDs().containsKey(key);
+    			Predicate<Metric> match = metric -> pattern.matcher(metric.getIDs().get(key)).matches();
+        		
+        		predicate = predicate.and(exist).and(match);
+    		}
     }
 
     public static Filter build(Properties props) {

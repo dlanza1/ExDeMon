@@ -71,9 +71,9 @@ public class DefinedMetricTest {
 		
 		Properties properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
-		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:.*");
+		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", ".*");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
-		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:.*");
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", ".*");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		metric.config(properties);
 		
@@ -94,10 +94,10 @@ public class DefinedMetricTest {
 		
 		Properties properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
-		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:.*");
+		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", ".*");
 		properties.setProperty("variables.DBCPUUsagePerSec.aggregate.attribute", "METRIC_NAME");
 		properties.setProperty("variables.DBCPUUsagePerSec.aggregate.operation", "+");
-		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:.*");
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", ".*");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		metric.config(properties);
 		
@@ -118,9 +118,9 @@ public class DefinedMetricTest {
 		
 		Properties properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
-		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:.*");
+		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", ".*");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
-		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "regex:.*");
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", ".*");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		definedMetric.config(properties);
 
