@@ -96,9 +96,7 @@ public final class Driver {
 
     protected JavaStreamingContext createNewStreamingContext() throws Exception {
 	    
-    		Stream<Metric> metrics = metricSources.stream()
-										.map(source -> source.createStream(ssc))
-										.reduce((str, stro) -> str.union(stro)).get();
+    		Stream<Metric> metrics = getMetricsStream();
     		
 		metrics = metrics.union(metrics.mapS(definedMetrics::generate));
     		
@@ -111,6 +109,12 @@ public final class Driver {
     		notificationsSink.ifPresent(notifications::sink);
 		
 		return ssc;
+	}
+
+	public Stream<Metric> getMetricsStream() {
+		return metricSources.stream()
+						.map(source -> source.createStream(ssc))
+						.reduce((str, stro) -> str.union(stro)).get();
 	}
 
 	private DefinedMetrics getDefinedMetrics(PropertiesCache properties) {
@@ -155,7 +159,7 @@ public final class Driver {
 		return new Monitors(properties);
 	}
 	
-	private JavaStreamingContext newStreamingContext(Properties properties) throws IOException, ConfigurationException {
+	public JavaStreamingContext newStreamingContext(Properties properties) throws IOException, ConfigurationException {
 		
 		SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("MetricsMonitorStreamingJob");
@@ -174,6 +178,10 @@ public final class Driver {
 		
 		ssc.checkpoint(checkpointDir + "/checkpoint/");
 		
+		return ssc;
+	}
+	
+	public JavaStreamingContext getJavaStreamingContext() {
 		return ssc;
 	}
 

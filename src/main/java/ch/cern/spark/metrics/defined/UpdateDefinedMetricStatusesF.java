@@ -37,9 +37,12 @@ public class UpdateDefinedMetricStatusesF
 		Metric metric = metricOpt.get();
 		
 		definedMetric.updateStore(store, metric);
+		
+		Optional<Metric> newMetric = toOptional(definedMetric.generateByUpdate(store, metric, id.getGroupByMetricIDs()));
+		
 		status.update(store);
 		
-		return toOptional(definedMetric.generate(store, metric, id.getGroupByMetricIDs()));
+		return newMetric;
 	}
 
 	private Optional<Metric> toOptional(java.util.Optional<Metric> javaOptional) {

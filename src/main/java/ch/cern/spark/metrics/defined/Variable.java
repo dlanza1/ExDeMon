@@ -57,20 +57,19 @@ public class Variable implements Predicate<Metric>{
 		return filter.test(metric);
 	}
 
-	public void updateStore(DefinedMetricStore store, Metric metric) {
-		Optional<Instant> oldestUpdate = Optional.empty();
-		if(expirePeriod != null)
-			oldestUpdate = Optional.of(metric.getInstant().minus(expirePeriod));
-		
-		store.purge(name, oldestUpdate);
-		
+	public void updateStore(DefinedMetricStore store, Metric metric) {		
 		if(aggregateOperation == null)
 			store.updateValue(name, metric.getValue(), metric.getInstant());
 		else
-			store.updateAggregatedValue(name, metric.getIDs(), metric.getValue(), metric.getInstant());
+			store.updateAggregatedValue(name, metric.getIDs().hashCode(), metric.getValue(), metric.getInstant());
 	}
 
 	public Optional<Double> compute(DefinedMetricStore store, Instant time) {
+		Optional<Instant> oldestUpdate = Optional.empty();
+		if(expirePeriod != null)
+			oldestUpdate = Optional.of(time.minus(expirePeriod));
+		store.purge(name, oldestUpdate);
+		
 		if(aggregateOperation == null)
 			return store.getValue(name);
 		

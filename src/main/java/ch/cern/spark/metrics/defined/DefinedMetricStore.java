@@ -20,7 +20,7 @@ public class DefinedMetricStore implements Serializable{
 	
 	private Map<String, DatedValue> values;
 	
-	private Map<String, Map<Map<String, String>, DatedValue>> aggregateValues;
+	private Map<String, Map<Integer, DatedValue>> aggregateValues;
 	
 	public DefinedMetricStore() {
 		values = new HashMap<>();
@@ -37,12 +37,12 @@ public class DefinedMetricStore implements Serializable{
 		return value != null ? Optional.of(value.doubleValue()) : Optional.empty();
 	}
 	
-	public void updateAggregatedValue(String variableName, Map<String, String> ids, float value, Instant instant) {
+	public void updateAggregatedValue(String variableName, int idHash, float value, Instant instant) {
 		if(!aggregateValues.containsKey(variableName))
 			aggregateValues.put(variableName, new HashMap<>());
 		
 		if(aggregateValues.get(variableName).size() <= MAX_AGGREGATION_SIZE)
-			aggregateValues.get(variableName).put(ids, new DatedValue(instant, value));
+			aggregateValues.get(variableName).put(idHash, new DatedValue(instant, value));
 	}
 	
 	public Map<String, Float> getValues() {
@@ -66,16 +66,17 @@ public class DefinedMetricStore implements Serializable{
 		
 		Instant oldestUpdate = oldestUpdateOpt.get();
 		
-		values.entrySet().removeIf(pair -> pair.getValue().getInstant().isBefore(oldestUpdate));
+		if(values.containsKey(variableID) && values.get(variableID).getInstant().isBefore(oldestUpdate))
+			values.remove(variableID);
 
-		Map<Map<String, String>, DatedValue> aggregateValuesForVariable = aggregateValues.get(variableID);
+		Map<Integer, DatedValue> aggregateValuesForVariable = aggregateValues.get(variableID);
 		if(aggregateValuesForVariable != null)
 			aggregateValuesForVariable.entrySet().removeIf(pair -> pair.getValue().getInstant().isBefore(oldestUpdate));
 	}
 
 	@Override
 	public String toString() {
-		return "DefinedMetricStore [values=" + values + "]";
+		return "DefinedMetricStore [values=" + values + ", aggregateValues=" + aggregateValues + "]";
 	}
 
 }

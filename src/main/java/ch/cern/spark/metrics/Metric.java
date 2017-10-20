@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 public class Metric implements Serializable{
@@ -35,6 +36,10 @@ public class Metric implements Serializable{
     public void setIDs(Map<String, String> ids) {
         this.ids = ids;
     }
+
+	public void removeIDs(Set<String> keySet) {
+		keySet.forEach(key -> ids.remove(key));
+	}
     
     public Map<String, String> getIDs(){
         return ids;
@@ -59,6 +64,11 @@ public class Metric implements Serializable{
     @Override
     public String toString() {
         return "Metric [ids=" + ids + ", timestamp=" + timestamp + ", value=" + value + "]";
+    }
+    
+    @Override
+	public Metric clone() throws CloneNotSupportedException {
+    		return new Metric(timestamp, value, new HashMap<>(ids));
     }
 
 	public<R> Optional<R> map(Function<Metric, ? extends R> mapper) {

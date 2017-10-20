@@ -14,6 +14,7 @@ import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.Properties.PropertiesCache;
 import ch.cern.spark.Pair;
+import ch.cern.spark.StatusStream;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.Metric;
 
@@ -54,7 +55,12 @@ public class DefinedMetrics extends Cache<Map<String, DefinedMetric>> implements
 	}
 	
 	public Stream<Metric> generate(Stream<Metric> metrics) throws ClassNotFoundException, IOException{
-        return metrics.mapWithState("definedMetrics", new ComputeIDsForDefinedMetricsF(this), new UpdateDefinedMetricStatusesF(this));
+		StatusStream<DefinedMetricID, Metric, DefinedMetricStore, Metric> statuses = 
+				metrics.mapWithState("definedMetrics", new ComputeIDsForDefinedMetricsF(this), new UpdateDefinedMetricStatusesF(this));
+		
+        Stream<Metric> definedMetricsWhenBatch = statuses.getStatuses().transform((rdd, time) -> rdd.flatMap(new ComputeBatchDefineMetricsF(this, time)));
+        
+        return statuses.union(definedMetricsWhenBatch); 
 	}
 	
 	public Optional<DefinedMetric> get(String definedMetricName) throws Exception {

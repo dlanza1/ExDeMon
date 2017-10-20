@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.defined;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -63,8 +64,10 @@ public class DefinedMetric implements Serializable{
 		
 		variablesWhen = new HashSet<String>();
 		String whenValue = properties.getProperty("when");
-		if(whenValue != null && whenValue.equals("ANY"))
+		if(whenValue != null && whenValue.toUpperCase().equals("ANY"))
 			variablesWhen.addAll(variables.keySet());
+		else if(whenValue != null && whenValue.toUpperCase().equals("BATCH"))
+			variablesWhen = null;
 		else if(whenValue != null)
 			variablesWhen.addAll(Arrays.stream(whenValue.split(",")).map(String::trim).collect(Collectors.toSet()));
 		else
@@ -83,7 +86,10 @@ public class DefinedMetric implements Serializable{
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 
-	public boolean trigger(Metric metric) {
+	public boolean shouldBeTrigeredByUpdate(Metric metric) {
+		if(isTriggerOnEveryBatch())
+			return false;
+		
 		return variables.entrySet().stream()
 				.filter(entry -> variablesWhen.contains(entry.getKey()))
 				.map(entry -> entry.getValue())
@@ -91,6 +97,10 @@ public class DefinedMetric implements Serializable{
 				.count() > 0;
 	}
 	
+	private boolean isTriggerOnEveryBatch() {
+		return variablesWhen == null;
+	}
+
 	public void updateStore(DefinedMetricStore store, Metric metric) {
 		Map<String, Variable> variablesToUpdate = getVariablesToUpdate(metric);
 		
@@ -98,22 +108,35 @@ public class DefinedMetric implements Serializable{
 			variableToUpdate.updateStore(store, metric);
 	}
 
-	public Optional<Metric> generate(DefinedMetricStore store, Metric metric, Map<String, String> groupByMetricIDs) {
-		if(!trigger(metric))
+	public Optional<Metric> generateByUpdate(DefinedMetricStore store, Metric metric, Map<String, String> groupByMetricIDs) {
+		if(!shouldBeTrigeredByUpdate(metric))
 			return Optional.empty();
 		
-		Map<String, Double> variableValues = variables.values().stream()
-												.map(var -> new Pair<String, Optional<Double>>(var.getName(), var.compute(store, metric.getInstant())))
-												.filter(pair -> pair.second.isPresent())
-												.map(pair -> new Pair<String, Double>(pair.first, pair.second.get()))
-												.collect(Collectors.toMap(Pair::first, Pair::second));
+		return generate(store, metric.getInstant(), groupByMetricIDs);
+	}
+	
+	public Optional<Metric> generateByBatch(DefinedMetricStore store, Instant metricTime, Map<String, String> groupByMetricIDs) {
+		if(!isTriggerOnEveryBatch())
+			return Optional.empty();
+		
+		return generate(store, metricTime, groupByMetricIDs);
+	}
+	
+	private Optional<Metric> generate(DefinedMetricStore store, Instant metricTime, Map<String, String> groupByMetricIDs) {
+		Map<String, Double> variableValues = new HashMap<>();
+		for (Variable var : variables.values()) {
+			Optional<Double> valueOpt = var.compute(store, metricTime);
+			
+			valueOpt.ifPresent(value -> variableValues.put(var.getName(), value));
+		}
 		
 		Optional<Double> value = equation.compute(variableValues);
 		
 		if(value.isPresent()) {
-			groupByMetricIDs.put("$defined_metric", name);
+			Map<String, String> metricIDs = new HashMap<>(groupByMetricIDs);
+			metricIDs.put("$defined_metric", name);
 			
-			return Optional.of(new Metric(metric.getInstant(), value.get().floatValue(), groupByMetricIDs));
+			return Optional.of(new Metric(metricTime, value.get().floatValue(), metricIDs ));
 		}else {
 			return Optional.empty();
 		}

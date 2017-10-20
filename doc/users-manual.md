@@ -130,7 +130,7 @@ monitor.all-seasonal.notificator.warn-constant.period = 20m
 
 ```
 metrics.define.<defined-metric-id>.value = <methematical equation containing <variable-ids>> (default: <variable-id> if only one variable has been declared)
-metrics.define.<defined-metric-id>.when = <ALL|comma separated list of variable-ids> (default: the first variable after sorting)
+metrics.define.<defined-metric-id>.when = <ANY|BATCH|comma separated list of variable-ids> (default: the first variable after sorting)
 metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/comma separated attribute names> (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name-1> = <value-1>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name-2> = <value-2>
@@ -147,7 +147,31 @@ New metrics can be defined. The value of these defined metrics is computed from 
 
 Equation (value parameter) can do addition (+), subtraction (-), multiplication (*), division(/), exponentiation (^), and a few functions like sqrt(x), sin(x), cos(x) and tan(x). It supports grouping using (), and it applies the operator precedence and associativity rules.
 
-The computation and further generation of a new metric will be trigger when the variables listed in the "when" parameter are updated. By default, a new metric is produced when the first (after sorting alphabetically by &lt;variable-id&gt;) declared variable is updated with a new value. Last value of the other variables will be used for the computation. You can set "when" to ANY, it will trigger the generation when any of the variables is updated.
+The computation and further generation of a new metric will be trigger when the variables listed in the "when" parameter are updated. By default, a new metric is produced when the first (after sorting alphabetically by &lt;variable-id&gt;) declared variable is updated with a new value. Last value of the other variables will be used for the computation. You can set "when" to ANY, it will trigger the generation when any of the variables is updated. You can also set "when" to BATCH, so the generation will be triggered not by any variable updated but in every Spark Streaming batch.
+
+> TIP for a defined metric which aggregates with count to return 0. 
+> ``` 
+> # Machines sent metric if running
+> metrics.define.machines-running.variables.value.filter.attribute.TYPE = "running"
+> metrics.define.machines-running.variables.value.aggregate = count
+> ```
+> If when parameter is set with variable names (default), a count 0 will never be produced because no metric will trigger his generation (no metrics coming, that's why count is 0). To solve this, there are three possible solutions. 
+> 1. The defined metric is monitored by a monitor configured to notify for missing metrics, so that it notifies when there is no metric. 
+> ```
+> monitor.machines-running.filter.attribute.$defined_metric = machines-running
+> monitor.machines-running.missing.max-period = 5m
+> ```
+> 2. The defined metric is triggered by another variable which only serves to trigger the generation. If trigger metric (variable) does not come, no metric is generated.
+> ``` 
+> # to add
+> metrics.define.machines-running.when = trigger
+> metrics.define.machines-running.variables.trigger.filter.attribute.TYPE = "other"
+> ``` 
+> 3. "when" parameter is set to BATCH, so every Spark Streaming batch the computation and generation is triggered.
+> ``` 
+> # to add
+> metrics.define.machines-running.when = BATCH
+> ```
 
 Metrics can be grouped by (e.g. machine) with the "metrics.groupby" parameter in order to apply the equation to a set of metrics. Group by can be set to ALL, then each metric will be treated independently.
 
@@ -243,6 +267,7 @@ If the machine do not send the metric after 5 minutes, its corresponding metric 
 
 ``` 
 metrics.define.cluster-machines-running.metrics.groupby = CLUSTER_NAME
+metrics.define.cluster-machines-running.when = BATCH
 metrics.define.cluster-machines-running.variables.value.filter.attribute.TYPE = "running"
 metrics.define.cluster-machines-running.variables.value.aggregate = count
 metrics.define.cluster-machines-running.variables.value.expire = 5m
