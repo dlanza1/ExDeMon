@@ -88,7 +88,6 @@ public class UpdateMetricStatusesFTest {
         
         assertTrue(resultOpt.isPresent());
         verify(storeState, times(1)).update(store);
-        assertEquals(metricTime, store.getLastestTimestamp().get());
     }
     
 }

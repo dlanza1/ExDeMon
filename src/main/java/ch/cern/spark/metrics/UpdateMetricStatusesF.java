@@ -46,9 +46,7 @@ public class UpdateMetricStatusesF
         
         MetricStore store = getMetricStore(storeState);
         Metric metric = metricOpt.get();
-        
-        store.updateLastestTimestamp(metric.getInstant());
-        
+
         AnalysisResult result = monitor.process(store, metric);
         result.setAnalyzedMetric(metric);
         

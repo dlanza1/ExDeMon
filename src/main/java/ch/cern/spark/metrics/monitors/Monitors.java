@@ -14,18 +14,14 @@ import ch.cern.Cache;
 import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.Properties.PropertiesCache;
-import ch.cern.spark.StatusStream;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.ComputeIDsForMetricsF;
-import ch.cern.spark.metrics.ComputeMissingMetricResultsF;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import ch.cern.spark.metrics.UpdateMetricStatusesF;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notifications.UpdateNotificationStatusesF;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.ComputeIDsForAnalysisF;
-import ch.cern.spark.metrics.store.MetricStore;
 
 public class Monitors extends Cache<Map<String, Monitor>> implements Serializable{
 	private static final long serialVersionUID = 2628296754660438034L;
@@ -65,11 +61,7 @@ public class Monitors extends Cache<Map<String, Monitor>> implements Serializabl
 	}
 	
 	public Stream<AnalysisResult> analyze(Stream<Metric> metrics) throws Exception {
-		StatusStream<MonitorIDMetricIDs, Metric, MetricStore, AnalysisResult> statuses = metrics.mapWithState("metricStores", new ComputeIDsForMetricsF(this), new UpdateMetricStatusesF(this));
-        
-        Stream<AnalysisResult> missingMetricsResults = statuses.getStatuses().transform((rdd, time) -> rdd.flatMap(new ComputeMissingMetricResultsF(this, time)));
-        
-        return statuses.union(missingMetricsResults);
+        return metrics.mapWithState("metricStores", new ComputeIDsForMetricsF(this), new UpdateMetricStatusesF(this));
 	}
 
 	public Stream<Notification> notify(Stream<AnalysisResult> results) throws IOException, ClassNotFoundException, ConfigurationException {

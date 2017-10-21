@@ -110,7 +110,6 @@ monitor.DBCPU.tags.email = databases-team@cern.ch
 # This monitor does not produce notifications
 
 # Monitor all metrics (no filter)
-monitor.all-seasonal.missing.max-period = 3m
 monitor.all-seasonal.pre-analysis.type = weighted-average
 monitor.all-seasonal.pre-analysis.period = 3m
 monitor.all-seasonal.analysis.type = seasonal
@@ -155,19 +154,14 @@ The computation and further generation of a new metric will be trigger when the 
 > metrics.define.machines-running.variables.value.filter.attribute.TYPE = "running"
 > metrics.define.machines-running.variables.value.aggregate = count
 > ```
-> If when parameter is set with variable names (default), a count 0 will never be produced because no metric will trigger his generation (no metrics coming, that's why count is 0). To solve this, there are three possible solutions. 
-> 1. The defined metric is monitored by a monitor configured to notify for missing metrics, so that it notifies when there is no metric. 
-> ```
-> monitor.machines-running.filter.attribute.$defined_metric = machines-running
-> monitor.machines-running.missing.max-period = 5m
-> ```
-> 2. The defined metric is triggered by another variable which only serves to trigger the generation. If trigger metric (variable) does not come, no metric is generated.
+> If when parameter is set with variable names (default), a count 0 will never be produced because no metric will trigger its generation (no metrics coming, that's why count is 0). To solve this, there are two possible solutions. 
+> 1. The defined metric is triggered by another variable which only serves to trigger the generation. If trigger metric (variable) does not come, no metric is generated.
 > ``` 
 > # to add
 > metrics.define.machines-running.when = trigger
 > metrics.define.machines-running.variables.trigger.filter.attribute.TYPE = "other"
 > ``` 
-> 3. "when" parameter is set to BATCH, so every Spark Streaming batch the computation and generation is triggered.
+> 2. "when" parameter is set to BATCH, so every Spark Streaming batch the computation and generation is triggered.
 > ``` 
 > # to add
 > metrics.define.machines-running.when = BATCH
@@ -289,10 +283,22 @@ If we group by all the attributes (groupby = ALL), each metric is treated indepe
 Under such circunstancies there is no attrbutes in the metric to differenciate metrics and aggregate them, so aggregation is done over the historical values of the metric.
 
 ``` 
-metrics.define.cluster-machines-running.metrics.groupby = ALL
-metrics.define.cluster-machines-running.variables.value.filter.attribute.METRIC = .*
-metrics.define.cluster-machines-running.variables.value.aggregate = avg
-metrics.define.cluster-machines-running.variables.value.expire = 5m
+metrics.define.avg-5m.metrics.groupby = ALL
+metrics.define.avg-5m.variables.value.aggregate = avg
+metrics.define.avg-5m.variables.value.expire = 5m
+```
+
+- Detect if a metric stop coming (missing metric)
+
+If we group by all the attributes (groupby = ALL), each metric will be treated independently. 
+
+We can count how many metrics arrived in the last 10 minutes. With a monitor we can check if this defined metric gets 0, that would mean the metric is not coming.
+
+``` 
+metrics.define.missing-metric.metrics.groupby = ALL
+metrics.define.missing-metric.when = BATCH
+metrics.define.missing-metric.variables.value.aggregate = count
+metrics.define.missing-metric.variables.value.expire = 10m
 ```
 
 ### Monitors
@@ -301,8 +307,6 @@ metrics.define.cluster-machines-running.variables.value.expire = 5m
 ## filter (optional)
 monitor.<monitor-id>.filter.attribute.<metric_attribute_key> = <[!]regex_or_exact_value>
 monitor.<monitor-id>.filter.attribute... (as many attributes as needed)
-## missing metric (optional)
-monitor.<monitor-id>.missing.max-period = <period like 1h, 3m or 45s>
 ## pre-analysis (optional)
 monitor.<monitor-id>.pre-analysis.type = <preanalysis_type>
 monitor.<monitor-id>.pre-analysis.<other_confs> = <value>
@@ -341,15 +345,6 @@ monitor.<monitor_id>.filter.attribute.$source = <metric-source-id>
 Or they can be filtered by defined metric:
 ```
 monitor.<monitor_id>.filter.attribute.$defined_metric = <defined-metric-id>
-```
-
-#### Missing metric maximum period
-
-For each monitor, a maximun period missing a metric can be configured. If a metric is missing during such period, an EXCEPTION status will result.
-
-To configure that:
-```
-monitor.<monitor-id>.missing.max-period = <period like 1h, 3m or 45s>
 ```
 
 #### Tags
