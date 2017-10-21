@@ -11,8 +11,10 @@ public class SparkConf extends org.apache.spark.SparkConf {
     }
 
     public void runLocallyIfMasterIsNotConfigured() {
-        if(!contains("spark.master"))
+        if(!contains("spark.master")) {
             setMaster("local[1]");
+            set("spark.driver.host", "localhost");
+        }
     }
 
     public void addProperties(Properties properties, String prefix) {

@@ -11,6 +11,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 import ch.cern.Cache;
+import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.Properties.PropertiesCache;
 import ch.cern.spark.StatusStream;
@@ -71,7 +72,7 @@ public class Monitors extends Cache<Map<String, Monitor>> implements Serializabl
         return statuses.union(missingMetricsResults);
 	}
 
-	public Stream<Notification> notify(Stream<AnalysisResult> results) throws IOException, ClassNotFoundException {
+	public Stream<Notification> notify(Stream<AnalysisResult> results) throws IOException, ClassNotFoundException, ConfigurationException {
         return results.mapWithState("notificators", new ComputeIDsForAnalysisF(this), new UpdateNotificationStatusesF(this));
 	}
 	

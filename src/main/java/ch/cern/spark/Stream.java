@@ -15,6 +15,7 @@ import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaDStream;
 
+import ch.cern.ConfigurationException;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.Sink;
@@ -38,7 +39,7 @@ public class Stream<V> {
 	public<K, S, R> StatusStream<K, V, S, R> mapWithState(
 			String id,
 			PairFlatMapFunction<V, K, V> toPairFunction, 
-			Function4<Time, K, Optional<V>, State<S>, Optional<R>> updateStatusFunction) throws ClassNotFoundException, IOException {
+			Function4<Time, K, Optional<V>, State<S>, Optional<R>> updateStatusFunction) throws ClassNotFoundException, IOException, ConfigurationException {
 
 		PairStream<K, V> keyValuePairs = toPair(toPairFunction);
 		
@@ -103,6 +104,5 @@ public class Stream<V> {
 	public JavaSparkContext getSparkContext() {
 		return JavaSparkContext.fromSparkContext(stream.context().sparkContext());
 	}
-
 	
 }

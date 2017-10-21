@@ -1,50 +1,46 @@
 package ch.cern.spark.metrics.defined;
 
-import static org.junit.Assert.assertEquals;
+import static ch.cern.spark.metrics.MetricTest.Metric;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 
-import org.apache.spark.streaming.api.java.JavaDStream;
 import org.junit.Test;
 
 import ch.cern.Properties.PropertiesCache;
 import ch.cern.PropertiesTest;
 import ch.cern.spark.Stream;
+import ch.cern.spark.StreamProvider;
 import ch.cern.spark.metrics.Metric;
 
-public class DefinedMetricsTest {
-	
-	@Test
-	public void configNotValid() throws Exception {
-		PropertiesCache props = PropertiesTest.mockedExpirable();
-		
-		props = PropertiesTest.mockedExpirable();
-		props.get().setProperty("metrics.define.md1.value", "x"); //diferent variable declared
-		props.get().setProperty("metrics.define.md1.variables.y.filter.attribute.AA", "metricAA");
-		
-		DefinedMetrics definedMetrics = new DefinedMetrics(props);
-		
-		Map<String, DefinedMetric> map = definedMetrics.get();
-		assertEquals(0, map.size());
-	}
+public class DefinedMetricsTest extends StreamProvider<Metric> {
 
-	public void wholePipe() throws ClassNotFoundException, IOException {
+	@Test
+	public void shouldGenerateMetrics() throws Exception {
+        addInput(0,    Metric(1, 10f, "HOSTNAME=host1"));
+        addInput(0,    Metric(1, 20f, "HOSTNAME=host2"));
+        addExpected(0, Metric(1, 30f, "$defined_metric=dm1"));
+        
+        addInput(1,    Metric(2, 20f, "HOSTNAME=host1"));
+        addInput(1,    Metric(2, 30f, "HOSTNAME=host2"));
+        addExpected(1, Metric(2, 50f, "$defined_metric=dm1"));
 		
 		PropertiesCache propertiesCache = PropertiesTest.mockedExpirable();
+		propertiesCache.get().setProperty("metrics.define.dm1.variables.a.filter.attributes.HOSTNAME", ".*");
+		propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate", "sum");
+		propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
 		
 		DefinedMetrics definedMetrics = new DefinedMetrics(propertiesCache);
-		
-		JavaDStream<Metric> metricsJStream = null;
-		Stream<Metric> metricsStream = Stream.from(metricsJStream );
-		
+	        
+        Stream<Metric> metricsStream = createStream(Metric.class);
+        
 		Stream<Metric> results = definedMetrics.generate(metricsStream);
+        
+        assertExpected(results);
 	}
-	
+
     public static DefinedMetrics mockedExpirable() {
     		DefinedMetrics propExp = mock(DefinedMetrics.class, withSettings().serializable());
         

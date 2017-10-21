@@ -28,7 +28,7 @@ public class JSONParser {
     			})
     		.create();
 
-    public static<T> JSONObject parse(T javaObject) throws Exception {    	
+    public static<T> JSONObject parse(T javaObject) {    	
         return javaObject == null ? null : new JSONObject(gson.toJson(javaObject));
     }
 

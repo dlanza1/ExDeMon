@@ -13,6 +13,7 @@ import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
+import ch.cern.ConfigurationException;
 import scala.Tuple2;
 
 public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
@@ -28,7 +29,7 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 		return new PairStream<>(input);
 	}
 
-	public<S, R> StatusStream<K, V, S, R> mapWithState(String id, Function4<Time, K, Optional<V>, State<S>, Optional<R>> updateStatusFunction) throws ClassNotFoundException, IOException {
+	public<S, R> StatusStream<K, V, S, R> mapWithState(String id, Function4<Time, K, Optional<V>, State<S>, Optional<R>> updateStatusFunction) throws ClassNotFoundException, IOException, ConfigurationException {
 		
 		JavaRDD<Tuple2<K, S>> initialStates = RDD.<Tuple2<K, S>>load(getSparkContext(), id);
 

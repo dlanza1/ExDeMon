@@ -13,6 +13,8 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
+import ch.cern.ConfigurationException;
+
 public class RDD <T> {
 	
 	public static final String CHECKPPOINT_DIR_PARAM = "spark.streaming.rdd.checkpoint.directory";
@@ -33,7 +35,7 @@ public class RDD <T> {
 		return rdd;
 	}
 	
-	public void save(String id) throws IllegalArgumentException, IOException {
+	public void save(String id) throws IllegalArgumentException, IOException, ConfigurationException {
 		save(getStoringFile(getJavaSparkContext(), id), rdd.collect());
 	}
 	
@@ -70,7 +72,7 @@ public class RDD <T> {
     }
     
 	public static<T> JavaRDD<T> load(JavaSparkContext context, String id)
-			throws IOException, ClassNotFoundException {
+			throws IOException, ClassNotFoundException, ConfigurationException {
 		
 		Path storingPath = getStoringFile(context, id);
 		
@@ -98,10 +100,14 @@ public class RDD <T> {
 		return elements;
 	}
 
-	private static Path getStoringFile(JavaSparkContext context, String id) {
+	private static Path getStoringFile(JavaSparkContext context, String id) throws ConfigurationException {
 		SparkConf sparkConf = context.getConf();
 		
-		Path checkpointPath = new Path(sparkConf.get(CHECKPPOINT_DIR_PARAM));
+		String checkpointPathString = sparkConf.get(CHECKPPOINT_DIR_PARAM);
+		if(checkpointPathString == null)
+			throw new ConfigurationException(CHECKPPOINT_DIR_PARAM + " must be defined to store a RDD.");
+		
+		Path checkpointPath = new Path(checkpointPathString);
 		
 		return checkpointPath.suffix("/" + id).suffix("/latest");
 	}

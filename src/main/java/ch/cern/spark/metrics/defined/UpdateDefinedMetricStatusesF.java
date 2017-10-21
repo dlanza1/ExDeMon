@@ -36,7 +36,9 @@ public class UpdateDefinedMetricStatusesF
 		
 		Metric metric = metricOpt.get();
 		
-		definedMetric.updateStore(store, metric);
+		Metric metricForStore = metric.clone();
+		metricForStore.getIDs().keySet().removeIf(key -> id.getGroupByMetricIDs().containsKey(key));
+		definedMetric.updateStore(store, metricForStore);
 		
 		Optional<Metric> newMetric = toOptional(definedMetric.generateByUpdate(store, metric, id.getGroupByMetricIDs()));
 		

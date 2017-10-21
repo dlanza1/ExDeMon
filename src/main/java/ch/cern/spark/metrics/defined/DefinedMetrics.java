@@ -54,7 +54,7 @@ public class DefinedMetrics extends Cache<Map<String, DefinedMetric>> implements
         return definedMetrics;
 	}
 	
-	public Stream<Metric> generate(Stream<Metric> metrics) throws ClassNotFoundException, IOException{
+	public Stream<Metric> generate(Stream<Metric> metrics) throws ClassNotFoundException, IOException, ConfigurationException{
 		StatusStream<DefinedMetricID, Metric, DefinedMetricStore, Metric> statuses = 
 				metrics.mapWithState("definedMetrics", new ComputeIDsForDefinedMetricsF(this), new UpdateDefinedMetricStatusesF(this));
 		

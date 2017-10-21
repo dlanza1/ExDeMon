@@ -68,8 +68,42 @@ public class Metric implements Serializable{
     
     @Override
 	public Metric clone() throws CloneNotSupportedException {
-    		return new Metric(timestamp, value, new HashMap<>(ids));
+    	return new Metric(timestamp, value, new HashMap<>(ids));
     }
+    
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((ids == null) ? 0 : ids.hashCode());
+		result = prime * result + ((timestamp == null) ? 0 : timestamp.hashCode());
+		result = prime * result + Float.floatToIntBits(value);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Metric other = (Metric) obj;
+		if (ids == null) {
+			if (other.ids != null)
+				return false;
+		} else if (!ids.equals(other.ids))
+			return false;
+		if (timestamp == null) {
+			if (other.timestamp != null)
+				return false;
+		} else if (timestamp.getEpochSecond() != other.timestamp.getEpochSecond())
+			return false;
+		if (Math.abs(value - other.value) > 0f)
+			return false;
+		return true;
+	}
 
 	public<R> Optional<R> map(Function<Metric, ? extends R> mapper) {
         Objects.requireNonNull(mapper);

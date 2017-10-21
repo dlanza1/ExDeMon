@@ -117,6 +117,7 @@ public class KafkaMetricsSource extends MetricsSource {
         float value = Float.parseFloat(jsonObject.getProperty(value_attribute));
         
         Map<String, String> ids = Stream.of(attributes)
+        		.filter(id -> jsonObject.getProperty(id) != null)
         		.collect(Collectors.toMap(String::toString, jsonObject::getProperty));
         
         return new Metric(timestamp, value, ids);

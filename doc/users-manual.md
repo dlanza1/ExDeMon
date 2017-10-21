@@ -173,15 +173,24 @@ The computation and further generation of a new metric will be trigger when the 
 > metrics.define.machines-running.when = BATCH
 > ```
 
-Metrics can be grouped by (e.g. machine) with the "metrics.groupby" parameter in order to apply the equation to a set of metrics. Group by can be set to ALL, then each metric will be treated independently.
+Metrics can be grouped by (e.g. machine) with the "metrics.groupby" parameter in order to apply the equation to a set of metrics. 
+Group by can be set to ALL, then each metric will be treated independently. 
+If group by is configured to ALL (or all attributes the metrics contain are listed) there is no attrbutes to differenciate metrics and aggregate them, so aggregation is done over the historical values coming from the metric.
 
-You need to specify what the variables in your equation represent by declaring variables. Then, &lt;variable-id-X&gt; can be used in the equation. Even tough you do not use any variable in the equation, at least one variable must be declared to trigger the computation.
+You need to specify what the variables in your equation represent by declaring variables. Then, &lt;variable-id-X&gt; can be used in the equation. 
+Even tough you do not use any variable in the equation, at least one variable must be declared to trigger the computation.
 
-Variables are supposed to be updated periodically. In case they are not updated, its value expires after the period of time specified with the parameter "expire". You can make variables to never expire configuring expire parameter to "never". By default, variables get expired after 10 minutes. If a variable gets expired and this variable should be used for the computation, no metrics will be produced. For aggregations, individual metrics are removed from the aggregation if they are not updated after such period. In the case all of them expire, count is 0.
+Variables are supposed to be updated periodically. In case they are not updated, its value expires after the period of time specified with the parameter "expire". 
+You can make variables to never expire configuring "expire" parameter to "never". By default, variables get expired after 10 minutes. 
+If a variable expires and the variable is used for the computation, no metrics will be produced. For aggregations, individual values are removed from the aggregation if they are not updated after such period. 
+In the case all the values for a given aggregated variable expire, count is 0.
 
-A variable could be the result of an aggregation of values. Values from all metrics that pass the specified filter (and after grouping) will be aggregated. This can be configured using the "aggregate" parameter, where you configure the operation to perform the aggregation, it can be sum, avg, count, max or min. The maximum number of different metrics that can be aggregated is 100, if more, results might be inconsistent. 
+A variable could be the result of an aggregation of values. Values from all metrics that pass the specified filter (and after grouping) will be aggregated. 
+This can be configured using the "aggregate" parameter, where you configure the operation to perform the aggregation. Available operations are: sum, avg, count, max or min. 
+The maximum number of different metrics that can be aggregated is 100, if more, results might be inconsistent. 
 
-A meta-attribute is set in the generated metrics. The meta attribute name is $defined_metric and his value the &lt;defined-metric-id&gt;. This attribute can later be used to filter the defined metrics in a monitor like:
+A meta-attribute is set in the generated metrics. The meta attribute name is $defined_metric and his value the &lt;defined-metric-id&gt;. 
+This attribute can later be used to filter the defined metrics in a monitor like:
 ```
 monitor.<monitor_id>.filter.attribute.$defined_metric = <defined-metric-id>
 ```
@@ -229,7 +238,7 @@ metrics.define.diff_temp.variables.tempoutside.filter.attribute.METRIC = Tempera
 - Compare values of production and development environments:
 ```
 metrics.define.diff-prod-dev.value = valueprod - valuedev
-metrics.define.diff-prod-dev.metrics.groupby = INSTANCE_NAME METRIC_NAME
+metrics.define.diff-prod-dev.metrics.groupby = INSTANCE_NAME, METRIC_NAME
 # Metrics contain $source attribute with <metric-source-id>, it can be used to filter
 metrics.define.diff-prod-dev.variables.valueprod.filter.attribute.$source = kafka-prod
 metrics.define.diff-prod-dev.variables.valuedev.filter.attribute.$source = kafka-dev
@@ -241,7 +250,7 @@ All metrics that belongs to the same cluster will be averaged. They will be grou
 Metrics coming from the same HOSTNAME, will update its previous value in the aggregation.
 
 ``` 
-metrics.define.avg-metric-per-cluster.metrics.groupby = CLUSTER_NAME METRIC_NAME
+metrics.define.avg-metric-per-cluster.metrics.groupby = CLUSTER_NAME, METRIC_NAME
 metrics.define.avg-metric-per-cluster.variables.average-value.aggregate = avg
 ```
 
@@ -270,6 +279,19 @@ metrics.define.cluster-machines-running.metrics.groupby = CLUSTER_NAME
 metrics.define.cluster-machines-running.when = BATCH
 metrics.define.cluster-machines-running.variables.value.filter.attribute.TYPE = "running"
 metrics.define.cluster-machines-running.variables.value.aggregate = count
+metrics.define.cluster-machines-running.variables.value.expire = 5m
+```
+
+- Average value from each metric during the period of the last 5 minutes 
+
+If we group by all the attributes (groupby = ALL), each metric is treated independently. 
+
+Under such circunstancies there is no attrbutes in the metric to differenciate metrics and aggregate them, so aggregation is done over the historical values of the metric.
+
+``` 
+metrics.define.cluster-machines-running.metrics.groupby = ALL
+metrics.define.cluster-machines-running.variables.value.filter.attribute.METRIC = .*
+metrics.define.cluster-machines-running.variables.value.aggregate = avg
 metrics.define.cluster-machines-running.variables.value.expire = 5m
 ```
 

@@ -21,10 +21,12 @@ public class DefinedMetricStore implements Serializable{
 	private Map<String, DatedValue> values;
 	
 	private Map<String, Map<Integer, DatedValue>> aggregateValues;
+	private Map<String, Map<Instant, Float>> aggregateValuesForEmptyAttributes;
 	
 	public DefinedMetricStore() {
 		values = new HashMap<>();
 		aggregateValues = new HashMap<>();
+		aggregateValuesForEmptyAttributes = new HashMap<>();
 	}
 
 	public void updateValue(String metricID, float value, Instant instant) {
@@ -38,26 +40,43 @@ public class DefinedMetricStore implements Serializable{
 	}
 	
 	public void updateAggregatedValue(String variableName, int idHash, float value, Instant instant) {
-		if(!aggregateValues.containsKey(variableName))
-			aggregateValues.put(variableName, new HashMap<>());
-		
-		if(aggregateValues.get(variableName).size() <= MAX_AGGREGATION_SIZE)
-			aggregateValues.get(variableName).put(idHash, new DatedValue(instant, value));
+		if(!emptyAttrbutes(idHash)){
+		    if(!aggregateValues.containsKey(variableName))
+	            aggregateValues.put(variableName, new HashMap<>());
+		    
+    		if(aggregateValues.get(variableName).size() <= MAX_AGGREGATION_SIZE)
+    			aggregateValues.get(variableName).put(idHash, new DatedValue(instant, value));
+		}else{
+		    if(!aggregateValuesForEmptyAttributes.containsKey(variableName))
+		        aggregateValuesForEmptyAttributes.put(variableName, new HashMap<>());
+		    
+		    if(aggregateValuesForEmptyAttributes.get(variableName).size() <= MAX_AGGREGATION_SIZE)
+		        aggregateValuesForEmptyAttributes.get(variableName).put(instant, value);
+		}
 	}
 	
-	public Map<String, Float> getValues() {
+	private boolean emptyAttrbutes(int idHash) {
+        return idHash == 0;
+    }
+
+    public Map<String, Float> getValues() {
 		return values.entrySet().stream()
 				.map(entry -> new Pair<String, Float>(entry.getKey(), entry.getValue().getValue()))
 				.collect(Collectors.toMap(Pair::first, Pair::second));
 	}
 	
 	public List<Float> getAggregatedValues(String variableID) {
-		if(!aggregateValues.containsKey(variableID))
-			return new LinkedList<>();
+	    List<Float> values = new LinkedList<>();
+	    
+		if(aggregateValues.containsKey(variableID))
+			values.addAll(aggregateValues.get(variableID).values().stream()
+                                                    .map(DatedValue::getValue)
+                                                    .collect(Collectors.toList()));
 		
-		return new LinkedList<>(aggregateValues.get(variableID).values().stream()
-															.map(DatedValue::getValue)
-															.collect(Collectors.toList()));
+		if(aggregateValuesForEmptyAttributes.containsKey(variableID))
+		    values.addAll(aggregateValuesForEmptyAttributes.get(variableID).values());
+		
+		return values;
 	}
 	
 	public void purge(String variableID, Optional<Instant> oldestUpdateOpt) {
@@ -71,7 +90,11 @@ public class DefinedMetricStore implements Serializable{
 
 		Map<Integer, DatedValue> aggregateValuesForVariable = aggregateValues.get(variableID);
 		if(aggregateValuesForVariable != null)
-			aggregateValuesForVariable.entrySet().removeIf(pair -> pair.getValue().getInstant().isBefore(oldestUpdate));
+			aggregateValuesForVariable.values().removeIf(value -> value.getInstant().isBefore(oldestUpdate));
+		
+		Map<Instant, Float> aggregateValuesForVariableWithEmptyAttributes = aggregateValuesForEmptyAttributes.get(variableID);
+        if(aggregateValuesForVariableWithEmptyAttributes != null)
+            aggregateValuesForVariableWithEmptyAttributes.keySet().removeIf(time -> time.isBefore(oldestUpdate));
 	}
 
 	@Override
