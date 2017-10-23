@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.DatedValue;
@@ -65,7 +66,7 @@ public class DefinedMetricStore implements Serializable{
 				.collect(Collectors.toMap(Pair::first, Pair::second));
 	}
 	
-	public List<Float> getAggregatedValues(String variableID) {
+	public DoubleStream getAggregatedValues(String variableID) {
 	    List<Float> values = new LinkedList<>();
 	    
 		if(aggregateValues.containsKey(variableID))
@@ -75,6 +76,20 @@ public class DefinedMetricStore implements Serializable{
 		
 		if(aggregateValuesForEmptyAttributes.containsKey(variableID))
 		    values.addAll(aggregateValuesForEmptyAttributes.get(variableID).values());
+		
+		return values.stream().mapToDouble(val -> val);
+	}
+	
+	public List<DatedValue> getAggregatedDatedValues(String variableID) {
+	    List<DatedValue> values = new LinkedList<>();
+	    
+		if(aggregateValues.containsKey(variableID))
+			values.addAll(aggregateValues.get(variableID).values());
+		
+		if(aggregateValuesForEmptyAttributes.containsKey(variableID))
+		    values.addAll(aggregateValuesForEmptyAttributes.get(variableID).entrySet().stream()
+		    											.map(entry -> new DatedValue(entry.getKey(), entry.getValue()))
+		    											.collect(Collectors.toList()));
 		
 		return values;
 	}

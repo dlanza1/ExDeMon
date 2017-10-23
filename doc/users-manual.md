@@ -180,7 +180,7 @@ If a variable expires and the variable is used for the computation, no metrics w
 In the case all the values for a given aggregated variable expire, count is 0.
 
 A variable could be the result of an aggregation of values. Values from all metrics that pass the specified filter (and after grouping) will be aggregated. 
-This can be configured using the "aggregate" parameter, where you configure the operation to perform the aggregation. Available operations are: sum, avg, count, max or min. 
+This can be configured using the "aggregate" parameter, where you configure the operation to perform the aggregation. Available operations are: sum, avg, weighted_avg (influence proportional with elapsed time), count, max, min or diff. 
 The maximum number of different metrics that can be aggregated is 100, if more, results might be inconsistent. 
 
 A meta-attribute is set in the generated metrics. The meta attribute name is $defined_metric and his value the &lt;defined-metric-id&gt;. 

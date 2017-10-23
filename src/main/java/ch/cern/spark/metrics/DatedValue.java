@@ -3,7 +3,7 @@ package ch.cern.spark.metrics;
 import java.io.Serializable;
 import java.time.Instant;
 
-public class DatedValue implements Serializable {
+public class DatedValue implements Serializable, Comparable<DatedValue> {
 
     private static final long serialVersionUID = 3930338572646527289L;
 
@@ -55,6 +55,11 @@ public class DatedValue implements Serializable {
 		if (Float.floatToIntBits(value) != Float.floatToIntBits(other.value))
 			return false;
 		return true;
+	}
+
+	@Override
+	public int compareTo(DatedValue other) {
+		return time.compareTo(other.time);
 	}
     
 }
