@@ -17,5 +17,40 @@ public class StringUtils {
         
         return Optional.of(lastCharacter);
     }
+    
+	public static String removeQuotes(String input) {
+		if(input.charAt(0) == '"' && input.charAt(input.length() - 1) == '"')
+			return input.substring(1, input.length() - 1);
+		
+		if(input.charAt(0) == '\'' && input.charAt(input.length() - 1) == '\'')
+			return input.substring(1, input.length() - 1);
+		
+		return input;
+	}
+	
+	public static String removeSpacesOutsideQuotes(String input) {
+		StringBuilder sb = new StringBuilder();
+		
+		boolean betweenDoubleQuotes = false;
+		boolean betweenSimpleQuotes = false;
+		
+		for (char c : input.toCharArray()) {
+			if(c == ' ' && !betweenDoubleQuotes && !betweenSimpleQuotes)
+				continue;
+			
+			sb.append(c);
+			
+			if(c == '"' && !betweenDoubleQuotes && !betweenSimpleQuotes)
+				betweenDoubleQuotes = true;
+			else if(c == '\'' && !betweenDoubleQuotes && !betweenSimpleQuotes)
+				betweenSimpleQuotes = true;
+			else if(c == '"' && betweenDoubleQuotes)
+				betweenDoubleQuotes = false;
+			else if(c == '\'' && betweenSimpleQuotes)
+				betweenSimpleQuotes = false;
+		}
+		
+		return sb.toString();
+	}
 
 }

@@ -86,7 +86,9 @@ spark.es.nodes=es-itdb.cern.ch
 spark.es.port=9203
 
 # Monitor CPU of all instances
-# attribute.INSTANCE_NAME does not need to be specified, same efect as .*
+# attribute.INSTANCE_NAME does not need to be specified, same effect as .*
+# filter can be configured with attributes or expr (for more complex conditions)
+monitor.CPUUsage.filter.expr = INSTANCE_NAME=.* & METRIC_NAME="CPU Usage Per Sec"
 monitor.CPUUsage.filter.attribute.INSTANCE_NAME = .*
 monitor.CPUUsage.filter.attribute.METRIC_NAME = CPU Usage Per Sec
 monitor.CPUUsage.pre-analysis.type = weighted-average
@@ -131,6 +133,7 @@ monitor.all-seasonal.notificator.warn-constant.period = 20m
 metrics.define.<defined-metric-id>.value = <methematical equation containing <variable-ids>> (default: <variable-id> if only one variable has been declared)
 metrics.define.<defined-metric-id>.when = <ANY|BATCH|comma separated list of variable-ids> (default: the first variable after sorting)
 metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/comma separated attribute names> (default: not set)
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name-1> = <value-1>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name-2> = <value-2>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute....
@@ -305,6 +308,7 @@ metrics.define.missing-metric.variables.value.expire = 10m
 
 ```
 ## filter (optional)
+monitor.<monitor-id>.filter.expr = <predicate with () | & = !=>
 monitor.<monitor-id>.filter.attribute.<metric_attribute_key> = <[!]regex_or_exact_value>
 monitor.<monitor-id>.filter.attribute... (as many attributes as needed)
 ## pre-analysis (optional)
@@ -326,25 +330,45 @@ Configuration of monitors can be updated while running.
 
 #### Filter
 
-The filter determine the rules a metric must pass in order to accept the metric for the monitor.
+The filter determine the rules a metric must pass in order to accept the metric for the monitor or the variable in defined metrics.
 
 It acts on the attributes of the metrics. Only configured attributes are checked.
 
-You can negate the condition by placing "!" as first character in the value. That would mean: attribute should not be the specified value or should not match the regular expression.
+For "attribute" parameters, you can negate the condition by placing "!" as first character in the value. That would mean: attribute should not be the specified value or should not match the regular expression.
 
 It can specify a regular expression or an exact value for the attribute:
 ```
-monitor.<monitor_id>.filter.attribute.<attribute_key> = <[!]regex_or_exact_value>
+filter.attribute.<attribute_key> = <[!]regex_or_exact_value>
 ```
 
 Metrics can be filtered by metric source:
 ```
-monitor.<monitor_id>.filter.attribute.$source = <metric-source-id>
+filter.attribute.$source = <metric-source-id>
 ```
 
 Or they can be filtered by defined metric:
 ```
-monitor.<monitor_id>.filter.attribute.$defined_metric = <defined-metric-id>
+filter.attribute.$defined_metric = <defined-metric-id>
+```
+
+More complex filter can be configured using the "expr" parameter. Regular expressions can be used.
+
+```
+filter.expr = <predicate with () | & = !=>
+```
+
+You can combine "expr" and "attribute" parameters, all attribute parameters are "and" predicates with "expr".
+
+An example:
+
+```
+# CLUSTER must be "cluster1"
+# and HOST must be "host1" or "host2"
+# and NOT_VALID must not be defined
+filter.expr = "CLUSTER = \"cluster1\" & (HOST = 'host1' | HOST='host2') & NOT_VALID != .*"
+# Optionally you can specify more conditions
+# and $source must be kafka
+filter.attribute.$source = kafka
 ```
 
 #### Tags

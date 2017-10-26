@@ -14,7 +14,7 @@ import ch.cern.ConfigurationException;
 import ch.cern.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.analysis.Analysis;
-import ch.cern.spark.metrics.filter.Filter;
+import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.preanalysis.PreAnalysis;
 import ch.cern.spark.metrics.results.AnalysisResult;
@@ -29,7 +29,7 @@ public class Monitor {
     
     private String id;
     
-    private Filter filter;
+    private MetricsFilter filter;
 
     private Properties preAnalysisProps;
 
@@ -47,8 +47,8 @@ public class Monitor {
         this.id = id;
     }
     
-    public Monitor config(Properties properties) {
-        filter = Filter.build(properties.getSubset("filter"));
+    public Monitor config(Properties properties) throws ConfigurationException {
+        filter = MetricsFilter.build(properties.getSubset("filter"));
         
         preAnalysisProps = properties.getSubset("pre-analysis");
         analysisProps = properties.getSubset("analysis");
@@ -105,7 +105,7 @@ public class Monitor {
     		}
 	}
 
-	public Filter getFilter(){
+	public MetricsFilter getFilter(){
         return filter;
     }
 

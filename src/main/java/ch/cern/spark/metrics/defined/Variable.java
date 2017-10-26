@@ -15,13 +15,13 @@ import ch.cern.Properties;
 import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.filter.Filter;
+import ch.cern.spark.metrics.filter.MetricsFilter;
 
 public class Variable implements Predicate<Metric>{
 
 	private String name;
 	
-	private Filter filter;
+	private MetricsFilter filter;
 	
 	public enum Operation {SUM, AVG, WEIGHTED_AVG, MIN, MAX, COUNT, DIFF};
 	private Operation aggregateOperation;
@@ -37,7 +37,7 @@ public class Variable implements Predicate<Metric>{
 	}
 
 	public Variable config(Properties properties) throws ConfigurationException {
-		filter = Filter.build(properties.getSubset("filter"));
+		filter = MetricsFilter.build(properties.getSubset("filter"));
 		
 		if(properties.containsKey("expire") && properties.getProperty("expire").toLowerCase().equals("never"))
 			expirePeriod = null;
