@@ -15,14 +15,14 @@ import ch.cern.spark.TestInputStream.JTestInputStream;
 import ch.cern.spark.metrics.Metric;
 import scala.reflect.ClassTag;
 
-public class StreamProvider<T> {
+public class StreamTestHelper<IN, OUT> {
 
     private JavaStreamingContext sc = null;
     
     public BatchCounter batchCounter;
     
-    private Batches<T> inputBatches;
-    private Batches<T> expectedBatches;
+    private Batches<IN> inputBatches;
+    private Batches<OUT> expectedBatches;
 
     @Before
     public void setUp() throws Exception {        
@@ -48,32 +48,32 @@ public class StreamProvider<T> {
         expectedBatches = new Batches<>();
     }
     
-    public void addInput(int batch, T element) {
+    public void addInput(int batch, IN element) {
         inputBatches.add(batch, element);
     }
     
-    public void addExpected(int batch, T element) {
+    public void addExpected(int batch, OUT element) {
         expectedBatches.add(batch, element);
     }
     
-    public void assertExpected(Stream<T> results) {
+    public void assertExpected(Stream<OUT> results) {
         assertEquals(expectedBatches, collect(results));
     }
     
-    public Stream<T> createStream(Class<Metric> class1){
+    public Stream<IN> createStream(Class<Metric> class1){
         long batchDuration = getBatchDuration();
         
-        ClassTag<T> classTag = scala.reflect.ClassTag$.MODULE$.apply(class1);
+        ClassTag<IN> classTag = scala.reflect.ClassTag$.MODULE$.apply(class1);
         
-        return Stream.from(new JTestInputStream<T>(sc.ssc(), classTag, inputBatches, batchDuration));
+        return Stream.from(new JTestInputStream<IN>(sc.ssc(), classTag, inputBatches, batchDuration));
     }
     
     private int getNumBatches() {
         return inputBatches.size();
     }
 
-    public Batches<T> collect(Stream<T> results) {
-        Batches<T> outputBatches = new Batches<>();
+    public Batches<OUT> collect(Stream<OUT> results) {
+        Batches<OUT> outputBatches = new Batches<>();
         
         results.foreachRDD(rdd -> {
                 outputBatches.addBatch(rdd.asJavaRDD().collect());

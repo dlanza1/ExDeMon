@@ -12,10 +12,10 @@ import org.junit.Test;
 import ch.cern.Properties.PropertiesCache;
 import ch.cern.PropertiesTest;
 import ch.cern.spark.Stream;
-import ch.cern.spark.StreamProvider;
+import ch.cern.spark.StreamTestHelper;
 import ch.cern.spark.metrics.Metric;
 
-public class DefinedMetricsTest extends StreamProvider<Metric> {
+public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
 
 	@Test
 	public void shouldGenerateMetrics() throws Exception {
