@@ -1,7 +1,7 @@
-package ch.cern;
+package ch.cern.properties;
 
+import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Serializable;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -12,17 +12,33 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import ch.cern.Component.Type;
+import ch.cern.Cache;
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentManager;
+import ch.cern.properties.source.PropertiesSource;
 import ch.cern.utils.TimeUtils;
 
 public class Properties extends java.util.Properties{
 	
-	private static final long serialVersionUID = 2510326766802151233L;
+	private static transient final long serialVersionUID = 2510326766802151233L;
+	
+	private static Cache<Properties> cachedProperties = null;
 
 	public Properties() {
     }
 
-    public List<String> getKeysThatStartWith(String prefix) {
+    public static Properties fromFile(String loadingPath) throws IOException {
+    		Properties props = new Properties();
+		
+        FileSystem fs = FileSystem.get(new Configuration());
+        InputStreamReader is = new InputStreamReader(fs.open(new Path(loadingPath)));
+        props.load(is);
+		is.close();
+		
+		return props;
+	}
+
+	public List<String> getKeysThatStartWith(String prefix) {
         return keySet().stream()
                 .map(String::valueOf)
                 .filter(s -> s.startsWith(prefix))
@@ -44,8 +60,14 @@ public class Properties extends java.util.Properties{
         
         return properties;
     }
+	
+	public String getProperty(String key, String defaultValue) {
+		String value = getProperty(key);
+		
+		return value != null ? value : defaultValue;
+	}
 
-    public Set<String> getUniqueKeyFields() {
+	public Set<String> getUniqueKeyFields() {
     		return keySet().stream()
 		    			.map(String::valueOf)
 		    			.map(s -> s.split("\\."))
@@ -87,7 +109,7 @@ public class Properties extends java.util.Properties{
     
     public void setPropertyIfAbsent(String key, String value){
         if(!containsKey(key))
-            setProperty(key, value);
+        		setProperty(key, value);
     }
     
     public boolean isTypeDefined() {
@@ -110,46 +132,49 @@ public class Properties extends java.util.Properties{
 	public Optional<Duration> getPeriod(String key) throws ConfigurationException {
 		return Optional.ofNullable(getPeriod(key, null));
 	}
+	
+	public static Cache<Properties> getCache(){
+		return cachedProperties;
+	}
+	
+	public static void initCache(Properties propertiesSourceProps) throws ConfigurationException {
+		if(Properties.cachedProperties == null)
+			Properties.cachedProperties = new PropertiesCache(propertiesSourceProps);
+		
+		if(propertiesSourceProps != null)
+			getCache().setExpiration(propertiesSourceProps.getPeriod("expire", Duration.ofMinutes(1)));
+	}
 
-	public static class PropertiesCache extends Cache<Properties> implements Serializable{
-		private static final long serialVersionUID = -5361682529035003933L;
+	public void setDefaultPropertiesSource(String propertyFilePath) {
+		Properties propertiesSourceProperties = getSubset(PropertiesSource.CONFIGURATION_PREFIX);
 		
-		private String path;
-		
-		public PropertiesCache(String path) {
-		    super(Duration.ofMinutes(5));
-		    
-			this.path = path;
+		if(!propertiesSourceProperties.containsKey("type")) {
+			setProperty(PropertiesSource.CONFIGURATION_PREFIX + ".type", "file");
+			setProperty(PropertiesSource.CONFIGURATION_PREFIX + ".path", propertyFilePath);
 		}
-
-		public PropertiesCache(String path, Duration max_life_time) {
-		    super(max_life_time);
-		    
-			this.path = path;
+	}
+	
+	public static class PropertiesCache extends Cache<Properties> {
+		
+		private Properties propertiesSourceProps;
+		
+		public PropertiesCache(Properties propertiesSourceProps) {
+			this.propertiesSourceProps = propertiesSourceProps;
 		}
 		
 		@Override
 		protected Properties load() throws Exception {
-			Properties props = new Properties();
+			if(propertiesSourceProps == null)
+				return new Properties();
 			
-	        FileSystem fs = FileSystem.get(new Configuration());
-	        InputStreamReader is = new InputStreamReader(fs.open(new Path(path)));
-	        props.load(is);
-			is.close();
-			
-			Optional<PropertiesSource> propertiesSource = ComponentManager.buildOptional(Type.PROPERTIES_SOURCE, props.getSubset("properties.source"));
+			Optional<PropertiesSource> propertiesSource = ComponentManager.buildOptional(Type.PROPERTIES_SOURCE, propertiesSourceProps);
 
-			if(propertiesSource.isPresent()){
-				Properties fixedProps = props;
-				Properties extraProps = propertiesSource.get().load();
-				
-				props = new Properties();
-				props.putAll(extraProps);
-				props.putAll(fixedProps);
-			}
-			
-			return props;
+			if(propertiesSource.isPresent())
+				return propertiesSource.get().load();
+
+			return new Properties();
 		}
+		
 	}
 	
 }

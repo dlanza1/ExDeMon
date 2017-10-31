@@ -7,8 +7,8 @@ import java.util.Map.Entry;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.elasticsearch.spark.streaming.api.java.JavaEsSparkStreaming;
 
-import ch.cern.ConfigurationException;
-import ch.cern.Properties;
+import ch.cern.properties.ConfigurationException;
+import ch.cern.properties.Properties;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notifications.sink.NotificationsSink;

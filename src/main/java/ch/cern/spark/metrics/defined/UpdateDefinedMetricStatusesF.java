@@ -5,17 +5,18 @@ import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 
 public class UpdateDefinedMetricStatusesF 
 	implements Function4<Time, DefinedMetricID, Optional<Metric>, State<DefinedMetricStore>, Optional<Metric>> {
 
 	private static final long serialVersionUID = 2965182980222300453L;
-	
-	private DefinedMetrics definedMetrics;
 
-	public UpdateDefinedMetricStatusesF(DefinedMetrics definedMetrics) {
-		this.definedMetrics = definedMetrics;
+	private Properties propertiesSourceProps;
+
+	public UpdateDefinedMetricStatusesF(Properties propertiesSourceProps) {
+		this.propertiesSourceProps = propertiesSourceProps;
 	}
 
 	@Override
@@ -25,7 +26,9 @@ public class UpdateDefinedMetricStatusesF
 		if(status.isTimingOut() || !metricOpt.isPresent())
 			return Optional.empty();
 		
-		java.util.Optional<DefinedMetric> definedMetricOpt = definedMetrics.get(id.getDefinedMetricName());
+		DefinedMetrics.initCache(propertiesSourceProps);
+		
+		Optional<DefinedMetric> definedMetricOpt = Optional.fromNullable(DefinedMetrics.getCache().get().get(id.getDefinedMetricName()));
 		if(!definedMetricOpt.isPresent()) {
 			status.remove();
 			return Optional.empty();

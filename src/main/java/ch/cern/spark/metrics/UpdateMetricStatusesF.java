@@ -7,6 +7,7 @@ import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
@@ -20,18 +21,20 @@ public class UpdateMetricStatusesF
     public static String DATA_EXPIRATION_PARAM = "data.expiration";
     public static java.time.Duration DATA_EXPIRATION_DEFAULT = java.time.Duration.ofHours(3);
 
-    private Monitors monitorsCache;
+    private Properties propertiesSourceProperties;
     
-    public UpdateMetricStatusesF(Monitors monitorsCache) {
-        this.monitorsCache = monitorsCache;
+    public UpdateMetricStatusesF(Properties propertiesSourceProperties) {
+    		this.propertiesSourceProperties = propertiesSourceProperties;
     }
-
+    
     @Override
     public Optional<AnalysisResult> call(
             Time time, MonitorIDMetricIDs ids, Optional<Metric> metricOpt, State<MetricStore> storeState) 
             throws Exception {
+    	
+    		Monitors.initCache(propertiesSourceProperties);
         
-        java.util.Optional<Monitor> monitorOpt = monitorsCache.get(ids.getMonitorID());
+        Optional<Monitor> monitorOpt = Optional.ofNullable(Monitors.getCache().get().get(ids.getMonitorID()));
         if(!monitorOpt.isPresent()) {
         		storeState.remove();
 	        	return Optional.empty();

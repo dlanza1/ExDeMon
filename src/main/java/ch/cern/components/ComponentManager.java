@@ -1,4 +1,4 @@
-package ch.cern;
+package ch.cern.components;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,7 +6,9 @@ import java.util.Optional;
 
 import org.apache.log4j.Logger;
 
-import ch.cern.Component.Type;
+import ch.cern.components.Component.Type;
+import ch.cern.properties.Properties;
+import ch.cern.properties.source.types.FilePropertiesSource;
 import ch.cern.spark.metrics.analysis.types.FixedThresholdAnalysis;
 import ch.cern.spark.metrics.analysis.types.PercentileAnalysis;
 import ch.cern.spark.metrics.analysis.types.RecentActivityAnalysis;
@@ -14,9 +16,6 @@ import ch.cern.spark.metrics.analysis.types.SeasonalAnalysis;
 import ch.cern.spark.metrics.notifications.sink.types.ElasticNotificationsSink;
 import ch.cern.spark.metrics.notificator.types.ConstantNotificator;
 import ch.cern.spark.metrics.notificator.types.PercentageNotificator;
-import ch.cern.spark.metrics.preanalysis.types.AveragePreAnalysis;
-import ch.cern.spark.metrics.preanalysis.types.DifferencePreAnalysis;
-import ch.cern.spark.metrics.preanalysis.types.WeightedAveragePreAnalysis;
 import ch.cern.spark.metrics.results.sink.types.ElasticAnalysisResultsSink;
 import ch.cern.spark.metrics.source.types.KafkaMetricsSource;
 import ch.cern.spark.metrics.store.HasStore;
@@ -32,12 +31,10 @@ public class ComponentManager {
     }
     
     static{
+    		registerComponent(new FilePropertiesSource());
+    	
         registerComponent(new KafkaMetricsSource());
-        
-        registerComponent(new AveragePreAnalysis());
-        registerComponent(new WeightedAveragePreAnalysis());
-        registerComponent(new DifferencePreAnalysis());
-        
+
         registerComponent(new FixedThresholdAnalysis());
         registerComponent(new RecentActivityAnalysis());
         registerComponent(new PercentileAnalysis());
@@ -78,9 +75,12 @@ public class ComponentManager {
             try {
                 component = getComponentInstance(type);
             } catch (Exception e) {
-                String message = "Component class could not be loaded, type or class (" + type + ") "
-                        + " does not exist. "
-                        + "It must be a FQCN or one of: " + getAvailableComponents(componentType).keySet(); 
+                String message = "Component class could not be loaded, type or class (" + type + ") does not exist. ";
+                
+                if(getAvailableComponents(componentType) != null)
+                		message += "It must be a FQCN or one of: " + getAvailableComponents(componentType).keySet();
+                else
+                		message += "It must be a FQCN (not built-in components availables)";
                 
                 LOG.error(message, e);
                 throw new ExceptionInInitializerError(message);

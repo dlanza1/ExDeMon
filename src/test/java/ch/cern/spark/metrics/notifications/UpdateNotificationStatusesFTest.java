@@ -8,10 +8,12 @@ import java.time.Instant;
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateImpl;
+import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.PropertiesTest;
-import ch.cern.Properties.PropertiesCache;
+import ch.cern.Cache;
+import ch.cern.properties.ConfigurationException;
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.notificator.NotificatorID;
@@ -20,16 +22,24 @@ import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.metrics.store.Store;
 
 public class UpdateNotificationStatusesFTest {
+	
+	private Cache<Properties> propertiesCache;
+	
+	@Before
+	public void reset() throws ConfigurationException {
+		Properties.initCache(null);
+		propertiesCache = Properties.getCache();
+		propertiesCache.reset();
+		Monitors.getCache().reset();
+	}
 
     @Test
     public void raiseAlwaysSameStatus() throws Exception{
-        PropertiesCache props = PropertiesTest.mockedExpirable();
-        props.get().setProperty("monitor.monID.notificator.notID.type", "constant");
-        props.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
-        props.get().setProperty("monitor.monID.notificator.notID.period", "10s");
-        Monitors monitors = new Monitors(props);
+    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.type", "constant");
+    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
+    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.period", "10s");
         
-        UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(monitors);
+        UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(null);
         
         Optional<Notification> notification = null;
                 
@@ -50,13 +60,11 @@ public class UpdateNotificationStatusesFTest {
     
     @Test
     public void notRaiseAfterRaising() throws Exception{
-        PropertiesCache props = PropertiesTest.mockedExpirable();
-        props.get().setProperty("monitor.monID.notificator.notID.type", "constant");
-        props.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
-        props.get().setProperty("monitor.monID.notificator.notID.period", "10s");
-        Monitors monitors = new Monitors(props);
-        
-        UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(monitors);
+    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.type", "constant");
+    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
+    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.period", "10s");
+    		
+        UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(null);
         
         Optional<Notification> notification = null;
                 
@@ -81,13 +89,11 @@ public class UpdateNotificationStatusesFTest {
     
     @Test
     public void raiseChangingStatus() throws Exception{
-        PropertiesCache props = PropertiesTest.mockedExpirable();
-        props.get().setProperty("monitor.monID.notificator.notID.type", "constant");
-        props.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
-        props.get().setProperty("monitor.monID.notificator.notID.period", "10s");
-        Monitors monitors = new Monitors(props);
+    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.type", "constant");
+    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
+    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.period", "10s");
         
-        UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(monitors);
+        UpdateNotificationStatusesF func = new UpdateNotificationStatusesF(null);
         
         Optional<Notification> notification = null;
                 

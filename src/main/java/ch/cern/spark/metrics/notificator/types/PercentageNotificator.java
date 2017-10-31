@@ -10,8 +10,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import ch.cern.ConfigurationException;
-import ch.cern.Properties;
+import ch.cern.properties.ConfigurationException;
+import ch.cern.properties.Properties;
 import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notificator.Notificator;

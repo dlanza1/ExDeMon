@@ -2,9 +2,9 @@
 
 ## Components
 
-External components can be developed by extending the corresponging classes (look at component type below for details).
+External components can be developed by extending the corresponding classes (look at component type below for details).
 
-Internal components should use the two parameters constructor (super(Class, String)) specifying own class and type (for configuring). 
+Internal components should use the two parameters constructor (super(Class, String)) specifying own class and type (for configuration). 
 They also need to be registered at ch.cern.spark.ComponentManager. 
 External components can use the no-parametrized constructor and they do not need to be registered.
 
@@ -12,7 +12,7 @@ Any component can override the config() method. Properties parameter will contai
 
 ### Store for stateful components
 
-Pre-analysis, analysis and notificators may need to keep some historical data. If so, implemeanted component can implemeant the interface ch.cern.spark.metrics.store.HasStore.
+Analysis and notificators may need to keep some historical data. If so, implemented component can implement the interface ch.cern.spark.metrics.store.HasStore.
 
 The save() method must return an object which implemeants the interface Store and contains only the data that needs to be stored.
 
@@ -33,21 +33,13 @@ This component is meant to consume metrics from a source and generate an stream 
 
 Externally developed sources must extend ch.cern.spark.metrics.source.MetricsSource.
 
-### Metric pre-analysis
-
-This component is meant to transform incoming metrics before the analysis. If a pre-analysis is applied, the produced value will be the value used by the analysis.
-
-Externally developed pre-analysis must extend ch.cern.spark.metrics.preanalysis.PreAnalysis.
-
-If same data need to be kept, this component can make use of an [Store](#store-for-stateful-components). 
-
 ### Metric analysis
 
-This component is meant to determine the status (error, warning, exception, ok) of each of the incoming metrics (pre-analyzed or not).  
+This component is meant to determine the status (error, warning, exception, ok) of each of the incoming metrics.  
 
 Externally developed analysis must extend ch.cern.spark.metrics.analysis.Analysis.
 
-If same data need to be kept, this component can make use of an [Store](#store-for-stateful-components).
+If same data need to be kept, this component can make use of a [Store](#store-for-stateful-components).
 
 ### Analysis results sink
 
@@ -61,7 +53,7 @@ This component determines when to raise a notifications based on analysis result
 
 Externally developed notificators must extend ch.cern.spark.metrics.notificator.Notificator.
 
-If same data need to be kept, this component can make use of an [Store](#store-for-stateful-components).
+If same data need to be kept, this component can make use of a [Store](#store-for-stateful-components).
 
 ### Notifications sink
 

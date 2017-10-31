@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 
 import org.apache.kafka.common.config.ConfigException;
 
-import ch.cern.ConfigurationException;
-import ch.cern.Properties;
+import ch.cern.properties.ConfigurationException;
+import ch.cern.properties.Properties;
 import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.Metric;

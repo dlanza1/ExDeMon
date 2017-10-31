@@ -13,7 +13,7 @@ import java.util.Map;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.streaming.api.java.JavaDStream;
 
-import ch.cern.Properties;
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 
 public class JSONObjectToMetricParser implements Function<JSONObject, Metric>{

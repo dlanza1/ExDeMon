@@ -3,54 +3,63 @@ package ch.cern;
 import java.time.Duration;
 import java.time.Instant;
 
-/**
- * Represents an object which is not serialized, so it needs to be reloaded in every batch
- *
- * @param <T> Object type
- */
 public abstract class Cache<T> {
-
-    private Duration max_life_time; 
-    
-    private transient Instant loadTime;
-    
-	private transient T object;
 	
-	protected Cache(){
-		max_life_time = null;
-	}
+	private transient T object = null;
 	
-	protected Cache(Duration max_life_time){
-	    this.max_life_time = max_life_time;
-    }
+	private Duration expirationPeriod = null;
 	
-	public final T get() throws Exception{
-	    if(object != null && hasExpired())
-	        object = null;
+	private Instant lastLoadTime = null;
+	
+	public synchronized T get() throws Exception {
+		Instant currentTime = Instant.now();
+		
+	    if(object != null && hasExpired(currentTime))
+	    		object = null;
 	    
 		if(object == null)
-			object = loadCache();
+			object = loadCache(currentTime);
 		
 		return object;
 	}
-
-	private T loadCache() throws Exception {
-	    loadTime = Instant.now();;
+	
+	private T loadCache(Instant currentTime) throws Exception {
+	    lastLoadTime = currentTime;
 	    
         return load();
     }
 
-    private boolean hasExpired() {
-    		if(max_life_time == null)
+    private boolean hasExpired(Instant currentTime) {
+    		if(expirationPeriod == null)
     			return false;
-    	
-        Instant currentTime = Instant.now();
-        
-	    Duration lifeTime = Duration.between(loadTime, currentTime).abs();
+    		
+    		if(lastLoadTime == null)
+    			return true;
+    		
+	    Duration lifeTime = Duration.between(lastLoadTime, currentTime).abs();
 	    
-        return lifeTime.compareTo(max_life_time) > 1;
+        return lifeTime.compareTo(expirationPeriod) > 0;
     }
-
+    
+    public void setExpiration(Duration expirationPeriod) {
+		this.expirationPeriod = expirationPeriod;
+	}
+    
+    public void set(T newObject) {
+    		lastLoadTime = Instant.now();
+    		
+    		this.object = newObject;
+    }
+    
+	public void reset() {
+		lastLoadTime = null;
+		object = null;
+	}
+    
     protected abstract T load() throws Exception;
-	
+
+	public Duration getExpirationPeriod() {
+		return expirationPeriod;
+	}
+
 }

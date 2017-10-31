@@ -1,19 +1,48 @@
 package ch.cern.spark.metrics.monitors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 
-import ch.cern.Properties;
+import ch.cern.Cache;
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.store.MetricStore;
 
 public class MonitorTest {
+	
+	@Test
+	public void shouldUpdateMonitors() throws Exception {
+		Monitors.initCache(null);
+		Cache<Map<String, Monitor>> monitorsCache = Monitors.getCache();
+		
+		Properties.getCache().reset();
+		monitorsCache.setExpiration(Duration.ofSeconds(1));
+		
+		//First load
+		Map<String, Monitor> originalMonitors = monitorsCache.get();
+		
+		Map<String, Monitor> returnedMonitors = monitorsCache.get();
+		assertSame(originalMonitors, returnedMonitors);
+		
+		Thread.sleep(Duration.ofMillis(100).toMillis());
+		
+		returnedMonitors = monitorsCache.get();
+		assertSame(originalMonitors, returnedMonitors);
+		
+		Thread.sleep(Duration.ofSeconds(1).toMillis());
+		
+		returnedMonitors = monitorsCache.get();
+		assertNotSame(originalMonitors, returnedMonitors);
+	}
 
 	@Test
 	public void tagsShouldBePropagated() throws Exception {
@@ -55,35 +84,6 @@ public class MonitorTest {
 		
 		result = monitor.process(store, new Metric(Instant.now(), 15f, new HashMap<>()));
 		assertEquals(AnalysisResult.Status.OK, result.getStatus());
-	}
-	
-	@Test
-	public void monitorWithPreAnalysis() throws Exception {
-		
-		Properties properties = new Properties();
-		properties.setProperty("pre-analysis.type", "difference");
-		properties.setProperty("analysis.type", "fixed-threshold");
-		properties.setProperty("analysis.error.upperbound", "10");
-		
-		Monitor monitor = new Monitor(null).config(properties);
-		
-		MetricStore store = new MetricStore();
-		
-		AnalysisResult result = monitor.process(store, new Metric(Instant.now(), 0f, new HashMap<>()));
-		assertEquals(0f, result.getMonitorParams().get("preAnalyzedValue"));
-		assertEquals(AnalysisResult.Status.OK, result.getStatus());
-		
-		result = monitor.process(store, new Metric(Instant.now(), 5f, new HashMap<>()));
-		assertEquals(5f, result.getMonitorParams().get("preAnalyzedValue"));
-		assertEquals(AnalysisResult.Status.OK, result.getStatus());
-		
-		result = monitor.process(store, new Metric(Instant.now(), 0f, new HashMap<>()));
-		assertEquals(-5f, result.getMonitorParams().get("preAnalyzedValue"));
-		assertEquals(AnalysisResult.Status.OK, result.getStatus());
-		
-		result = monitor.process(store, new Metric(Instant.now(), 20f, new HashMap<>()));
-		assertEquals(20f, result.getMonitorParams().get("preAnalyzedValue"));
-		assertEquals(AnalysisResult.Status.ERROR, result.getStatus());
 	}
 
 }

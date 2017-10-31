@@ -7,25 +7,35 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
 
+import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.PropertiesTest;
-import ch.cern.Properties.PropertiesCache;
+import ch.cern.Cache;
+import ch.cern.properties.ConfigurationException;
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.monitors.Monitors;
 import scala.Tuple2;
 
 public class ComputeIDsForMetricsFTest {
+	
+	private Cache<Properties> propertiesCache = Properties.getCache();
+	
+	@Before
+	public void reset() throws ConfigurationException {
+		Properties.initCache(null);
+		propertiesCache = Properties.getCache();
+		propertiesCache.reset();
+		Monitors.getCache().reset();
+	}
 
     @Test
     public void oneMonitor() throws Exception{
-        PropertiesCache prop = PropertiesTest.mockedExpirable();
-        prop.get().setProperty("monitor.ID-1.attribute.key1", "val1");
-        prop.get().setProperty("monitor.ID-1.attribute.key2", "val2");
-        Monitors monitors = new Monitors(prop);
+    		propertiesCache.get().setProperty("monitor.ID-1.attribute.key1", "val1");
+        propertiesCache.get().setProperty("monitor.ID-1.attribute.key2", "val2");
         
         Metric metric = MetricTest.build();
         
-        Iterator<Tuple2<MonitorIDMetricIDs, Metric>> result = new ComputeIDsForMetricsF(monitors).call(metric);
+        Iterator<Tuple2<MonitorIDMetricIDs, Metric>> result = new ComputeIDsForMetricsF(null).call(metric);
         
         assertResult(result, metric, "ID-1");
         
@@ -34,19 +44,17 @@ public class ComputeIDsForMetricsFTest {
 
     @Test
     public void severalMonitors() throws Exception{
-        PropertiesCache prop = PropertiesTest.mockedExpirable();
-        prop.get().setProperty("monitor.ID-1.filter.attribute.key1", "val1");
-        prop.get().setProperty("monitor.ID-1.filter.attribute.key2", "val2");
-        prop.get().setProperty("monitor.ID-3.filter.attribute.key1", "val1");
-        prop.get().setProperty("monitor.ID-2.filter.attribute.key1", "val1");
-        prop.get().setProperty("monitor.ID-3.filter.attribute.key2", "val2");
-        prop.get().setProperty("monitor.ID-3.filter.attribute.key3", "val3");
-        prop.get().setProperty("monitor.ID-4.filter.attribute.key3", "NO");
-        Monitors monitors = new Monitors(prop);
+    		propertiesCache.get().setProperty("monitor.ID-1.filter.attribute.key1", "val1");
+    		propertiesCache.get().setProperty("monitor.ID-1.filter.attribute.key2", "val2");
+    		propertiesCache.get().setProperty("monitor.ID-3.filter.attribute.key1", "val1");
+    		propertiesCache.get().setProperty("monitor.ID-2.filter.attribute.key1", "val1");
+    		propertiesCache.get().setProperty("monitor.ID-3.filter.attribute.key2", "val2");
+    		propertiesCache.get().setProperty("monitor.ID-3.filter.attribute.key3", "val3");
+    		propertiesCache.get().setProperty("monitor.ID-4.filter.attribute.key3", "NO");
         
         Metric metric = MetricTest.build();
         
-        Iterator<Tuple2<MonitorIDMetricIDs, Metric>> result = new ComputeIDsForMetricsF(monitors).call(metric);
+        Iterator<Tuple2<MonitorIDMetricIDs, Metric>> result = new ComputeIDsForMetricsF(null).call(metric);
         
         assertResult(result, metric, "ID-2");
         assertResult(result, metric, "ID-3");

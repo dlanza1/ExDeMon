@@ -13,11 +13,11 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
-import ch.cern.Component.Type;
-import ch.cern.ComponentManager;
-import ch.cern.ConfigurationException;
-import ch.cern.Properties;
-import ch.cern.Properties.PropertiesCache;
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentManager;
+import ch.cern.properties.ConfigurationException;
+import ch.cern.properties.Properties;
+import ch.cern.properties.source.PropertiesSource;
 import ch.cern.spark.PairStream;
 import ch.cern.spark.RDD;
 import ch.cern.spark.SparkConf;
@@ -43,19 +43,17 @@ public final class Driver {
     private JavaStreamingContext ssc;
     
 	private List<MetricsSource> metricSources;
-	private DefinedMetrics definedMetrics;
-	private Monitors monitors;
 	private Optional<AnalysisResultsSink> analysisResultsSink;
 	private Optional<NotificationsSink> notificationsSink;
 
-	public Driver(PropertiesCache properties) throws Exception {
-        ssc = newStreamingContext(properties.get());
-        
-        metricSources = getMetricSources(properties.get());
-        definedMetrics = getDefinedMetrics(properties);
-        monitors = getMonitors(properties, ssc);
-		analysisResultsSink = getAnalysisResultsSink(properties.get());
-		notificationsSink = getNotificationsSink(properties.get());
+	public Driver(Properties properties) throws Exception {
+		removeSparkCheckpointDir(properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT));
+		
+        ssc = newStreamingContext(properties);
+
+        metricSources = getMetricSources(properties);
+		analysisResultsSink = getAnalysisResultsSink(properties);
+		notificationsSink = getNotificationsSink(properties);
 		
 		if(!analysisResultsSink.isPresent() && !notificationsSink.isPresent())
             throw new ConfigurationException("At least one sink must be configured");
@@ -67,13 +65,12 @@ public final class Driver {
 	        throw new ConfigurationException("A single argument must be specified with the path to the configuration file.");
 	    
 	    String propertyFilePath = args[0];
-	    PropertiesCache props = new PropertiesCache(propertyFilePath);
+	    Properties properties = Properties.fromFile(propertyFilePath);
+	    properties.setDefaultPropertiesSource(propertyFilePath);
 	    
-	    Driver driver = new Driver(props);
-
-		removeSparkCheckpointDir(props.get().getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT));
+	    Driver driver = new Driver(properties);
 		
-        JavaStreamingContext ssc = driver.createNewStreamingContext();
+        JavaStreamingContext ssc = driver.createNewStreamingContext(properties.getSubset(PropertiesSource.CONFIGURATION_PREFIX));
 		
 		// Start the computation
 		ssc.start();
@@ -91,20 +88,19 @@ public final class Driver {
         
         if(fs.exists(path))
             fs.delete(path, true);
-        
     }
 
-    protected JavaStreamingContext createNewStreamingContext() throws Exception {
+    protected JavaStreamingContext createNewStreamingContext(Properties propertiesSourceProps) throws Exception {
 	    
     		Stream<Metric> metrics = getMetricsStream();
     		
-		metrics = metrics.union(metrics.mapS(definedMetrics::generate));
+		metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps));
     		
-		Stream<AnalysisResult> results = metrics.mapS(monitors::analyze);
-		
+		Stream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps);
+
 		analysisResultsSink.ifPresent(results::sink);
 		
-		Stream<Notification> notifications = results.mapS(monitors::notify);
+		Stream<Notification> notifications = Monitors.notify(results, propertiesSourceProps);
 		
     		notificationsSink.ifPresent(notifications::sink);
 		
@@ -113,14 +109,10 @@ public final class Driver {
 
 	public Stream<Metric> getMetricsStream() {
 		return metricSources.stream()
-						.map(source -> source.createStream(ssc))
-						.reduce((str, stro) -> str.union(stro)).get();
+				.map(source -> source.createStream(ssc))
+				.reduce((str, stro) -> str.union(stro)).get();
 	}
 
-	private DefinedMetrics getDefinedMetrics(PropertiesCache properties) {
-		return new DefinedMetrics(properties);
-	}
-    
     private Optional<NotificationsSink> getNotificationsSink(Properties properties) throws Exception {
     		Properties notificationsSinkProperties = properties.getSubset("notifications.sink");
 
@@ -154,10 +146,6 @@ public final class Driver {
 		
 		return metricSources;
 	}
-
-	private Monitors getMonitors(PropertiesCache properties, JavaStreamingContext ssc2) throws IOException {
-		return new Monitors(properties);
-	}
 	
 	public JavaStreamingContext newStreamingContext(Properties properties) throws IOException, ConfigurationException {
 		
@@ -171,6 +159,8 @@ public final class Driver {
         
         Duration dataExpirationPeriod = properties.getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);
         sparkConf.set(PairStream.CHECKPPOINT_DURATION_PARAM, dataExpirationPeriod.toString());
+        
+		sparkConf.addProperties(properties, PropertiesSource.CONFIGURATION_PREFIX);
         
     		long batchInterval = properties.getPeriod(BATCH_INTERVAL_PARAM, Duration.ofMinutes(1)).getSeconds();
 		

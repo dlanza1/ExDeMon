@@ -7,16 +7,14 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import ch.cern.Component;
-import ch.cern.Component.Type;
-import ch.cern.ComponentManager;
-import ch.cern.ConfigurationException;
-import ch.cern.Properties;
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentManager;
+import ch.cern.properties.ConfigurationException;
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.notificator.Notificator;
-import ch.cern.spark.metrics.preanalysis.PreAnalysis;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.metrics.store.MetricStore;
@@ -30,8 +28,6 @@ public class Monitor {
     private String id;
     
     private MetricsFilter filter;
-
-    private Properties preAnalysisProps;
 
     private Properties analysisProps;
     
@@ -50,7 +46,6 @@ public class Monitor {
     public Monitor config(Properties properties) throws ConfigurationException {
         filter = MetricsFilter.build(properties.getSubset("filter"));
         
-        preAnalysisProps = properties.getSubset("pre-analysis");
         analysisProps = properties.getSubset("analysis");
         notificatorsProps = properties.getSubset("notificator");
         
@@ -67,18 +62,12 @@ public class Monitor {
     public AnalysisResult process(MetricStore store, Metric metric) throws Exception {
     		setMaximumMissingPeriod();
     	
-    		Optional<PreAnalysis> preAnalysis = ComponentManager.buildOptional(Type.PRE_ANALYSIS, store.getPreAnalysisStore(), preAnalysisProps);
     		Analysis analysis = ComponentManager.build(Type.ANAYLSIS, store.getAnalysisStore(), analysisProps);
     		
         AnalysisResult result = null;
         
         try{
-        		Optional<Metric> preAnalyzedValue = preAnalysis.flatMap(metric::map);
-
-            result = preAnalyzedValue.orElse(metric).map(analysis).get();
-            
-            if(preAnalyzedValue.isPresent())
-            		result.addMonitorParam("preAnalyzedValue", preAnalyzedValue.get().getValue());
+            result = analysis.apply(metric);
         }catch(Throwable e){
             result = AnalysisResult.buildWithStatus(Status.EXCEPTION, e.getClass().getSimpleName() + ": " + e.getMessage());
             LOG.error(e.getMessage(), e);
@@ -88,7 +77,6 @@ public class Monitor {
         result.addMonitorParam("type", analysisProps.getProperty("type"));
         result.setTags(tags);
         
-        preAnalysis.flatMap(Component::getStore).ifPresent(store::setPreAnalysisStore);
         analysis.getStore().ifPresent(store::setAnalysisStore);
 
         return result;

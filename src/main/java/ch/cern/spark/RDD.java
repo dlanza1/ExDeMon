@@ -13,7 +13,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
-import ch.cern.ConfigurationException;
+import ch.cern.properties.ConfigurationException;
 
 public class RDD <T> {
 	

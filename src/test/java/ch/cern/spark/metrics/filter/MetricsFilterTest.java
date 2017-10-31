@@ -10,8 +10,8 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ch.cern.ConfigurationException;
-import ch.cern.Properties;
+import ch.cern.properties.ConfigurationException;
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 
 public class MetricsFilterTest {

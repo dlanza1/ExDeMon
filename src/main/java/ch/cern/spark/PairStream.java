@@ -13,7 +13,7 @@ import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
-import ch.cern.ConfigurationException;
+import ch.cern.properties.ConfigurationException;
 import scala.Tuple2;
 
 public class PairStream<K, V> extends Stream<Tuple2<K, V>>{

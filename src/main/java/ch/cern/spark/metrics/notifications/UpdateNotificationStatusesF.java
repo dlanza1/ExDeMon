@@ -5,6 +5,7 @@ import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.notificator.Notificator;
@@ -17,20 +18,21 @@ public class UpdateNotificationStatusesF
 
     private static final long serialVersionUID = 1540971922358997509L;
     
-    private Monitors monitorsCache;
+    private Properties propertiesSourceProperties;
 
-    public UpdateNotificationStatusesF(Monitors monitorsCache) {
-        this.monitorsCache = monitorsCache;
+    public UpdateNotificationStatusesF(Properties propertiesSourceProps) {
+    		this.propertiesSourceProperties = propertiesSourceProps;
     }
 
     @Override
     public Optional<Notification> call(Time time, NotificatorID ids, Optional<AnalysisResult> resultOpt,
             State<Store> notificatorState) throws Exception {
+    		Monitors.initCache(propertiesSourceProperties);
 
         if (notificatorState.isTimingOut() || !resultOpt.isPresent())
             return Optional.absent();
         
-        java.util.Optional<Monitor> monitorOpt = monitorsCache.get(ids.getMonitorID());
+        Optional<Monitor> monitorOpt = Optional.fromNullable(Monitors.getCache().get().get(ids.getMonitorID()));
         if(!monitorOpt.isPresent())
         		return Optional.empty();
         Monitor monitor = monitorOpt.get();

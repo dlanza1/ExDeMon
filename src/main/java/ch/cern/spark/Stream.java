@@ -15,7 +15,7 @@ import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaDStream;
 
-import ch.cern.ConfigurationException;
+import ch.cern.properties.ConfigurationException;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.Sink;

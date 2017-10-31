@@ -1,6 +1,6 @@
 package ch.cern.spark.metrics.results.sink;
 
-import ch.cern.Component;
+import ch.cern.components.Component;
 import ch.cern.spark.metrics.Sink;
 import ch.cern.spark.metrics.results.AnalysisResult;
 

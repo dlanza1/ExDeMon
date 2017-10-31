@@ -1,8 +1,10 @@
-package ch.cern;
+package ch.cern.components;
 
 import java.io.Serializable;
 import java.util.Optional;
 
+import ch.cern.properties.ConfigurationException;
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.store.Store;
 
@@ -12,7 +14,6 @@ public abstract class Component implements Serializable {
     
     public enum Type {PROPERTIES_SOURCE,
     						METRIC_SOURCE, 
-    						PRE_ANALYSIS, 
     						ANAYLSIS, 
     						ANALYSIS_RESULTS_SINK, 
     						NOTIFICATOR, 

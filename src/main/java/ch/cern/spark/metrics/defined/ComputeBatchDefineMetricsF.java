@@ -16,13 +16,9 @@ public class ComputeBatchDefineMetricsF implements FlatMapFunction<Tuple2<Define
 
 	private static final long serialVersionUID = 3779814069810467993L;
 
-	private DefinedMetrics definedMetrics;
-    
 	private Instant time;
 
-	public ComputeBatchDefineMetricsF(DefinedMetrics definedMetrics, Time time) {
-        this.definedMetrics = definedMetrics;
-        
+	public ComputeBatchDefineMetricsF(Time time) {
         this.time = Instant.ofEpochMilli(time.milliseconds());
     }
 
@@ -33,7 +29,7 @@ public class ComputeBatchDefineMetricsF implements FlatMapFunction<Tuple2<Define
         DefinedMetricID ids = pair._1;
         DefinedMetricStore store = pair._2;
         
-        Optional<DefinedMetric> definedMetricOpt = definedMetrics.get(ids.getDefinedMetricName());
+        Optional<DefinedMetric> definedMetricOpt = Optional.ofNullable(DefinedMetrics.getCache().get().get(ids.getDefinedMetricName()));
         if(!definedMetricOpt.isPresent())
             return result.iterator();
         DefinedMetric definedMetric = definedMetricOpt.get();

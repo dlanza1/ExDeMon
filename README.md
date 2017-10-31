@@ -1,7 +1,9 @@
-# Spark Streaming job for monitoring metrics
+# Metrics monitor
 
-A general purpose metric monitor using Apache Spark. 
+A general purpose metric monitor implemented with Apache Spark. 
 Metrics can come from several sources like Kafka, results and notifications can be sunk to Elastic or any other system, new metrics can be defined combining other metrics, different analysis can be applied, notifications, configuration can be updated without restarting, it can detect missing metrics, ...
+
+This tool was introduced at Spark Summit 2017 conference, you can watch the talk [here](https://www.youtube.com/watch?v=1IsMMmug5q0&feature=youtu.be&t=11m17s).
 
 [User's manual](doc/users-manual.md)
 
@@ -13,17 +15,17 @@ Notifications can be raised if certain statuses like error or warning are mainta
 ### Key features
 
 - New metrics can be defined. Mathematical operations can be applied. Value of new metrics can be computed by aggregating different incoming metrics. 
-- Several monitors can be declared, each monitor can have a metric filter, a metric pre-analysis, a metric analysis and notificators. 
+- Several monitors can be declared, each monitor can have a metric filter, a metric analysis and notificators. 
 - Several metric sources can be declared.
 - One analysis result sink and one notifications sink can be declared. They are shared by all monitors. 
-- Components: properties source, metrics source, pre-analysis, analysis, analysis results sink, notificator and notification sink. They can be replaced. 
-- Some built-in components: Kafka source, different pre-analysis and analysis, Elastic sink, notificators, ...
-- Metrics at different frequencies.
+- Components: properties source, metrics source, analysis, analysis results sink, notificator and notification sink. They can be easily replaced. 
+- Some built-in components: Kafka source, different analysis, Elastic sink, notificators, ...
+- Metrics can arrive at different frequencies.
 - Monitors and defined metrics configuration can be updated while running. Configuration could come from an external source (Apache Zookeeper, HTTP request, data base, ...).
 - Detection of missing metrics.
 
 An image that describes some of the previous concepts and shows the data flow in the streaming job can be seen here.  
-![Data flow](/doc/img/dataflow.png)
+![Data flow](/doc/img/data-flow.png)
 
 ## Define new metrics
 
@@ -31,7 +33,7 @@ The value of these defined metrics is computed from a mathematical equation whic
 
 This equation can have or not variables, these variables represent incoming metrics. So, values from several metrics can be aggregated in order to compute the value for the new metric.
 
-Metrics can be grouped by (e.g. machine) in order to apply the equation to a set of metrics.
+Metrics can be grouped by (e.g. cluster) in order to apply the equation to a set of metrics.
 
 Some possibilities of defined metrics could be:
 - Multiply all metrics by 10: value * 100
@@ -45,8 +47,8 @@ Some possibilities of defined metrics could be:
 Metrics are consumed by several sources and sent to all monitors.
 
 Many monitors can be declared. Each monitor has a filter to determine to which metrics it should be applied.
-Filtered metrics are pre-analyzed if a pre-analysis is configured. Once pre-analyzed, an analysis is applied to determine the current status of the metric.
-Several notificators can be configured to produce notifications.
+Filtered metrics are analyzed to determine the current status of the metric.
+Several notificators can be configured to raise notifications.
 
 Results from analysis and notifications can be sunk to an external storage.
 
@@ -60,7 +62,7 @@ If you are willing to develop any component, look at the [developers guide](doc/
 
 This component is meant to consume configuration properties from an external source.
 
-This source will be continuously queried and the job will be updated with coming properties.
+This source is periodically queried and the job will be updated with new configuration.
 
 ### Metric source
 
@@ -71,22 +73,11 @@ Several sources can be declared for the job. All monitors consume from all sourc
 Built-in metric sources:
 - Kafka.
 
-### Metric pre-analysis
-
-This component is meant to transform incoming metrics before the analysis. If a pre-analysis is applied, the produced value will be the value used by the analysis.
-
-Each monitor configures or not its own pre-analysis.
-
-Built-in metric pre-analysis:
-- Average value during certain period.
-- Weighted average value during certain period. The closer in time the metric is to current time, the more influence it has over analyzed value.
-- Difference: difference with previous value.
-
 ### Metric analysis
 
-This component is meant to determine the status (error, warning, exception, ok) of each of the incoming metrics (pre-analyzed or not).
+This component is meant to determine the status (error, warning, exception, ok) of each of the incoming metrics.
 
-Each monitor configures or not its own analysis.
+Each monitor configures its own analysis.
 
 Built-in metric analysis:
 - Fixed threshold: error and warning thresholds.

@@ -1,4 +1,6 @@
-package ch.cern;
+package ch.cern.properties.source;
+
+import ch.cern.properties.Properties;
 
 public class PropertiesSourceTest extends PropertiesSource {
 

@@ -9,7 +9,7 @@ import java.time.Instant;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ch.cern.Properties;
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
 public class RecentActivityAnalysisTest {

@@ -1,19 +1,23 @@
-package ch.cern;
+package ch.cern.properties;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.Properties.PropertiesCache;
-
 public class PropertiesTest {
+	
+	@Before
+	public void setUp() throws ConfigurationException {
+		Properties.initCache(null);
+		Properties.getCache().reset();
+	}
     
     @Test
     public void globalParametersNull(){
@@ -28,10 +32,9 @@ public class PropertiesTest {
     }
 
 	@Test
-	public void expiration() throws Exception{
-		Properties.PropertiesCache prop = new Properties.PropertiesCache("src/test/resources/config.properties", Duration.ofSeconds(1));
-		
-		Properties p1 = prop.get();
+	public void cacheExpiration() throws Exception{
+		Properties.getCache().setExpiration(Duration.ofSeconds(1));
+		Properties p1 = Properties.getCache().get();
 		
 		try {
 			Thread.sleep(100);
@@ -39,9 +42,9 @@ public class PropertiesTest {
 			e.printStackTrace();
 		}
 		
-		Properties p2 = prop.get();
+		Properties p2 = Properties.getCache().get();
 		
-		Assert.assertSame(p1, p2);
+		assertSame(p1, p2);
 		
 		try {
 			Thread.sleep(1000);
@@ -49,20 +52,19 @@ public class PropertiesTest {
 			e.printStackTrace();
 		}
 		
-		Properties p3 = prop.get();
+		Properties p3 = Properties.getCache().get();
 		
-		Assert.assertNotSame(p1, p3);
+		assertNotSame(p1, p3);
 	}
 	
 	@Test
-	public void propertiesFromSource() throws Exception{
-		Properties.PropertiesCache prop = new Properties.PropertiesCache("src/test/resources/config.properties", Duration.ofSeconds(1));
-
-		assertNotEquals("not-valid-already-declared", prop.get().getProperty("metrics.source.kafka-prod.type"));
-		assertNotEquals("not-valid-already-declared", prop.get().getProperty("results.sink.type"));
+	public void propertiesFromDefaultSource() throws Exception{
+		Properties props = new Properties();
+		props.setProperty("type", "file");
+		props.setProperty("path", "src/test/resources/config.properties");
+		Properties.getCache().set(props);
 		
-		assertEquals("val1", prop.get().getProperty("key1"));
-		assertEquals("val2", prop.get().getProperty("key2"));
+		assertTrue(Properties.getCache().get().size() > 0);
 	}
 	
 	@Test
@@ -100,17 +102,5 @@ public class PropertiesTest {
         subset = prop.getSubset("prop3.prop31");
         assertEquals(4, subset.size());
 	}
-
-    public static PropertiesCache mockedExpirable() {
-        PropertiesCache propExp = mock(PropertiesCache.class, withSettings().serializable());
-        
-        try {
-            when(propExp.get()).thenReturn(new Properties());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        return propExp;
-    }
 	
 }

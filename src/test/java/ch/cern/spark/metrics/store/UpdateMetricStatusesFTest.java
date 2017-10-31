@@ -4,20 +4,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.Instant;
 import java.util.HashMap;
 
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
+import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.PropertiesTest;
-import ch.cern.Properties.PropertiesCache;
+import ch.cern.Cache;
+import ch.cern.properties.ConfigurationException;
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import ch.cern.spark.metrics.UpdateMetricStatusesF;
@@ -25,14 +24,21 @@ import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
 public class UpdateMetricStatusesFTest {
+	
+	private Cache<Properties> propertiesCache;
 
+	@Before
+	public void reset() throws ConfigurationException {
+		Properties.initCache(null);
+		propertiesCache = Properties.getCache();
+		Monitors.getCache().reset();
+	}
+	
     @Test
     public void timingOutMetric() throws Exception{
-        PropertiesCache props = PropertiesTest.mockedExpirable();
-        props.get().setProperty("monitor.ID.analysis.type", "fixed-threshold");
-        Monitors monitors = new Monitors(props);
+    		propertiesCache.get().setProperty("monitor.ID.analysis.type", "fixed-threshold");
         
-        UpdateMetricStatusesF func = new UpdateMetricStatusesF(monitors);
+        UpdateMetricStatusesF func = new UpdateMetricStatusesF(null);
         
         Time time = new Time(1000);
         MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
@@ -50,10 +56,7 @@ public class UpdateMetricStatusesFTest {
     
     @Test
     public void noMetric() throws Exception{
-        PropertiesCache props = PropertiesTest.mockedExpirable();
-        Monitors monitors = new Monitors(props);
-        
-        UpdateMetricStatusesF func = new UpdateMetricStatusesF(monitors);
+        UpdateMetricStatusesF func = new UpdateMetricStatusesF(null);
         
         Time time = new Time(1000);
         MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
@@ -64,30 +67,6 @@ public class UpdateMetricStatusesFTest {
         Optional<AnalysisResult> resultOpt = func.call(time, ids, metricOpt, storeState);
         
         assertFalse(resultOpt.isPresent());
-    }
-    
-    @Test
-    public void updateLastestTimestamp() throws Exception{
-        PropertiesCache props = PropertiesTest.mockedExpirable();
-        props.get().setProperty("monitor.ID.analysis.type", "fixed-threshold");
-        Monitors monitors = new Monitors(props);
-        
-        UpdateMetricStatusesF func = new UpdateMetricStatusesF(monitors);
-        
-        MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
-        Instant metricTime = Instant.ofEpochMilli(Instant.now().toEpochMilli());        
-        Optional<Metric> metricOpt = Optional.of(new Metric(metricTime , 10, new HashMap<String, String>()));
-        
-        @SuppressWarnings("unchecked")
-        State<MetricStore> storeState = mock(State.class);
-        MetricStore store = new MetricStore();
-        when(storeState.exists()).thenReturn(true);
-        when(storeState.get()).thenReturn(store);
-        
-        Optional<AnalysisResult> resultOpt = func.call(new Time(1000), ids, metricOpt, storeState);
-        
-        assertTrue(resultOpt.isPresent());
-        verify(storeState, times(1)).update(store);
     }
     
 }

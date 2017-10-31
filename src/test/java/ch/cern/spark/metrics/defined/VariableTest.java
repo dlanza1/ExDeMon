@@ -10,8 +10,8 @@ import java.util.Optional;
 
 import org.junit.Test;
 
-import ch.cern.ConfigurationException;
-import ch.cern.Properties;
+import ch.cern.properties.ConfigurationException;
+import ch.cern.properties.Properties;
 
 public class VariableTest {
 

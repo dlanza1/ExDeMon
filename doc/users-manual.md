@@ -2,6 +2,8 @@
 
 ## Running the job
 
+Source code should be first compiled with Apache Maven.
+
 ```
 $SPARK_HOME/bin/spark-submit \
 	--master yarn \
@@ -14,7 +16,9 @@ $SPARK_HOME/bin/spark-submit \
 
 A basic configuration contains a metric source, one or more monitors and analysis result or notifications sink.
 
-Each monitor and notificator must have a different ID.
+Note that configuration of defined metrics and monitors is dynamic, so it can be updated while running. This dynamic configuration is obtained from the configured "properties.source", which by default is configured to read the same configuration file.
+
+Each defined metric, monitor and notificator must have a different ID.
 
 ```
 checkpoint.dir = <path_to_store_stateful_data> (default: /tmp/)
@@ -24,7 +28,8 @@ spark.batch.time = <period like 1h, 3m or 45s> (default: 1m)
 data.expiration = <period like 1h, 3m or 45s> (default: 30m)
 
 # Optional
-properties.source.type = <properties_source_type>
+properties.source.type = <properties_source_type> (default: "file" with path to this configuration file)
+properties.source.expire = <period like 1h, 3m or 45s> (default: 1m)
 properties.source.<other_confs> = <value>
 
 # At least one source is mandatory
@@ -33,21 +38,21 @@ metrics.source.<metric-source-id-1>.<other_confs> = <value>
 metrics.source.<metric-source-id-2>...
 metrics.source.<metric-source-id-n>...
 
-# Optional
+# Optional (dynamic, coming from properties.source)
 metrics.define.<defined-metric-1>...
 metrics.define.<defined-metric-2>...
 metrics.define.<defined-metric-n>...
+
+# Monitors (dynamic, coming from properties.source)
+monitor.<monitor-id-1>.<confs>...
+monitor.<monitor-id-2>.<confs>...
+monitor.<monitor-id-n>.<confs>...
 
 # At least one sink must be declared
 results.sink.type = <analysis_results_sink_type>
 results.sink.<other_confs> = <value>
 notifications.sink.type = <notifications_sink_type>
 notifications.sink.<other_confs> = <value>
-
-# Monitors
-monitor.<monitor-id-1>.<confs>...
-monitor.<monitor-id-2>.<confs>...
-monitor.<monitor-id-n>.<confs>...
 ```
 
 An example of full configuration can be:
@@ -91,8 +96,6 @@ spark.es.port=9203
 monitor.CPUUsage.filter.expr = INSTANCE_NAME=.* & METRIC_NAME="CPU Usage Per Sec"
 monitor.CPUUsage.filter.attribute.INSTANCE_NAME = .*
 monitor.CPUUsage.filter.attribute.METRIC_NAME = CPU Usage Per Sec
-monitor.CPUUsage.pre-analysis.type = weighted-average
-monitor.CPUUsage.pre-analysis.period = 10m
 monitor.CPUUsage.analysis.type = fixed-threshold
 monitor.CPUUsage.analysis.error.upperbound = 800
 monitor.CPUUsage.analysis.warn.upperbound  = 600
@@ -102,8 +105,6 @@ monitor.CPUUsage.tags.email = procurement-team@cern.ch
 
 # Monitor percentage of DB usage of all instances
 monitor.DBCPU.filter.attribute.$defined_metric = DBCPUUsagePercentage
-monitor.DBCPU.pre-analysis.type = weighted-average
-monitor.DBCPU.pre-analysis.period = 10m
 monitor.DBCPU.analysis.type = fixed-threshold
 monitor.DBCPU.analysis.error.upperbound = 800DBCPU
 monitor.DBCPU.analysis.warn.upperbound  = 600
@@ -112,8 +113,6 @@ monitor.DBCPU.tags.email = databases-team@cern.ch
 # This monitor does not produce notifications
 
 # Monitor all metrics (no filter)
-monitor.all-seasonal.pre-analysis.type = weighted-average
-monitor.all-seasonal.pre-analysis.period = 3m
 monitor.all-seasonal.analysis.type = seasonal
 monitor.all-seasonal.analysis.season = hour
 monitor.all-seasonal.analysis.learning.ratio = 0.2
@@ -311,9 +310,6 @@ metrics.define.missing-metric.variables.value.expire = 10m
 monitor.<monitor-id>.filter.expr = <predicate with () | & = !=>
 monitor.<monitor-id>.filter.attribute.<metric_attribute_key> = <[!]regex_or_exact_value>
 monitor.<monitor-id>.filter.attribute... (as many attributes as needed)
-## pre-analysis (optional)
-monitor.<monitor-id>.pre-analysis.type = <preanalysis_type>
-monitor.<monitor-id>.pre-analysis.<other_confs> = <value>
 ## analysis 
 monitor.<monitor-id>.analysis.type = <analysis_type>
 monitor.<monitor-id>.analysis.<other_confs> = <value>
@@ -346,7 +342,7 @@ Metrics can be filtered by metric source:
 filter.attribute.$source = <metric-source-id>
 ```
 
-Or they can be filtered by defined metric:
+They can also be filtered by defined metric:
 ```
 filter.attribute.$defined_metric = <defined-metric-id>
 ```
@@ -384,23 +380,39 @@ monitor.<monitor-id>.tags.<tag-key-2> = <value-2>
 monitor.<monitor-id>.tags.<tag-key-n> = <value-n>
 ```
 
-## Componenets
+## Components
 
 For any of the components, type must be specified. Type can be any of the built-in components or a FQCN of an external component.
 
-### Properties source
+### Properties sources
 
-As mentioned, configuration is dynamic and can be changed while running. 
-Configuration parameters come from the configuration file but these parameters can be merged with parameters coming from an external source. 
-Note that parameters from configuration file will not be overwritten by parameters coming from the external source. 
+Components which configuration can be updated while running, defined metrics and monitors, obtain their configuration from this source.
 
-This source will be continuously queried and the job will be updated with coming properties.
+This source will be periodically queried, every "expire" period, and the job will be updated with the new configuration.
 
 To configure an external source of properties:
 
 ```
 properties.source.type = <properties_source_type>
+properties.source.expire = <period like 1h, 3m or 45s> (default: 1m)
 properties.source.<other_confs> = <value>
+```
+
+If not properties source is configured, the default configuration is:
+
+```
+properties.source.type = file
+properties.source.expire = 1m
+properties.source.path = {path to this file}
+```
+
+#### File properties source
+
+This source obtains all properties from a text file with format readable by java.util.Properties.
+
+```
+properties.source.type = file
+properties.source.path = <path_to_configuration_file>
 ```
 
 ### Metric sources
@@ -422,48 +434,6 @@ metrics.source.parser.value.attribute = <attribute that represent the value>
 metrics.source.parser.timestamp.attribute = <attribute that represent the time>
 metrics.source.parser.timestamp.format = <timestamp_format> (default: yyyy-MM-dd'T'HH:mm:ssZ)
 ```
-
-### Metric pre-analysis
-
-#### Average value
-
-Produced value is computed as the average from all the values from the previous configured period.
-
-Configuration:
-```
-monitor.<monitor-id>.pre-analysis.type = average
-monitor.<monitor-id>.pre-analysis.period = <period like 1h, 3m or 45s> (default: 5m)
-```
-
-An example of the result of this pre-analysis can be seen in the following image.
-![Average pre-analysis](img/pre-analysis/average.png)
-
-#### Weighted average
-
-Produced value is computed as the weighted average from all the values from the previous configured period.
-Value weight is inversely proportional to the difference in time between the metric and current time.
-The coler in time the metric is to current time, the more influence is has over produced value.
- 
-Configuration:
-```
-monitor.<monitor-id>.pre-analysis.type = weighted-average
-monitor.<monitor-id>.pre-analysis.period = <period like 1h, 3m or 45s> (default: 5m)
-```
-
-An example of the result of this pre-analysis can be seen in the following image.
-![Weighted average pre-analysis](img/pre-analysis/weighted-avergae.png)
-
-#### Difference with previos value
-
-Analyszed value will be the difference of metric value with previous value.
-
-Configuration:
-```
-monitor.<monitor-id>.pre-analysis.type = difference
-```
-
-An example of the result of this pre-analysis can be seen in the following image.
-![Difference pre-analysis](img/pre-analysis/difference.png)
 
 ### Metric analysis
 

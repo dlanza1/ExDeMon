@@ -12,7 +12,7 @@ import java.util.Optional;
 
 import org.junit.Test;
 
-import ch.cern.Properties;
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notificator.types.ConstantNotificator;

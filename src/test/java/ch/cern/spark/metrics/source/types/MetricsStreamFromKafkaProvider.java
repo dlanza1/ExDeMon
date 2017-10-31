@@ -15,7 +15,7 @@ import org.apache.spark.util.ManualClock;
 import org.junit.After;
 import org.junit.Before;
 
-import ch.cern.Properties;
+import ch.cern.properties.Properties;
 import ch.cern.spark.BatchCounter;
 import ch.cern.spark.RDD;
 import ch.cern.spark.SparkConf;

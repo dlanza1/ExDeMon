@@ -1,4 +1,4 @@
-package ch.cern;
+package ch.cern.properties;
 
 public class ConfigurationException extends Exception {
 

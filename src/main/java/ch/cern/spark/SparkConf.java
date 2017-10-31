@@ -1,6 +1,6 @@
 package ch.cern.spark;
 
-import ch.cern.Properties;
+import ch.cern.properties.Properties;
 
 public class SparkConf extends org.apache.spark.SparkConf {
 
