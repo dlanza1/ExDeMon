@@ -7,12 +7,14 @@ import java.util.Map.Entry;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.elasticsearch.spark.streaming.api.java.JavaEsSparkStreaming;
 
+import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
 
+@RegisterComponent("elastic")
 public class ElasticAnalysisResultsSink extends AnalysisResultsSink {
 
     private static final long serialVersionUID = -3422447741754872104L;
@@ -20,10 +22,6 @@ public class ElasticAnalysisResultsSink extends AnalysisResultsSink {
     private String indexName;
 
     private Map<String, String> elasticConfig;
-    
-    public ElasticAnalysisResultsSink() {
-        super(ElasticAnalysisResultsSink.class, "elastic");
-    }
 
     @Override
     public void config(Properties properties) throws ConfigurationException {

@@ -26,6 +26,7 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import org.apache.spark.streaming.kafka010.OffsetRange;
 
+import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSONObject;
@@ -33,6 +34,7 @@ import ch.cern.spark.json.JSONObjectDeserializer;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.source.MetricsSource;
 
+@RegisterComponent("kafka")
 public class KafkaMetricsSource extends MetricsSource {
 
     private static final long serialVersionUID = 4110858617715602562L;
@@ -55,10 +57,6 @@ public class KafkaMetricsSource extends MetricsSource {
     public static String TIMESTAMP_ATTRIBUTE_PARAM = "parser.timestamp.attribute";
     private String timestamp_attribute;
 
-    public KafkaMetricsSource() {
-        super(KafkaMetricsSource.class, "kafka");
-    }
-    
     @Override
     public void config(Properties properties) throws ConfigurationException {
         kafkaParams = getKafkaConsumerParams(properties);

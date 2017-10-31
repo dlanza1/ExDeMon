@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Pair;
@@ -20,6 +21,7 @@ import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.store.Store;
 import ch.cern.utils.TimeUtils;
 
+@RegisterComponent("percentage")
 public class PercentageNotificator extends Notificator implements HasStore {
     
     private static final long serialVersionUID = -7890231998987060652L;
@@ -38,8 +40,6 @@ public class PercentageNotificator extends Notificator implements HasStore {
     private List<Pair<Instant, Boolean>> hits;
     
     public PercentageNotificator() {
-        super(PercentageNotificator.class, "percentage");
-        
         hits = new LinkedList<>();
     }
 

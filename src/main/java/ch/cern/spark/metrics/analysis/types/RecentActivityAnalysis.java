@@ -5,6 +5,7 @@ import java.time.Instant;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.ValueHistory;
@@ -13,6 +14,7 @@ import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.store.Store;
 
+@RegisterComponent("recent")
 public class RecentActivityAnalysis extends Analysis implements HasStore{
     
     private static final long serialVersionUID = 5419076430764447352L;
@@ -42,10 +44,6 @@ public class RecentActivityAnalysis extends Analysis implements HasStore{
     public static String WARN_RATIO_PARAM = "warn.ratio";
     public static float WARN_RATIO_DEFAULT = 1.5f;
     private float warn_ratio;
-    
-    public RecentActivityAnalysis() {
-        super(RecentActivityAnalysis.class, "recent");
-    }
 
     @Override
     public void config(Properties properties) throws ConfigurationException {

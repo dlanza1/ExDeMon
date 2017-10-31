@@ -5,19 +5,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.log4j.Logger;
+import org.reflections.Reflections;
 
 import ch.cern.components.Component.Type;
 import ch.cern.properties.Properties;
-import ch.cern.properties.source.types.FilePropertiesSource;
-import ch.cern.spark.metrics.analysis.types.FixedThresholdAnalysis;
-import ch.cern.spark.metrics.analysis.types.PercentileAnalysis;
-import ch.cern.spark.metrics.analysis.types.RecentActivityAnalysis;
-import ch.cern.spark.metrics.analysis.types.SeasonalAnalysis;
-import ch.cern.spark.metrics.notifications.sink.types.ElasticNotificationsSink;
-import ch.cern.spark.metrics.notificator.types.ConstantNotificator;
-import ch.cern.spark.metrics.notificator.types.PercentageNotificator;
-import ch.cern.spark.metrics.results.sink.types.ElasticAnalysisResultsSink;
-import ch.cern.spark.metrics.source.types.KafkaMetricsSource;
 import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.store.Store;
 
@@ -26,37 +17,33 @@ public class ComponentManager {
     private final static Logger LOG = Logger.getLogger(ComponentManager.class.getName());
     
     private static Map<Component.Type, Map<String, Class<? extends Component>>> availableComponents = new HashMap<>();
+    static{
+        new Reflections("ch.cern")
+	        		.getTypesAnnotatedWith(RegisterComponent.class)
+	        		.stream()
+	        		.forEach(ComponentManager::registerComponent);
+    }
     
     private ComponentManager(){
     }
     
-    static{
-    		registerComponent(new FilePropertiesSource());
-    	
-        registerComponent(new KafkaMetricsSource());
-
-        registerComponent(new FixedThresholdAnalysis());
-        registerComponent(new RecentActivityAnalysis());
-        registerComponent(new PercentileAnalysis());
-        registerComponent(new SeasonalAnalysis());
-        
-        registerComponent(new ElasticAnalysisResultsSink());
-        
-        registerComponent(new ConstantNotificator());
-        registerComponent(new PercentageNotificator());
-        
-        registerComponent(new ElasticNotificationsSink());
-    }
-    
-    private static void registerComponent(Component component) {
-        Type type = component.getType();
-        String name = component.getName();
-        Class<? extends Component> clazz = component.getSubClass();
+	@SuppressWarnings("unchecked")
+	private static void registerComponent(Class<?> componentToRegister) {
+    		Class<? extends Component> componentClass;
+    		try {
+    			 componentClass = (Class<? extends Component>) componentToRegister;
+    		}catch(ClassCastException e){
+    			LOG.error("Component " + componentToRegister + " could not be registered, it must extend " + Component.class);
+    			return;
+    		}
+    		
+        Type type = componentClass.getSuperclass().getAnnotation(ComponentType.class).value();
+        String name = componentClass.getAnnotation(RegisterComponent.class).value();
         
         if(!availableComponents.containsKey(type))
             availableComponents.put(type, new HashMap<String, Class<? extends Component>>());
         
-        availableComponents.get(type).put(name, clazz);
+        availableComponents.get(type).put(name, componentClass);
     }
     
     public static<C extends Component> C build(Type componentType, Properties properties) throws Exception {

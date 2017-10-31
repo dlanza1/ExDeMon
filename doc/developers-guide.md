@@ -4,9 +4,7 @@
 
 External components can be developed by extending the corresponding classes (look at component type below for details).
 
-Internal components should use the two parameters constructor (super(Class, String)) specifying own class and type (for configuration). 
-They also need to be registered at ch.cern.spark.ComponentManager. 
-External components can use the no-parametrized constructor and they do not need to be registered.
+Internal components should annotate the class with @RegisterComponent("<name>"), specifying a name for referring to it in the configuration. 
 
 Any component can override the config() method. Properties parameter will contain only the corresponding configuration for the component.
 

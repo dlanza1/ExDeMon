@@ -2,11 +2,13 @@ package ch.cern.spark.metrics.analysis.types;
 
 import java.time.Instant;
 
+import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
+@RegisterComponent("fixed-threshold")
 public class FixedThresholdAnalysis extends Analysis {
     
     private static final long serialVersionUID = -6079216045777381098L;
@@ -22,10 +24,6 @@ public class FixedThresholdAnalysis extends Analysis {
     
     public static String ERROR_LOWERBOUND_PARAM = "error.lowerbound";
     private Float error_lowerbound;
-    
-    public FixedThresholdAnalysis() {
-        super(FixedThresholdAnalysis.class, "fixed-threshold");
-    }
 
     public void config(Properties properties) throws ConfigurationException {
         error_upperbound = properties.getFloat(ERROR_UPPERBOUND_PARAM);

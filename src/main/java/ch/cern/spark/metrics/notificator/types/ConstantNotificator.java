@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.notifications.Notification;
@@ -17,6 +18,7 @@ import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.store.Store;
 import ch.cern.utils.TimeUtils;
 
+@RegisterComponent("constant")
 public class ConstantNotificator extends Notificator implements HasStore {
     
     private static final long serialVersionUID = -7890231998987060652L;
@@ -29,10 +31,6 @@ public class ConstantNotificator extends Notificator implements HasStore {
     private Duration period = PERIOD_DEFAULT;
     
     private Instant constantlySeenFrom;
-    
-    public ConstantNotificator() {
-        super(ConstantNotificator.class, "constant");
-    }
 
     @Override
     public void config(Properties properties) throws ConfigurationException {

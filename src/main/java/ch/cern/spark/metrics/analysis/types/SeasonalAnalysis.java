@@ -2,6 +2,7 @@ package ch.cern.spark.metrics.analysis.types;
 
 import java.time.Instant;
 
+import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.analysis.Analysis;
@@ -11,6 +12,7 @@ import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.store.Store;
 
+@RegisterComponent("seasonal")
 public class SeasonalAnalysis extends Analysis implements HasStore{
 
     private static final long serialVersionUID = 6395895250358427351L;
@@ -31,10 +33,6 @@ public class SeasonalAnalysis extends Analysis implements HasStore{
     public static String WARNING_RATIO_PARAM = "warn.ratio";
     public static Float WARNING_RATIO_DEFAULT = 2f;
     private Float warning_ratio;
-    
-    public SeasonalAnalysis() {
-        super(SeasonalAnalysis.class, "seasonal");
-    }
 
     public void config(Properties properties) throws ConfigurationException {
         super.config(properties);

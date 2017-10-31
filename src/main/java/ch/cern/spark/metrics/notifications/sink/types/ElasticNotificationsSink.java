@@ -7,12 +7,14 @@ import java.util.Map.Entry;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.elasticsearch.spark.streaming.api.java.JavaEsSparkStreaming;
 
+import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notifications.sink.NotificationsSink;
 
+@RegisterComponent("elastic")
 public class ElasticNotificationsSink extends NotificationsSink {
     
     private static final long serialVersionUID = 6247567528073485033L;
@@ -20,10 +22,6 @@ public class ElasticNotificationsSink extends NotificationsSink {
     private String indexName;
 
     private Map<String, String> elasticConfig;
-    
-    public ElasticNotificationsSink() {
-        super(ElasticNotificationsSink.class, "elastic");
-    }
 
     @Override
     public void config(Properties properties) throws ConfigurationException {

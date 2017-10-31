@@ -4,22 +4,17 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import ch.cern.components.Component;
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentType;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.Metric;
 
+@ComponentType(Type.METRIC_SOURCE)
 public abstract class MetricsSource extends Component{
 
     private static final long serialVersionUID = -6197974524956447741L;
     
     private String id;
-    
-    public MetricsSource() {
-        super(Type.METRIC_SOURCE);
-    }
-    
-    public MetricsSource(Class<? extends Component> subClass, String name) {
-        super(Type.METRIC_SOURCE, subClass, name);
-    }
     
     public String getId() {
 		return id;
