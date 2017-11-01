@@ -1,15 +1,10 @@
 package ch.cern.spark.json;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import ch.cern.spark.flume.FlumeEvent;
 
 public class JSONObject implements Serializable {
 
@@ -80,32 +75,12 @@ public class JSONObject implements Serializable {
         public Parser() {
         }
 
-        public JSONObject parse(FlumeEvent flumeEvent) throws IOException {
-            JsonObject jsonObject = new JsonObject();
-
-            appendHeaders(jsonObject, flumeEvent);
-            appendBody(jsonObject, flumeEvent);
-
-            return new JSONObject(jsonObject);
-        }
-
         public JSONObject parse(byte[] bytes) {
             JsonObject jsonFromEvent = PARSER.parse(new String(bytes)).getAsJsonObject();
 
             return new JSONObject(jsonFromEvent);
         }
 
-        private void appendHeaders(JsonObject jsonObject, FlumeEvent event) throws IOException {
-            for (Map.Entry<String, String> header : event.getHeaders().entrySet())
-                jsonObject.addProperty(header.getKey(), header.getValue());
-        }
-
-        private void appendBody(JsonObject jsonObject, FlumeEvent event) throws IOException {
-            JsonObject jsonFromEvent = PARSER.parse(new String(event.getBody())).getAsJsonObject();
-
-            for (Entry<String, JsonElement> property : jsonFromEvent.entrySet())
-                jsonObject.add(property.getKey(), property.getValue());
-        }
     }
 
 }

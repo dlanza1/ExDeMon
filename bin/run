@@ -42,19 +42,11 @@ $SPARK_HOME/bin/spark-submit \
 	--driver-cores 2 \
 	--driver-memory 2G \
 	--executor-memory 3G \
-	--num-executors 5 \
+	--num-executors 3 \
 	--executor-cores 1 \
 	--class ch.cern.spark.metrics.Driver \
-	--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.1.0,org.apache.spark:spark-streaming-flume_2.11:2.1.0 \
-	--exclude-packages org.apache.flume:flume-ng-auth \
+	--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.1.0 \
 	--jars $HOME/elasticsearch-hadoop-5.2.2.jar \
 	--repositories https://repository.cloudera.com/artifactory/cloudera-repos/ \
-	--conf spark.yarn.am.attemptFailuresValidityInterval=1h \
-	--conf spark.yarn.max.executor.failures=48 \
-	--conf spark.yarn.executor.failuresValidityInterval=1h \
-	--conf spark.task.maxFailures=8 \
-	--conf spark.hadoop.fs.hdfs.impl.disable.cache=true \
-	--principal dblogs@CERN.CH \
-	--keytab $HOME/conf/principal.keytab \
-	$HOME/target/spark-metrics-*.jar \
+	$HOME/target/metrics-monitor-*.jar \
 	$CONFIG_PATH

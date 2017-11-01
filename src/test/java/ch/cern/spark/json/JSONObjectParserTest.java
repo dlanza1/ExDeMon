@@ -1,13 +1,7 @@
 package ch.cern.spark.json;
 
-import java.util.HashMap;
-
 import org.junit.Assert;
 import org.junit.Test;
-
-import ch.cern.spark.flume.FlumeEvent;
-import ch.cern.spark.flume.JSONObjectParser;
-import ch.cern.spark.json.JSONObject;
 
 public class JSONObjectParserTest {
 	
@@ -37,11 +31,9 @@ public class JSONObjectParserTest {
 				+ "\"type\":\"establish\","
 				+ "\"service_name\":\"timtest_s.cern.ch\","
 				+ "\"return_code\":0}";
-
-		FlumeEvent flumeEvent = new FlumeEvent(new HashMap<String, String>(), json.getBytes());
 		
 		try {
-			JSONObject listenerEvent = new JSONObjectParser().call(flumeEvent);
+			JSONObject listenerEvent = new JSONObject.Parser().parse(json.getBytes());
 			
 			Assert.assertNotNull(listenerEvent.getProperty("type"));
 			Assert.assertEquals("establish", listenerEvent.getProperty("type"));
@@ -96,10 +88,8 @@ public class JSONObjectParserTest {
 		String json = "{\"event_timestamp\":\"2016-11-02T09:12:06+0100\","
 				+ "\"text\":\"02-NOV-2016 09:12:06 * unknown * other_type * 15\"}";
 		
-		FlumeEvent flumeEvent = new FlumeEvent(new HashMap<String, String>(), json.getBytes());
-		
 		try {
-			JSONObject listenerEvent = new JSONObjectParser().call(flumeEvent);
+			JSONObject listenerEvent = new JSONObject.Parser().parse(json.getBytes());
 			
 			Assert.assertNull(listenerEvent.getProperty("type"));
 		} catch (Exception e) {
