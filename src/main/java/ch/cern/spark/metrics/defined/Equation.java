@@ -25,6 +25,7 @@ public class Equation {
 	}
 	
 	private boolean canBeComputed(String formulaWithValues) {
+		formulaWithValues = formulaWithValues.replace("abs(", "(");
 		formulaWithValues = formulaWithValues.replace("sqrt(", "(");
 		formulaWithValues = formulaWithValues.replace("sin(", "(");
 		formulaWithValues = formulaWithValues.replace("cos(", "(");
@@ -148,7 +149,7 @@ public class Equation {
 	                else if (func.equals("sin")) x = Math.sin(Math.toRadians(x));
 	                else if (func.equals("cos")) x = Math.cos(Math.toRadians(x));
 	                else if (func.equals("tan")) x = Math.tan(Math.toRadians(x));
-	                else if (func.equals("abs")) x = Math.abs(Math.toRadians(x));
+	                else if (func.equals("abs")) x = Math.abs(x);
 	                else throw new RuntimeException("Unknown function: " + func);
 	            } else {
 	                throw new RuntimeException("Unexpected: " + (char)ch);

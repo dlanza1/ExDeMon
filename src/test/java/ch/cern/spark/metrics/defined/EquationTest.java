@@ -40,6 +40,11 @@ public class EquationTest {
 	public void evalWithVariablesAndFormulas() {
 		Map<String, Double> vars = new HashMap<>();
 		
+		vars.put("x", 9d);
+		assertEquals(9f, new Equation("abs(x)").compute(vars).get(), 0.01f);
+		vars.put("x", -9d);
+		assertEquals(9f, new Equation("abs(x)").compute(vars).get(), 0.01f);
+		
 		vars.put("x", 10d);
 		assertEquals(3.16f, new Equation("sqrt(x)").compute(vars).get(), 0.01f);
 		
