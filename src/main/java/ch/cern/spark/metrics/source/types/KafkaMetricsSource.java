@@ -40,6 +40,8 @@ public class KafkaMetricsSource extends MetricsSource {
 
     @Override
     public void config(Properties properties) throws ConfigurationException {
+    		super.config(properties);
+    		
         kafkaParams = getKafkaConsumerParams(properties);
         kafkaTopics = new HashSet<String>(Arrays.asList(properties.getProperty("topics").split(",")));
         
@@ -50,9 +52,9 @@ public class KafkaMetricsSource extends MetricsSource {
 	public JavaDStream<Metric> createJavaDStream(JavaStreamingContext ssc) {
         JavaDStream<JSONObject> inputStream = createKafkaInputStream(ssc);
 
-        JavaDStream<Metric> metricStream = inputStream.flatMap(parser);
+        JavaDStream<Metric> metricsStream = inputStream.flatMap(parser);
         
-        return metricStream;
+        return metricsStream;
     }
     
     public JavaDStream<JSONObject> createKafkaInputStream(JavaStreamingContext ssc) {

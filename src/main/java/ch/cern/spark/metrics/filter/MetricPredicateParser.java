@@ -1,5 +1,6 @@
 package ch.cern.spark.metrics.filter;
 
+import java.text.ParseException;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -69,7 +70,7 @@ public class MetricPredicateParser {
 		if(parts.length == 2)
 			return new EqualMetricPredicate(parts[0], StringUtils.removeQuotes(parts[1]));
 		
-		throw new ParseException("Missing comparison operation = or != at \"" + input + "\"");
+		throw new ParseException("Missing comparison operation = or != at \"" + input + "\"", 0);
 	}
 
 	private static int indexOfClosingParenthesis(IString iInput) throws ParseException {
@@ -90,7 +91,7 @@ public class MetricPredicateParser {
 		if(counter == -1)
 			return iInput.getString().length() - 1;
 		else
-			throw new ParseException("Expecting ) at \"" + iInput.getString()  + "\"");
+			throw new ParseException("Expecting ) at \"" + iInput.getString()  + "\"", iInput.getIndex());
 	}
 
 	private static Optional<Operator> getOperator(IString iInput) throws ParseException {
@@ -104,7 +105,7 @@ public class MetricPredicateParser {
 		else if(iInput.startsWith("|"))
 			op = Optional.of(Operator.OR);
 		else
-			throw new ParseException("Operation \"" + iInput.getChar() + "\" does not exist at \"" + iInput + "\"");
+			throw new ParseException("Operation \"" + iInput.getChar() + "\" does not exist at \"" + iInput + "\"", iInput.getIndex());
 		
 		iInput.moveIndex(1);
 		

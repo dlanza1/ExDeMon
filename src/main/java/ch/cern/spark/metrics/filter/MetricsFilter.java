@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.filter;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 

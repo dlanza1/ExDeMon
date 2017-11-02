@@ -9,6 +9,8 @@ import java.util.function.Predicate;
 
 import org.junit.Test;
 
+import java.text.ParseException;
+
 import ch.cern.spark.metrics.Metric;
 
 public class MetricsPredicateParserTest {

@@ -35,6 +35,7 @@ properties.source.<other_confs> = <value>
 # At least one source is mandatory
 metrics.source.<metric-source-id-1>.type = <metric_source_type>
 metrics.source.<metric-source-id-1>.<other_confs> = <value>
+metrics.source.<metric-source-id-1>.filter.<configs at Metrics filter> = <values>
 metrics.source.<metric-source-id-2>...
 metrics.source.<metric-source-id-n>...
 
@@ -302,30 +303,9 @@ metrics.define.missing-metric.variables.value.aggregate = count
 metrics.define.missing-metric.variables.value.expire = 10m
 ```
 
-### Monitors
+### Metric filters
 
-```
-## filter (optional)
-monitor.<monitor-id>.filter.expr = <predicate with () | & = !=>
-monitor.<monitor-id>.filter.attribute.<metric_attribute_key> = <[!]regex_or_exact_value>
-monitor.<monitor-id>.filter.attribute... (as many attributes as needed)
-## analysis 
-monitor.<monitor-id>.analysis.type = <analysis_type>
-monitor.<monitor-id>.analysis.<other_confs> = <value>
-## notificators (optional)
-monitor.<monitor-id>.notificator.<notificator-id>.type = <notificator-type>
-monitor.<monitor-id>.notificator.<notificator-id>.<other_confs> = <value>
-monitor.<monitor-id>.notificator.<notificator-id>... (as many notificators as needed)
-monitor.<monitor-id>.tags.<tag-key-1> = <value-1>
-monitor.<monitor-id>.tags.<tag-key-2> = <value-2>
-monitor.<monitor-id>.tags.<tag-key-n> = <value-n>
-```
-
-Configuration of monitors can be updated while running.
-
-#### Filter
-
-The filter determine the rules a metric must pass in order to accept the metric for the monitor or the variable in defined metrics.
+The filter determine the rules a metric must pass in order to accept the metric.
 
 It acts on the attributes of the metrics. Only configured attributes are checked.
 
@@ -365,6 +345,27 @@ filter.expr = "CLUSTER = \"cluster1\" & (HOST = 'host1' | HOST='host2') & NOT_VA
 # and $source must be kafka
 filter.attribute.$source = kafka
 ```
+
+### Monitors
+
+```
+## filter (optional)
+monitor.<monitor-id>.filter.expr = <predicate with () | & = !=>
+monitor.<monitor-id>.filter.attribute.<metric_attribute_key> = <[!]regex_or_exact_value>
+monitor.<monitor-id>.filter.attribute... (as many attributes as needed)
+## analysis 
+monitor.<monitor-id>.analysis.type = <analysis_type>
+monitor.<monitor-id>.analysis.<other_confs> = <value>
+## notificators (optional)
+monitor.<monitor-id>.notificator.<notificator-id>.type = <notificator-type>
+monitor.<monitor-id>.notificator.<notificator-id>.<other_confs> = <value>
+monitor.<monitor-id>.notificator.<notificator-id>... (as many notificators as needed)
+monitor.<monitor-id>.tags.<tag-key-1> = <value-1>
+monitor.<monitor-id>.tags.<tag-key-2> = <value-2>
+monitor.<monitor-id>.tags.<tag-key-n> = <value-n>
+```
+
+Configuration of monitors can be updated while running.
 
 #### Tags
 
@@ -416,6 +417,11 @@ properties.source.path = <path_to_configuration_file>
 
 ### Metric sources
 
+For any metric source, a metrics filter can be configured:
+```
+metrics.source.<metric-source-id-n>.filter.<configs at Metrics filter> = <values>
+```
+
 #### Kafka metric source
 
 It expects documents as JSON.
@@ -453,12 +459,12 @@ It has the following configuration parameters:
 "timestamp.format" indicates the format of the timestamp stored in the attribute configured by "timestamp.attribute". If the format is a number that represents epoch in milliseconds, it must be set to "epoch-ms", if seconds "epoch-s". If the JSON document contains a timestamp with wrong format, no metric will be generated. 
 
 "attributes" configure the keys that will be extracted from the JSON document. You can indicate a list of keys separated by space.
-You can also configure these attributes individually assigning aliases. Assigned alias will be used to refer to the attribute in any filter. 
+You can also configure these attributes individually assigning aliases. Assigned alias will be used to refer to the attribute in any metric filter. 
 List of keys or aliases can be combined.
 If the JSON document does not contain the attribute, the metric will not contain such attribute.
 
 "value.attributes" configure the keys from which metric values will be extracted from the JSON document. You can indicate a list of keys separated by space. A metric will be created for each key, all metrics generated from the same JSON document will share the same ids and attributes. All generated metrics will contain an extra attribute with name "$value\_attribute", its value indicates the key from which the value has been extracted. 
-You can also configure these attributes for values individually assigning aliases. Assigned alias will be stored at "$value\_attribute", so the alias will be used in any filter.
+You can also configure these attributes for values individually assigning aliases. Assigned alias will be stored at "$value\_attribute", so the alias will be used in any metric filter.
 List of keys or aliases can be combined.
 If JSON document does not contain the value, the metric will not be generated.
 

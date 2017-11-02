@@ -29,6 +29,8 @@ Externally developed properties sources must extend ch.cern.PropertiesSource.
 
 This component is meant to consume metrics from a source and generate an stream of metrics. 
 
+If the source consume event as JSON, it is encouraged the usage of a common parser: ch.cern.spark.json.JSONObjectToMetricParser.
+
 Externally developed sources must extend ch.cern.spark.metrics.source.MetricsSource.
 
 ### Metric analysis

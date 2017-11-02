@@ -1,12 +1,15 @@
 package ch.cern.spark.metrics.filter;
 
+import java.io.Serializable;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import ch.cern.spark.metrics.Metric;
 
-public class NotEqualMetricPredicate implements Predicate<Metric> {
+public class NotEqualMetricPredicate implements Predicate<Metric>, Serializable {
 
+	private static final long serialVersionUID = -1044577733678850309L;
+	
 	private String key;
 	private Pattern value;
 

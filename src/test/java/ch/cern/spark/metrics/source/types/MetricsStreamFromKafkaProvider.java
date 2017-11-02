@@ -49,9 +49,10 @@ public class MetricsStreamFromKafkaProvider {
 		properties.setProperty("topics", topic);
 		properties.setProperty("consumer.bootstrap.servers", kafkaTestUtils.brokerAddress());
 		properties.setProperty("consumer.group.id", "testing");
-		properties.setProperty("parser.attributes", "CLUSTER HOSTNAME METRIC");
-		properties.setProperty("parser.value.attribute", "VALUE");
+		properties.setProperty("parser.attributes", "CLUSTER HOSTNAME METRIC KEY_TO_REMOVE");
+		properties.setProperty("parser.value.attributes", "VALUE");
 		properties.setProperty("parser.timestamp.attribute", "TIMESTAMP");
+		properties.setProperty("filter.attribute.KEY_TO_REMOVE", "!.*");
 		metricsSource = new KafkaMetricsSource();
 		metricsSource.config(properties);
 		metricsSource.setId("kafka");

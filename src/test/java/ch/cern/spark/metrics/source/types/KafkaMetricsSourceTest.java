@@ -14,16 +14,21 @@ import org.junit.Test;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.Metric;
 
-@SuppressWarnings("unused")
 public class KafkaMetricsSourceTest extends MetricsStreamFromKafkaProvider{
 
-	//@Test
+	@Test
 	public void parse() throws Exception {
 		List<Metric> inputMetrics = new LinkedList<Metric>();
 		Map<String, String> ids = new HashMap<>();
+		ids.put("$source", "kafka");
+		ids.put("$value_attribute", "VALUE");
 		inputMetrics.add(new Metric(Instant.now(), (float) Math.random(), ids));
 		inputMetrics.add(new Metric(Instant.now(), (float) Math.random(), ids));
 		inputMetrics.add(new Metric(Instant.now(), (float) Math.random(), ids));
+		
+		Map<String, String> idsRemove = new HashMap<>(ids);
+		idsRemove.put("KEY_TO_REMOVE", "something");
+		inputMetrics.add(new Metric(Instant.now(), (float) Math.random(), idsRemove));
 		
 		Stream<Metric> metrics = createStream();
 
@@ -39,6 +44,7 @@ public class KafkaMetricsSourceTest extends MetricsStreamFromKafkaProvider{
 		
 		assertTrue(waitUntilBatchesCompleted(1));
 		
+		inputMetrics.removeIf(m -> m.getIDs().containsKey("KEY_TO_REMOVE"));
 		assertEquals(inputMetrics, outputMetrics);
 	}
 

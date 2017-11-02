@@ -5,9 +5,12 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import ch.cern.components.Component;
 import ch.cern.components.Component.Type;
+import ch.cern.properties.ConfigurationException;
+import ch.cern.properties.Properties;
 import ch.cern.components.ComponentType;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.filter.MetricsFilter;
 
 @ComponentType(Type.METRIC_SOURCE)
 public abstract class MetricsSource extends Component{
@@ -15,6 +18,13 @@ public abstract class MetricsSource extends Component{
     private static final long serialVersionUID = -6197974524956447741L;
     
     private String id;
+
+	private MetricsFilter filter;
+	
+	@Override
+	public void config(Properties properties) throws ConfigurationException {
+		filter = MetricsFilter.build(properties.getSubset("filter"));
+	}
     
     public String getId() {
 		return id;
@@ -24,8 +34,12 @@ public abstract class MetricsSource extends Component{
 		this.id = id;
 	}
 
-    public Stream<Metric> createStream(JavaStreamingContext ssc){
-    		return Stream.from(createJavaDStream(ssc)).map(metric -> {
+    public final Stream<Metric> createStream(JavaStreamingContext ssc){
+    		JavaDStream<Metric> metricStream = createJavaDStream(ssc);
+    	
+    		JavaDStream<Metric> filteredMetricStream = metricStream.filter(filter::test);
+    		
+    		return Stream.from(filteredMetricStream).map(metric -> {
 										    				metric.addID("$source", getId());
 										    				return metric;
 										    			});
