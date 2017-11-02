@@ -44,14 +44,14 @@ public class MetricsPredicateParserTest {
 	
 	@Test
 	public void parsedPredicateShuoldFilter() throws ParseException {
-		Predicate<Metric> pred = MetricPredicateParser.parse("CLUSTER = \"cluster1\" & (HOST = 'host1' | HOST='host2') & METRIC != .*");
+		Predicate<Metric> pred = MetricPredicateParser.parse("CLUSTER.NAME = \"cluster1\" & (HOST = 'host1' | HOST='host2') & METRIC != .*");
 		
-		assertTrue(pred.test(Metric(0, 0f, "CLUSTER=cluster1", "HOST=host1")));
-		assertTrue(pred.test(Metric(0, 0f, "CLUSTER=cluster1", "HOST=host2")));
-		assertFalse(pred.test(Metric(0, 0f, "CLUSTER=cluster1")));
-		assertFalse(pred.test(Metric(0, 0f, "CLUSTER=cluster1", "HOST=host3")));
-		assertFalse(pred.test(Metric(0, 0f, "CLUSTER=cluster2", "HOST=host1")));
-		assertFalse(pred.test(Metric(0, 0f, "CLUSTER=cluster1", "HOST=host1", "METRIC=whatever")));
+		assertTrue(pred.test(Metric(0, 0f, "CLUSTER.NAME=cluster1", "HOST=host1")));
+		assertTrue(pred.test(Metric(0, 0f, "CLUSTER.NAME=cluster1", "HOST=host2")));
+		assertFalse(pred.test(Metric(0, 0f, "CLUSTER.NAME=cluster1")));
+		assertFalse(pred.test(Metric(0, 0f, "CLUSTER.NAME=cluster1", "HOST=host3")));
+		assertFalse(pred.test(Metric(0, 0f, "CLUSTER.NAME=cluster2", "HOST=host1")));
+		assertFalse(pred.test(Metric(0, 0f, "CLUSTER.NAME=cluster1", "HOST=host1", "METRIC=whatever")));
 	}
 	
 }

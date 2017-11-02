@@ -31,6 +31,23 @@ public class MetricsFilterTest {
 	}
 	
 	@Test
+	public void parseFilterWithHierarchy() throws ParseException, ConfigurationException {
+		Properties props = new Properties();
+		props.setProperty("expr", "K1.K11=V1");
+		props.setProperty("attribute.K2.K21", "V2");
+		props.setProperty("attribute.K2.K22", "V3");
+		MetricsFilter filter = MetricsFilter.build(props);
+
+		assertTrue(filter.test(Metric(0, 0, "K1.K11=V1", "K2.K21=V2", "K2.K22=V3")));
+		assertTrue(filter.test(Metric(0, 0, "K1.K11=V1", "K2.K21=V2", "K2.K22=V3", "K4.K41=V4")));
+		assertFalse(filter.test(Metric(0, 0, "K1.K11=Vnop", "K2.K21=V2", "K2.K22=V3")));
+		assertFalse(filter.test(Metric(0, 0, "K1.K11=V1")));
+		assertFalse(filter.test(Metric(0, 0, "K1.K11=V1", "K2.K21=V2")));
+		assertFalse(filter.test(Metric(0, 0, "K1.K11=V1", "K2.K21=V2", "K2.K22=Vnop")));
+		assertFalse(filter.test(Metric(0, 0, "K1.K11=V1", "K2.K21=Vnop")));
+	}
+	
+	@Test
 	public void shouldCompineExprAndAttributes() throws ConfigurationException {
 		Properties props = new Properties();
 		props.setProperty("expr", "K1=V1");

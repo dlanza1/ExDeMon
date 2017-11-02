@@ -1,7 +1,7 @@
 package ch.cern.spark.metrics.filter;
 
 import java.io.Serializable;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.function.Predicate;
 
 import ch.cern.properties.ConfigurationException;
@@ -52,14 +52,13 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
 			}
         
         Properties filterProperties = props.getSubset("attribute");
-        Set<String> attributesNames = filterProperties.getUniqueKeyFields();
         
-        for (String attributeName : attributesNames) {
-            String key = "attribute." + attributeName;
-            String value = props.getProperty(key);
+        for (Entry<Object, Object> attribute : filterProperties.entrySet()) {
+            String key = (String) attribute.getKey();
+            String value = (String) attribute.getValue();
             
 			try {
-				filter.addPredicate(attributeName, value);
+				filter.addPredicate(key, value);
 			} catch (ParseException e) {
 				throw new ConfigurationException("Error when parsing filter (" + key + ") value expression (" + value + "): " + e.getMessage());
 			}
