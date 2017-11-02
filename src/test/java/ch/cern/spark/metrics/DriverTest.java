@@ -33,6 +33,8 @@ public class DriverTest {
     		props.setProperty("metrics.source.kafka.type", "kafka");
     		props.setProperty("metrics.source.kafka.topics", "topic");
     		props.setProperty("metrics.source.kafka.parser.attributes", "att1 att2");
+    		props.setProperty("metrics.source.kafka.parser.value.attributes", "value");
+    		props.setProperty("metrics.source.kafka.parser.timestamp.attribute", "timestamp");
         
         try{
         		Driver driver = new Driver(props);
@@ -52,6 +54,8 @@ public class DriverTest {
     		props.setProperty("metrics.source.kafka.type", "kafka");
     		props.setProperty("metrics.source.kafka.topics", "topic");
     		props.setProperty("metrics.source.kafka.parser.attributes", "att1 att2");
+    		props.setProperty("metrics.source.kafka.parser.value.attributes", "value");
+    		props.setProperty("metrics.source.kafka.parser.timestamp.attribute", "timestamp");
     		props.setProperty("results.sink.type", "elastic");
         
         Driver driver = new Driver(props);
@@ -66,6 +70,8 @@ public class DriverTest {
     		props.setProperty("metrics.source.kafka.type", "kafka");
     		props.setProperty("metrics.source.kafka.topics", "topic");
     		props.setProperty("metrics.source.kafka.parser.attributes", "att1 att2");
+    		props.setProperty("metrics.source.kafka.parser.value.attributes", "value");
+    		props.setProperty("metrics.source.kafka.parser.timestamp.attribute", "timestamp");
     		props.setProperty("notifications.sink.type", "elastic");
         
         Driver driver = new Driver(props);

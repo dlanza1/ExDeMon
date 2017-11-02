@@ -1,79 +1,175 @@
 package ch.cern.spark.json;
 
-import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
-import java.util.Arrays;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.streaming.api.java.JavaDStream;
+import org.apache.log4j.Logger;
+import org.apache.spark.api.java.function.FlatMapFunction;
 
+import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
+import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.Metric;
 
-public class JSONObjectToMetricParser implements Function<JSONObject, Metric>{
+public class JSONObjectToMetricParser implements FlatMapFunction<JSONObject, Metric>{
+	
+	private transient final static Logger LOG = Logger.getLogger(JSONObjectToMetricParser.class.getName());
 
     private static final long serialVersionUID = -5490112720236337434L;
     
-    public static String PARAM_PREFIX = "parser.";
-
-    public static String ID_PROPERTY = PARAM_PREFIX + "id.property-names";
-    public static String ID_PROPERTY_DEFAULT = "id";
-    private List<String> id_property_names = Arrays.asList(ID_PROPERTY_DEFAULT);
+    public static String ATTRIBUTES_PARAM = "attributes";
+    private List<Pair<String, String>> attributes;
     
-    public static String TIMESTAMP_PROPERTY = PARAM_PREFIX + "timestamp.property-name";
-    public static String TIMESTAMP_PROPERTY_DEFAULT = "timestamp";
-    private String timestamp_property_name;
+    public static String VALUE_ATTRIBUTES_PARAM = "value.attributes";
+    private List<Pair<String, String>> value_attributes;
     
-    public static String TIMESTAMP_FORMAT_PROPERTY = PARAM_PREFIX + "timestamp.format";
+    public static String TIMESTAMP_FORMAT_PARAM = "timestamp.format";
     public static String TIMESTAMP_FORMAT_DEFAULT = "yyyy-MM-dd'T'HH:mm:ssZ";
-    private DateTimeFormatter timestamp_format;
+    private String timestamp_format_pattern;
+    private transient DateTimeFormatter timestamp_format;
+
+    public static String TIMESTAMP_ATTRIBUTE_PARAM = "timestamp.attribute";
+    private String timestamp_attribute;
     
-    public static String VALUE_PROPERTY = PARAM_PREFIX + "value.property-name";
-    public static String VALUE_PROPERTY_DEFAULT = "value";
-    private String value_property_name;
-    
-    public JSONObjectToMetricParser(Properties props) {
-        id_property_names = Arrays.asList(props.getProperty(ID_PROPERTY).split(" "));
+    public JSONObjectToMetricParser(Properties properties) throws ConfigurationException {
+    		timestamp_attribute = properties.getProperty(TIMESTAMP_ATTRIBUTE_PARAM);    
+    		if(timestamp_attribute == null)
+    			throw new ConfigurationException(TIMESTAMP_ATTRIBUTE_PARAM + " must be configured.");
+    		
+    		timestamp_format_pattern = properties.getProperty(TIMESTAMP_FORMAT_PARAM, TIMESTAMP_FORMAT_DEFAULT);
+    		if(timestamp_format_pattern != null && !timestamp_format_pattern.equals("epoch-ms") && !timestamp_format_pattern.equals("epoch-s"))
+	    		try {
+	    			new DateTimeFormatterBuilder()
+					.appendPattern(timestamp_format_pattern)
+					.toFormatter()
+					.withZone(ZoneOffset.systemDefault());
+	    		}catch(Exception e) {
+	    			throw new ConfigurationException(TIMESTAMP_FORMAT_PARAM + " must be epoch-ms, epoch-s or a pattern compatible with DateTimeFormatterBuilder.");
+	    		}
+    		
+    		value_attributes = new LinkedList<>();
+        String value_attributes_value = properties.getProperty(VALUE_ATTRIBUTES_PARAM);
+		if(value_attributes_value != null) {
+			String[] attributesValues = value_attributes_value.split("\\s");
+			
+			for (String attribute : attributesValues) 
+				value_attributes.add(new Pair<String, String>(attribute, attribute));
+		}
+		Properties valueAttributesWithAlias = properties.getSubset(VALUE_ATTRIBUTES_PARAM);
+		for (Map.Entry<Object, Object> pair : valueAttributesWithAlias.entrySet()) {
+			String alias = (String) pair.getKey();
+			String key = (String) pair.getValue();
+			
+			value_attributes.add(new Pair<String, String>(alias, key));
+		}
+        if(value_attributes.isEmpty())
+			throw new ConfigurationException(VALUE_ATTRIBUTES_PARAM + " must be configured.");
         
-        timestamp_property_name = props.getProperty(TIMESTAMP_PROPERTY, TIMESTAMP_PROPERTY_DEFAULT);
-        timestamp_format = new DateTimeFormatterBuilder()
-								.appendPattern(props.getProperty(TIMESTAMP_FORMAT_PROPERTY, TIMESTAMP_FORMAT_DEFAULT))
-								.toFormatter()
-								.withZone(ZoneOffset.systemDefault());
-        
-        value_property_name = props.getProperty(VALUE_PROPERTY, VALUE_PROPERTY_DEFAULT);
-    }
-    
-    public static JavaDStream<Metric> apply(Properties props, JavaDStream<JSONObject> metricsAsJsonStream) {
-        return metricsAsJsonStream.map(new JSONObjectToMetricParser(props));
+        attributes = new LinkedList<>();
+        String attributesValue = properties.getProperty(ATTRIBUTES_PARAM);
+		if(attributesValue != null) {
+			String[] attributesValues = attributesValue.split("\\s");
+			
+			for (String attribute : attributesValues) 
+				attributes.add(new Pair<String, String>(attribute, attribute));
+		}
+		Properties attributesWithAlias = properties.getSubset(ATTRIBUTES_PARAM);
+		for (Map.Entry<Object, Object> pair : attributesWithAlias.entrySet()) {
+			String alias = (String) pair.getKey();
+			String key = (String) pair.getValue();
+			
+			attributes.add(new Pair<String, String>(alias, key));
+		}
     }
 
     @Override
-    public Metric call(JSONObject jsonObject) throws Exception {
-        Instant timestamp = toDate(jsonObject.getProperty(timestamp_property_name));
-        Float value = Float.parseFloat(jsonObject.getProperty(value_property_name));
-        Map<String, String> ids = mapIDsWithValues(jsonObject);
+    public Iterator<Metric> call(JSONObject jsonObject) {
+    		String timestamp_string = jsonObject.getProperty(timestamp_attribute);
+		Instant timestamp;
+		try {
+			timestamp = toDate(timestamp_string);
+		} catch (DateTimeParseException e) {
+			LOG.error("DateTimeParseException: " + e.getMessage() 
+						+ " for key " + timestamp_attribute 
+						+ " with value (" + timestamp_string + ")"
+						+ " in JSON: " + jsonObject);
+			
+			return Collections.<Metric>emptyList().iterator();
+		}
         
-        return new Metric(timestamp, value, ids);
+		Map<String, String> ids = new HashMap<>();
+		for(Pair<String, String> attribute : attributes) {
+			String alias = attribute.first;
+			String key = attribute.second;
+			
+			String value = jsonObject.getProperty(key);
+			
+			if(value != null)
+				ids.put(alias, value);
+		}
+		
+		List<Metric> metrics = new LinkedList<>();
+		for (Pair<String, String> value_attribute : value_attributes) {
+			String alias = value_attribute.first;
+			String key = value_attribute.second;
+			
+			String value_string = jsonObject.getProperty(key);
+			if(value_string == null) {
+				LOG.warn("No metric was generated for value key \"" + key + "\", "
+								+ "document does not contian such key in JSON: " + jsonObject);
+				
+				continue;
+			}
+	        float value = Float.parseFloat(value_string);
+	        
+	        Map<String, String> metric_ids = new HashMap<>(ids);
+	        metric_ids.put("$value_attribute", alias);
+	        
+	        metrics.add(new Metric(timestamp, value, metric_ids));
+		}
+        
+        return metrics.iterator();
     }
 
-    private Map<String, String> mapIDsWithValues(JSONObject jsonObject) {
-        Map<String, String> map = new HashMap<>();
-        
-        for (String id_property : id_property_names)
-            map.put(id_property, jsonObject.getProperty(id_property));
-        
-        return map;
-    }
+    private Instant toDate(String date_string) throws DateTimeParseException {
+    		if(date_string == null || date_string.length() == 0)
+    			throw new DateTimeParseException("No data to parse", "", 0);
+    	
+    		try {
+	    		if(timestamp_format_pattern.equals("epoch-ms"))
+	    			return Instant.ofEpochMilli(Long.valueOf(date_string));
+	    		
+	    		if(timestamp_format_pattern.equals("epoch-s"))
+	    			return Instant.ofEpochSecond(Long.valueOf(date_string));
+    		}catch(Exception e) {
+    			throw new DateTimeParseException(e.getClass().getName() + ": " + e.getMessage(), date_string, 0);
+    		}
 
-    private Instant toDate(String date_string) throws ParseException {
-        return timestamp_format.parse(date_string, Instant::from);
+		if(timestamp_format == null)
+    			timestamp_format = new DateTimeFormatterBuilder()
+							.appendPattern(timestamp_format_pattern)
+							.toFormatter()
+							.withZone(ZoneOffset.systemDefault());
+			
+		TemporalAccessor temporalAccesor = timestamp_format.parse(date_string);
+		
+		if(temporalAccesor.isSupported(ChronoField.INSTANT_SECONDS)) {
+			return Instant.from(temporalAccesor);
+		}else{
+			return LocalDate.from(temporalAccesor).atStartOfDay(ZoneOffset.systemDefault()).toInstant();
+		}
     }
 
 }

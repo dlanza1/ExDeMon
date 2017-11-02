@@ -1,18 +1,11 @@
 package ch.cern.spark.metrics.source.types;
 
-import java.text.ParseException;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -31,6 +24,7 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.json.JSONObjectDeserializer;
+import ch.cern.spark.json.JSONObjectToMetricParser;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.source.MetricsSource;
 
@@ -41,38 +35,22 @@ public class KafkaMetricsSource extends MetricsSource {
     
     private Map<String, Object> kafkaParams;
     private Set<String> kafkaTopics;
-    
-    public static String ATTRIBUTES_PARAM = "parser.attributes";
-    private String[] attributes;
-    
-    public static String VALUE_ATTRIBUTE_PARAM = "parser.value.attribute";
-    private String value_attribute;
-    
-    public static String TIMESTAMP_FORMAT_PARAM = "parser.timestamp.format";
-    public static String TIMESTAMP_FORMAT_DEFAULT = "yyyy-MM-dd'T'HH:mm:ssZ";
-    private String timestamp_format_pattern;
-    
-    private transient DateTimeFormatter timestamp_format;
 
-    public static String TIMESTAMP_ATTRIBUTE_PARAM = "parser.timestamp.attribute";
-    private String timestamp_attribute;
+	private JSONObjectToMetricParser parser;
 
     @Override
     public void config(Properties properties) throws ConfigurationException {
         kafkaParams = getKafkaConsumerParams(properties);
         kafkaTopics = new HashSet<String>(Arrays.asList(properties.getProperty("topics").split(",")));
         
-        attributes = properties.getProperty(ATTRIBUTES_PARAM).split("\\s");
-        value_attribute = properties.getProperty(VALUE_ATTRIBUTE_PARAM);
-        timestamp_attribute = properties.getProperty(TIMESTAMP_ATTRIBUTE_PARAM);        
-        timestamp_format_pattern = properties.getProperty(TIMESTAMP_FORMAT_PARAM, TIMESTAMP_FORMAT_DEFAULT);
+        parser = new JSONObjectToMetricParser(properties.getSubset("parser"));
     }
     
     @Override
 	public JavaDStream<Metric> createJavaDStream(JavaStreamingContext ssc) {
         JavaDStream<JSONObject> inputStream = createKafkaInputStream(ssc);
 
-        JavaDStream<Metric> metricStream = inputStream.map(metric -> parse(metric));
+        JavaDStream<Metric> metricStream = inputStream.flatMap(parser);
         
         return metricStream;
     }
@@ -107,28 +85,6 @@ public class KafkaMetricsSource extends MetricsSource {
         }
         
         return kafkaParams;
-    }
-    
-    private Metric parse(JSONObject jsonObject) throws ParseException{
-		Instant timestamp = toDate(jsonObject.getProperty(timestamp_attribute));
-        
-        float value = Float.parseFloat(jsonObject.getProperty(value_attribute));
-        
-        Map<String, String> ids = Stream.of(attributes)
-        		.filter(id -> jsonObject.getProperty(id) != null)
-        		.collect(Collectors.toMap(String::toString, jsonObject::getProperty));
-        
-        return new Metric(timestamp, value, ids);
-    }
-    
-    private Instant toDate(String date_string) throws ParseException {
-    		if(timestamp_format == null)
-        		timestamp_format = new DateTimeFormatterBuilder()
-								.appendPattern(timestamp_format_pattern)
-								.toFormatter()
-								.withZone(ZoneOffset.systemDefault());
-    	
-        return timestamp_format.parse(date_string, Instant::from);
     }
 
 }

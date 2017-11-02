@@ -67,7 +67,7 @@ metrics.source.kafka-prod.consumer.group.id = spark_metric_analyzer
 metrics.source.kafka-prod.topics = db-logging-platform
 # These two parameters are extracted from metrics (they are enough to identify a metric)
 metrics.source.kafka-prod.parser.attributes = INSTANCE_NAME METRIC_NAME
-metrics.source.kafka-prod.parser.value.attribute = VALUE
+metrics.source.kafka-prod.parser.value.attributes = VALUE
 metrics.source.kafka-prod.parser.timestamp.attribute = END_TIME
 
 metrics.define.DBCPUUsagePercentage.value = DBCPUUsagePerSec / HostCPUUsagePerSec
@@ -138,8 +138,7 @@ metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<a
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute....
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate = <not set|sum|avg|weighted_avg|count|max|min|diff>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.expire = <never|period like 1h, 3m or 45s> (default: 10m)
-metrics.define.<defined-metric-id>.variables.<variable-id-2>.filter.attribute....
-metrics.define.<defined-metric-id>.variables....
+metrics.define.<defined-metric-id>.variables.<variable-id-2>....
 
 # With different id, more metrics can be defined
 ```
@@ -156,7 +155,7 @@ The computation and further generation of a new metric will be trigger when the 
 > metrics.define.machines-running.variables.value.filter.attribute.TYPE = "running"
 > metrics.define.machines-running.variables.value.aggregate = count
 > ```
-> If when parameter is set with variable names (default), a count 0 will never be produced because no metric will trigger its generation (no metrics coming, that's why count is 0). To solve this, there are two possible solutions. 
+> If "when" parameter is set with variable names (default), a count 0 will never be produced because no metric will trigger its generation (no metrics coming, that's why count is 0). To solve this, there are two possible solutions. 
 > 1. The defined metric is triggered by another variable which only serves to trigger the generation. If trigger metric (variable) does not come, no metric is generated.
 > ``` 
 > # to add
@@ -181,7 +180,7 @@ You can make variables to never expire configuring "expire" parameter to "never"
 If a variable expires and the variable is used for the computation, no metrics will be produced. For aggregations, individual values are removed from the aggregation if they are not updated after such period. 
 In the case all the values for a given aggregated variable expire, count is 0.
 
-A variable could be the result of an aggregation of values. Values from all metrics that pass the specified filter (and after grouping) will be aggregated. 
+A variable could be the result of an aggregation of values. Values from all metrics that pass the specified filter (and after grouping) will be aggregated. Note that in order to differentiate between metric, any attribute not specified in "groupby" will be used. 
 This can be configured using the "aggregate" parameter, where you configure the operation to perform the aggregation. Available operations are: sum, avg, weighted_avg (influence proportional with elapsed time), count, max, min or diff (with previos value). 
 The maximum number of different metrics that can be aggregated is 100, if more, results might be inconsistent. 
 
@@ -423,17 +422,139 @@ It expects documents as JSON.
 
 Configuration:
 ```
-metrics.source.type = kafka
-metrics.source.topics = <consumer topic>
-metrics.source.consumer.bootstrap.servers = <bootstrap_servers separated by comma>
-metrics.source.consumer.group.id = <consumer_group_id>
+metrics.source.<source-id>.type = kafka
+metrics.source.<source-id>.topics = <consumer topic>
+metrics.source.<source-id>.consumer.bootstrap.servers = <bootstrap_servers separated by comma>
+metrics.source.<source-id>.consumer.group.id = <consumer_group_id>
 # All these parameters (source.consumer.) will by passed to the consumer
-metrics.source.consumer.<any_other_key> = <any_other_value>
-metrics.source.parser.attributes = <attributs to extract from the JSON>
-metrics.source.parser.value.attribute = <attribute that represent the value>
-metrics.source.parser.timestamp.attribute = <attribute that represent the time>
-metrics.source.parser.timestamp.format = <timestamp_format> (default: yyyy-MM-dd'T'HH:mm:ssZ)
+metrics.source.<source-id>.consumer.<any_other_key> = <any_other_value>
+metrics.source.<source-id>.parser.<configs at JSON to Metric parser> = <values>
 ```
+
+#### JSON to Metric parser
+
+It has the following configuration parameters:
+
+```
+<source-id>.parser.timestamp.attribute = <attribute that represent the time>
+<source-id>.parser.timestamp.format = <timestamp_format> (default: yyyy-MM-dd'T'HH:mm:ssZ)
+<source-id>.parser.attributes = <attributs separated by comma to extract from the JSON>
+<source-id>.parser.attributes.<alias-1> = <key-to-attribute-1>
+<source-id>.parser.attributes.<alias-2> = <key-to-attribute-2>
+<source-id>.parser.attributes.<alias-n> = <key-to-attribute-n>
+<source-id>.parser.value.attributes = <attributes that represent values>
+<source-id>.parser.value.attributes.<alias-1> = <key-to-value-1>
+<source-id>.parser.value.attributes.<alias-2> = <key-to-value-2>
+<source-id>.parser.value.attributes.<alias-n> = <key-to-value-n>
+```
+
+"timestamp.attribute" indicates the key in the JSON document that contains the timestamp for the metric. If the JSON document does not contain the timestamp value, no metric will be generated. 
+
+"timestamp.format" indicates the format of the timestamp stored in the attribute configured by "timestamp.attribute". If the format is a number that represents epoch in milliseconds, it must be set to "epoch-ms", if seconds "epoch-s". If the JSON document contains a timestamp with wrong format, no metric will be generated. 
+
+"attributes" configure the keys that will be extracted from the JSON document. You can indicate a list of keys separated by space.
+You can also configure these attributes individually assigning aliases. Assigned alias will be used to refer to the attribute in any filter. 
+List of keys or aliases can be combined.
+If the JSON document does not contain the attribute, the metric will not contain such attribute.
+
+"value.attributes" configure the keys from which metric values will be extracted from the JSON document. You can indicate a list of keys separated by space. A metric will be created for each key, all metrics generated from the same JSON document will share the same ids and attributes. All generated metrics will contain an extra attribute with name "$value\_attribute", its value indicates the key from which the value has been extracted. 
+You can also configure these attributes for values individually assigning aliases. Assigned alias will be stored at "$value\_attribute", so the alias will be used in any filter.
+List of keys or aliases can be combined.
+If JSON document does not contain the value, the metric will not be generated.
+
+Commonly, you can face two different scenarios. One where each incoming JSON represent a single metric, an example of JSON document could be: 
+
+```
+{
+	"headers":{
+		"TIMESTAMP": "2017-11-01T10:29:14+02:00",
+		"type": "CPUUsage",
+		"hostname": "host-1234.cern.ch"
+	},"body":{
+		"metric":{
+			"value": 295.13
+		}
+	}
+}
+```
+
+For this kind of documents, the configuration would looks like the following.
+
+```
+<source-id>.parser.timestamp.attribute = header.TIMESTAMP
+
+<source-id>.parser.attributes = headers.type headers.hostname
+# or/and with aliases
+<source-id>.parser.attributes.type = headers.type
+<source-id>.parser.attributes.hostname = headers.hostname
+
+<source-id>.parser.value.attributes = body.metric.value
+# or/and with aliases
+<source-id>.parser.value.attributes.value_float = body.metric.value
+```
+
+One metric will be generated per JSON document. The metric timestamp will be "2017-11-01T10:29:14+02:00" and the value 295.13. If not using aliases, metric will have the following attributes:
+* headers.type = "CPUUsage"
+* headers.hostname = "host-1234.cern.ch"
+* $value\_attribute = "body.metric.value"
+
+If aliases are used:
+* type = "CPUUsage"
+* hostname = "host-1234.cern.ch"
+* $value\_attribute = "value\_float"
+
+A different scenario is when a single document contains several metrics, an example of JSON document could be:
+
+```
+{
+	"headers":{
+		"TIMESTAMP": "2017-11-01T10:29:14+02:00",
+		"hostname": "host-1234.cern.ch"
+	},"body":{
+		"CPUUsage": 295.13,
+		"WriteBytesPerSecond": 32495,
+		"ReadBytesPerSecond": 9824
+	}
+}
+```
+
+For this kind of documents, the configuration would looks like the following.
+
+```
+<source-id>.parser.timestamp.attribute = header.TIMESTAMP
+
+<source-id>.parser.attributes = headers.hostname
+# or/and with aliases
+<source-id>.parser.attributes.hostname = headers.hostname
+
+<source-id>.parser.value.attributes = body.CPUUsage body.MemoryUsage body.WriteBytesPerSecond body.ReadBytesPerSecond
+# or/and with aliases
+<source-id>.parser.value.attributes.CPUUsage = body.CPUUsage
+<source-id>.parser.value.attributes.WriteBytesPerSecond = body.WriteBytesPerSecond
+<source-id>.parser.value.attributes.ReadBytesPerSecond = body.ReadBytesPerSecond
+```
+
+In this case, three metrics will be generated per JSON document (as many as attributes for values). Generated metrics will be (if aliases are not used):
+* Metric with timestamp "2017-11-01T10:29:14+02:00", value 295.13 and attributes:
+  * headers.hostname = "host-1234.cern.ch"
+  * $value\_attribute = "body.CPUUsage"
+* Metric with timestamp "2017-11-01T10:29:14+02:00", value 32495 and attributes:
+  * headers.hostname = "host-1234.cern.ch"
+  * $value\_attribute = "body.WriteBytesPerSecond"
+* Metric with timestamp "2017-11-01T10:29:14+02:00", value 9824 and attributes:
+  * headers.hostname = "host-1234.cern.ch"
+  * $value\_attribute = "body.ReadBytesPerSecond"
+
+If aliases are used:
+* Metric with timestamp "2017-11-01T10:29:14+02:00", value 295.13 and attributes:
+  * hostname = "host-1234.cern.ch"
+  * $value\_attribute = "CPUUsage"
+* Metric with timestamp "2017-11-01T10:29:14+02:00", value 32495 and attributes:
+  * hostname = "host-1234.cern.ch"
+  * $value\_attribute = "WriteBytesPerSecond"
+* Metric with timestamp "2017-11-01T10:29:14+02:00", value 9824 and attributes:
+  * hostname = "host-1234.cern.ch"
+  * $value\_attribute = "ReadBytesPerSecond"
 
 ### Metric analysis
 
@@ -583,6 +704,8 @@ An example of the result of this notificator can be seen in the following image.
 ![Percentage status notificator](img/notificator/percentage.png)
 
 ### Notifications sinks
+
+#### Elastic notifications sink
 
 Notifications are converted to JSON an sinked to an Elastic index.
 
