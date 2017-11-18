@@ -137,6 +137,10 @@ public class Properties extends java.util.Properties{
 		return cachedProperties;
 	}
 	
+	public static void resetCache() {
+		Properties.cachedProperties = null;
+	}
+	
 	public static void initCache(Properties propertiesSourceProps) throws ConfigurationException {
 		if(Properties.cachedProperties == null)
 			Properties.cachedProperties = new PropertiesCache(propertiesSourceProps);

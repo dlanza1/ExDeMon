@@ -11,10 +11,10 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import ch.cern.spark.metrics.store.MetricStore;
+import ch.cern.spark.metrics.store.Store;
 
 public class UpdateMetricStatusesF
-        implements Function4<Time, MonitorIDMetricIDs, Optional<Metric>, State<MetricStore>, Optional<AnalysisResult>> {
+        implements Function4<Time, MonitorIDMetricIDs, Optional<Metric>, State<Store>, Optional<AnalysisResult>> {
 
     private static final long serialVersionUID = 3156649511706333348L;
     
@@ -29,7 +29,7 @@ public class UpdateMetricStatusesF
     
     @Override
     public Optional<AnalysisResult> call(
-            Time time, MonitorIDMetricIDs ids, Optional<Metric> metricOpt, State<MetricStore> storeState) 
+            Time time, MonitorIDMetricIDs ids, Optional<Metric> metricOpt, State<Store> storeState) 
             throws Exception {
     	
     		Monitors.initCache(propertiesSourceProperties);
@@ -47,19 +47,20 @@ public class UpdateMetricStatusesF
         if(!metricOpt.isPresent())
             return Optional.absent();
         
-        MetricStore store = getMetricStore(storeState);
         Metric metric = metricOpt.get();
 
-        AnalysisResult result = monitor.process(store, metric);
-        result.setAnalyzedMetric(metric);
-        
-        storeState.update(store);
-        
-        return Optional.of(result);
+        java.util.Optional<AnalysisResult> result = monitor.process(storeState, metric);
+        if(result.isPresent()) {
+        		result.get().setAnalyzedMetric(metric);
+            
+            return toOptinal(result);
+        }else{
+        		return Optional.empty();
+        }
     }
-    
-    private MetricStore getMetricStore(State<MetricStore> storeState) {
-        return storeState.exists() ? storeState.get() : new MetricStore();
-    }
+
+	private Optional<AnalysisResult> toOptinal(java.util.Optional<AnalysisResult> result) {
+		return result.isPresent() ? Optional.of(result.get()) : Optional.empty();
+	}
 
 }

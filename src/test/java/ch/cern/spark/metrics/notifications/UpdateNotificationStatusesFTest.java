@@ -35,6 +35,7 @@ public class UpdateNotificationStatusesFTest {
 
     @Test
     public void raiseAlwaysSameStatus() throws Exception{
+    		propertiesCache.get().setProperty("monitor.monID.analysis.type", "true");
     		propertiesCache.get().setProperty("monitor.monID.notificator.notID.type", "constant");
     		propertiesCache.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
     		propertiesCache.get().setProperty("monitor.monID.notificator.notID.period", "10s");
@@ -60,6 +61,7 @@ public class UpdateNotificationStatusesFTest {
     
     @Test
     public void notRaiseAfterRaising() throws Exception{
+    		propertiesCache.get().setProperty("monitor.monID.analysis.type", "true");
     		propertiesCache.get().setProperty("monitor.monID.notificator.notID.type", "constant");
     		propertiesCache.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
     		propertiesCache.get().setProperty("monitor.monID.notificator.notID.period", "10s");
@@ -89,6 +91,7 @@ public class UpdateNotificationStatusesFTest {
     
     @Test
     public void raiseChangingStatus() throws Exception{
+    		propertiesCache.get().setProperty("monitor.monID.analysis.type", "true");
     		propertiesCache.get().setProperty("monitor.monID.notificator.notID.type", "constant");
     		propertiesCache.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
     		propertiesCache.get().setProperty("monitor.monID.notificator.notID.period", "10s");

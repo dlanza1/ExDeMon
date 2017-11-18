@@ -11,6 +11,7 @@ import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.notificator.NotificatorID;
 import ch.cern.spark.metrics.results.AnalysisResult;
+import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.store.Store;
 
 public class UpdateNotificationStatusesF
@@ -37,7 +38,9 @@ public class UpdateNotificationStatusesF
         		return Optional.empty();
         Monitor monitor = monitorOpt.get();
         
-        Notificator notificator = monitor.getNotificator(ids.getNotificatorID(), toOptional(notificatorState));        
+        Notificator notificator = monitor.getNotificators().get(ids.getNotificatorID());        
+        if(notificator.hasStore())
+        		toOptional(notificatorState).ifPresent(((HasStore) notificator)::load);
         
         java.util.Optional<Notification> notification = notificator.apply(resultOpt.get());
         

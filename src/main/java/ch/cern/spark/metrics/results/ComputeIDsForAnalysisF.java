@@ -36,7 +36,7 @@ public class ComputeIDsForAnalysisF implements PairFlatMapFunction<AnalysisResul
         		return new LinkedList<Tuple2<NotificatorID, AnalysisResult>>().iterator();
         Monitor monitor = monitorOpt.get();
         
-        Set<String> notificatorIDs = monitor.getNotificatorIDs();
+        Set<String> notificatorIDs = monitor.getNotificators().keySet();
         
         return notificatorIDs.stream()
         		.map(id -> new NotificatorID(monitorID, id, metricIDs))

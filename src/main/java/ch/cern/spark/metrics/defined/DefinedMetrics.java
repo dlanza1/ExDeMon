@@ -29,14 +29,7 @@ public class DefinedMetrics {
 	        
 	        Map<String, DefinedMetric> definedMetrics = metricsDefinedNames.stream()
 	        		.map(id -> new Pair<String, Properties>(id, properties.getSubset(id)))
-	        		.map(info -> {
-						try {
-							return new DefinedMetric(info.first).config(info.second);
-						} catch (ConfigurationException e) {
-							LOG.error("ID " + info.first + ":" + e.getMessage(), e);
-							return null;
-						}
-					})
+	        		.map(info -> new DefinedMetric(info.first).config(info.second))
 	        		.filter(out -> out != null)
 	        		.collect(Collectors.toMap(DefinedMetric::getName, m -> m));
 	        

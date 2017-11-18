@@ -5,66 +5,127 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.spark.streaming.Time;
 import org.junit.Test;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
+import ch.cern.properties.source.StaticPropertiesSource;
 import ch.cern.spark.metrics.Metric;
+import scala.Tuple2;
 
 public class DefinedMetricTest {
 	
+	Properties propertiesSource = new Properties();
+	{
+		propertiesSource.put("type", "static");
+	}
+	
 	@Test
 	public void configNotValid() {
-		
 		Properties props = new Properties();
 		
-		//Value must be specified.
-		props.setProperty("metric.y.filter.attribute.AA", "metricAA");
-		DefinedMetric metric = new DefinedMetric(null);
-		try{
-			metric.config(props);
-			fail();
-		}catch(ConfigurationException e) {}
+		Map<String, String> groupByMetricIDs = new HashMap<>();
 		
-		//At least a metric must be described.
-		props = new Properties();
-		props.setProperty("value", "x * 10");
-		metric = new DefinedMetric(null);
-		try{
-			metric.config(props);
-			fail();
-		}catch(ConfigurationException e) {}
+		//Value must be specified.
+		DefinedMetric metric = new DefinedMetric("test").config(props);
+		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
+		DefinedMetricStore store = new DefinedMetricStore();
+		Optional<Metric> result = metric.generateByBatch(store, null, groupByMetricIDs);
+		assertEquals("ConfigurationException: Value must be specified.", result.get().getValue().getAsException().get());
 		
 		//Equation contain variables that have not been described.
 		props = new Properties();
 		props.setProperty("value", "x * 10");
-		props.setProperty("metric.y.filter.attribute.AA", "metricAA");
-		metric = new DefinedMetric(null);
-		try{
-			metric.config(props);
-			fail();
-		}catch(ConfigurationException e) {}
+		props.setProperty("variables.y.filter.attribute.AA", "metricAA");
+		metric = new DefinedMetric("test").config(props);
+		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
+		result = metric.generateByBatch(store, null, groupByMetricIDs);
+		assertEquals("ConfigurationException: Problem parsing value: Unknown variable: x", result.get().getValue().getAsException().get());
 		
 		//Metrics listed in when parameter must be declared.
 		props = new Properties();
 		props.setProperty("value", "x * 10");
 		props.setProperty("when", "y");
-		props.setProperty("metric.x.filter.attribute.AA", "metricAA");
-		metric = new DefinedMetric(null);
-		try{
-			metric.config(props);
-			fail();
-		}catch(ConfigurationException e) {}
+		props.setProperty("variables.x.filter.attribute.AA", "metricAA");
+		metric = new DefinedMetric("test").config(props);
+		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
+		result = metric.generateByBatch(store, null, groupByMetricIDs);
+		assertEquals("ConfigurationException: Variables listed in when parameter must be declared.", result.get().getValue().getAsException().get());
+		
+	}
+	
+	@Test
+	public void shouldGenerateExceptionValueOnePerBacthWithWrongConfig() throws Exception {
+		Properties properties = new Properties();
+		properties.setProperty("metrics.define.error.value", "x");
+		StaticPropertiesSource.properties = properties;
+		Properties.resetCache();
+		DefinedMetrics.getCache().reset();
+		
+		ComputeIDsForDefinedMetricsF computeIDsForDefinedMetricsF = new ComputeIDsForDefinedMetricsF(propertiesSource);
+		DefinedMetricStore store = new DefinedMetricStore();
+		
+		//First batch
+		ComputeBatchDefineMetricsF computeBatchDefineMetricsF = new ComputeBatchDefineMetricsF(new Time(0));
+		Metric metric = Metric(0, 0, "HOST=host2131423");
+		Iterator<Tuple2<DefinedMetricID, Metric>> ids = computeIDsForDefinedMetricsF.call(metric);
+		ids.hasNext();
+		Tuple2<DefinedMetricID, DefinedMetricStore> pair = new Tuple2<DefinedMetricID, DefinedMetricStore>(ids.next()._1, store);
+		Iterator<Metric> definedMetrics = computeBatchDefineMetricsF.call(pair);
+		definedMetrics.hasNext();
+		Metric definedMetric = definedMetrics.next();
+		
+		assertEquals("ConfigurationException: Problem parsing value: Unknown variable: x", definedMetric.getValue().getAsException().get());
+		assertEquals(1, definedMetric.getIDs().size());
+		assertEquals(0, definedMetric.getInstant().toEpochMilli());
+		assertEquals("error", definedMetric.getIDs().get("$defined_metric"));
+		
+		metric = Metric(3, 0);
+		ids = computeIDsForDefinedMetricsF.call(metric);
+		ids.hasNext();
+		pair = new Tuple2<DefinedMetricID, DefinedMetricStore>(ids.next()._1, store);
+		definedMetrics = computeBatchDefineMetricsF.call(pair);
+		assertFalse(definedMetrics.hasNext());
+		
+		metric = Metric(4, 0, "HOST=host1");
+		ids = computeIDsForDefinedMetricsF.call(metric);
+		ids.hasNext();
+		pair = new Tuple2<DefinedMetricID, DefinedMetricStore>(ids.next()._1, store);
+		definedMetrics = computeBatchDefineMetricsF.call(pair);
+		assertFalse(definedMetrics.hasNext());
+		
+		//Second batch
+		computeBatchDefineMetricsF = new ComputeBatchDefineMetricsF(new Time(5));
+		metric = Metric(6, 0, "HOST=host234234");
+		ids = computeIDsForDefinedMetricsF.call(metric);
+		ids.hasNext();
+		pair = new Tuple2<DefinedMetricID, DefinedMetricStore>(ids.next()._1, store);
+		definedMetrics = computeBatchDefineMetricsF.call(pair);
+		definedMetrics.hasNext();
+		definedMetric = definedMetrics.next();
+		
+		assertEquals("ConfigurationException: Problem parsing value: Unknown variable: x", definedMetric.getValue().getAsException().get());
+		assertEquals(5, definedMetric.getInstant().toEpochMilli());
+		assertTrue(definedMetric.getIDs().size() == 1);
+		assertEquals("error", definedMetric.getIDs().get("$defined_metric"));
+		
+		metric = Metric(10, 0);
+		ids = computeIDsForDefinedMetricsF.call(metric);
+		ids.hasNext();
+		pair = new Tuple2<DefinedMetricID, DefinedMetricStore>(ids.next()._1, store);
+		definedMetrics = computeBatchDefineMetricsF.call(pair);
+		assertFalse(definedMetrics.hasNext());
 	}
 
 	@Test
@@ -186,7 +247,7 @@ public class DefinedMetricTest {
 		assertEquals("machine1", definedMetric.getGroupByMetricIDs(ids).get().get("INSTANCE_NAME"));
 		
 		
-		properties.setProperty("metrics.groupby", "INSTANCE_NAME, METRIC_NAME");
+		properties.setProperty("metrics.groupby", "INSTANCE_NAME METRIC_NAME");
 		definedMetric.config(properties);
 		
 		ids = new HashMap<>();
@@ -197,7 +258,7 @@ public class DefinedMetricTest {
 		assertEquals("metric1", definedMetric.getGroupByMetricIDs(ids).get().get("METRIC_NAME"));
 		
 		
-		properties.setProperty("metrics.groupby", "INSTANCE_NAME, METRIC_NAME");
+		properties.setProperty("metrics.groupby", "INSTANCE_NAME METRIC_NAME");
 		definedMetric.config(properties);
 		
 		ids = new HashMap<>();

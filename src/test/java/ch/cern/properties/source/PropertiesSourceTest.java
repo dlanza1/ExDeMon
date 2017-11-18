@@ -1,7 +1,9 @@
 package ch.cern.properties.source;
 
+import ch.cern.components.RegisterComponent;
 import ch.cern.properties.Properties;
 
+@RegisterComponent("test")
 public class PropertiesSourceTest extends PropertiesSource {
 
 	private static final long serialVersionUID = 79323351398301182L;

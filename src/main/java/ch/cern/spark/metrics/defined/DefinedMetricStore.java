@@ -27,6 +27,8 @@ public class DefinedMetricStore implements Serializable{
 	
 	private Map<String, Map<Integer, DatedValue>> aggregateValues;
 	private Map<String, Map<Instant, Value>> aggregateValuesForEmptyAttributes;
+
+	private Instant processedBatchTime;
 	
 	public DefinedMetricStore() {
 		values = new HashMap<>();
@@ -126,6 +128,22 @@ public class DefinedMetricStore implements Serializable{
 	@Override
 	public String toString() {
 		return "DefinedMetricStore [values=" + values + ", aggregateValues=" + aggregateValues + "]";
+	}
+
+	public boolean newProcessedBatchTime(Instant time) {
+		if(this.processedBatchTime == null) {
+			this.processedBatchTime = time;
+			
+			return true;
+		}else {
+			if(this.processedBatchTime.compareTo(time) == 0) {
+				return false;
+			}else{
+				this.processedBatchTime = time;
+				
+				return true;
+			}
+		}
 	}
 
 }

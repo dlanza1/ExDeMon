@@ -44,7 +44,7 @@ public class UpdateMetricStatusesFTest {
         MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
         Optional<Metric> metricOpt = null;
         @SuppressWarnings("unchecked")
-        State<MetricStore> storeState = mock(State.class);
+        State<Store> storeState = mock(State.class);
         when(storeState.isTimingOut()).thenReturn(true);
         
         Optional<AnalysisResult> resultOpt = func.call(time, ids, metricOpt, storeState);
@@ -62,7 +62,7 @@ public class UpdateMetricStatusesFTest {
         MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
         Optional<Metric> metricOpt = Optional.absent();
         @SuppressWarnings("unchecked")
-        State<MetricStore> storeState = mock(State.class);
+        State<Store> storeState = mock(State.class);
         
         Optional<AnalysisResult> resultOpt = func.call(time, ids, metricOpt, storeState);
         

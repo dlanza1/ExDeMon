@@ -8,9 +8,8 @@ import org.apache.log4j.Logger;
 import org.reflections.Reflections;
 
 import ch.cern.components.Component.Type;
+import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.store.HasStore;
-import ch.cern.spark.metrics.store.Store;
 
 public class ComponentManager {
     
@@ -50,16 +49,12 @@ public class ComponentManager {
         
         availableComponents.get(type).put(name, componentClass);
     }
-    
-    public static<C extends Component> C build(Type componentType, Properties properties) throws Exception {
-        return build(componentType, null, properties);
-    }
-    
-    public static<C extends Component> C build(Component.Type componentType, Optional<Store> store, Properties properties) throws Exception {
+
+    public static<C extends Component> C build(Component.Type componentType, Properties properties) throws ConfigurationException  {
         String type = properties.getProperty("type");
         
         if(type == null)
-            throw new ExceptionInInitializerError("Component type cannot be null.");
+            throw new ConfigurationException(componentType + ": component type cannot be null.");
         
         C component = buildFromAvailableComponents(componentType, type);
         
@@ -75,24 +70,16 @@ public class ComponentManager {
                 		message += "It must be a FQCN (not built-in components availables)";
                 
                 LOG.error(message, e);
-                throw new ExceptionInInitializerError(message);
+                throw new ConfigurationException(componentType + ": " + message);
             }
         }
         
         component.config(properties);
         
-        if(component.hasStore())
-            try{
-            		store.ifPresent(((HasStore) component)::load);
-            } catch(ClassCastException e){
-                // In case Store has changed, we may get ClassCastException
-                // We do nothing, proper Store will be set when saving
-            }
-        
         return component;
     }
 
-    private static<C extends Component> C buildFromAvailableComponents(Type componentType, String type) throws Exception {
+    private static<C extends Component> C buildFromAvailableComponents(Type componentType, String type) throws ConfigurationException {
         Map<String, Class<? extends Component>> availableComponents = getAvailableComponents(componentType);
         
         if(availableComponents == null)
@@ -105,23 +92,20 @@ public class ComponentManager {
         return null;
     }
 
-	private static<C extends Component> C getComponentInstance(String clazzName) throws Exception {
-		@SuppressWarnings("unchecked")
-		Class<C> clazz = (Class<C>) Class.forName(clazzName).asSubclass(Component.class);
-		
-		return clazz.newInstance();
+	private static<C extends Component> C getComponentInstance(String clazzName) throws ConfigurationException {
+		try {
+			@SuppressWarnings("unchecked")
+			Class<C>clazz = (Class<C>) Class.forName(clazzName).asSubclass(Component.class);
+			
+			return clazz.newInstance();
+		} catch (Exception e) {
+			throw new ConfigurationException("Class with name " + clazzName + " could not be instanciated: " + e.getMessage());
+		}
     }
 
     public static Map<String, Class<? extends Component>> getAvailableComponents(Type componentType){
         return availableComponents.get(componentType);
     }
-
-	public static<C extends Component> Optional<C> buildOptional(Type type, Optional<Store> store, Properties props) throws Exception {
-		if(!props.isTypeDefined())
-			return Optional.empty();
-		
-		return Optional.of(build(type, store, props));
-	}
 
 	public static <C extends Component> Optional<C> buildOptional(Type type, Properties props) throws Exception {
 		if(!props.isTypeDefined())

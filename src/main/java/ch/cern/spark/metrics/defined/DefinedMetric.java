@@ -18,6 +18,7 @@ import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.Equation;
 import ch.cern.spark.metrics.defined.equation.var.AnyMetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
+import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.Value;
 
 public class DefinedMetric implements Serializable{
@@ -32,14 +33,30 @@ public class DefinedMetric implements Serializable{
 	
 	private Equation equation;
 
+	private ConfigurationException configurationException;
+
 	public DefinedMetric(String name) {
 		this.name = name;
 	}
 
-	public DefinedMetric config(Properties properties) throws ConfigurationException {		
+	public DefinedMetric config(Properties properties) {
+		try {
+			return tryConfig(properties);
+		} catch (ConfigurationException e) {
+			configurationException = e;
+			
+			variablesWhen = null; // So that, it is trigger with every batch
+			metricsGroupBy = null;
+			equation = null;
+			
+			return this;
+		}
+	}
+	
+	public DefinedMetric tryConfig(Properties properties) throws ConfigurationException {		
 		String groupByVal = properties.getProperty("metrics.groupby");
 		if(groupByVal != null)
-			metricsGroupBy = Arrays.stream(groupByVal.split(",")).map(String::trim).collect(Collectors.toSet());
+			metricsGroupBy = Arrays.stream(groupByVal.split(" ")).map(String::trim).collect(Collectors.toSet());
 		
 		Properties variablesProperties = properties.getSubset("variables");
 		Set<String> variableNames = variablesProperties.getUniqueKeyFields();
@@ -74,13 +91,21 @@ public class DefinedMetric implements Serializable{
 					
 					equation.getVariables().put(variableWhen, trigger);
 				}
+				
+				if(!variableNames.contains(variableWhen))
+					throw new ConfigurationException("Variables listed in when parameter must be declared.");
 			}
 		}
+		
+		configurationException = null;
 		
 		return this;
 	}
 
 	public boolean testIfApplyForAnyVariable(Metric metric) {
+		if(configurationException != null)
+			return true;
+		
 		return equation.getVariables().values().stream()
 				.filter(variable -> variable.test(metric))
 				.count() > 0;
@@ -108,6 +133,9 @@ public class DefinedMetric implements Serializable{
 	}
 
 	public void updateStore(DefinedMetricStore store, Metric metric) {
+		if(configurationException != null)
+			return;
+		
 		Map<String, MetricVariable> variablesToUpdate = getVariablesToUpdate(metric);
 		
 		for (MetricVariable variableToUpdate : variablesToUpdate.values())
@@ -118,23 +146,30 @@ public class DefinedMetric implements Serializable{
 		if(!shouldBeTrigeredByUpdate(metric))
 			return Optional.empty();
 		
-		return Optional.of(generate(store, metric.getInstant(), groupByMetricIDs));
+		return generate(store, metric.getInstant(), groupByMetricIDs);
 	}
 	
 	public Optional<Metric> generateByBatch(DefinedMetricStore store, Instant time, Map<String, String> groupByMetricIDs) {
 		if(!isTriggerOnEveryBatch())
 			return Optional.empty();
 		
-		return Optional.of(generate(store, time, groupByMetricIDs));
+		return generate(store, time, groupByMetricIDs);
 	}
 	
-	private Metric generate(DefinedMetricStore store, Instant time, Map<String, String> groupByMetricIDs) {		
+	private Optional<Metric> generate(DefinedMetricStore store, Instant time, Map<String, String> groupByMetricIDs) {		
 		Map<String, String> metricIDs = new HashMap<>(groupByMetricIDs);
 		metricIDs.put("$defined_metric", name);
 		
+		if(configurationException != null) {
+			if(store.newProcessedBatchTime(time))
+				return Optional.of(new Metric(time, new ExceptionValue("ConfigurationException: " + configurationException.getMessage()), metricIDs));
+			else
+				return Optional.empty();
+		}
+		
 		Value value = equation.compute(store, time);
 			
-		return new Metric(time, value, metricIDs);
+		return Optional.of(new Metric(time, value, metricIDs));
 	}
 
 	public Optional<Map<String, String>> getGroupByMetricIDs(Map<String, String> metricIDs) {

@@ -142,7 +142,7 @@ Independently of the type of value, values contains an attribute with name "sour
 ```
 metrics.define.<defined-metric-id>.value = <equation containing <variable-ids>> (default: <variable-id> if only one variable has been declared)
 metrics.define.<defined-metric-id>.when = <ANY|BATCH|space separated list of variable-ids> (default: the first variable after sorting)
-metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/comma separated attribute names> (default: not set)
+metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/space separated attribute names> (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name-1> = <value-1>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name-2> = <value-2>
@@ -220,7 +220,7 @@ The computation and further generation of a new metric will be trigger when the 
 
 Metrics can be grouped by (e.g. machine) with the "metrics.groupby" parameter in order to apply the equation to a set of metrics. 
 Group by can be set to ALL, then each metric will be treated independently. 
-If group by is configured to ALL (or all attributes the metrics contain are listed) there is no attrbutes to differenciate metrics and aggregate them, so aggregation is done over the historical values coming from the metric.
+If group by is configured to ALL (or all attributes the metrics contain are listed) there is no attributes to differenciate metrics and aggregate them, so aggregation is done over the historical values coming from the metric.
 
 You need to specify what the variables in your equation represent by declaring variables. Then, &lt;variable-id-X&gt; can be used in the equation. The type of a variable is determined by the aggregation operation, if no aggregation operation is applied, it can become any time in the equation.
 Even tough you do not use any variable in the equation, at least one variable must be declared to trigger the computation.
@@ -309,7 +309,7 @@ metrics.define.diff_temp.variables.tempoutside.filter.attribute.METRIC = Tempera
 - Compare values of production and development environments:
 ```
 metrics.define.diff-prod-dev.value = valueprod - valuedev
-metrics.define.diff-prod-dev.metrics.groupby = INSTANCE_NAME, METRIC_NAME
+metrics.define.diff-prod-dev.metrics.groupby = INSTANCE_NAME METRIC_NAME
 # Metrics contain $source attribute with <metric-source-id>, it can be used to filter
 metrics.define.diff-prod-dev.variables.valueprod.filter.attribute.$source = kafka-prod
 metrics.define.diff-prod-dev.variables.valuedev.filter.attribute.$source = kafka-dev
@@ -321,7 +321,7 @@ All metrics that belongs to the same cluster will be averaged. They will be grou
 Metrics coming from the same HOSTNAME, will update its previous value in the aggregation.
 
 ``` 
-metrics.define.avg-metric-per-cluster.metrics.groupby = CLUSTER_NAME, METRIC_NAME
+metrics.define.avg-metric-per-cluster.metrics.groupby = CLUSTER_NAME METRIC_NAME
 metrics.define.avg-metric-per-cluster.variables.average-value.aggregate = avg
 ```
 

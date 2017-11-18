@@ -1,14 +1,16 @@
 package ch.cern.spark.metrics.monitors;
 
-import java.time.Duration;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.apache.spark.streaming.State;
 
 import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentManager;
+import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -17,25 +19,20 @@ import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
-import ch.cern.spark.metrics.store.MetricStore;
+import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.store.Store;
-import ch.cern.utils.TimeUtils;
 
 public class Monitor {
     
     private final static Logger LOG = Logger.getLogger(Monitor.class.getName());
     
-    private String id;
+    protected String id;
     
     private MetricsFilter filter;
 
-    private Properties analysisProps;
+    private Analysis analysis;
     
-    private Properties notificatorsProps;
-
-    public static String MAX_PERIOD_PARAM = "missing.max-period";
-    private String maximumMissingPeriodPropertyValue;
-    private Optional<Duration> maximumMissingPeriod;
+    private Map<String, Notificator> notificators;
 
 	private HashMap<String, String> tags;
     
@@ -43,13 +40,28 @@ public class Monitor {
         this.id = id;
     }
     
-    public Monitor config(Properties properties) throws ConfigurationException {
+    public Monitor config(Properties properties) {
+    		try {
+			return tryConfig(properties);
+		} catch (ConfigurationException e) {
+			InErrorMonitor errorMonitor = new InErrorMonitor(id, e);
+			
+			return errorMonitor.config(properties);
+		}
+    }
+    
+	public Monitor tryConfig(Properties properties) throws ConfigurationException {
         filter = MetricsFilter.build(properties.getSubset("filter"));
         
-        analysisProps = properties.getSubset("analysis");
-        notificatorsProps = properties.getSubset("notificator");
+    		analysis = ComponentManager.build(Type.ANAYLSIS, properties.getSubset("analysis"));
         
-        maximumMissingPeriodPropertyValue = properties.getProperty(MAX_PERIOD_PARAM);
+        Properties notificatorsProps = properties.getSubset("notificator");
+        Set<String> notificatorIds = notificatorsProps.getUniqueKeyFields();
+        notificators = new HashMap<>();
+        for (String notificatorId : notificatorIds) {
+        		Properties props = notificatorsProps.getSubset(notificatorId);
+        		notificators.put(notificatorId, ComponentManager.build(Type.NOTIFICATOR, props));
+		}
         
         tags = new HashMap<>();
         Properties tagsProps = properties.getSubset("tags");
@@ -59,42 +71,32 @@ public class Monitor {
         return this;
     }
 
-    public AnalysisResult process(MetricStore store, Metric metric) throws Exception {
-    		setMaximumMissingPeriod();
-    	
-    		Analysis analysis = ComponentManager.build(Type.ANAYLSIS, store.getAnalysisStore(), analysisProps);
-    		
-        AnalysisResult result = null;
-        
+    public Optional<AnalysisResult> process(State<Store> storeState, Metric metric) {
+    		AnalysisResult result = null;
+
         try{
+        		if(analysis.hasStore() && storeState.exists())
+            		((HasStore) analysis).load(storeState.get());
+        		
             result = analysis.apply(metric);
+            
+            result.addMonitorParam("type", analysis.getClass().getAnnotation(RegisterComponent.class).value());
+            
+            if(analysis.hasStore())
+            		storeState.update(analysis.getStore().get());
         }catch(Throwable e){
             result = AnalysisResult.buildWithStatus(Status.EXCEPTION, e.getClass().getSimpleName() + ": " + e.getMessage());
             LOG.error(e.getMessage(), e);
         }
         
         result.addMonitorParam("name", id);
-        result.addMonitorParam("type", analysisProps.getProperty("type"));
         result.setTags(tags);
-        
-        analysis.getStore().ifPresent(store::setAnalysisStore);
 
-        return result;
+        return Optional.of(result);
     }
-    
-    private void setMaximumMissingPeriod() throws ConfigurationException {
-    		if(maximumMissingPeriodPropertyValue == null)
-    			return;
-    		
-    		try {
-    			maximumMissingPeriod = Optional.of(TimeUtils.parsePeriod(maximumMissingPeriodPropertyValue));
-    		}catch(NumberFormatException e){
-    			throw new ConfigurationException("For key=" + MAX_PERIOD_PARAM + ": " + e.getMessage());
-    		}
-	}
 
-	public MetricsFilter getFilter(){
-        return filter;
+	public MetricsFilter getFilter() {
+		return filter;
     }
 
     @Override
@@ -109,21 +111,9 @@ public class Monitor {
     public void setId(String id) {
         this.id = id;
     }
-
-    public Optional<Duration> getMaximumMissingPeriod() throws ConfigurationException {
-    		setMaximumMissingPeriod();
-    	
-        return maximumMissingPeriod == null ? Optional.empty() : maximumMissingPeriod;
-    }
     
-    public Set<String> getNotificatorIDs(){
-        return notificatorsProps.getUniqueKeyFields();
-    }
-
-    public Notificator getNotificator(String id, Optional<Store> store) throws Exception {
-        Properties props = notificatorsProps.getSubset(id);
-        
-        return ComponentManager.build(Type.NOTIFICATOR, store, props);
+    public Map<String, Notificator> getNotificators(){
+    		return notificators;
     }
 
 }
