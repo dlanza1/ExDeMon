@@ -5,11 +5,11 @@ import java.time.Instant;
 import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.analysis.Analysis;
+import ch.cern.spark.metrics.analysis.NumericAnalysis;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
 @RegisterComponent("fixed-threshold")
-public class FixedThresholdAnalysis extends Analysis {
+public class FixedThresholdAnalysis extends NumericAnalysis {
     
     private static final long serialVersionUID = -6079216045777381098L;
     

@@ -1,6 +1,7 @@
 package ch.cern.spark.json;
 
 import java.io.Serializable;
+import java.text.ParseException;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -25,10 +26,7 @@ public class JSONObject implements Serializable {
         this.string = string;
     }
 
-    public String getProperty(String propertyName) {
-        if (object == null)
-            object = PARSER.parse(string).getAsJsonObject();
-
+    public String getProperty(String propertyName) throws ParseException {
         JsonElement jsonElement = getElement(propertyName);
 
         if (jsonElement == null || jsonElement.isJsonNull())
@@ -37,12 +35,16 @@ public class JSONObject implements Serializable {
             return jsonElement.getAsString();
     }
 
-    public JsonElement getElement(String elementName) {
+    public JsonElement getElement(String elementName) throws ParseException {
         if(elementName == null)
             return null;
         
         if (object == null)
-            object = PARSER.parse(string).getAsJsonObject();
+	    		try {
+	    			object = PARSER.parse(string).getAsJsonObject();
+	    		}catch(Exception e) {
+	    			throw new ParseException(e.getMessage(), 0);
+	    		}
 
         if (elementName.contains(".")) {
             String topPropertyName = elementName.substring(0, elementName.indexOf('.'));
@@ -57,7 +59,7 @@ public class JSONObject implements Serializable {
         return object.get(elementName);
     }
 
-    public JSONObject getJSONObject(String name) {
+    public JSONObject getJSONObject(String name) throws ParseException {
         JsonElement element = getElement(name); 
         
         return element == null ? null : new JSONObject(element.getAsJsonObject());

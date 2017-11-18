@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.defined;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,15 +15,17 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.defined.equation.Equation;
+import ch.cern.spark.metrics.defined.equation.var.AnyMetricVariable;
+import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
+import ch.cern.spark.metrics.value.Value;
 
 public class DefinedMetric implements Serializable{
 
 	private static final long serialVersionUID = 82179461944060520L;
 
 	private String name;
-	
-	private Map<String, Variable> variables;
-	
+
 	private Set<String> metricsGroupBy;
 	
 	private Set<String> variablesWhen;
@@ -40,48 +43,51 @@ public class DefinedMetric implements Serializable{
 		
 		Properties variablesProperties = properties.getSubset("variables");
 		Set<String> variableNames = variablesProperties.getUniqueKeyFields();
-		variables = new HashMap<>();
-		for (String variableName : variableNames)
-			variables.put(variableName, new Variable(variableName).config(variablesProperties.getSubset(variableName)));
-		if(variables.isEmpty())
-			throw new ConfigurationException("At least a variable must be described.");
 		
 		String equationString = properties.getProperty("value");
-		if(equationString == null && variables.size() == 1)
-			equation = new Equation(variables.keySet().stream().findAny().get());
-		else if(equationString == null)
-			throw new ConfigurationException("Value must be specified.");
-		else
-			equation = new Equation(equationString);
-		
-		// Equation should be able to compute the result with all variables
-		Map<String, Double> valuesTest = variables.keySet().stream()
-			.map(name -> new Pair<String, Double>(name, Math.random()))
-			.collect(Collectors.toMap(Pair::first, Pair::second));
-		Optional<Double> resultTest = equation.compute(valuesTest);
-		if(!resultTest.isPresent())
-			throw new ConfigurationException("Equation (value) contain variables that have not been described.");
+		try {
+			if(equationString == null && variableNames.size() == 1)	
+				equation = new Equation(variableNames.iterator().next(), variablesProperties);
+			else if(equationString == null)
+				throw new ConfigurationException("Value must be specified.");
+			else
+				equation = new Equation(equationString, variablesProperties);
+		} catch (ParseException e) {
+			throw new ConfigurationException("Problem parsing value: " + e.getMessage());
+		}
 		
 		variablesWhen = new HashSet<String>();
 		String whenValue = properties.getProperty("when");
 		if(whenValue != null && whenValue.toUpperCase().equals("ANY"))
-			variablesWhen.addAll(variables.keySet());
+			variablesWhen.addAll(variableNames);
 		else if(whenValue != null && whenValue.toUpperCase().equals("BATCH"))
 			variablesWhen = null;
-		else if(whenValue != null)
-			variablesWhen.addAll(Arrays.stream(whenValue.split(",")).map(String::trim).collect(Collectors.toSet()));
-		else
+		else if(whenValue != null) {			
+			variablesWhen.addAll(Arrays.stream(whenValue.split(" ")).map(String::trim).collect(Collectors.toSet()));
+		}else
 			variablesWhen.add(variableNames.stream().sorted().findFirst().get());
+		if(variablesWhen != null) {
+			for (String variableWhen : variablesWhen) {
+				if(!equation.getVariables().containsKey(variableWhen)) {
+					AnyMetricVariable trigger = new AnyMetricVariable(variableWhen);
+					trigger.config(variablesProperties.getSubset(variableWhen));
+					
+					equation.getVariables().put(variableWhen, trigger);
+				}
+			}
+		}
 		
 		return this;
 	}
 
 	public boolean testIfApplyForAnyVariable(Metric metric) {
-		return variables.values().stream().filter(variable -> variable.test(metric)).count() > 0;
+		return equation.getVariables().values().stream()
+				.filter(variable -> variable.test(metric))
+				.count() > 0;
 	}
 
-	public Map<String, Variable> getVariablesToUpdate(Metric metric) {
-		return variables.entrySet().stream()
+	public Map<String, MetricVariable> getVariablesToUpdate(Metric metric) {
+		return equation.getVariables().entrySet().stream()
 				.filter(entry -> entry.getValue().test(metric))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
@@ -90,7 +96,7 @@ public class DefinedMetric implements Serializable{
 		if(isTriggerOnEveryBatch())
 			return false;
 		
-		return variables.entrySet().stream()
+		return equation.getVariables().entrySet().stream()
 				.filter(entry -> variablesWhen.contains(entry.getKey()))
 				.map(entry -> entry.getValue())
 				.filter(variable -> variable.test(metric))
@@ -102,9 +108,9 @@ public class DefinedMetric implements Serializable{
 	}
 
 	public void updateStore(DefinedMetricStore store, Metric metric) {
-		Map<String, Variable> variablesToUpdate = getVariablesToUpdate(metric);
+		Map<String, MetricVariable> variablesToUpdate = getVariablesToUpdate(metric);
 		
-		for (Variable variableToUpdate : variablesToUpdate.values())
+		for (MetricVariable variableToUpdate : variablesToUpdate.values())
 			variableToUpdate.updateStore(store, metric);
 	}
 
@@ -112,34 +118,23 @@ public class DefinedMetric implements Serializable{
 		if(!shouldBeTrigeredByUpdate(metric))
 			return Optional.empty();
 		
-		return generate(store, metric.getInstant(), groupByMetricIDs);
+		return Optional.of(generate(store, metric.getInstant(), groupByMetricIDs));
 	}
 	
-	public Optional<Metric> generateByBatch(DefinedMetricStore store, Instant metricTime, Map<String, String> groupByMetricIDs) {
+	public Optional<Metric> generateByBatch(DefinedMetricStore store, Instant time, Map<String, String> groupByMetricIDs) {
 		if(!isTriggerOnEveryBatch())
 			return Optional.empty();
 		
-		return generate(store, metricTime, groupByMetricIDs);
+		return Optional.of(generate(store, time, groupByMetricIDs));
 	}
 	
-	private Optional<Metric> generate(DefinedMetricStore store, Instant metricTime, Map<String, String> groupByMetricIDs) {
-		Map<String, Double> variableValues = new HashMap<>();
-		for (Variable var : variables.values()) {
-			Optional<Double> valueOpt = var.compute(store, metricTime);
-			
-			valueOpt.ifPresent(value -> variableValues.put(var.getName(), value));
-		}
+	private Metric generate(DefinedMetricStore store, Instant time, Map<String, String> groupByMetricIDs) {		
+		Map<String, String> metricIDs = new HashMap<>(groupByMetricIDs);
+		metricIDs.put("$defined_metric", name);
 		
-		Optional<Double> value = equation.compute(variableValues);
-		
-		if(value.isPresent()) {
-			Map<String, String> metricIDs = new HashMap<>(groupByMetricIDs);
-			metricIDs.put("$defined_metric", name);
+		Value value = equation.compute(store, time);
 			
-			return Optional.of(new Metric(metricTime, value.get().floatValue(), metricIDs ));
-		}else {
-			return Optional.empty();
-		}
+		return new Metric(time, value, metricIDs);
 	}
 
 	public Optional<Map<String, String>> getGroupByMetricIDs(Map<String, String> metricIDs) {
@@ -165,8 +160,8 @@ public class DefinedMetric implements Serializable{
 		return equation;
 	}
 
-	protected Map<String, Variable> getVariables() {
-		return variables;
+	protected Map<String, MetricVariable> getVariables() {
+		return equation.getVariables();
 	}
 	
 	protected Set<String> getVariablesWhen() {

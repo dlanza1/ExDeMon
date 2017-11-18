@@ -1,4 +1,4 @@
-# Spark Streaming job for monitoring metrics: user manual
+# Metrics monitor: user manual
 
 ## Running the job
 
@@ -127,11 +127,21 @@ monitor.all-seasonal.notificator.warn-constant.statuses = WARNING
 monitor.all-seasonal.notificator.warn-constant.period = 20m
 ```
 
+## A Metric
+
+A metric in this monitor has the following characteristics:
+
+* Contains a set of key-value pairs which are considered attributes. Key and value are strings. These attributes should serve to differentiate between metrics. These attributes are set by the metric source and can change when defining new metrics.
+* It is marked with a time stamp. Time stamp is set by the metric source and can change when defining new metrics.
+* Contains a single value. Value could be of type float, string or boolean. Type is determined by the metric source. When defining new metrics, aggregation operations or equation defined in value determine the type of the new metric.
+
+Independently of the type of value, values contains an attribute with name "source". It describes how the value was obtained, equation, errors, ...
+
 ## Define new metrics
 
 ```
-metrics.define.<defined-metric-id>.value = <methematical equation containing <variable-ids>> (default: <variable-id> if only one variable has been declared)
-metrics.define.<defined-metric-id>.when = <ANY|BATCH|comma separated list of variable-ids> (default: the first variable after sorting)
+metrics.define.<defined-metric-id>.value = <equation containing <variable-ids>> (default: <variable-id> if only one variable has been declared)
+metrics.define.<defined-metric-id>.when = <ANY|BATCH|space separated list of variable-ids> (default: the first variable after sorting)
 metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/comma separated attribute names> (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name-1> = <value-1>
@@ -144,9 +154,47 @@ metrics.define.<defined-metric-id>.variables.<variable-id-2>....
 # With different id, more metrics can be defined
 ```
 
-New metrics can be defined. The value of these defined metrics is computed from a mathematical equation configured with the "value" parameter. This equation can have or not variables, these variables represent incoming metrics. So, values from several metrics can be aggregated in order to compute the value for the new metric. By default, in case only one variable is declared, value will return this variable.
+New metrics can be defined. The value of these defined metrics is computed from an equation configured with the "value" parameter. This equation can have variables, these variables represent incoming metrics. So, values from several metrics can be aggregated in order to compute the value for the new metric. Equation supports grouping using (), and it applies the operator precedence and associativity rules. By default, in case only one variable is declared, value will return this variable. Equation will determine the type of the new defined metric.
 
-Equation (value parameter) can do addition (+), subtraction (-), multiplication (*), division(/), exponentiation (^), and a few functions like abs(x), sqrt(x), sin(x), cos(x) and tan(x). It supports grouping using (), and it applies the operator precedence and associativity rules.
+Functions that can be used in the equation with expected types and the type they return:
+* \+ float => float
+* \- float => float
+* float + float => float
+* float - float => float
+* float * float => float
+* float / float => float
+* float ^ float => float
+* float > float => boolean
+* float < float => boolean
+* boolean && boolean => boolean
+* boolean || boolean => boolean
+* !boolean => boolean
+* if_bool(boolean, boolean, boolean) => boolean
+* if_float(boolean, float, float) => float
+* if_string(boolean, string, string) => string
+* any == any => boolean
+* any != any => boolean
+* abs(float) => float
+* sqrt(float) => float
+* sin(float) => float
+* cos(float) => float
+* tan(float) => float
+* concat(string, string) => string
+* trim(string) => string
+
+An example:
+```
+<defined-metric-id>.value = !shouldBeMonitored || (trim(dir) == "/tmp/") && (abs(used / capacity) > 80)
+```
+
+> TIP For debugging, values include a source attribute where equation result can be observed with a value like:
+>```
+># With errors
+>!(var(shouldBeMonitored)=true)=false || ((trim(var(dir)=" /tmp/  ")="/tmp/" == "/tmp/")=true && (abs((var(used)=900.0 / var(capacity)={Error: no value for the last 10 minutes})={Error: in arguments})={Error: in arguments} > 0.8)={Error: in arguments})={Error: in arguments})={Error: in arguments}
+>
+># With successful computation
+>!(var(shouldBeMonitored)=true)=false || ((trim(var(dir)=" /tmp/  ")="/tmp/" == "/tmp/")=true && (abs((var(used)=900.0 / var(capacity)=1000.0)=0.9)=0.9 > 0.8)=true)=true)=true
+>```
 
 The computation and further generation of a new metric will be trigger when the variables listed in the "when" parameter are updated. By default, a new metric is produced when the first (after sorting alphabetically by &lt;variable-id&gt;) declared variable is updated with a new value. Last value of the other variables will be used for the computation. You can set "when" to ANY, it will trigger the generation when any of the variables is updated. You can also set "when" to BATCH, so the generation will be triggered not by any variable updated but in every Spark Streaming batch.
 
@@ -160,6 +208,7 @@ The computation and further generation of a new metric will be trigger when the 
 > 1. The defined metric is triggered by another variable which only serves to trigger the generation. If trigger metric (variable) does not come, no metric is generated.
 > ``` 
 > # to add
+> metrics.define.machines-running.value = value
 > metrics.define.machines-running.when = trigger
 > metrics.define.machines-running.variables.trigger.filter.attribute.TYPE = "other"
 > ``` 
@@ -173,7 +222,7 @@ Metrics can be grouped by (e.g. machine) with the "metrics.groupby" parameter in
 Group by can be set to ALL, then each metric will be treated independently. 
 If group by is configured to ALL (or all attributes the metrics contain are listed) there is no attrbutes to differenciate metrics and aggregate them, so aggregation is done over the historical values coming from the metric.
 
-You need to specify what the variables in your equation represent by declaring variables. Then, &lt;variable-id-X&gt; can be used in the equation. 
+You need to specify what the variables in your equation represent by declaring variables. Then, &lt;variable-id-X&gt; can be used in the equation. The type of a variable is determined by the aggregation operation, if no aggregation operation is applied, it can become any time in the equation.
 Even tough you do not use any variable in the equation, at least one variable must be declared to trigger the computation.
 
 Variables are supposed to be updated periodically. In case they are not updated, its value expires after the period of time specified with the parameter "expire". 
@@ -182,8 +231,19 @@ If a variable expires and the variable is used for the computation, no metrics w
 In the case all the values for a given aggregated variable expire, count is 0.
 
 A variable could be the result of an aggregation of values. Values from all metrics that pass the specified filter (and after grouping) will be aggregated. Note that in order to differentiate between metric, any attribute not specified in "groupby" will be used. 
-This can be configured using the "aggregate" parameter, where you configure the operation to perform the aggregation. Available operations are: sum, avg, weighted_avg (influence proportional with elapsed time), count, max, min or diff (with previos value). 
-The maximum number of different metrics that can be aggregated is 100, if more, results might be inconsistent. 
+This can be configured using the "aggregate" parameter, where you configure the operation to perform the aggregation. Operation determines the variable type. The maximum number of different metrics that can be aggregated is 100, if more, results might be inconsistent.
+
+Aggregation operations available and the corresponding type:
+* No operation => metric as generated by metric source
+* sum => filter by float type and produce float
+* avg => filter by float type and produce float
+* weighted_avg (influence proportional with elapsed time) => filter by float type and produce float
+* count_floats => filter by float type and produce float
+* count_bools => filter by boolean type and produce float
+* count_strings => filter by string type and produce float
+* max => filter by float type and produce float
+* min => filter by float type and produce float
+* diff (with previous value) => filter by float type and produce float
 
 A meta-attribute is set in the generated metrics. The meta attribute name is $defined_metric and his value the &lt;defined-metric-id&gt;. 
 This attribute can later be used to filter the defined metrics in a monitor like:
@@ -211,6 +271,21 @@ metrics.define.cpu-percentage.metrics.groupby = ALL
 # Same effect if we specify INSTANCE_NAME = .* or not
 #metrics.define.cpu-percentage.variables.value.filter.attribute.INSTANCE_NAME = .*
 metrics.define.cpu-percentage.variables.value.filter.attribute.METRIC_NAME = CPU Usage Per Sec
+```
+
+- Temporary directory usage threshold
+```
+metrics.define.all-multiply-by-10.value = shouldBeMonitored && (trim(dir) == "/tmp/") && (abs(used / capacity) > 80)
+metrics.define.all-multiply-by-10.metrics.groupby = ALL
+# One of the following two would be enough
+metrics.define.all-multiply-by-10.variables.shouldBeMonitored.filter.attribute.METRIC_NAME = Directory Summary
+metrics.define.all-multiply-by-10.variables.shouldBeMonitored.filter.attribute.$value\_attribute = monitoring
+metrics.define.all-multiply-by-10.variables.dir.filter.attribute.METRIC_NAME = Directory Summary
+metrics.define.all-multiply-by-10.variables.dir.filter.attribute.$value\_attribute = path
+metrics.define.all-multiply-by-10.variables.used.filter.attribute.METRIC_NAME = Directory Summary
+metrics.define.all-multiply-by-10.variables.used.filter.attribute.$value\_attribute = used_bytes
+metrics.define.all-multiply-by-10.variables.capacity.filter.attribute.METRIC_NAME = Directory Summary
+metrics.define.all-multiply-by-10.variables.capacity.filter.attribute.$value\_attribute = max_bytes
 ```
 
 - Compute the ratio read/write for all machines:
@@ -467,6 +542,7 @@ If the JSON document does not contain the attribute, the metric will not contain
 You can also configure these attributes for values individually assigning aliases. Assigned alias will be stored at "$value\_attribute", so the alias will be used in any metric filter.
 List of keys or aliases can be combined.
 If JSON document does not contain the value, the metric will not be generated.
+Type of generated metrics will be determined by the corresponding JSON type, string float or boolean.
 
 Commonly, you can face two different scenarios. One where each incoming JSON represent a single metric, an example of JSON document could be: 
 
@@ -518,8 +594,8 @@ A different scenario is when a single document contains several metrics, an exam
 		"hostname": "host-1234.cern.ch"
 	},"body":{
 		"CPUUsage": 295.13,
-		"WriteBytesPerSecond": 32495,
-		"ReadBytesPerSecond": 9824
+		"IsWriteActive": true,
+		"CPUName": "Intel Core i8"
 	}
 }
 ```
@@ -544,27 +620,42 @@ In this case, three metrics will be generated per JSON document (as many as attr
 * Metric with timestamp "2017-11-01T10:29:14+02:00", value 295.13 and attributes:
   * headers.hostname = "host-1234.cern.ch"
   * $value\_attribute = "body.CPUUsage"
-* Metric with timestamp "2017-11-01T10:29:14+02:00", value 32495 and attributes:
+* Metric with timestamp "2017-11-01T10:29:14+02:00", value true and attributes:
   * headers.hostname = "host-1234.cern.ch"
-  * $value\_attribute = "body.WriteBytesPerSecond"
-* Metric with timestamp "2017-11-01T10:29:14+02:00", value 9824 and attributes:
+  * $value\_attribute = "body.IsWriteActive"
+* Metric with timestamp "2017-11-01T10:29:14+02:00", value "Intel Core i8" and attributes:
   * headers.hostname = "host-1234.cern.ch"
-  * $value\_attribute = "body.ReadBytesPerSecond"
+  * $value\_attribute = "body.CPUName"
 
 If aliases are used:
 * Metric with timestamp "2017-11-01T10:29:14+02:00", value 295.13 and attributes:
   * hostname = "host-1234.cern.ch"
   * $value\_attribute = "CPUUsage"
-* Metric with timestamp "2017-11-01T10:29:14+02:00", value 32495 and attributes:
+* Metric with timestamp "2017-11-01T10:29:14+02:00", value true and attributes:
   * hostname = "host-1234.cern.ch"
-  * $value\_attribute = "WriteBytesPerSecond"
-* Metric with timestamp "2017-11-01T10:29:14+02:00", value 9824 and attributes:
+  * $value\_attribute = "IsWriteActive"
+* Metric with timestamp "2017-11-01T10:29:14+02:00", value "Intel Core i8" and attributes:
   * hostname = "host-1234.cern.ch"
-  * $value\_attribute = "ReadBytesPerSecond"
+  * $value\_attribute = "CPUName"
 
 ### Metric analysis
 
+Each metric analysis works only with a type metric values.
+
+#### Always true analysis
+
+Filter metrics with boolean values. 
+
+If incoming metric is true, analysis result is OK, otherwise ERROR.
+
+Configuration:
+```
+monitor.<monitor-id>.analysis.type = true
+```
+
 #### Fixed thresholds analysis
+
+Filter metrics with float values. 
 
 Fixed values determine the status of the metric. 
 If metric goes upper or lower these values, corresponding status (warning or error) is produced. Otherwise, ok status is produced.
@@ -582,6 +673,8 @@ An example of the result of this analysis can be seen in the following image.
 ![Fixed thresholds analysis](img/analysis/fixed-thresholds.png)
 
 #### Recent activity analysis 
+
+Filter metrics with float values.
 
 Error and warning thresholds are computed using average and variance from previos period.
 
@@ -607,6 +700,8 @@ An example of the result of this analysis can be seen in the following image.
 ![Recent activity analysis](img/analysis/recent.png)
 
 #### Percentile analysis
+
+Filter metrics with float values.
 
 Error and warning thresholds are computed using percentiles from previos period.
 
@@ -634,6 +729,8 @@ An example of the result of this analysis can be seen in the following image.
 ![Percentile analysis](img/analysis/percentile.png)
 
 #### Seasonal analysis
+
+Filter metrics with float values.
 
 Metric is supposed to behave similarly in every season. Saeson can be hour, day or week.
 

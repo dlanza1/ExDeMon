@@ -2,6 +2,8 @@ package ch.cern.spark;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.Serializable;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -15,9 +17,11 @@ import ch.cern.spark.TestInputStream.JTestInputStream;
 import ch.cern.spark.metrics.Metric;
 import scala.reflect.ClassTag;
 
-public class StreamTestHelper<IN, OUT> {
+public class StreamTestHelper<IN, OUT> implements Serializable {
 
-    private JavaStreamingContext sc = null;
+	private static final long serialVersionUID = -3440438574165569356L;
+
+	private JavaStreamingContext sc = null;
     
     public BatchCounter batchCounter;
     

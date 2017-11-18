@@ -5,7 +5,7 @@ import java.time.Instant;
 import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.analysis.Analysis;
+import ch.cern.spark.metrics.analysis.NumericAnalysis;
 import ch.cern.spark.metrics.predictor.LearningRatioValuePredictor;
 import ch.cern.spark.metrics.predictor.Prediction;
 import ch.cern.spark.metrics.results.AnalysisResult;
@@ -13,7 +13,7 @@ import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.store.Store;
 
 @RegisterComponent("seasonal")
-public class SeasonalAnalysis extends Analysis implements HasStore{
+public class SeasonalAnalysis extends NumericAnalysis implements HasStore{
 
     private static final long serialVersionUID = 6395895250358427351L;
 

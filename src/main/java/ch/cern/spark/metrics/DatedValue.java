@@ -3,20 +3,22 @@ package ch.cern.spark.metrics;
 import java.io.Serializable;
 import java.time.Instant;
 
+import ch.cern.spark.metrics.value.Value;
+
 public class DatedValue implements Serializable, Comparable<DatedValue> {
 
     private static final long serialVersionUID = 3930338572646527289L;
 
     private Instant time;
     
-    private float value;
+    private Value value;
 
-    public DatedValue(Instant time, float value) {
+    public DatedValue(Instant time, Value value) {
         this.time = time;
         this.value = value;
     }
 
-    public float getValue() {
+    public Value getValue() {
         return value;
     }
 
@@ -34,7 +36,7 @@ public class DatedValue implements Serializable, Comparable<DatedValue> {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((time == null) ? 0 : time.hashCode());
-		result = prime * result + Float.floatToIntBits(value);
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
 		return result;
 	}
 
@@ -52,7 +54,10 @@ public class DatedValue implements Serializable, Comparable<DatedValue> {
 				return false;
 		} else if (!time.equals(other.time))
 			return false;
-		if (Float.floatToIntBits(value) != Float.floatToIntBits(other.value))
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		} else if (!value.equals(other.value))
 			return false;
 		return true;
 	}

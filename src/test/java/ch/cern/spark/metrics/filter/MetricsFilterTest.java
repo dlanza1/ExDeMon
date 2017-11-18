@@ -28,6 +28,7 @@ public class MetricsFilterTest {
 		Assert.assertTrue(filter.test(metric));
 
 		ids.put("K1", "V2");
+		metric = new Metric(null, 0, ids);
 		Assert.assertFalse(filter.test(metric));
 	}
 	
@@ -79,6 +80,7 @@ public class MetricsFilterTest {
 
 		ids.put("K1", "V1");
 		ids.put("K1", "V2");
+		metric = new Metric(null, 0, ids);
 		Assert.assertFalse(filter.test(metric));
 	}
 
@@ -99,11 +101,13 @@ public class MetricsFilterTest {
 		ids.put("K1", "V1");
 		ids.put("K2", "V2");
 		ids.put("K3", "V3");
+		metric = new Metric(null, 0, ids);
 		Assert.assertFalse(filter.test(metric));
 
 		ids.put("K1", "V1");
 		// ids.put("K2", null);
 		ids.put("K3", "V3");
+		metric = new Metric(null, 0, ids);
 		Assert.assertFalse(filter.test(metric));
 	}
 
@@ -163,6 +167,7 @@ public class MetricsFilterTest {
 
 		ids.put("K1", "V2");
 		ids.put("K2", "Pno");
+		metric = new Metric(null, 0, ids);
 		Assert.assertFalse(filter.test(metric));
 
 		ids.put("K1", "Vno");

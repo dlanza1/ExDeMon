@@ -10,12 +10,15 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import ch.cern.spark.metrics.store.Store;
+import ch.cern.spark.metrics.value.FloatValue;
+import ch.cern.spark.metrics.value.Value;
 import ch.cern.utils.TimeUtils;
 
 public class ValueHistory implements Serializable {
@@ -37,6 +40,10 @@ public class ValueHistory implements Serializable {
     }
 
     public void add(Instant time, float value) {
+        values.add(new DatedValue(time, new FloatValue(value)));
+    }
+    
+    public void add(Instant time, Value value) {
         values.add(new DatedValue(time, value));
     }
     
@@ -59,7 +66,7 @@ public class ValueHistory implements Serializable {
         return "ValueHistory [metrics=" + values + ", period=" + period + "]";
     }
 
-    public List<Float> getHourlyValues(Instant time) {
+    public List<Value> getHourlyValues(Instant time) {
     		LocalDateTime dateTime = TimeUtils.toLocalDateTime(time);
     	
         return values.stream()
@@ -68,7 +75,7 @@ public class ValueHistory implements Serializable {
         		.collect(Collectors.toList());
     }
 
-	public List<Float> getDaylyValues(Instant time) {
+	public List<Value> getDaylyValues(Instant time) {
 		LocalDateTime dateTime = TimeUtils.toLocalDateTime(time);
 		
         return values.stream()
@@ -77,7 +84,7 @@ public class ValueHistory implements Serializable {
         		.collect(Collectors.toList());
     }
 
-    public List<Float> getWeeklyValues(Instant time) {
+    public List<Value> getWeeklyValues(Instant time) {
     		LocalDateTime dateTime = TimeUtils.toLocalDateTime(time);
     		
         return values.stream()
@@ -96,8 +103,8 @@ public class ValueHistory implements Serializable {
         DescriptiveStatistics stats = new DescriptiveStatistics();
         
         values.stream()
-        		.map(DatedValue::getValue)
-        		.mapToDouble(Double::valueOf)
+        		.map(val -> val.getValue().getAsFloat())
+        		.filter(Optional::isPresent).map(Optional::get)
         		.forEach(stats::addValue);
         
         return stats;
@@ -114,7 +121,7 @@ public class ValueHistory implements Serializable {
             long period = history.getPeriod().getSeconds();
             
             int[] times = new int[datedValues.size()];
-            float[] values = new float[datedValues.size()];
+            Value[] values = new Value[datedValues.size()];
             
             int i = 0;
             for (DatedValue value : datedValues) {
@@ -134,7 +141,7 @@ public class ValueHistory implements Serializable {
             history = new ValueHistory(Duration.ofSeconds(period));
             
             int[] times = (int[]) in.readObject();
-            float[] values = (float[]) in.readObject();
+            Value[] values = (Value[]) in.readObject();
             
             List<DatedValue> datedValues = IntStream.range(0, times.length)
 								            		.mapToObj(i -> new DatedValue(Instant.ofEpochSecond(times[i]), values[i]))

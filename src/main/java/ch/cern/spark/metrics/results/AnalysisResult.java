@@ -1,7 +1,6 @@
 package ch.cern.spark.metrics.results;
 
 import java.io.Serializable;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +11,8 @@ import java.util.function.Function;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import ch.cern.spark.metrics.monitors.Monitor;
-import ch.cern.utils.TimeUtils;
+import ch.cern.spark.metrics.value.ExceptionValue;
+import ch.cern.spark.metrics.value.Value;
 
 public class AnalysisResult implements Serializable {
 
@@ -35,6 +35,11 @@ public class AnalysisResult implements Serializable {
     }
 
     public void setAnalyzedMetric(Metric metric) {
+    		if(metric.getValue().getAsException().isPresent()) {
+    			this.status = Status.EXCEPTION;
+    			this.status_reason = metric.getValue().getAsException().get();
+    		}
+    			
         this.analyzed_metric = metric;
     }
 
@@ -83,18 +88,11 @@ public class AnalysisResult implements Serializable {
     }
 
     public static AnalysisResult buildTimingOut(MonitorIDMetricIDs ids, Monitor monitor, Instant time) {
-        AnalysisResult result = AnalysisResult.buildWithStatus(Status.EXCEPTION, "Metric has timmed out.");
+        AnalysisResult result = new AnalysisResult(); 
         
-        result.setAnalyzedMetric(new Metric(time, 0f, ids.getMetricIDs()));
-        result.addMonitorParam("name", ids.getMonitorID());
-        
-        return result;
-    }
-    
-    public static AnalysisResult buildMissingMetric(MonitorIDMetricIDs ids, Monitor monitor, Instant time, Duration elapsedTime) {
-        AnalysisResult result = AnalysisResult.buildWithStatus(Status.EXCEPTION, "Metric missing for " + TimeUtils.toString(elapsedTime));
-        
-        result.setAnalyzedMetric(new Metric(time, 0f, ids.getMetricIDs()));
+        Value value = new ExceptionValue("Metric has timmed out.");
+		result.setAnalyzedMetric(new Metric(time, value , ids.getMetricIDs()));
+		
         result.addMonitorParam("name", ids.getMonitorID());
         
         return result;

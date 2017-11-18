@@ -17,6 +17,7 @@ import ch.cern.Cache;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.value.FloatValue;
 import scala.Tuple2;
 
 public class ComputeBatchDefinedMetricsFTest {
@@ -33,8 +34,8 @@ public class ComputeBatchDefinedMetricsFTest {
 
 	@Test
 	public void aggregateCountUpdate() throws Exception {
-		propertiesCache.get().setProperty("metrics.define.dmID1.metrics.groupby", "DB_NAME, METRIC_NAME");
-		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate", "count");
+		propertiesCache.get().setProperty("metrics.define.dmID1.metrics.groupby", "DB_NAME METRIC_NAME");
+		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate", "count_floats");
 		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.expire", "5m");
 		propertiesCache.get().setProperty("metrics.define.dmID1.when", "batch");
 		
@@ -53,7 +54,7 @@ public class ComputeBatchDefinedMetricsFTest {
 		status.update(state);
 		Iterator<Metric> result = func.call(new Tuple2<DefinedMetricID, DefinedMetricStore>(id, status.get()));
 		result.hasNext();
-		assertEquals(1, result.next().getValue(), 0.001f);
+		assertEquals(1, result.next().getValue().getAsFloat().get(), 0.001f);
 		
 		id = new DefinedMetricID("dmID1", new HashMap<>());
 		state = new DefinedMetricStore();
@@ -61,11 +62,11 @@ public class ComputeBatchDefinedMetricsFTest {
 		ids.put("DB_NAME", "DB1");
 		ids.put("INSTANCE_NAME", "DB1_2");
 		ids.put("METRIC_NAME", "Read");
-		state.updateAggregatedValue("value", ids.hashCode(), 0f, now);
+		state.updateAggregatedValue("value", ids.hashCode(), new FloatValue(0), now);
 		status.update(state);
 		result = func.call(new Tuple2<DefinedMetricID, DefinedMetricStore>(id, status.get()));
 		result.hasNext();
-		assertEquals(1, result.next().getValue(), 0.001f);
+		assertEquals(1, result.next().getValue().getAsFloat().get(), 0.001f);
 		
 		id = new DefinedMetricID("dmID1", new HashMap<>());
 		id = new DefinedMetricID("dmID1", new HashMap<>());
@@ -74,11 +75,11 @@ public class ComputeBatchDefinedMetricsFTest {
 		ids.put("DB_NAME", "DB1");
 		ids.put("INSTANCE_NAME", "DB1_1");
 		ids.put("METRIC_NAME", "Read");
-		state.updateAggregatedValue("value", ids.hashCode(), 0f, now);
+		state.updateAggregatedValue("value", ids.hashCode(), new FloatValue(0), now);
 		status.update(state);
 		result = func.call(new Tuple2<DefinedMetricID, DefinedMetricStore>(id, status.get()));
 		result.hasNext();
-		assertEquals(1, result.next().getValue(), 0.001f);
+		assertEquals(1, result.next().getValue().getAsFloat().get(), 0.001f);
 		
 		id = new DefinedMetricID("dmID1", new HashMap<>());
 		id = new DefinedMetricID("dmID1", new HashMap<>());
@@ -87,11 +88,11 @@ public class ComputeBatchDefinedMetricsFTest {
 		ids.put("DB_NAME", "DB1");
 		ids.put("INSTANCE_NAME", "DB1_2");
 		ids.put("METRIC_NAME", "Read");
-		state.updateAggregatedValue("value", ids.hashCode(), 0f, now);
+		state.updateAggregatedValue("value", ids.hashCode(), new FloatValue(0), now);
 		status.update(state);
 		result = func.call(new Tuple2<DefinedMetricID, DefinedMetricStore>(id, status.get()));
 		result.hasNext();
-		assertEquals(1, result.next().getValue(), 0.001f);
+		assertEquals(1, result.next().getValue().getAsFloat().get(), 0.001f);
 	}
 	
 }

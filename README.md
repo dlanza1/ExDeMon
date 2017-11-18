@@ -14,6 +14,7 @@ Notifications can be raised if certain statuses like error or warning are mainta
 
 ### Key features
 
+- Metrics value can be float, string or boolean.
 - New metrics can be defined. Mathematical operations can be applied. Value of new metrics can be computed by aggregating different incoming metrics. 
 - Several monitors can be declared, each monitor can have a metric filter, a metric analysis and notificators. 
 - Several metric sources can be declared.
@@ -29,9 +30,9 @@ An image that describes some of the previous concepts and shows the data flow in
 
 ## Define new metrics
 
-The value of these defined metrics is computed from a mathematical equation which is configured. 
+The value of these defined metrics is computed from an equation. 
 
-This equation can have or not variables, these variables represent incoming metrics. So, values from several metrics can be aggregated in order to compute the value for the new metric.
+This equation can have variables, these variables represent incoming metrics. So, values from several metrics can be aggregated in order to compute the value for the new metric.
 
 Metrics can be grouped by (e.g. cluster) in order to apply the equation to a set of metrics.
 
@@ -41,6 +42,19 @@ Some possibilities of defined metrics could be:
 - Temperature inside minus temperature outside: tempinside - tempoutside
 - Average of CPU usage of all machines per cluster
 - Total throughput of machines per cluster in production 
+- Threshold for /tmp/ directory usage.
+```
+<defined-metric-id>.value = !shouldBeMonitored || (trim(dir) == "/tmp/") && (abs(used / capacity) > 80)
+```
+
+Easy debugging, you would get:
+```
+# With errors
+!(var(shouldBeMonitored)=true)=false || ((trim(var(dir)=" /tmp/  ")="/tmp/" == "/tmp/")=true && (abs((var(used)=900.0 / var(capacity)={Error: no value for the last 10 minutes})={Error: in arguments})={Error: in arguments} > 0.8)={Error: in arguments})={Error: in arguments})={Error: in arguments}
+
+# With successful computation
+!(var(shouldBeMonitored)=true)=false || ((trim(var(dir)=" /tmp/  ")="/tmp/" == "/tmp/")=true && (abs((var(used)=900.0 / var(capacity)=1000.0)=0.9)=0.9 > 0.8)=true)=true)=true
+```
 
 ## Monitors
 

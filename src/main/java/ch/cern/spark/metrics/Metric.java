@@ -9,6 +9,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
+import ch.cern.spark.metrics.value.FloatValue;
+import ch.cern.spark.metrics.value.Value;
+
 public class Metric implements Serializable{
 
     private static final long serialVersionUID = -182236104179624396L;
@@ -17,13 +20,17 @@ public class Metric implements Serializable{
     
     private Instant timestamp;
     
-    private float value;
+    private Value value;
 
     public Metric(Instant timestamp, float value, Map<String, String> ids){
+        this(timestamp, new FloatValue(value), ids);
+    }
+    
+    public Metric(Instant timestamp, Value value, Map<String, String> ids){
         if(ids == null)
             this.ids = new HashMap<String, String>();
         else
-            this.ids = ids;
+            this.ids = new HashMap<String, String>(ids);
         
         this.timestamp = timestamp;
         this.value = value;
@@ -53,11 +60,11 @@ public class Metric implements Serializable{
         return timestamp;
     }
 
-    public float getValue() {
+    public Value getValue() {
         return value;
     }
     
-    public void setValue(float newValue) {
+    public void setValue(Value newValue) {
         this.value = newValue;
     }
 
@@ -68,7 +75,7 @@ public class Metric implements Serializable{
     
     @Override
 	public Metric clone() throws CloneNotSupportedException {
-    	return new Metric(timestamp, value, new HashMap<>(ids));
+    		return new Metric(timestamp, value, new HashMap<>(ids));
     }
     
 	@Override
@@ -77,7 +84,7 @@ public class Metric implements Serializable{
 		int result = 1;
 		result = prime * result + ((ids == null) ? 0 : ids.hashCode());
 		result = prime * result + ((timestamp == null) ? 0 : timestamp.hashCode());
-		result = prime * result + Float.floatToIntBits(value);
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
 		return result;
 	}
 
@@ -100,7 +107,10 @@ public class Metric implements Serializable{
 				return false;
 		} else if (timestamp.getEpochSecond() != other.timestamp.getEpochSecond())
 			return false;
-		if (Math.abs(value - other.value) > 0f)
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		} else if (!value.equals(other.value))
 			return false;
 		return true;
 	}

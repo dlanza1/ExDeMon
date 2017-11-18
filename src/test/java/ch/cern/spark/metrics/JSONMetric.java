@@ -19,7 +19,7 @@ public class JSONMetric {
 		
 		TIMESTAMP = metric.getInstant();
 		
-		VALUE = metric.getValue();
+		VALUE = metric.getValue().getAsFloat().get();
 	}
 
 }

@@ -1,5 +1,6 @@
 package ch.cern.spark.metrics.source.types;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +25,10 @@ import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.JSONMetric;
 import ch.cern.spark.metrics.Metric;
 
-public class MetricsStreamFromKafkaProvider {
+public class MetricsStreamFromKafkaProvider implements Serializable{
 
+	private static final long serialVersionUID = 3857762447792729837L;
+	
 	private JavaStreamingContext sc = null;
 	public BatchCounter batchCounter;
 
