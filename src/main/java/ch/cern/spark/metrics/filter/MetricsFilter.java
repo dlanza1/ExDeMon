@@ -65,6 +65,12 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
 			}
         }
         
+		try {
+			props.confirmAllPropertiesUsed();
+		} catch (ConfigurationException e) {
+			throw new ConfigurationException("Error when parsing filter: " + e.getMessage());
+		}
+        
         return filter;
     }
     

@@ -23,6 +23,8 @@ public abstract class MetricsSource extends Component{
 	
 	@Override
 	public void config(Properties properties) throws ConfigurationException {
+		properties.isTypeDefined();
+		
 		filter = MetricsFilter.build(properties.getSubset("filter"));
 	}
     

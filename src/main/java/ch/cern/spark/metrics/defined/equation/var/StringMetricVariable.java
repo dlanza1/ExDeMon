@@ -35,6 +35,8 @@ public class StringMetricVariable extends MetricVariable{
 				throw new ConfigException("Variable " + name + ": aggregation operation (" + aggregateVal + ") not available");
 			}
 		
+		properties.confirmAllPropertiesUsed();
+		
 		return this;
 	}
 	

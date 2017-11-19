@@ -83,7 +83,8 @@ public class MonitorTest {
 		properties.setProperty("analysis.error.lowerbound", "10");
 		properties.setProperty("tags.email", "1234@cern.ch");
 		properties.setProperty("tags.group", "IT_DB");
-		Monitor monitor = new Monitor(null).config(properties);
+		properties.setProperty("tags.group", "IT_DB");
+		Monitor monitor = new Monitor("test").config(properties);
 		
 		State<Store> store = new StateImpl<>();
 		

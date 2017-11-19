@@ -107,8 +107,8 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
         Cache<Properties> propertiesCache = Properties.getCache();
         propertiesCache.set(new Properties());
         propertiesCache.get().setProperty("metrics.define.dm1.value", "!shouldBeMonitored || ((trim(dir) == \"/tmp/\") && (abs(used / capacity) > 0.8))");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.shouldBeMonitored.filter.attributes.TYPE", "DirReport");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.shouldBeMonitored.filter.attributes.$value_attribute", "monitor_enable");
+        propertiesCache.get().setProperty("metrics.define.dm1.variables.shouldBeMonitored.filter.attribute.TYPE", "DirReport");
+        propertiesCache.get().setProperty("metrics.define.dm1.variables.shouldBeMonitored.filter.attribute.$value_attribute", "monitor_enable");
         propertiesCache.get().setProperty("metrics.define.dm1.variables.dir.filter.attribute.TYPE", "DirReport");
         propertiesCache.get().setProperty("metrics.define.dm1.variables.dir.filter.attribute.$value_attribute", "path");
         propertiesCache.get().setProperty("metrics.define.dm1.variables.used.filter.attribute.TYPE", "DirReport");

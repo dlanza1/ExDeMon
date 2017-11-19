@@ -33,7 +33,6 @@ public class FixedThresholdAnalysisTest {
         
         Properties properties = new Properties();
 
-        properties.put("value.attribute", "VALUE");
         properties.put("error.upperbound", "110");
         properties.put("warn.upperbound", "100");
         properties.put("warn.lowerbound", "-50");
@@ -54,7 +53,6 @@ public class FixedThresholdAnalysisTest {
         
         Properties properties = new Properties();
 
-        properties.put("value.attribute", "VALUE");
         properties.put("warn.upperbound", "100");
         properties.put("warn.lowerbound", "50");
         
@@ -70,7 +68,6 @@ public class FixedThresholdAnalysisTest {
         FixedThresholdAnalysis monitor = new FixedThresholdAnalysis();
         
         Properties properties = new Properties();    
-        properties.put("value.attribute", "VALUE");
         monitor.config(properties);
         
         Assert.assertEquals(AnalysisResult.Status.OK, monitor.process(null, 75f).getStatus());

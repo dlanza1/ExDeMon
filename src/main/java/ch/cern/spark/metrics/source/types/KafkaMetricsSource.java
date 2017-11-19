@@ -46,6 +46,8 @@ public class KafkaMetricsSource extends MetricsSource {
         kafkaTopics = new HashSet<String>(Arrays.asList(properties.getProperty("topics").split(",")));
         
         parser = new JSONObjectToMetricParser(properties.getSubset("parser"));
+        
+        properties.confirmAllPropertiesUsed();
     }
     
     @Override

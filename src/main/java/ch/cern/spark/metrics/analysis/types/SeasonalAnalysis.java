@@ -44,6 +44,8 @@ public class SeasonalAnalysis extends NumericAnalysis implements HasStore{
         
         error_ratio = properties.getFloat(ERROR_RATIO_PARAM, ERROR_RATIO_DEFAULT);
         warning_ratio = properties.getFloat(WARNING_RATIO_PARAM, WARNING_RATIO_DEFAULT);
+        
+        properties.confirmAllPropertiesUsed();
     }
     
     @Override

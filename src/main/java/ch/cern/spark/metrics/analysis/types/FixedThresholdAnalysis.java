@@ -30,6 +30,8 @@ public class FixedThresholdAnalysis extends NumericAnalysis {
         warning_upperbound = properties.getFloat(WARNING_UPPERBOUND_PARAM);
         warning_lowerbound = properties.getFloat(WARNING_LOWERBOUND_PARAM);
         error_lowerbound = properties.getFloat(ERROR_LOWERBOUND_PARAM);
+        
+        properties.confirmAllPropertiesUsed();
     }
     
     @Override

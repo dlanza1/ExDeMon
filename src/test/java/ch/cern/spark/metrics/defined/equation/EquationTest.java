@@ -20,7 +20,7 @@ import ch.cern.spark.metrics.value.Value;
 public class EquationTest {
 
 	@Test
-	public void evalWithLoterals() throws ParseException, ConfigurationException {
+	public void evalWithLiterals() throws ParseException, ConfigurationException {
 		Properties props = new Properties();
 		
 		assertEquals(30f, new Equation("(5+10)*2", props).compute(null, null).getAsFloat().get(), 0.000f);
@@ -77,12 +77,10 @@ public class EquationTest {
 	public void evalWithVariables() throws ParseException, ConfigurationException {
 		Instant time = Instant.now();
 		Properties props = new Properties();
-		props.setProperty("x", "");
-		props.setProperty("y", "");
-		props.setProperty("var1", "");
-		props.setProperty("var2", "");
 		DefinedMetricStore store = new DefinedMetricStore();;
 		
+		props = new Properties();
+		props.setProperty("var1.filter.attribute.A", "A");
 		store.updateValue("var1", new FloatValue(3), time);	
 		assertEquals(39f, new Equation("(var1+10) * (var1)", props).compute(store, time).getAsFloat().get(), 0.000f);
 		
@@ -94,6 +92,7 @@ public class EquationTest {
 		store.updateValue("var1", new FloatValue(3), time);	
 		assertEquals(3f, new Equation("var1", props).compute(store, time).getAsFloat().get(), 0.000f);
 		
+		props.setProperty("var2.filter.attribute.B", "B");
 		store.updateValue("var1", new FloatValue(5), time);
 		store.updateValue("var2", new FloatValue(10), time);
 		assertEquals(35f, new Equation("var1 + var2 * (3)", props).compute(store, time).getAsFloat().get(), 0.000f);
@@ -113,6 +112,8 @@ public class EquationTest {
 		assertFalse(new Equation("(var1 != \"/tmp/\") && (var2 == 10)", props).compute(store, time).getAsBoolean().get());
 		assertFalse(new Equation("(var1 == \"/tmp/\") && (var2 == 11)", props).compute(store, time).getAsBoolean().get());
 		
+		props.setProperty("x.filter.attribute.B", "B");
+		props.setProperty("y.filter.attribute.B", "B");
 		store.updateValue("x", new FloatValue(5), time);
 		store.updateValue("y", new StringValue("10"), time);
 		Value result = new Equation("x + y", props).compute(store, time);
@@ -146,8 +147,7 @@ public class EquationTest {
 	public void evalWithVariablesAndFormulas() throws ParseException, ConfigurationException {
 		Instant time = Instant.now();
 		Properties props = new Properties();;
-		props.setProperty("x", "");
-		props.setProperty("y", "");
+		props.setProperty("x.filter.attribute.A", "A");
 		DefinedMetricStore store = new DefinedMetricStore();
 		
 		store.updateValue("x", new FloatValue(9), time);
@@ -167,6 +167,7 @@ public class EquationTest {
 		store.updateValue("x", new FloatValue(10), time);
 		assertEquals(0.17f, new Equation("tan(x)", props).compute(store, time).getAsFloat().get(), 0.01f);
 		
+		props.setProperty("y.filter.attribute.A", "A");
 		store.updateValue("x", new FloatValue(10), time);
 		store.updateValue("y", new FloatValue(2), time);
 		assertEquals(2.57f, new Equation("sin(x) + cos(x) + sqrt(y)", props).compute(store, time).getAsFloat().get(), 0.01f);

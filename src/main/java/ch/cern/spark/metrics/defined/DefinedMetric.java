@@ -97,6 +97,9 @@ public class DefinedMetric implements Serializable{
 			}
 		}
 		
+		variablesProperties.confirmAllPropertiesUsed();
+		properties.confirmAllPropertiesUsed();
+		
 		configurationException = null;
 		
 		return this;

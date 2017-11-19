@@ -57,6 +57,8 @@ public class PercentageNotificator extends Notificator implements HasStore {
         
         String percentage_s = properties.getProperty(PERCENTAGE_PARAM, PERCENTAGE_DEFAULT);
         percentage = Float.valueOf(percentage_s);
+        
+        properties.confirmAllPropertiesUsed();
     }
     
     @Override

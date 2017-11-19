@@ -43,6 +43,8 @@ public class ConstantNotificator extends Notificator implements HasStore {
 					        		.collect(Collectors.toSet());
 
         period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
+        
+        properties.confirmAllPropertiesUsed();
     }
     
     @Override

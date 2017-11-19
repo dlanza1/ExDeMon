@@ -15,6 +15,8 @@ public class FilePropertiesSource extends PropertiesSource {
 	@Override
 	public void config(Properties properties) throws ConfigurationException {
 		path = properties.getProperty("path");
+		
+		properties.confirmAllPropertiesUsed();
 	}
 
 	@Override

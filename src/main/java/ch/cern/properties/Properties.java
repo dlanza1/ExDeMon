@@ -3,6 +3,7 @@ package ch.cern.properties;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -23,6 +24,8 @@ public class Properties extends java.util.Properties{
 	private static transient final long serialVersionUID = 2510326766802151233L;
 	
 	private static Cache<Properties> cachedProperties = null;
+	
+	private Set<String> usedKeys = new HashSet<>();
 
 	public Properties() {
     }
@@ -45,6 +48,13 @@ public class Properties extends java.util.Properties{
                 .collect(Collectors.toList());
     }
     
+	@Override
+	public String getProperty(String key) {
+		usedKeys.add(key);
+		
+		return super.getProperty(key);
+	}
+	
     public Properties getSubset(String topLevelKey){
         topLevelKey += ".";
         
@@ -179,6 +189,14 @@ public class Properties extends java.util.Properties{
 			return new Properties();
 		}
 		
+	}
+
+	public void confirmAllPropertiesUsed() throws ConfigurationException {
+		HashSet<Object> leftKeys = new HashSet<>(keySet());
+		leftKeys.removeAll(usedKeys);
+		
+		if(!leftKeys.isEmpty())
+			throw new ConfigurationException("Some configuration parameters ("+leftKeys+") were not tahen into account. Do they exist?");
 	}
 	
 }

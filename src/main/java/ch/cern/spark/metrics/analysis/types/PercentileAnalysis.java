@@ -76,6 +76,8 @@ public class PercentileAnalysis extends NumericAnalysis implements HasStore{
         
         period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
         history = new ValueHistory(period);
+        
+        properties.confirmAllPropertiesUsed();
     }
     
     @Override

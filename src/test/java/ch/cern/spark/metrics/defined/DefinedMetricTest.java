@@ -158,8 +158,7 @@ public class DefinedMetricTest {
 		Properties properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", ".*");
-		properties.setProperty("variables.DBCPUUsagePerSec.aggregate.attribute", "METRIC_NAME");
-		properties.setProperty("variables.DBCPUUsagePerSec.aggregate.operation", "+");
+		properties.setProperty("variables.DBCPUUsagePerSec.aggregate", "sum");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", ".*");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		metric.config(properties);

@@ -68,6 +68,8 @@ public class Monitor {
         Set<String> tagKeys = tagsProps.getUniqueKeyFields();
         tagKeys.forEach(key -> tags.put(key, tagsProps.getProperty(key)));
         
+        properties.confirmAllPropertiesUsed();
+        
         return this;
     }
 
