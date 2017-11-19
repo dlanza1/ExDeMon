@@ -128,12 +128,14 @@ public class MonitorReturningNotificationsStreamTest extends StreamTestHelper<Me
         
         List<Notification> batch2 = returnedBatches.get(2);
         assertEquals(1, batch2.size());
+        assertEquals(0, batch2.get(0).getMetricIDs().size());
         
         List<Notification> batch3 = returnedBatches.get(3);
         assertEquals(0, batch3.size());
         
         List<Notification> batch4 = returnedBatches.get(4);
         assertEquals(1, batch4.size());
+        assertEquals(0, batch2.get(0).getMetricIDs().size());
 	}
 
 }
