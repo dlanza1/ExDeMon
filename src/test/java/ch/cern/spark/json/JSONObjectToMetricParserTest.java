@@ -278,7 +278,6 @@ public class JSONObjectToMetricParserTest {
 					+ "\"timestamp\":1509520208,"
 					+ "\"id\":null}}}";
 		
-		System.out.println(jsonString);
 		JSONObject jsonObject = new JSONObject(jsonString);
 		
 		Iterator<Metric> metrics = parser.call(jsonObject);

@@ -5,7 +5,6 @@ import java.util.Iterator;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.monitors.Monitors;
 import scala.Tuple2;
 
@@ -25,8 +24,7 @@ public class ComputeIDsForMetricsF implements PairFlatMapFunction<Metric, Monito
     	
         return Monitors.getCache().get().values().stream()
 	        		.filter(monitor -> monitor.getFilter().test(metric))
-	        		.map(Monitor::getId)
-	        		.map(monitorID -> new MonitorIDMetricIDs(monitorID, metric.getIDs()))
+	        		.map(monitor -> new MonitorIDMetricIDs(monitor.getId(), monitor.getMetricIDs(metric)))
 	        		.map(ids -> new Tuple2<MonitorIDMetricIDs, Metric>(ids, metric))
 	        		.iterator();
     }

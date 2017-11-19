@@ -28,13 +28,13 @@ public class ComputeIDsForAnalysisF implements PairFlatMapFunction<AnalysisResul
     public Iterator<Tuple2<NotificatorID, AnalysisResult>> call(AnalysisResult analysis) throws Exception {
     		Monitors.initCache(propertiesSourceProperties);
     	
-        String monitorID = (String) analysis.getMonitorParams().get("name");
-        Map<String, String> metricIDs = analysis.getAnalyzedMetric().getIDs();
-        
-        Optional<Monitor> monitorOpt = Optional.fromNullable(Monitors.getCache().get().get(monitorID));
+    		String monitorID = (String) analysis.getMonitorParams().get("name");
+    		Optional<Monitor> monitorOpt = Optional.fromNullable(Monitors.getCache().get().get(monitorID));
         if(!monitorOpt.isPresent())
         		return new LinkedList<Tuple2<NotificatorID, AnalysisResult>>().iterator();
         Monitor monitor = monitorOpt.get();
+        
+        Map<String, String> metricIDs = monitor.getMetricIDs(analysis.getAnalyzedMetric());
         
         Set<String> notificatorIDs = monitor.getNotificators().keySet();
         

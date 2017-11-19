@@ -94,13 +94,21 @@ public class InErrorMonitor extends Monitor {
 		ConstantNotificator notificator = new ConstantNotificator();
 		Properties properties = new Properties();
 		properties.put("statuses", "EXCEPTION");
-		properties.put("period", "30m");
+		properties.put("period", "10m");
 		try {
 			notificator.config(properties);
 		} catch (ConfigurationException e) {}
 		notificators.put("monitor-in-error", notificator);
 		
 		return notificators;
+	}
+	
+	@Override
+	public Map<String, String> getMetricIDs(Metric metric) {
+		if(filter != null)
+			return metric.getIDs();
+		else
+			return new HashMap<>();
 	}
 	
 	private static class Store_ implements Store{
@@ -112,6 +120,7 @@ public class InErrorMonitor extends Monitor {
 		public boolean hasExpired(Instant instant) {
 			if(lastResult == null) {
 				lastResult = instant;
+				
 				return true;
 			}
 			
@@ -119,8 +128,9 @@ public class InErrorMonitor extends Monitor {
 				lastResult = instant;
 				
 				return true;
-			}else
+			}else{
 				return false;
+			}
 		}
 		
 	}

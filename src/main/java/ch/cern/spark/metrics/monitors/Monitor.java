@@ -96,6 +96,10 @@ public class Monitor {
 
         return Optional.of(result);
     }
+    
+    public Map<String, String> getMetricIDs(Metric metric) {
+		return metric.getIDs();
+	}
 
 	public MetricsFilter getFilter() {
 		return filter;

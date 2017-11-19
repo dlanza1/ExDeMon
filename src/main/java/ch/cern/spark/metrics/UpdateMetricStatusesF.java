@@ -31,7 +31,6 @@ public class UpdateMetricStatusesF
     public Optional<AnalysisResult> call(
             Time time, MonitorIDMetricIDs ids, Optional<Metric> metricOpt, State<Store> storeState) 
             throws Exception {
-    	
     		Monitors.initCache(propertiesSourceProperties);
         
         Optional<Monitor> monitorOpt = Optional.ofNullable(Monitors.getCache().get().get(ids.getMonitorID()));

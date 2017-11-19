@@ -84,7 +84,7 @@ public class UpdateNotificationStatusesFTest {
         notification = func.call(null, ids, resuktOpt, storeState);
         assertTrue(notification.isPresent());
         
-        resuktOpt.get().setAnalyzedMetric(new Metric(Instant.ofEpochSecond(31), 0f, null));
+        resuktOpt.get().setAnalyzedMetric(new Metric(Instant.ofEpochSecond(27), 0f, null));
         notification = func.call(null, ids, resuktOpt, storeState);
         assertFalse(notification.isPresent());
     }

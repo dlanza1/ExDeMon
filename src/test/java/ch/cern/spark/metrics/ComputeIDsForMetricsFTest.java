@@ -31,8 +31,8 @@ public class ComputeIDsForMetricsFTest {
     @Test
     public void oneMonitor() throws Exception{
     		propertiesCache.get().setProperty("monitor.ID-1.analysis.type", "true");
-    		propertiesCache.get().setProperty("monitor.ID-1.attribute.key1", "val1");
-    		propertiesCache.get().setProperty("monitor.ID-1.attribute.key2", "val2");
+    		propertiesCache.get().setProperty("monitor.ID-1.filter.attribute.key1", "val1");
+    		propertiesCache.get().setProperty("monitor.ID-1.filter.attribute.key2", "val2");
         
         Metric metric = MetricTest.build();
         

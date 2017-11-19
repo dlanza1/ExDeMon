@@ -84,7 +84,7 @@ public class ConstantNotificator extends Notificator implements HasStore {
                     + expectedStatuses + " for " + TimeUtils.toString(getDiff(timestamp))
                     + ".");
             
-            constantlySeenFrom = null;
+            constantlySeenFrom = timestamp;
             
             return Optional.of(notification);
         }else{

@@ -7,6 +7,7 @@ import java.io.Serializable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.util.ManualClock;
@@ -28,6 +29,8 @@ public class StreamTestHelper<IN, OUT> implements Serializable {
     private Batches<IN> inputBatches;
     private Batches<OUT> expectedBatches;
 
+	private Duration batchDuration;
+
     @Before
     public void setUp() throws Exception {        
         Path checkpointPath = new Path("/tmp/spark-checkpoint-tests/");
@@ -42,7 +45,10 @@ public class StreamTestHelper<IN, OUT> implements Serializable {
         sparkConf.set("spark.streaming.clock", "org.apache.spark.util.ManualClock");
         sparkConf.set(RDD.CHECKPPOINT_DIR_PARAM, checkpointPath.toString());
         
-        sc = new JavaStreamingContext(sparkConf, Durations.seconds(1));
+        if(batchDuration == null)
+    			batchDuration = Durations.seconds(1);
+        
+        sc = new JavaStreamingContext(sparkConf, batchDuration);
         sc.checkpoint(checkpointPath.toString());
             
         batchCounter = new BatchCounter();
@@ -50,6 +56,10 @@ public class StreamTestHelper<IN, OUT> implements Serializable {
         
         inputBatches = new Batches<>();
         expectedBatches = new Batches<>();
+    }
+    
+    public void setBatchDuration(int seconds) {
+    		this.batchDuration = Durations.seconds(seconds);
     }
     
     public void addInput(int batch, IN element) {
