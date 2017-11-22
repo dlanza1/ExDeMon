@@ -11,7 +11,8 @@ import org.junit.Test;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.defined.DefinedMetricStore;
+import ch.cern.spark.metrics.defined.equation.var.MetricVariableStore;
+import ch.cern.spark.metrics.defined.equation.var.VariableStores;
 import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.StringValue;
@@ -77,70 +78,79 @@ public class EquationTest {
 	public void evalWithVariables() throws ParseException, ConfigurationException {
 		Instant time = Instant.now();
 		Properties props = new Properties();
-		DefinedMetricStore store = new DefinedMetricStore();;
+		
+		VariableStores stores = new VariableStores();
+		MetricVariableStore var1store = new MetricVariableStore();
+		stores.put("var1", var1store);
+		MetricVariableStore var2store = new MetricVariableStore();
+		stores.put("var2", var2store);
+		MetricVariableStore xstore = new MetricVariableStore();
+		stores.put("x", xstore);
+		MetricVariableStore ystore = new MetricVariableStore();
+		stores.put("y", ystore);
 		
 		props = new Properties();
 		props.setProperty("var1.filter.attribute.A", "A");
-		store.updateValue("var1", new FloatValue(3), time);	
-		assertEquals(39f, new Equation("(var1+10) * (var1)", props).compute(store, time).getAsFloat().get(), 0.000f);
+		var1store.updateValue(new FloatValue(3), time);	
+		assertEquals(39f, new Equation("(var1+10) * (var1)", props).compute(stores, time).getAsFloat().get(), 0.000f);
 		
-		store.updateValue("var1", new FloatValue(3), time);	
-		assertEquals(27f, new Equation("var1 ^ var1", props).compute(store, time).getAsFloat().get(), 0.000f);
-		assertEquals(27f, new Equation("3 ^ var1", props).compute(store, time).getAsFloat().get(), 0.000f);
-		assertEquals(27f, new Equation("var1 ^ 3", props).compute(store, time).getAsFloat().get(), 0.000f);
+		var1store.updateValue(new FloatValue(3), time);	
+		assertEquals(27f, new Equation("var1 ^ var1", props).compute(stores, time).getAsFloat().get(), 0.000f);
+		assertEquals(27f, new Equation("3 ^ var1", props).compute(stores, time).getAsFloat().get(), 0.000f);
+		assertEquals(27f, new Equation("var1 ^ 3", props).compute(stores, time).getAsFloat().get(), 0.000f);
 	
-		store.updateValue("var1", new FloatValue(3), time);	
-		assertEquals(3f, new Equation("var1", props).compute(store, time).getAsFloat().get(), 0.000f);
+		var1store.updateValue(new FloatValue(3), time);	
+		assertEquals(3f, new Equation("var1", props).compute(stores, time).getAsFloat().get(), 0.000f);
 		
 		props.setProperty("var2.filter.attribute.B", "B");
-		store.updateValue("var1", new FloatValue(5), time);
-		store.updateValue("var2", new FloatValue(10), time);
-		assertEquals(35f, new Equation("var1 + var2 * (3)", props).compute(store, time).getAsFloat().get(), 0.000f);
+		var1store.updateValue(new FloatValue(5), time);
+		var2store.updateValue(new FloatValue(10), time);
+		assertEquals(35f, new Equation("var1 + var2 * (3)", props).compute(stores, time).getAsFloat().get(), 0.000f);
 		
-		store.updateValue("var1", new FloatValue(5), time);
-		store.updateValue("var2", new FloatValue(10), time);
-		assertTrue(new Equation("(var1 == 5) && (var2 == 10) ", props).compute(store, time).getAsBoolean().get());
-		assertTrue(new Equation("(var1 == 5) && ((var2 * 2) == 20)", props).compute(store, time).getAsBoolean().get());
-		assertFalse(new Equation("(var1 == 5) && ((var2 * 2 + 1) == 20)", props).compute(store, time).getAsBoolean().get());
-		assertTrue(new Equation("(var1 == 5) && !((var2 * 2 + 1) == 20)", props).compute(store, time).getAsBoolean().get());
-		assertTrue(new Equation("(var2 == 10) && ((var2 * 2) == 20)", props).compute(store, time).getAsBoolean().get());
+		var1store.updateValue(new FloatValue(5), time);
+		var2store.updateValue(new FloatValue(10), time);
+		assertTrue(new Equation("(var1 == 5) && (var2 == 10) ", props).compute(stores, time).getAsBoolean().get());
+		assertTrue(new Equation("(var1 == 5) && ((var2 * 2) == 20)", props).compute(stores, time).getAsBoolean().get());
+		assertFalse(new Equation("(var1 == 5) && ((var2 * 2 + 1) == 20)", props).compute(stores, time).getAsBoolean().get());
+		assertTrue(new Equation("(var1 == 5) && !((var2 * 2 + 1) == 20)", props).compute(stores, time).getAsBoolean().get());
+		assertTrue(new Equation("(var2 == 10) && ((var2 * 2) == 20)", props).compute(stores, time).getAsBoolean().get());
 		
-		store.updateValue("var1", new StringValue("/tmp/"), time);
-		store.updateValue("var2", new FloatValue(10), time);
-		assertTrue(new Equation("(var1 == '/tmp/') && (var2 == 10)", props).compute(store, time).getAsBoolean().get());
-		assertTrue(new Equation("(var1 == \"/tmp/\") && (var2 == 10)", props).compute(store, time).getAsBoolean().get());
-		assertFalse(new Equation("(var1 != \"/tmp/\") && (var2 == 10)", props).compute(store, time).getAsBoolean().get());
-		assertFalse(new Equation("(var1 == \"/tmp/\") && (var2 == 11)", props).compute(store, time).getAsBoolean().get());
+		var1store.updateValue(new StringValue("/tmp/"), time);
+		var2store.updateValue(new FloatValue(10), time);
+		assertTrue(new Equation("(var1 == '/tmp/') && (var2 == 10)", props).compute(stores, time).getAsBoolean().get());
+		assertTrue(new Equation("(var1 == \"/tmp/\") && (var2 == 10)", props).compute(stores, time).getAsBoolean().get());
+		assertFalse(new Equation("(var1 != \"/tmp/\") && (var2 == 10)", props).compute(stores, time).getAsBoolean().get());
+		assertFalse(new Equation("(var1 == \"/tmp/\") && (var2 == 11)", props).compute(stores, time).getAsBoolean().get());
 		
 		props.setProperty("x.filter.attribute.B", "B");
 		props.setProperty("y.filter.attribute.B", "B");
-		store.updateValue("x", new FloatValue(5), time);
-		store.updateValue("y", new StringValue("10"), time);
-		Value result = new Equation("x + y", props).compute(store, time);
+		xstore.updateValue(new FloatValue(5), time);
+		ystore.updateValue(new StringValue("10"), time);
+		Value result = new Equation("x + y", props).compute(stores, time);
 		assertTrue(result.getAsException().isPresent());
 		assertEquals("Function \"+\": argument 2: requires float value", result.getAsException().get());
 		assertEquals("(var(x)=5.0 + var(y)=\"10\")={Error: argument 2: requires float value}", result.getSource());
 		
-		store.updateValue("x", new FloatValue(5), time);
-		store.updateValue("y", new FloatValue(10), time);
-		store.updateValue("var1", new FloatValue(10), time);
-		assertEquals(105f, new Equation("x+y * (var1)", props).compute(store, time).getAsFloat().get(), 0.000f);
+		xstore.updateValue(new FloatValue(5), time);
+		ystore.updateValue(new FloatValue(10), time);
+		var1store.updateValue(new FloatValue(10), time);
+		assertEquals(105f, new Equation("x+y * (var1)", props).compute(stores, time).getAsFloat().get(), 0.000f);
 		
-		store.updateValue("x", new FloatValue(5), time);
-		store.updateValue("y", new FloatValue(10), time);
-		store.updateValue("var1", new BooleanValue(true), time);
-		store.updateValue("var2", new BooleanValue(false), time);
-		assertTrue(new Equation("(x + y) == 15 && (var1 == true) && (var2 != true)", props).compute(store, time).getAsBoolean().get());
-		assertEquals(5, new Equation("if_float(var1, x, y)", props).compute(store, time).getAsFloat().get(), 0f);
-		assertEquals(10, new Equation("if_float(var2, x, y)", props).compute(store, time).getAsFloat().get(), 0f);
-		assertEquals(15, new Equation("if_float(var1, x, 0) + if_float(!var2, y, 0)", props).compute(store, time).getAsFloat().get(), 0f);
-		assertEquals(15, new Equation("if_float(var1, x, y) + if_float(!var1, x, y)", props).compute(store, time).getAsFloat().get(), 0f);
+		xstore.updateValue(new FloatValue(5), time);
+		ystore.updateValue(new FloatValue(10), time);
+		var1store.updateValue(new BooleanValue(true), time);
+		var2store.updateValue(new BooleanValue(false), time);
+		assertTrue(new Equation("(x + y) == 15 && (var1 == true) && (var2 != true)", props).compute(stores, time).getAsBoolean().get());
+		assertEquals(5, new Equation("if_float(var1, x, y)", props).compute(stores, time).getAsFloat().get(), 0f);
+		assertEquals(10, new Equation("if_float(var2, x, y)", props).compute(stores, time).getAsFloat().get(), 0f);
+		assertEquals(15, new Equation("if_float(var1, x, 0) + if_float(!var2, y, 0)", props).compute(stores, time).getAsFloat().get(), 0f);
+		assertEquals(15, new Equation("if_float(var1, x, y) + if_float(!var1, x, y)", props).compute(stores, time).getAsFloat().get(), 0f);
 		
 		String inputToConcat1 = "aa";
 		String inputToConcat2 = "bb";
-		store.updateValue("var1", new StringValue(inputToConcat1), time);
-		store.updateValue("var2", new StringValue(inputToConcat2), time);
-		assertEquals(inputToConcat1 + inputToConcat2, new Equation("concat(var1, var2)", props).compute(store, time).getAsString().get());
+		var1store.updateValue(new StringValue(inputToConcat1), time);
+		var2store.updateValue(new StringValue(inputToConcat2), time);
+		assertEquals(inputToConcat1 + inputToConcat2, new Equation("concat(var1, var2)", props).compute(stores, time).getAsString().get());
 	}
 
 	@Test
@@ -148,29 +158,34 @@ public class EquationTest {
 		Instant time = Instant.now();
 		Properties props = new Properties();;
 		props.setProperty("x.filter.attribute.A", "A");
-		DefinedMetricStore store = new DefinedMetricStore();
 		
-		store.updateValue("x", new FloatValue(9), time);
-		assertEquals(9f, new Equation("abs(x)", props).compute(store, time).getAsFloat().get(), 0.01f);
-		store.updateValue("x", new FloatValue(-9), time);
-		assertEquals(9f, new Equation("abs(x)", props).compute(store, time).getAsFloat().get(), 0.01f);
+		VariableStores stores = new VariableStores();
+		MetricVariableStore xstore = new MetricVariableStore();
+		stores.put("x", xstore);
+		MetricVariableStore ystore = new MetricVariableStore();
+		stores.put("y", ystore);
 		
-		store.updateValue("x", new FloatValue(10), time);
-		assertEquals(3.16f, new Equation("sqrt(x)", props).compute(store, time).getAsFloat().get(), 0.01f);
+		xstore.updateValue(new FloatValue(9), time);
+		assertEquals(9f, new Equation("abs(x)", props).compute(stores, time).getAsFloat().get(), 0.01f);
+		xstore.updateValue(new FloatValue(-9), time);
+		assertEquals(9f, new Equation("abs(x)", props).compute(stores, time).getAsFloat().get(), 0.01f);
 		
-		store.updateValue("x", new FloatValue(10), time);
-		assertEquals(0.17f, new Equation("sin(x)", props).compute(store, time).getAsFloat().get(), 0.01f);
+		xstore.updateValue(new FloatValue(10), time);
+		assertEquals(3.16f, new Equation("sqrt(x)", props).compute(stores, time).getAsFloat().get(), 0.01f);
 		
-		store.updateValue("x", new FloatValue(10), time);
-		assertEquals(0.98f, new Equation("cos(x)", props).compute(store, time).getAsFloat().get(), 0.01f);
+		xstore.updateValue(new FloatValue(10), time);
+		assertEquals(0.17f, new Equation("sin(x)", props).compute(stores, time).getAsFloat().get(), 0.01f);
 		
-		store.updateValue("x", new FloatValue(10), time);
-		assertEquals(0.17f, new Equation("tan(x)", props).compute(store, time).getAsFloat().get(), 0.01f);
+		xstore.updateValue(new FloatValue(10), time);
+		assertEquals(0.98f, new Equation("cos(x)", props).compute(stores, time).getAsFloat().get(), 0.01f);
+		
+		xstore.updateValue(new FloatValue(10), time);
+		assertEquals(0.17f, new Equation("tan(x)", props).compute(stores, time).getAsFloat().get(), 0.01f);
 		
 		props.setProperty("y.filter.attribute.A", "A");
-		store.updateValue("x", new FloatValue(10), time);
-		store.updateValue("y", new FloatValue(2), time);
-		assertEquals(2.57f, new Equation("sin(x) + cos(x) + sqrt(y)", props).compute(store, time).getAsFloat().get(), 0.01f);
+		xstore.updateValue(new FloatValue(10), time);
+		ystore.updateValue(new FloatValue(2), time);
+		assertEquals(2.57f, new Equation("sin(x) + cos(x) + sqrt(y)", props).compute(stores, time).getAsFloat().get(), 0.01f);
 	}
 	
 }

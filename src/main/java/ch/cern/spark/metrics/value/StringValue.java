@@ -3,29 +3,29 @@ package ch.cern.spark.metrics.value;
 import java.time.Instant;
 import java.util.Optional;
 
-import ch.cern.spark.metrics.defined.DefinedMetricStore;
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
+import ch.cern.spark.metrics.defined.equation.var.VariableStores;
 
 public class StringValue extends Value implements ValueComputable{
 
 	private static final long serialVersionUID = 6026199196915653369L;
 
-	private String stringValue;
+	private String str;
 	
 	public StringValue(String value){
-		this.stringValue = value;
+		this.str = value;
 	}
 
 	@Override
 	public Optional<String> getAsString() {
-		return Optional.of(stringValue);
+		return Optional.of(str);
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((stringValue == null) ? 0 : stringValue.hashCode());
+		result = prime * result + ((str == null) ? 0 : str.hashCode());
 		return result;
 	}
 
@@ -38,17 +38,17 @@ public class StringValue extends Value implements ValueComputable{
 		if (getClass() != obj.getClass())
 			return false;
 		StringValue other = (StringValue) obj;
-		if (stringValue == null) {
-			if (other.stringValue != null)
+		if (str == null) {
+			if (other.str != null)
 				return false;
-		} else if (!stringValue.equals(other.stringValue))
+		} else if (!str.equals(other.str))
 			return false;
 		return true;
 	}
 
 	@Override
-	public StringValue compute(DefinedMetricStore store, Instant time) {
-		return new StringValue(stringValue);
+	public StringValue compute(VariableStores store, Instant time) {
+		return new StringValue(str);
 	}
 	
 	@Override
@@ -58,7 +58,7 @@ public class StringValue extends Value implements ValueComputable{
 	
 	@Override
 	public String toString() {
-		return "\"" + stringValue + "\"";
+		return "\"" + str + "\"";
 	}
 	
 	@Override

@@ -111,10 +111,18 @@ public class Properties extends java.util.Properties{
     		return value == null ? defaultValue : value;
 	}
 
-    public boolean getBoolean(String key) {
+    public boolean getBoolean(String key) throws ConfigurationException {
         String value = getProperty(key);
         
-        return value == null ? false : Boolean.parseBoolean(value);
+        if(value == null)
+        		return false;
+        		 
+        if(value.toLowerCase().equals("true"))
+        		return true;
+        else if(value.toLowerCase().equals("false"))
+        		return false;
+        else
+        		throw new ConfigurationException(key + " expects boolean value (true or false). \"" + value + "\" could not be parsed");
     }
     
     public void setPropertyIfAbsent(String key, String value){
@@ -196,7 +204,7 @@ public class Properties extends java.util.Properties{
 		leftKeys.removeAll(usedKeys);
 		
 		if(!leftKeys.isEmpty())
-			throw new ConfigurationException("Some configuration parameters ("+leftKeys+") were not tahen into account. Do they exist?");
+			throw new ConfigurationException("Some configuration parameters ("+leftKeys+") were not used.");
 	}
 	
 }

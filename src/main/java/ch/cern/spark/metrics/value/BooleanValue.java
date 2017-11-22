@@ -3,29 +3,29 @@ package ch.cern.spark.metrics.value;
 import java.time.Instant;
 import java.util.Optional;
 
-import ch.cern.spark.metrics.defined.DefinedMetricStore;
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
+import ch.cern.spark.metrics.defined.equation.var.VariableStores;
 
 public class BooleanValue extends Value implements ValueComputable{
 
 	private static final long serialVersionUID = 6026199196915653369L;
 
-	private boolean booleanValue;
+	private boolean bool;
 	
 	public BooleanValue(boolean value){
-		this.booleanValue = value;
+		this.bool = value;
 	}
 
 	@Override
 	public Optional<Boolean> getAsBoolean() {
-		return Optional.of(booleanValue);
+		return Optional.of(bool);
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + (booleanValue ? 1231 : 1237);
+		result = prime * result + (bool ? 1231 : 1237);
 		return result;
 	}
 
@@ -38,7 +38,7 @@ public class BooleanValue extends Value implements ValueComputable{
 		if (getClass() != obj.getClass())
 			return false;
 		BooleanValue other = (BooleanValue) obj;
-		if (booleanValue != other.booleanValue)
+		if (bool != other.bool)
 			return false;
 		return true;
 	}
@@ -48,8 +48,8 @@ public class BooleanValue extends Value implements ValueComputable{
 	}
 
 	@Override
-	public BooleanValue compute(DefinedMetricStore store, Instant time) {
-		return new BooleanValue(booleanValue);
+	public BooleanValue compute(VariableStores store, Instant time) {
+		return new BooleanValue(bool);
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class BooleanValue extends Value implements ValueComputable{
 
 	@Override
 	public String toString() {
-		return Boolean.toString(booleanValue);
+		return Boolean.toString(bool);
 	}
 	
 	@Override

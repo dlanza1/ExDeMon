@@ -51,7 +51,7 @@ public class ValueHistoryTest {
         byte[] bytesAfter = bos.toByteArray();
         
         int sizePerRecord = (bytesAfter.length - bytesBefore.length) / numberOfRecords;
-        assertEquals(29, sizePerRecord);
+        assertEquals(28, sizePerRecord);
     }
     
     @Test
@@ -76,7 +76,7 @@ public class ValueHistoryTest {
         byte[] bytesAfter = bos.toByteArray();
         
         int sizePerRecord = (bytesAfter.length - bytesBefore.length) / numberOfRecords;
-        assertEquals(31, sizePerRecord);
+        assertEquals(30, sizePerRecord);
     }
     
     @Test
@@ -101,7 +101,7 @@ public class ValueHistoryTest {
         byte[] bytesAfter = bos.toByteArray();
         
         int sizePerRecord = (bytesAfter.length - bytesBefore.length) / numberOfRecords;
-        assertEquals(26, sizePerRecord);
+        assertEquals(25, sizePerRecord);
     }
     
     @Test
@@ -126,7 +126,7 @@ public class ValueHistoryTest {
         byte[] bytesAfter = bos.toByteArray();
         
         int sizePerRecord = (bytesAfter.length - bytesBefore.length) / numberOfRecords;
-        assertEquals(31, sizePerRecord);
+        assertEquals(32, sizePerRecord);
     }
     
     @Test

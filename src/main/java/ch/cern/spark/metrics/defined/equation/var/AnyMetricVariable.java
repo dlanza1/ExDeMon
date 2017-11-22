@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.util.Optional;
 
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.defined.DefinedMetricStore;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.Value;
 
@@ -15,13 +14,13 @@ public class AnyMetricVariable extends MetricVariable{
 	}
 	
 	@Override
-	public Value compute(DefinedMetricStore store, Instant time) {
+	public Value compute(MetricVariableStore store, Instant time) {
 		Optional<Instant> oldestUpdate = Optional.empty();
 		if(expirePeriod != null)
 			oldestUpdate = Optional.of(time.minus(expirePeriod));
 		store.purge(name, oldestUpdate);
 
-		Value val = store.getValue(name, expirePeriod);
+		Value val = store.getValue(expirePeriod);
 		
 		String source = val.toString();
 		if(val.getAsException().isPresent())
@@ -33,8 +32,8 @@ public class AnyMetricVariable extends MetricVariable{
 	}
 
 	@Override
-	public void updateStore(DefinedMetricStore store, Metric metric) {	
-		store.updateValue(name, metric.getValue(), metric.getInstant());
+	public void updateStore(MetricVariableStore store, Metric metric) {	
+		store.updateValue(metric.getValue(), metric.getInstant());
 	}
 
 	@Override

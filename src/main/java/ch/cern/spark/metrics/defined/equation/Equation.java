@@ -7,8 +7,9 @@ import java.util.Map;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.defined.DefinedMetricStore;
 import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
+import ch.cern.spark.metrics.defined.equation.var.Variable;
+import ch.cern.spark.metrics.defined.equation.var.VariableStores;
 import ch.cern.spark.metrics.value.Value;
 
 public class Equation implements ValueComputable{
@@ -17,15 +18,15 @@ public class Equation implements ValueComputable{
 
 	private ValueComputable formula;
 	
-	private Map<String, MetricVariable> variables = new HashMap<>();
+	private Map<String, Variable> variables = new HashMap<>();
 
 	public Equation(String equationString, Properties variablesProperties) throws ParseException, ConfigurationException {
 		this.formula = parser.parse(equationString, variablesProperties, variables);
 	}
 	
 	@Override
-	public Value compute(DefinedMetricStore store, Instant time) {
-		return formula.compute(store, time);
+	public Value compute(VariableStores stores, Instant time) {
+		return formula.compute(stores, time);
 	}
 
 	@Override
@@ -58,8 +59,18 @@ public class Equation implements ValueComputable{
 		return true;
 	}
 
-	public Map<String, MetricVariable> getVariables() {
+	public Map<String, Variable> getVariables() {
 		return variables;
+	}
+	
+	public Map<String, MetricVariable> getMetricVariables() {
+		HashMap<String, MetricVariable> metricVariables = new HashMap<>();
+		
+		for (Map.Entry<String, Variable> variable : getVariables().entrySet())
+			if(variable.getValue() instanceof MetricVariable)
+				metricVariables.put(variable.getKey(), (MetricVariable) variable.getValue());
+		
+		return metricVariables;
 	}
 
 	@Override

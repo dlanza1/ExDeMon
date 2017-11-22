@@ -8,8 +8,8 @@ import java.time.Instant;
 
 import org.junit.Test;
 
-import ch.cern.spark.metrics.defined.DefinedMetricStore;
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
+import ch.cern.spark.metrics.defined.equation.var.VariableStores;
 import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
@@ -28,7 +28,7 @@ public class BiNumericFunctionTest {
 			}
 			
 			@Override
-			public Value compute(DefinedMetricStore store, Instant time) {
+			public Value compute(VariableStores store, Instant time) {
 				return new FloatValue(10);
 			}
 		};
@@ -51,7 +51,7 @@ public class BiNumericFunctionTest {
 			}
 			
 			@Override
-			public Value compute(DefinedMetricStore store, Instant time) {
+			public Value compute(VariableStores store, Instant time) {
 				return new ExceptionValue("exception message");
 			}
 		};
@@ -64,7 +64,7 @@ public class BiNumericFunctionTest {
 			}
 			
 			@Override
-			public Value compute(DefinedMetricStore store, Instant time) {
+			public Value compute(VariableStores store, Instant time) {
 				return new FloatValue(10);
 			}
 		};
@@ -98,7 +98,7 @@ public class BiNumericFunctionTest {
 			}
 			
 			@Override
-			public Value compute(DefinedMetricStore store, Instant time) {
+			public Value compute(VariableStores store, Instant time) {
 				return new BooleanValue(true);
 			}
 		};
@@ -111,7 +111,7 @@ public class BiNumericFunctionTest {
 			}
 			
 			@Override
-			public Value compute(DefinedMetricStore store, Instant time) {
+			public Value compute(VariableStores store, Instant time) {
 				return new StringValue("");
 			}
 		};

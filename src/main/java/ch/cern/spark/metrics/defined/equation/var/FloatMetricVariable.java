@@ -15,7 +15,6 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.defined.DefinedMetricStore;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
@@ -47,7 +46,7 @@ public class FloatMetricVariable extends MetricVariable{
 	}
 	
 	@Override
-	public Value compute(DefinedMetricStore store, Instant time) {
+	public Value compute(MetricVariableStore store, Instant time) {
 		Optional<Instant> oldestUpdate = Optional.empty();
 		if(expirePeriod != null)
 			oldestUpdate = Optional.of(time.minus(expirePeriod));
@@ -55,7 +54,7 @@ public class FloatMetricVariable extends MetricVariable{
 		
 		Value val = null;
 		if(aggregateOperation == null) {
-			val = store.getValue(name, expirePeriod);
+			val = store.getValue(expirePeriod);
 			
 			String source = val.toString();
 			if(val.getAsException().isPresent())
@@ -184,14 +183,14 @@ public class FloatMetricVariable extends MetricVariable{
 	}
 
 	@Override
-	public void updateStore(DefinedMetricStore store, Metric metric) {	
+	public void updateStore(MetricVariableStore store, Metric metric) {	
 		if(!metric.getValue().getAsFloat().isPresent())
 			return;
 		
 		if(aggregateOperation == null)
-			store.updateValue(name, metric.getValue(), metric.getInstant());
+			store.updateValue(metric.getValue(), metric.getInstant());
 		else
-			store.updateAggregatedValue(name, metric.getIDs().hashCode(), metric.getValue(), metric.getInstant());
+			store.updateAggregatedValue(metric.getIDs().hashCode(), metric.getValue(), metric.getInstant());
 	}
 
 	@Override

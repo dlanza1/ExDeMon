@@ -14,6 +14,7 @@ import ch.cern.spark.Pair;
 import ch.cern.spark.StatusStream;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.defined.equation.var.VariableStores;
 
 public class DefinedMetrics {
 
@@ -40,7 +41,7 @@ public class DefinedMetrics {
 	};
 	
 	public static Stream<Metric> generate(Stream<Metric> metrics, Properties propertiesSourceProps) throws ClassNotFoundException, IOException, ConfigurationException{
-		StatusStream<DefinedMetricID, Metric, DefinedMetricStore, Metric> statuses = 
+		StatusStream<DefinedMetricID, Metric, VariableStores, Metric> statuses = 
 				metrics.mapWithState("definedMetrics", new ComputeIDsForDefinedMetricsF(propertiesSourceProps), new UpdateDefinedMetricStatusesF(propertiesSourceProps));
 		
         Stream<Metric> definedMetricsWhenBatch = statuses.getStatuses().transform((rdd, time) -> rdd.flatMap(new ComputeBatchDefineMetricsF(time)));

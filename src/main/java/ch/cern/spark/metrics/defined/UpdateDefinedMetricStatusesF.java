@@ -7,9 +7,10 @@ import org.apache.spark.streaming.Time;
 
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.defined.equation.var.VariableStores;
 
 public class UpdateDefinedMetricStatusesF 
-	implements Function4<Time, DefinedMetricID, Optional<Metric>, State<DefinedMetricStore>, Optional<Metric>> {
+	implements Function4<Time, DefinedMetricID, Optional<Metric>, State<VariableStores>, Optional<Metric>> {
 
 	private static final long serialVersionUID = 2965182980222300453L;
 
@@ -20,7 +21,7 @@ public class UpdateDefinedMetricStatusesF
 	}
 
 	@Override
-	public Optional<Metric> call(Time time, DefinedMetricID id, Optional<Metric> metricOpt, State<DefinedMetricStore> status)
+	public Optional<Metric> call(Time time, DefinedMetricID id, Optional<Metric> metricOpt, State<VariableStores> status)
 			throws Exception {
 
 		if(status.isTimingOut() || !metricOpt.isPresent())
@@ -35,7 +36,7 @@ public class UpdateDefinedMetricStatusesF
 		}
 		DefinedMetric definedMetric = definedMetricOpt.get();
 			
-		DefinedMetricStore store = getStore(status);
+		VariableStores store = getStore(status);
 		
 		Metric metric = metricOpt.get();
 		
@@ -54,8 +55,8 @@ public class UpdateDefinedMetricStatusesF
 		return javaOptional.isPresent() ? Optional.of(javaOptional.get()) : Optional.empty();
 	}
 
-	private DefinedMetricStore getStore(State<DefinedMetricStore> status) {
-		return status.exists() ? status.get() : new DefinedMetricStore();
+	private VariableStores getStore(State<VariableStores> status) {
+		return status.exists() ? status.get() : new VariableStores();
 	}
 
 }

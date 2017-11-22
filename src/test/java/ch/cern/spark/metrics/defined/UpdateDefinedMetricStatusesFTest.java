@@ -16,6 +16,8 @@ import ch.cern.Cache;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.defined.equation.var.MetricVariableStore;
+import ch.cern.spark.metrics.defined.equation.var.VariableStores;
 
 public class UpdateDefinedMetricStatusesFTest {
 	
@@ -38,7 +40,7 @@ public class UpdateDefinedMetricStatusesFTest {
         UpdateDefinedMetricStatusesF func = new UpdateDefinedMetricStatusesF(null);
 
         DefinedMetricID id = new DefinedMetricID("dmID1", new HashMap<>());
-        State<DefinedMetricStore> status = new StateImpl<>();
+        State<VariableStores> status = new StateImpl<>();
         Optional<Metric> metricOpt= null;
         
         metricOpt = Optional.of(Metric(0, 0f, "DB_NAME=DB1", "INSTANCE_NAME=DB1_1", "METRIC_NAME=Read"));
@@ -68,9 +70,13 @@ public class UpdateDefinedMetricStatusesFTest {
 
         Map<String, String> groupByIDs = new HashMap<>();
         groupByIDs.put("INSTANCE_NAME", "DB1_1");
-        DefinedMetricID id = new DefinedMetricID("dmID1", groupByIDs );
-        State<DefinedMetricStore> status = new StateImpl<>();
-        Optional<Metric> metricOpt= null;
+        DefinedMetricID id = new DefinedMetricID("dmID1", groupByIDs);
+        State<VariableStores> status = new StateImpl<>();
+        VariableStores varStores = new VariableStores();
+        MetricVariableStore varStore = new MetricVariableStore();
+		varStores.put("value", varStore );
+		status.update(varStores );
+        Optional<Metric> metricOpt = null;
         
         metricOpt = Optional.of(Metric(0, 0f, "INSTANCE_NAME=DB1_1"));
         Optional<Metric> result = func.call(null, id, metricOpt, status);
@@ -96,7 +102,7 @@ public class UpdateDefinedMetricStatusesFTest {
         Map<String, String> groupByIDs = new HashMap<>();
         groupByIDs.put("INSTANCE_NAME", "DB1_1");
         DefinedMetricID id = new DefinedMetricID("dmID1", groupByIDs );
-        State<DefinedMetricStore> status = new StateImpl<>();
+        State<VariableStores> status = new StateImpl<>();
         Optional<Metric> metricOpt= null;
         
         metricOpt = Optional.of(Metric(0, 0f, "INSTANCE_NAME=DB1_1"));

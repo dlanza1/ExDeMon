@@ -3,34 +3,34 @@ package ch.cern.spark.metrics.value;
 import java.time.Instant;
 import java.util.Optional;
 
-import ch.cern.spark.metrics.defined.DefinedMetricStore;
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
+import ch.cern.spark.metrics.defined.equation.var.VariableStores;
 
 public class FloatValue extends Value implements ValueComputable{
 
 	private static final long serialVersionUID = 6026199196915653369L;
 
-	private float floatValue;
+	private float num;
 	
 	public FloatValue(double value){
-		this.floatValue = (float) value;
+		this.num = (float) value;
 	}
 	
 	@Override
-	public FloatValue compute(DefinedMetricStore store, Instant time) {
-		return new FloatValue(floatValue);
+	public FloatValue compute(VariableStores store, Instant time) {
+		return new FloatValue(num);
 	}
 
 	@Override
 	public Optional<Float> getAsFloat() {
-		return Optional.of(this.floatValue);
+		return Optional.of(this.num);
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + Float.floatToIntBits(floatValue);
+		result = prime * result + Float.floatToIntBits(num);
 		return result;
 	}
 
@@ -43,7 +43,7 @@ public class FloatValue extends Value implements ValueComputable{
 		if (getClass() != obj.getClass())
 			return false;
 		FloatValue other = (FloatValue) obj;
-		if (Float.floatToIntBits(floatValue) != Float.floatToIntBits(other.floatValue))
+		if (Float.floatToIntBits(num) != Float.floatToIntBits(other.num))
 			return false;
 		return true;
 	}
@@ -59,7 +59,7 @@ public class FloatValue extends Value implements ValueComputable{
 	
 	@Override
 	public String toString() {
-		return Float.toString(floatValue);
+		return Float.toString(num);
 	}
 	
 	@Override

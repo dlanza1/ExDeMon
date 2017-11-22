@@ -18,6 +18,8 @@ import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.Equation;
 import ch.cern.spark.metrics.defined.equation.var.AnyMetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
+import ch.cern.spark.metrics.defined.equation.var.Variable;
+import ch.cern.spark.metrics.defined.equation.var.VariableStores;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.Value;
 
@@ -81,8 +83,7 @@ public class DefinedMetric implements Serializable{
 			variablesWhen = null;
 		else if(whenValue != null) {			
 			variablesWhen.addAll(Arrays.stream(whenValue.split(" ")).map(String::trim).collect(Collectors.toSet()));
-		}else
-			variablesWhen.add(variableNames.stream().sorted().findFirst().get());
+		}
 		if(variablesWhen != null) {
 			for (String variableWhen : variablesWhen) {
 				if(!equation.getVariables().containsKey(variableWhen)) {
@@ -95,6 +96,9 @@ public class DefinedMetric implements Serializable{
 				if(!variableNames.contains(variableWhen))
 					throw new ConfigurationException("Variables listed in when parameter must be declared.");
 			}
+		}
+		if(whenValue == null) {
+			variablesWhen.add(equation.getMetricVariables().keySet().stream().sorted().findFirst().get());
 		}
 		
 		variablesProperties.confirmAllPropertiesUsed();
@@ -115,7 +119,7 @@ public class DefinedMetric implements Serializable{
 	}
 
 	public Map<String, MetricVariable> getVariablesToUpdate(Metric metric) {
-		return equation.getVariables().entrySet().stream()
+		return getMetricVariables().entrySet().stream()
 				.filter(entry -> entry.getValue().test(metric))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
@@ -135,42 +139,42 @@ public class DefinedMetric implements Serializable{
 		return variablesWhen == null;
 	}
 
-	public void updateStore(DefinedMetricStore store, Metric metric) {
+	public void updateStore(VariableStores stores, Metric metric) {
 		if(configurationException != null)
 			return;
 		
 		Map<String, MetricVariable> variablesToUpdate = getVariablesToUpdate(metric);
 		
 		for (MetricVariable variableToUpdate : variablesToUpdate.values())
-			variableToUpdate.updateStore(store, metric);
+			variableToUpdate.updateStore(stores, metric);
 	}
 
-	public Optional<Metric> generateByUpdate(DefinedMetricStore store, Metric metric, Map<String, String> groupByMetricIDs) {
+	public Optional<Metric> generateByUpdate(VariableStores stores, Metric metric, Map<String, String> groupByMetricIDs) {
 		if(!shouldBeTrigeredByUpdate(metric))
 			return Optional.empty();
 		
-		return generate(store, metric.getInstant(), groupByMetricIDs);
+		return generate(stores, metric.getInstant(), groupByMetricIDs);
 	}
 	
-	public Optional<Metric> generateByBatch(DefinedMetricStore store, Instant time, Map<String, String> groupByMetricIDs) {
+	public Optional<Metric> generateByBatch(VariableStores stores, Instant time, Map<String, String> groupByMetricIDs) {
 		if(!isTriggerOnEveryBatch())
 			return Optional.empty();
 		
-		return generate(store, time, groupByMetricIDs);
+		return generate(stores, time, groupByMetricIDs);
 	}
 	
-	private Optional<Metric> generate(DefinedMetricStore store, Instant time, Map<String, String> groupByMetricIDs) {		
+	private Optional<Metric> generate(VariableStores stores, Instant time, Map<String, String> groupByMetricIDs) {		
 		Map<String, String> metricIDs = new HashMap<>(groupByMetricIDs);
 		metricIDs.put("$defined_metric", name);
 		
 		if(configurationException != null) {
-			if(store.newProcessedBatchTime(time))
+			if(stores.newProcessedBatchTime(time))
 				return Optional.of(new Metric(time, new ExceptionValue("ConfigurationException: " + configurationException.getMessage()), metricIDs));
 			else
 				return Optional.empty();
 		}
 		
-		Value value = equation.compute(store, time);
+		Value value = equation.compute(stores, time);
 			
 		return Optional.of(new Metric(time, value, metricIDs));
 	}
@@ -198,8 +202,15 @@ public class DefinedMetric implements Serializable{
 		return equation;
 	}
 
-	protected Map<String, MetricVariable> getVariables() {
+	protected Map<String, Variable> getVariables() {
 		return equation.getVariables();
+	}
+	
+	protected Map<String, MetricVariable> getMetricVariables() {
+		return equation.getVariables().entrySet().stream()
+						.filter(entry -> entry.getValue() instanceof MetricVariable)
+						.map(entry -> new Pair<String, MetricVariable>(entry.getKey(), (MetricVariable) entry.getValue()))
+						.collect(Collectors.toMap(Pair::first, Pair::second));
 	}
 	
 	protected Set<String> getVariablesWhen() {

@@ -17,7 +17,8 @@ public class SeasonalAnalysis extends NumericAnalysis implements HasStore{
 
     private static final long serialVersionUID = 6395895250358427351L;
 
-    public static String SEASON_PARAM = "season";
+    public static final String SEASON_PARAM = "season";
+    public static final String SEASON_DEFAULT = LearningRatioValuePredictor.Period.HOUR.toString();
     private String season;
 
     public static final String LEARNING_RATIO_PARAM = "learning.ratio";
@@ -38,7 +39,7 @@ public class SeasonalAnalysis extends NumericAnalysis implements HasStore{
         super.config(properties);
         
         learning_ratio = properties.getFloat(LEARNING_RATIO_PARAM, LEARNING_RATIO_DEFAULT);
-        season = properties.getProperty(SEASON_PARAM).toUpperCase();    
+        season = properties.getProperty(SEASON_PARAM, SEASON_DEFAULT).toUpperCase();    
         
         predictor = new LearningRatioValuePredictor(learning_ratio, LearningRatioValuePredictor.Period.valueOf(season));
         

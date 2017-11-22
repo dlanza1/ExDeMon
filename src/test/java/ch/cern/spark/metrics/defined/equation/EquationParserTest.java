@@ -60,14 +60,14 @@ public class EquationParserTest {
 			new Equation("(x + 1) == trim(x)", props);
 			fail();
 		}catch(ParseException | ConfigurationException e) {
-			assertEquals("Variable x is used by functions that expect it as different types (FloatMetricVariable, StringMetricVariable)", e.getMessage());
+			assertEquals("Variable x is used by functions that expect it as different types (FloatValue, StringValue)", e.getMessage());
 		}
 		
 		try {
 			new Equation("trim(varFloat)", props);
 			fail();
 		}catch(ParseException | ConfigurationException e) {
-			assertEquals("Variable varFloat has type FloatMetricVariable because of its aggregation operation, but in the equation there is a function that uses it as type StringMetricVariable", e.getMessage());
+			assertEquals("Variable varFloat has type FloatValue because of its aggregation operation, but in the equation there is a function that uses it as type StringValue", e.getMessage());
 		}
 	}
 	

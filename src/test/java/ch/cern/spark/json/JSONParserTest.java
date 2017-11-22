@@ -44,7 +44,7 @@ public class JSONParserTest{
         String expected_timestamp = TIMESTAMP_FORMAT_DEFAULT.format(timestamp);
         Assert.assertEquals(expected_timestamp, jsonObject.getProperty("analyzed_metric.timestamp"));
         
-        Assert.assertEquals("12.0", jsonObject.getProperty("analyzed_metric.value.floatValue"));
+        Assert.assertEquals("12.0", jsonObject.getProperty("analyzed_metric.value.num"));
         
         Assert.assertEquals("1234@cern.ch", jsonObject.getProperty("monitor_params.tags.email"));
         Assert.assertEquals("IT_DB", jsonObject.getProperty("monitor_params.tags.group"));

@@ -5,8 +5,8 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
-import ch.cern.spark.metrics.defined.DefinedMetricStore;
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
+import ch.cern.spark.metrics.defined.equation.var.VariableStores;
 import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
@@ -41,7 +41,7 @@ public abstract class Function implements ValueComputable{
 	}
 
 	@Override
-	public Value compute(DefinedMetricStore store, Instant time) {
+	public Value compute(VariableStores stores, Instant time) {
 		Value[] argumentValues = new Value[arguments.length];
 		
 		Set<String> exceptions = new HashSet<>();
@@ -49,7 +49,7 @@ public abstract class Function implements ValueComputable{
 		for (int i = 0; i < arguments.length; i++) {
 			ValueComputable argument = arguments[i];
 			
-			argumentValues[i] = argument.compute(store, time);		
+			argumentValues[i] = argument.compute(stores, time);		
 			if(argumentValues[i].getAsException().isPresent())
 				exceptions.add(argumentValues[i].getAsException().get());
 			else if(types[i].equals(FloatValue.class) && !argumentValues[i].getAsFloat().isPresent())
@@ -65,15 +65,15 @@ public abstract class Function implements ValueComputable{
 			String exceptionsString = toString(exceptions);
 			result = new ExceptionValue(exceptionsString);
 			
-			setSourceFromArgumentmValues(result, argumentValues, new ExceptionValue("in arguments").toString());
+			setSourceFromArgumentmValues(result, new ExceptionValue("in arguments").toString(), argumentValues);
 		}else if(typeExceptions.length() > 0) {
 			typeExceptions = typeExceptions.substring(0, typeExceptions.length() - 2);
 			result = new ExceptionValue(getExceptionPrefix() + typeExceptions);
 			
-			setSourceFromArgumentmValues(result, argumentValues, new ExceptionValue(typeExceptions).toString());
-		}else {
+			setSourceFromArgumentmValues(result, new ExceptionValue(typeExceptions).toString(), argumentValues);
+		}else{
 			result = compute(argumentValues);
-			setSourceFromArgumentmValues(result, argumentValues, result.toString());
+			setSourceFromArgumentmValues(result, result.toString(), argumentValues);
 		}
 		
 		return result;
@@ -88,7 +88,7 @@ public abstract class Function implements ValueComputable{
 		return exceptionsString.substring(0, exceptionsString.length() - 2);
 	}
 
-	private void setSourceFromArgumentmValues(Value result, Value[] argumentValues, String resultString) {
+	protected void setSourceFromArgumentmValues(Value result, String resultString, Value... argumentValues) {
 		if(operationInTheMiddle) {
 			result.setSource("(" + argumentValues[0].getSource() + " " + representation + " " + argumentValues[1].getSource() + ")=" + resultString);
 		}else {
@@ -103,7 +103,7 @@ public abstract class Function implements ValueComputable{
 
 	protected abstract Value compute(Value... values);
 
-	private String getExceptionPrefix() {
+	protected String getExceptionPrefix() {
 		return "Function \"" + representation + "\": ";
 	}
 	

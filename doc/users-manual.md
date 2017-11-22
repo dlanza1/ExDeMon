@@ -141,20 +141,25 @@ Independently of the type of value, values contains an attribute with name "sour
 
 ```
 metrics.define.<defined-metric-id>.value = <equation containing <variable-ids>> (default: <variable-id> if only one variable has been declared)
-metrics.define.<defined-metric-id>.when = <ANY|BATCH|space separated list of variable-ids> (default: the first variable after sorting)
+metrics.define.<defined-metric-id>.when = <ANY|BATCH|space separated list of metric variable-ids> (default: the first metric variable after sorting)
 metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/space separated attribute names> (default: not set)
+# Variable that represent an incoming metric
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name-1> = <value-1>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name-2> = <value-2>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute....
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate = <not set|sum|avg|weighted_avg|count|max|min|diff>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.expire = <never|period like 1h, 3m or 45s> (default: 10m)
-metrics.define.<defined-metric-id>.variables.<variable-id-2>....
+# Variable that represent a set of properties for an analysis (could serve to configure an analysis: properties_variable)
+metrics.define.<defined-metric-id>.variables.<variable-id-2>.type = <analysis_type>
+metrics.define.<defined-metric-id>.variables.<variable-id-2>.<analysis-conf-key-1> = <value-1>
+metrics.define.<defined-metric-id>.variables.<variable-id-2>.<analysis-conf-key-n> = <value-n>
+metrics.define.<defined-metric-id>.variables.<variable-id-n>...
 
 # With different id, more metrics can be defined
 ```
 
-New metrics can be defined. The value of these defined metrics is computed from an equation configured with the "value" parameter. This equation can have variables, these variables represent incoming metrics. So, values from several metrics can be aggregated in order to compute the value for the new metric. Equation supports grouping using (), and it applies the operator precedence and associativity rules. By default, in case only one variable is declared, value will return this variable. Equation will determine the type of the new defined metric.
+New metrics can be defined. The value of these defined metrics is computed from an equation configured with the "value" parameter. This equation can have variables, these variables can represent incoming metrics or a set of properties for configuring a function. Values from several metrics can be aggregated in order to compute the value for the new metric. Equation supports grouping using (), and it applies the operator precedence and associativity rules. By default, in case only one variable is declared, value will return this variable. Equation will determine the type of the new defined metric.
 
 Functions that can be used in the equation with expected types and the type they return:
 * \+ float => float
@@ -181,10 +186,27 @@ Functions that can be used in the equation with expected types and the type they
 * tan(float) => float
 * concat(string, string) => string
 * trim(string) => string
+* analysis(any, analysis_properties_variable) => "OK"|"WARNING"|"ERROR" (string)
 
-An example:
+Examples:
+
 ```
-<defined-metric-id>.value = !shouldBeMonitored || (trim(dir) == "/tmp/") && (abs(used / capacity) > 80)
+metrics.define.temperature_change.value = !shouldBeMonitored || analysis(temperature, ana_props) != "OK"
+metrics.define.temperature_change.variables.shouldBeMonitored.filter.attribute.TYPE = "Monitoring enabled"
+metrics.define.temperature_change.variables.temperature.filter.attribute.TYPE = "Temperature in Celsious"
+metrics.define.temperature_change.variables.ana_props.type = recent
+metrics.define.temperature_change.variables.ana_props.error.upperbound = true
+metrics.define.temperature_change.variables.ana_props.error.lowerbound = true
+
+metrics.define.directory_full.value = !shouldBeMonitored || (trim(dir) == "/tmp/") && (abs(used / capacity) > 80)
+metrics.define.directory_full.variables.shouldBeMonitored.filter.attribute.TYPE = DirReport
+metrics.define.directory_full.variables.shouldBeMonitored.filter.attribute.$value_attribute = monitor_enable
+metrics.define.directory_full.variables.dir.filter.attribute.TYPE = DirReport
+metrics.define.directory_full.variables.dir.filter.attribute.$value_attribute = path
+metrics.define.directory_full.variables.used.filter.attribute.TYPE = DirReport
+metrics.define.directory_full.variables.used.filter.attribute.$value_attribute = used_bytes
+metrics.define.directory_full.variables.capacity.filter.attribute.TYPE = DirReport
+metrics.define.directory_full.variables.capacity.filter.attribute.$value_attribute = capacity_bytes
 ```
 
 > TIP For debugging, values include a source attribute where equation result can be observed with a value like:
@@ -223,7 +245,6 @@ Group by can be set to ALL, then each metric will be treated independently.
 If group by is configured to ALL (or all attributes the metrics contain are listed) there is no attributes to differenciate metrics and aggregate them, so aggregation is done over the historical values coming from the metric.
 
 You need to specify what the variables in your equation represent by declaring variables. Then, &lt;variable-id-X&gt; can be used in the equation. The type of a variable is determined by the aggregation operation, if no aggregation operation is applied, it can become any time in the equation.
-Even tough you do not use any variable in the equation, at least one variable must be declared to trigger the computation.
 
 Variables are supposed to be updated periodically. In case they are not updated, its value expires after the period of time specified with the parameter "expire". 
 You can make variables to never expire configuring "expire" parameter to "never". By default, variables get expired after 10 minutes. 
@@ -428,7 +449,7 @@ filter.attribute.$source = kafka
 monitor.<monitor-id>.filter.expr = <predicate with () | & = !=>
 monitor.<monitor-id>.filter.attribute.<metric_attribute_key> = <[!]regex_or_exact_value>
 monitor.<monitor-id>.filter.attribute... (as many attributes as needed)
-## analysis 
+## analysis
 monitor.<monitor-id>.analysis.type = <analysis_type>
 monitor.<monitor-id>.analysis.<other_confs> = <value>
 ## notificators (optional)
@@ -744,7 +765,7 @@ Using a learning coeficient, average and variance are computed along the season 
 Configuration:
 ```
 monitor.<monitor-id>.analysis.type = seasonal
-monitor.<monitor-id>.analysis.season = <hour, day or week>
+monitor.<monitor-id>.analysis.season = <hour, day or week> (default: hour)
 monitor.<monitor-id>.analysis.learning.ratio = <float> (default: 0.5)
 monitor.<monitor-id>.analysis.error.ratio = <float> (default: 4)
 monitor.<monitor-id>.analysis.warn.ratio = <float> (default: 2)
