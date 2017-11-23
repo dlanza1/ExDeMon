@@ -72,7 +72,7 @@ public class InErrorMonitor extends Monitor {
 		}
 		
 		if(result != null) {
-			result.addMonitorParam("name", id);
+			result.addAnalysisParam("name", id);
 			result.setTags(tags);
 		}
 		

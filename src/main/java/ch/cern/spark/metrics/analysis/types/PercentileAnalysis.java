@@ -133,7 +133,7 @@ public class PercentileAnalysis extends NumericAnalysis implements HasStore{
         double diff = Math.abs(median - percentile);
         double threshold = percentile - diff * error_ratio;
         
-        result.addMonitorParam("error_lowerbound", threshold);
+        result.addAnalysisParam("error_lowerbound", threshold);
         
         if(result.hasStatus())
             return;
@@ -155,7 +155,7 @@ public class PercentileAnalysis extends NumericAnalysis implements HasStore{
         double diff = Math.abs(median - percentile);
         double threshold = percentile - diff * warn_ratio;
 
-        result.addMonitorParam("warning_lowerbound", threshold);
+        result.addAnalysisParam("warning_lowerbound", threshold);
         
         if(result.hasStatus())
             return;
@@ -177,7 +177,7 @@ public class PercentileAnalysis extends NumericAnalysis implements HasStore{
         double diff = Math.abs(median - percentile);
         double threshold = percentile + diff * warn_ratio;
         
-        result.addMonitorParam("warning_upperbound", threshold);
+        result.addAnalysisParam("warning_upperbound", threshold);
         
         if(result.hasStatus())
             return;
@@ -199,7 +199,7 @@ public class PercentileAnalysis extends NumericAnalysis implements HasStore{
         double diff = Math.abs(median - percentile);
         double threshold = percentile + diff * error_ratio;
         
-        result.addMonitorParam("error_upperbound", threshold);
+        result.addAnalysisParam("error_upperbound", threshold);
         
         if(result.hasStatus())
             return;

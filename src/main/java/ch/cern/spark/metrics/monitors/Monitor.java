@@ -82,7 +82,7 @@ public class Monitor {
         		
             result = analysis.apply(metric);
             
-            result.addMonitorParam("type", analysis.getClass().getAnnotation(RegisterComponent.class).value());
+            result.addAnalysisParam("type", analysis.getClass().getAnnotation(RegisterComponent.class).value());
             
             if(analysis.hasStore())
             		storeState.update(analysis.getStore().get());
@@ -91,7 +91,7 @@ public class Monitor {
             LOG.error(e.getMessage(), e);
         }
         
-        result.addMonitorParam("name", id);
+        result.addAnalysisParam("monitor.name", id);
         result.setTags(tags);
 
         return Optional.of(result);

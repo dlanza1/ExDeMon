@@ -139,14 +139,18 @@ public class DefinedMetric implements Serializable{
 		return variablesWhen == null;
 	}
 
-	public void updateStore(VariableStores stores, Metric metric) {
+	public void updateStore(VariableStores stores, Metric metric, Set<String> groupByKeys) throws CloneNotSupportedException {
 		if(configurationException != null)
 			return;
 		
 		Map<String, MetricVariable> variablesToUpdate = getVariablesToUpdate(metric);
 		
+		Metric metricForStore = metric.clone();
+		if(groupByKeys != null)
+			metricForStore.getIDs().entrySet().removeIf(entry -> groupByKeys.contains(entry.getKey()));
+		
 		for (MetricVariable variableToUpdate : variablesToUpdate.values())
-			variableToUpdate.updateStore(stores, metric);
+			variableToUpdate.updateStore(stores, metricForStore);
 	}
 
 	public Optional<Metric> generateByUpdate(VariableStores stores, Metric metric, Map<String, String> groupByMetricIDs) {

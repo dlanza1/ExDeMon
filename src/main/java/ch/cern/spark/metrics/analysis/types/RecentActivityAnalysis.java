@@ -112,7 +112,7 @@ public class RecentActivityAnalysis extends NumericAnalysis implements HasStore{
             return;
         
         double error_lowerbound_value = average - variance * error_ratio ;
-        result.addMonitorParam("error_lowerbound", error_lowerbound_value);
+        result.addAnalysisParam("error_lowerbound", error_lowerbound_value);
         
         if(result.hasStatus())
             return;
@@ -130,7 +130,7 @@ public class RecentActivityAnalysis extends NumericAnalysis implements HasStore{
             return;
         
         double warning_lowerbound_value = average - variance * warn_ratio;
-        result.addMonitorParam("warning_lowerbound", warning_lowerbound_value);
+        result.addAnalysisParam("warning_lowerbound", warning_lowerbound_value);
         
         if(result.hasStatus())
             return;
@@ -148,7 +148,7 @@ public class RecentActivityAnalysis extends NumericAnalysis implements HasStore{
             return;
         
         double warning_upperbound_value = average + variance * warn_ratio;
-        result.addMonitorParam("warning_upperbound", warning_upperbound_value);
+        result.addAnalysisParam("warning_upperbound", warning_upperbound_value);
         
         if(result.hasStatus())
             return;
@@ -166,7 +166,7 @@ public class RecentActivityAnalysis extends NumericAnalysis implements HasStore{
             return;
         
         double error_upperbound_value = average + variance * error_ratio;
-        result.addMonitorParam("error_upperbound", error_upperbound_value);
+        result.addAnalysisParam("error_upperbound", error_upperbound_value);
         
         if(result.hasStatus())
             return;

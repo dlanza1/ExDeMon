@@ -270,7 +270,7 @@ public class DefinedMetricTest {
 	}
 	
 	@Test
-	public void computeWhenVariableThatIsNotInEqaution() throws ConfigurationException {
+	public void computeWhenVariableThatIsNotInEqaution() throws ConfigurationException, CloneNotSupportedException {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
@@ -288,32 +288,32 @@ public class DefinedMetricTest {
 		Instant now = Instant.now();
 		
 		Metric metric = Metric(now, 10f, "HOSTNAME=host1", "TYPE=Running");
-		definedMetric.updateStore(store, metric);
+		definedMetric.updateStore(store, metric, null);
 		assertFalse(definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).isPresent());
 		
 		metric = Metric(now.plus(Duration.ofMinutes(1)), 13, "HOSTNAME=host2", "TYPE=Running");
-		definedMetric.updateStore(store, metric);
+		definedMetric.updateStore(store, metric, null);
 		assertFalse(definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).isPresent());
 		
 		metric = Metric(now.plus(Duration.ofMinutes(2)), 13, "TYPE=Trigger");
-		definedMetric.updateStore(store, metric);
+		definedMetric.updateStore(store, metric, null);
 		Optional<Metric> result = definedMetric.generateByUpdate(store, metric, new HashMap<String, String>());
 		assertTrue(result.isPresent());
 		assertEquals(2f, result.get().getValue().getAsFloat().get(), 0.001f);
 		
 		metric = Metric(now.plus(Duration.ofMinutes(3)), 7, "HOSTNAME=host3", "TYPE=Running");
-		definedMetric.updateStore(store, metric);
+		definedMetric.updateStore(store, metric, null);
 		assertFalse(definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).isPresent());
 		
 		metric = Metric(now.plus(Duration.ofMinutes(4)), 13, "TYPE=Trigger");
-		definedMetric.updateStore(store, metric);
+		definedMetric.updateStore(store, metric, null);
 		result = definedMetric.generateByUpdate(store, metric, new HashMap<String, String>());
 		assertTrue(result.isPresent());
 		assertEquals(3f, result.get().getValue().getAsFloat().get(), 0.001f);
 	}
 	
 	@Test
-	public void computeAggregateCountWhenBatch() throws ConfigurationException {
+	public void computeAggregateCountWhenBatch() throws ConfigurationException, CloneNotSupportedException {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
@@ -329,20 +329,20 @@ public class DefinedMetricTest {
 		Instant now = Instant.now();
 		
 		Metric metric = Metric(now, 10f, "HOSTNAME=host1", "TYPE=Running");
-		definedMetric.updateStore(store, metric);
+		definedMetric.updateStore(store, metric, null);
 		assertFalse(definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).isPresent());
 		
 		metric = Metric(now.plus(Duration.ofMinutes(1)), 13, "HOSTNAME=host2", "TYPE=Running");
-		definedMetric.updateStore(store, metric);
+		definedMetric.updateStore(store, metric, null);
 		assertEquals(2f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		metric = Metric(now.plus(Duration.ofMinutes(2)), 13, "HOSTNAME=host3", "TYPE=Running");
-		definedMetric.updateStore(store, metric);
+		definedMetric.updateStore(store, metric, null);
 		assertEquals(3f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		// same host -> update value
 		metric = Metric(now.plus(Duration.ofMinutes(3)), 7, "HOSTNAME=host3", "TYPE=Running");
-		definedMetric.updateStore(store, metric);
+		definedMetric.updateStore(store, metric, null);
 		assertEquals(3f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		assertEquals(3f, definedMetric.generateByBatch(store, now.plus(Duration.ofMinutes(9)), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
@@ -354,7 +354,7 @@ public class DefinedMetricTest {
 	}
 	
 	@Test
-	public void computeAggregateSumMetric() throws ConfigurationException {
+	public void computeAggregateSumMetric() throws ConfigurationException, CloneNotSupportedException {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
@@ -366,25 +366,25 @@ public class DefinedMetricTest {
 		VariableStores store = new VariableStores();;
 		
 		Metric metric = Metric(Instant.now(), 10, "HOSTNAME=host1", "TYPE=Read Bytes");
-		definedMetric.updateStore(store, metric);
+		definedMetric.updateStore(store, metric, null);
 		assertEquals(10f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		metric = Metric(Instant.now(), 13, "HOSTNAME=host2", "TYPE=Read Bytes");
-		definedMetric.updateStore(store, metric);
+		definedMetric.updateStore(store, metric, null);
 		assertEquals(23f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		metric = Metric(Instant.now(), 13, "HOSTNAME=host3", "TYPE=Read Bytes");
-		definedMetric.updateStore(store, metric);
+		definedMetric.updateStore(store, metric, null);
 		assertEquals(36f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		// same host -> update value
 		metric = Metric(Instant.now(), 7, "HOSTNAME=host3", "TYPE=Read Bytes");
-		definedMetric.updateStore(store, metric);
+		definedMetric.updateStore(store, metric, null);
 		assertEquals(30f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 	}
 	
 	@Test
-	public void neverExpire() throws ConfigurationException {
+	public void neverExpire() throws ConfigurationException, CloneNotSupportedException {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
@@ -401,29 +401,29 @@ public class DefinedMetricTest {
 		Instant now = Instant.now();
 		
 		Metric metric = Metric(now, 10, "METRIC_NAME=Read Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertTrue(definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).isPresent());
 		assertTrue(definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsException().isPresent());
 		
 		metric = Metric(now.plus(Duration.ofHours(20)), 7, "METRIC_NAME=Write Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(17f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		metric = Metric(now.plus(Duration.ofHours(40)), 8, "METRIC_NAME=Write Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(18f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		metric = Metric(now.plus(Duration.ofHours(60)), 9, "METRIC_NAME=Write Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(19f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		metric = Metric(now.plus(Duration.ofHours(80)), 10, "METRIC_NAME=Write Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(20f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 	}
 
 	@Test
-	public void valueExpire() throws ConfigurationException {
+	public void valueExpire() throws ConfigurationException, CloneNotSupportedException {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
@@ -441,40 +441,40 @@ public class DefinedMetricTest {
 		Instant now = Instant.now();
 	
 		Metric metric = Metric(now, 10, "METRIC_NAME=None");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		Optional<Metric> result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
 		assertTrue(result.isPresent());
 		assertEquals("Variable readbytestotal: no value for the last 1 minute, Variable writebytestotal: no value for the last 10 minutes", result.get().getValue().getAsException().get());
 		assertEquals("(var(readbytestotal)={Error: no value for the last 1 minute} + var(writebytestotal)={Error: no value for the last 10 minutes})={Error: in arguments}", result.get().getValue().getSource());
 		
 		metric = Metric(now, 10, "METRIC_NAME=Read Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
 		assertTrue(result.isPresent());
 		assertEquals("Variable writebytestotal: no value for the last 10 minutes", result.get().getValue().getAsException().get());
 		assertEquals("(var(readbytestotal)=10.0 + var(writebytestotal)={Error: no value for the last 10 minutes})={Error: in arguments}", result.get().getValue().getSource());
 		
 		metric = Metric(now.plus(Duration.ofSeconds(20)), 7, "METRIC_NAME=Write Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(17f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		metric = Metric(now.plus(Duration.ofSeconds(40)), 8, "METRIC_NAME=Write Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(18f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		metric = Metric(now.plus(Duration.ofSeconds(60)), 9, "METRIC_NAME=Write Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(19f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		// Read Bytes has not been updated for more than 1 minute, so has expired and computation cannot be performed
 		metric = Metric(now.plus(Duration.ofSeconds(80)), 8, "METRIC_NAME=Write Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertTrue(definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).isPresent());
 		assertTrue(definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsException().isPresent());
 	}
 	
 	@Test
-	public void valueExpireInAggregation() throws ConfigurationException {
+	public void valueExpireInAggregation() throws ConfigurationException, CloneNotSupportedException {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
@@ -489,31 +489,31 @@ public class DefinedMetricTest {
 		Instant now = Instant.now();
 		
 		Metric metric = Metric(now, 10, "HOSTNAME=host1", "METRIC_NAME=Read Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(10f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		metric = Metric(now.plus(Duration.ofSeconds(20)), 13, "HOSTNAME=host2", "METRIC_NAME=Read Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(23f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		metric = Metric(now.plus(Duration.ofSeconds(40)), 13, "HOSTNAME=host3", "METRIC_NAME=Read Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(36f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		// same host -> update value
 		metric = Metric(now.plus(Duration.ofSeconds(60)), 7, "HOSTNAME=host3", "METRIC_NAME=Read Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(30f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		// host1 has not been updated for more than 1 minute, so his value is removed
 		// same host -> update value
 		metric = Metric(now.plus(Duration.ofSeconds(80)), 8, "HOSTNAME=host2", "METRIC_NAME=Read Bytes");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(15f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 	}
 	
 	@Test
-	public void aggregateWithNoFilter() throws ConfigurationException {
+	public void aggregateWithNoFilter() throws ConfigurationException, CloneNotSupportedException {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
@@ -524,20 +524,20 @@ public class DefinedMetricTest {
 		VariableStores stores = new VariableStores();;
 		
 		Metric metric = Metric(0, 10, "HOSTNAME=host1");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(10f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		metric = Metric(0, 13, "HOSTNAME=host2");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(23f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		metric = Metric(0, 13, "HOSTNAME=host3");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(36f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		// same host -> update value
 		metric = Metric(0, 7, "HOSTNAME=host3");
-		definedMetric.updateStore(stores, metric);
+		definedMetric.updateStore(stores, metric, null);
 		assertEquals(30f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 	}
 	

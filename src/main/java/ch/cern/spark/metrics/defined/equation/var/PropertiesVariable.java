@@ -40,5 +40,10 @@ public class PropertiesVariable extends Variable {
 	public boolean test(Metric t) {
 		return false;
 	}
+	
+	@Override
+	public String toString() {
+		return "props(" + name + ")";
+	}
 
 }

@@ -14,6 +14,7 @@ import ch.cern.spark.Batches;
 import ch.cern.spark.Stream;
 import ch.cern.spark.StreamTestHelper;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.defined.DefinedMetrics;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 
@@ -21,6 +22,46 @@ public class MonitorReturningAnalysisResultsStreamTest extends StreamTestHelper<
 	
 	private static final long serialVersionUID = -444431845152738589L;
 
+	@Test
+	public void monitorAndDefinedMetric() throws Exception {
+		DefinedMetrics.getCache().reset();		
+		Monitors.getCache().reset();		
+        Properties.initCache(null);
+        Cache<Properties> propertiesCache = Properties.getCache();
+        Properties properties = new Properties();
+		properties.setProperty("metrics.define.testdm.value", "analysis(value, ana_props) == \"OK\"");
+		properties.setProperty("metrics.define.testdm.metrics.groupby", "ALL");
+		properties.setProperty("metrics.define.testdm.variables.value.filter.attribute.INSTANCE_NAME", ".*");
+		properties.setProperty("metrics.define.testdm.variables.value.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
+		properties.setProperty("metrics.define.testdm.variables.ana_props.type", "fixed-threshold");
+		properties.setProperty("metrics.define.testdm.variables.ana_props.error.upperbound", "90");
+		properties.setProperty("monitor.mon1.filter.expr", "$defined_metric=testdm");
+		properties.setProperty("monitor.mon1.analysis.type", "true");
+		propertiesCache.set(properties);
+		
+		addInput(0,    Metric(0, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
+		addInput(1,    Metric(0, 91f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
+		addInput(2,    Metric(0, 89f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
+		Stream<Metric> metricsStream = createStream(Metric.class);
+        
+		Stream<Metric> definedMetrics = DefinedMetrics.generate(metricsStream, null);
+		Stream<AnalysisResult> results = Monitors.analyze(definedMetrics, null);
+        
+        Batches<AnalysisResult> returnedBatches = collect(results);
+        
+        List<AnalysisResult> batch0 = returnedBatches.get(0);
+        assertEquals(1, batch0.size());
+        assertEquals(Status.OK, batch0.get(0).getStatus());
+        
+        List<AnalysisResult> batch1 = returnedBatches.get(1);
+        assertEquals(1, batch1.size());
+        assertEquals(Status.ERROR, batch1.get(0).getStatus());
+        
+        List<AnalysisResult> batch2 = returnedBatches.get(2);
+        assertEquals(1, batch2.size());
+        assertEquals(Status.OK, batch2.get(0).getStatus());
+	}
+	
 	@Test
 	public void shouldProduceExceptionAnaylisisResultWithConfigurationExceptionAndFilterOK() throws Exception {
 		Monitors.getCache().reset();		

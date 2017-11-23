@@ -19,19 +19,18 @@ public class AnalysisResult implements Serializable {
     private static final long serialVersionUID = -5307381437257371176L;
 
     public enum Status {OK, WARNING, ERROR, EXCEPTION};
+    public Status status;
+    public String status_reason;
     
     public Instant analysis_timestamp;
     
     public Metric analyzed_metric;
     
-    public Status status;
-    public String status_reason;
-    
-    private Map<String, Object> monitor_params;
+    private Map<String, Object> analysis_params;
     
     public AnalysisResult() {
         analysis_timestamp = Instant.now();
-        monitor_params = new HashMap<String, Object>();
+        analysis_params = new HashMap<String, Object>();
     }
 
     public void setAnalyzedMetric(Metric metric) {
@@ -52,8 +51,8 @@ public class AnalysisResult implements Serializable {
         return status;
     }
 
-    public void addMonitorParam(String key, Object value) {
-        monitor_params.put(key, value);
+    public void addAnalysisParam(String key, Object value) {
+        analysis_params.put(key, value);
     }
 
     public boolean hasStatus() {
@@ -83,7 +82,7 @@ public class AnalysisResult implements Serializable {
     @Override
     public String toString() {
         return "AnalysisResult [analysis_timestamp=" + analysis_timestamp + ", analyzed_metric=" + analyzed_metric
-                + ", status=" + status + ", status_reason=" + status_reason + ", monitor_params=" + monitor_params
+                + ", status=" + status + ", status_reason=" + status_reason + ", monitor_params=" + analysis_params
                 + "]";
     }
 
@@ -93,25 +92,25 @@ public class AnalysisResult implements Serializable {
         Value value = new ExceptionValue("Metric has timmed out.");
 		result.setAnalyzedMetric(new Metric(time, value , ids.getMetricIDs()));
 		
-        result.addMonitorParam("name", ids.getMonitorID());
+        result.addAnalysisParam("monitor.name", ids.getMonitorID());
         
         return result;
     }
 
     public Map<String, Object> getMonitorParams() {
-        return monitor_params;
+        return analysis_params;
     }
     
 	public void setTags(Map<String, String> tags) {
-		monitor_params.put("tags", tags);
+		analysis_params.put("tags", tags);
 	}
     
     @SuppressWarnings("unchecked")
 	public Map<String, String> getTags() {
-    		Object tags = monitor_params.get("tags");
+    		Object tags = analysis_params.get("tags");
     	
     		if(tags instanceof HashMap)
-	    		return (Map<String, String>) monitor_params.get("tags");
+	    		return (Map<String, String>) analysis_params.get("tags");
     		else
     			return new HashMap<>();
 	}

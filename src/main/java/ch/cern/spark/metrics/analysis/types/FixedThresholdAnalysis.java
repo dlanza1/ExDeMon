@@ -38,10 +38,10 @@ public class FixedThresholdAnalysis extends NumericAnalysis {
     public AnalysisResult process(Instant timestamp, double value) {
         AnalysisResult result = new AnalysisResult();
         
-        result.addMonitorParam("error_upperbound", error_upperbound);
-        result.addMonitorParam("warning_upperbound", warning_upperbound);
-        result.addMonitorParam("warning_lowerbound", warning_lowerbound);
-        result.addMonitorParam("error_lowerbound", error_lowerbound);
+        result.addAnalysisParam("error_upperbound", error_upperbound);
+        result.addAnalysisParam("warning_upperbound", warning_upperbound);
+        result.addAnalysisParam("warning_lowerbound", warning_lowerbound);
+        result.addAnalysisParam("error_lowerbound", error_lowerbound);
 
         if(error_upperbound != null && value >= error_upperbound){
             result.setStatus(AnalysisResult.Status.ERROR, 

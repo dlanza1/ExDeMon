@@ -74,7 +74,7 @@ public class SeasonalAnalysis extends NumericAnalysis implements HasStore{
         AnalysisResult result = new AnalysisResult();
         try{
             Prediction prediction = predictor.getPredictionForTime(timestamp);
-            result.addMonitorParam("prediction", prediction.getValue());
+            result.addAnalysisParam("prediction", prediction.getValue());
             
             processErrorUpperbound(result, value, prediction); 
             processWarningUpperbound(result, value, prediction);
@@ -95,7 +95,7 @@ public class SeasonalAnalysis extends NumericAnalysis implements HasStore{
     
     private void processErrorLowerbound(AnalysisResult result, double value, Prediction prediction) {
         float threshold = prediction.getValue() - prediction.getStandardDeviation() * error_ratio;
-        result.addMonitorParam("error_lowerbound", threshold);
+        result.addAnalysisParam("error_lowerbound", threshold);
         
         if(!result.hasStatus() && value < threshold){
             result.setStatus(AnalysisResult.Status.ERROR, 
@@ -108,7 +108,7 @@ public class SeasonalAnalysis extends NumericAnalysis implements HasStore{
 
     private void processWarningLowerbound(AnalysisResult result, double value, Prediction prediction) {
         float threshold = prediction.getValue() - prediction.getStandardDeviation() * warning_ratio;
-        result.addMonitorParam("warning_lowerbound", threshold);
+        result.addAnalysisParam("warning_lowerbound", threshold);
         
         if(!result.hasStatus() && value < threshold){
             result.setStatus(AnalysisResult.Status.WARNING, 
@@ -121,7 +121,7 @@ public class SeasonalAnalysis extends NumericAnalysis implements HasStore{
 
     private void processWarningUpperbound(AnalysisResult result, double value, Prediction prediction) {
         float threshold = prediction.getValue() + prediction.getStandardDeviation() * warning_ratio;
-        result.addMonitorParam("warning_upperbound", threshold);
+        result.addAnalysisParam("warning_upperbound", threshold);
         
         if(!result.hasStatus() && value > threshold){
             result.setStatus(AnalysisResult.Status.WARNING, 
@@ -134,7 +134,7 @@ public class SeasonalAnalysis extends NumericAnalysis implements HasStore{
 
     private void processErrorUpperbound(AnalysisResult result, double value, Prediction prediction) {
         float threshold = prediction.getValue() + prediction.getStandardDeviation() * error_ratio;
-        result.addMonitorParam("error_upperbound", threshold);
+        result.addAnalysisParam("error_upperbound", threshold);
         
         if(!result.hasStatus() && value > threshold){
             result.setStatus(AnalysisResult.Status.ERROR, 
