@@ -109,6 +109,7 @@ Only one analysis results sink is declared for the job. All monitors use this si
 
 Built-in analysis results sink:
 - Elastic.
+- HTTP (POST).
 
 ### Notificator
 

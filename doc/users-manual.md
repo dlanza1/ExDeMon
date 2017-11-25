@@ -779,9 +779,9 @@ An example of the result of this analysis can be seen in the following image.
 
 ### Analysis results sinks
 
-#### Elastic sink
+#### Elastic Analysis results sink
 
-Analysis results are converted to JSON an sinked to an Elastic index.
+Analysis results are converted to JSON and sunk to an Elastic index.
 
 ```
 results.sink.type = elastic
@@ -789,6 +789,23 @@ results.sink.index = <index>
 spark.es.nodes=<nodes>
 spark.es.port=<port>
 spark.es.<any_other_attribute> = <value>
+```
+
+#### HTTP Analysis results sink
+
+Analysis results are converted to JSON and sunk to an HTTP (POST) end point.
+
+```
+results.sink.type = http
+results.sink.url = <url>
+# HTTP simple authentication
+results.sink.auth = <true|false> (default: false)
+results.sink.auth.user = <username>
+results.sink.auth.password = <password>
+# Add properties to JSON document
+results.sink.add.<key-1> = <value-1>
+results.sink.add.<key-2> = <value-2>
+results.sink.add.<key-n> = <value-n>
 ```
 
 ### Notificators
@@ -836,7 +853,7 @@ An example of the result of this notificator can be seen in the following image.
 
 #### Elastic notifications sink
 
-Notifications are converted to JSON an sinked to an Elastic index.
+Notifications are converted to JSON and sunk to an Elastic index.
 
 ```
 notifications.sink.<sink-id>.type = elastic

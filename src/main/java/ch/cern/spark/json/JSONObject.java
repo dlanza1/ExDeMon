@@ -58,6 +58,18 @@ public class JSONObject implements Serializable {
 
         return object.get(elementName);
     }
+    
+    public void setProperty(String key, String value) throws ParseException {
+	    	if (object == null)
+	    		try {
+	    			object = PARSER.parse(string).getAsJsonObject();
+	    		}catch(Exception e) {
+	    			throw new ParseException(e.getMessage(), 0);
+	    		}
+	    	
+	    	object.addProperty(key, value);
+	    	this.string = this.object.toString();
+    }
 
     public JSONObject getJSONObject(String name) throws ParseException {
         JsonElement element = getElement(name); 

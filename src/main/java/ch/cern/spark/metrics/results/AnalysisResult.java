@@ -63,6 +63,10 @@ public class AnalysisResult implements Serializable {
         return analysis_timestamp;
     }
     
+    public void setAnalysisTimestamp(Instant time){
+        analysis_timestamp = time;
+    }
+    
     public Metric getAnalyzedMetric(){
         return analyzed_metric;
     }
