@@ -14,11 +14,13 @@ Notifications can be raised if certain statuses like error or warning are mainta
 
 ### Key features
 
+- Stand-alone or distributed (scalable) execution, all possible platforms that Spark is compatible with.
 - Metrics value can be float, string or boolean.
 - New metrics can be defined. Mathematical operations can be applied. Value of new metrics can be computed by aggregating different incoming metrics. 
 - Several monitors can be declared, each monitor can have a metric filter, a metric analysis and notificators. 
 - Several metric sources can be declared.
-- One analysis result sink and one notifications sink can be declared. They are shared by all monitors. 
+- One analysis result sink is shared by all monitors.
+- Several notifications sinks, to be able to notify several systems.
 - Components: properties source, metrics source, analysis, analysis results sink, notificator and notification sink. They can be easily replaced. 
 - Some built-in components: Kafka source, different analysis, Elastic sink, notificators, ...
 - Metrics can arrive at different frequencies.
@@ -26,7 +28,7 @@ Notifications can be raised if certain statuses like error or warning are mainta
 - Detection of missing metrics.
 
 An image that describes some of the previous concepts and shows the data flow in the streaming job can be seen here.  
-![Data flow](/doc/img/data-flow.png)
+![Data flow](/doc/img/dataflow.png)
 
 ## Define new metrics
 
@@ -64,7 +66,7 @@ Many monitors can be declared. Each monitor has a filter to determine to which m
 Filtered metrics are analyzed to determine the current status of the metric.
 Several notificators can be configured to raise notifications.
 
-Results from analysis and notifications can be sunk to an external storage.
+Results from analysis and notifications can be sunk to external storages.
 
 ## Components
 
@@ -118,11 +120,11 @@ Built-in notificators:
 - Constant status: if a metric has been in configured statuses during a certain period.
 - Percentage status: if a metric has been in configured statuses during a percentage of a certain period.
 
-### Notifications sink
+### Notifications sinks
 
-Notifications produced by notificators are sunk using this component. Notifications can be sunk to an external storage, sent by email, used to trigger actions, etc.
+Notifications produced by notificators are sunk using one or several of this component. Notifications can be sunk to an external storage, sent by email, used to trigger actions, etc.
 
-Only one notifications sink is declared for the job. All monitors use this sink.
+Several notifications sinks can be declared.
 
 Built-in notifications sink:
 - Elastic.

@@ -48,7 +48,7 @@ public class ElasticNotificationsSink extends NotificationsSink {
     }
 
     @Override
-    public void sink(Stream<Notification> outputStream) {
+    public void notify(Stream<Notification> outputStream) {
         JavaDStream<String> jsonStringsStream = outputStream.asJSON().asString().asJavaDStream();
         
         JavaEsSparkStreaming.saveJsonToEs(jsonStringsStream, indexName, elasticConfig);

@@ -44,7 +44,7 @@ public final class Driver {
     
 	private List<MetricsSource> metricSources;
 	private Optional<AnalysisResultsSink> analysisResultsSink;
-	private Optional<NotificationsSink> notificationsSink;
+	private List<NotificationsSink> notificationsSinks;
 
 	public Driver(Properties properties) throws Exception {
 		removeSparkCheckpointDir(properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT));
@@ -53,9 +53,9 @@ public final class Driver {
 
         metricSources = getMetricSources(properties);
 		analysisResultsSink = getAnalysisResultsSink(properties);
-		notificationsSink = getNotificationsSink(properties);
+		notificationsSinks = getNotificationsSinks(properties);
 		
-		if(!analysisResultsSink.isPresent() && !notificationsSink.isPresent())
+		if(!analysisResultsSink.isPresent() && notificationsSinks.size() == 0)
             throw new ConfigurationException("At least one sink must be configured");
 	}
 
@@ -102,7 +102,7 @@ public final class Driver {
 		
 		Stream<Notification> notifications = Monitors.notify(results, propertiesSourceProps);
 		
-    		notificationsSink.ifPresent(notifications::sink);
+    		notificationsSinks.stream().forEach(notifications::sink);
 		
 		return ssc;
 	}
@@ -111,12 +111,6 @@ public final class Driver {
 		return metricSources.stream()
 				.map(source -> source.createStream(ssc))
 				.reduce((str, stro) -> str.union(stro)).get();
-	}
-
-    private Optional<NotificationsSink> getNotificationsSink(Properties properties) throws Exception {
-    		Properties notificationsSinkProperties = properties.getSubset("notifications.sink");
-
-    		return ComponentManager.buildOptional(Type.NOTIFICATIONS_SINK, notificationsSinkProperties);
 	}
 
 	private Optional<AnalysisResultsSink> getAnalysisResultsSink(Properties properties) throws Exception {
@@ -145,6 +139,25 @@ public final class Driver {
 		    throw new ConfigurationException("At least one metric source must be configured");
 		
 		return metricSources;
+	}
+	
+	private List<NotificationsSink> getNotificationsSinks(Properties properties) throws Exception {
+		List<NotificationsSink> notificationsSinks = new LinkedList<>();
+		
+    		Properties sinkProperties = properties.getSubset("notifications.sink");
+		
+    		Set<String> ids = sinkProperties.getUniqueKeyFields();
+    		
+    		for (String id : ids) {
+    			Properties props = sinkProperties.getSubset(id);
+			
+    			NotificationsSink sink = ComponentManager.build(Type.NOTIFICATIONS_SINK, props);
+    			sink.setId(id);
+    			
+    			notificationsSinks.add(sink);
+		}
+		
+		return notificationsSinks;
 	}
 	
 	public JavaStreamingContext newStreamingContext(Properties properties) throws IOException, ConfigurationException {

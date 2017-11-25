@@ -3,6 +3,7 @@ package ch.cern.spark.metrics.notifications;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 
 public class Notification implements Serializable {
     
@@ -20,13 +21,16 @@ public class Notification implements Serializable {
 
 	private Map<String, String> tags;
 
+	private Set<String> sinks;
+
     public Notification(Instant timestamp, String monitorID, String notificatorID, Map<String, String> metricIDs,
-            String reason) {
+            String reason, Set<String> sinks) {
         this.timestamp = timestamp;
         this.monitorID = monitorID;
         this.notificatorID = notificatorID;
         this.metricIDs = metricIDs;
         this.reason = reason;
+        this.sinks = sinks;
     }
 
     public Notification() {
@@ -83,5 +87,19 @@ public class Notification implements Serializable {
 	public Map<String, String> getTags() {
 		return tags;
 	}
-    
+
+	public Set<String> getSinkIds() {
+		return sinks;
+	}
+	
+	public void setSinkIds(Set<String> sinks) {
+		this.sinks = sinks;
+	}
+
+	@Override
+	public String toString() {
+		return "Notification [timestamp=" + timestamp + ", monitorID=" + monitorID + ", notificatorID=" + notificatorID
+				+ ", metricIDs=" + metricIDs + ", reason=" + reason + ", tags=" + tags + ", sinks=" + sinks + "]";
+	}
+	
 }

@@ -93,6 +93,7 @@ public class InErrorMonitor extends Monitor {
 		
 		ConstantNotificator notificator = new ConstantNotificator();
 		Properties properties = new Properties();
+		properties.put("sinks", "ALL");
 		properties.put("statuses", "EXCEPTION");
 		properties.put("period", "10m");
 		try {

@@ -15,7 +15,6 @@ import org.junit.After;
 import org.junit.Before;
 
 import ch.cern.spark.TestInputStream.JTestInputStream;
-import ch.cern.spark.metrics.Metric;
 import scala.reflect.ClassTag;
 
 public class StreamTestHelper<IN, OUT> implements Serializable {
@@ -74,7 +73,7 @@ public class StreamTestHelper<IN, OUT> implements Serializable {
         assertEquals(expectedBatches, collect(results));
     }
     
-    public Stream<IN> createStream(Class<Metric> class1){
+    public Stream<IN> createStream(Class<?> class1){
         long batchDuration = getBatchDuration();
         
         ClassTag<IN> classTag = scala.reflect.ClassTag$.MODULE$.apply(class1);

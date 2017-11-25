@@ -52,8 +52,8 @@ monitor.<monitor-id-n>.<confs>...
 # At least one sink must be declared
 results.sink.type = <analysis_results_sink_type>
 results.sink.<other_confs> = <value>
-notifications.sink.type = <notifications_sink_type>
-notifications.sink.<other_confs> = <value>
+notifications.sink.<sink-id>.type = <notifications_sink_type>
+notifications.sink.<sink-id>.<other_confs> = <value>
 ```
 
 An example of full configuration can be:
@@ -85,8 +85,8 @@ results.sink.type = elastic
 results.sink.index = itdb_db-metric-results/log
 
 # Notifications are sinked to Elastic
-notifications.sink.type = elastic
-notifications.sink.index = itdb_db-metric-notifications/log
+notifications.sink.elastic.type = elastic
+notifications.sink.elastic.index = itdb_db-metric-notifications/log
 
 spark.es.nodes=es-itdb.cern.ch
 spark.es.port=9203
@@ -120,9 +120,11 @@ monitor.all-seasonal.analysis.learning.ratio = 0.2
 monitor.all-seasonal.analysis.error.ratio = 6
 monitor.all-seasonal.analysis.warn.ratio = 3
 monitor.all-seasonal.notificator.error-constant.type = constant
+monitor.all-seasonal.notificator.error-constant.sinks = elastic
 monitor.all-seasonal.notificator.error-constant.statuses = ERROR
 monitor.all-seasonal.notificator.error-constant.period = 10m
 monitor.all-seasonal.notificator.warn-constant.type = constant
+monitor.all-seasonal.notificator.warn-constant.sinks = ALL
 monitor.all-seasonal.notificator.warn-constant.statuses = WARNING
 monitor.all-seasonal.notificator.warn-constant.period = 20m
 ```
@@ -454,6 +456,7 @@ monitor.<monitor-id>.analysis.type = <analysis_type>
 monitor.<monitor-id>.analysis.<other_confs> = <value>
 ## notificators (optional)
 monitor.<monitor-id>.notificator.<notificator-id>.type = <notificator-type>
+monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|space separated notificatios sink ids> (default: ALL)
 monitor.<monitor-id>.notificator.<notificator-id>.<other_confs> = <value>
 monitor.<monitor-id>.notificator.<notificator-id>... (as many notificators as needed)
 monitor.<monitor-id>.tags.<tag-key-1> = <value-1>
@@ -801,6 +804,7 @@ Possible statuses are: error, warning, ok, exception.
 Configuration:
 ```
 monitor.<monitor-id>.notificator.<notificator-id>.type = constant
+monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|notifications-sinks-ids> (default: ALL)
 monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses separated by comma>
 monitor.<monitor-id>.notificator.<notificator-id>.period = <period like 1h, 3m or 45s> (default: 15m)
 ```
@@ -819,6 +823,7 @@ Possible statuses are: error, warning, ok, exception.
 Configuration:
 ```
 monitor.<monitor-id>.notificator.<notificator-id>.type = percentage
+monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|notifications-sinks-ids> (default: ALL)
 monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses separated by comma>
 monitor.<monitor-id>.notificator.<notificator-id>.period = <period like 1h, 3m or 45s> (default: 15m)
 monitor.<monitor-id>.notificator.<notificator-id>.percentage = <0-100> (default: 90)
@@ -834,8 +839,8 @@ An example of the result of this notificator can be seen in the following image.
 Notifications are converted to JSON an sinked to an Elastic index.
 
 ```
-notifications.sink.type = elastic
-notifications.sink.index = <index>
+notifications.sink.<sink-id>.type = elastic
+notifications.sink.<sink-id>.index = <index>
 spark.es.nodes=<nodes>
 spark.es.port=<port>
 spark.es.<any_other_attribute> = <value>

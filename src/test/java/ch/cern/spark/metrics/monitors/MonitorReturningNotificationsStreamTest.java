@@ -2,6 +2,7 @@ package ch.cern.spark.metrics.monitors;
 
 import static ch.cern.spark.metrics.MetricTest.Metric;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -69,6 +70,8 @@ public class MonitorReturningNotificationsStreamTest extends StreamTestHelper<Me
         assertEquals(1, batch2.size());
         assertEquals(1, batch2.get(0).getMetricIDs().size());
         assertEquals("host1", batch2.get(0).getMetricIDs().get("HOST"));
+        assertEquals(1, batch2.get(0).getSinkIds().size());
+        assertTrue(batch2.get(0).getSinkIds().contains("ALL"));
         
         List<Notification> batch3 = returnedBatches.get(3);
         assertEquals(0, batch3.size());
@@ -80,6 +83,8 @@ public class MonitorReturningNotificationsStreamTest extends StreamTestHelper<Me
         assertEquals(1, batch5.size());
         assertEquals(1, batch5.get(0).getMetricIDs().size());
         assertEquals("host1", batch5.get(0).getMetricIDs().get("HOST"));
+        assertEquals(1, batch2.get(0).getSinkIds().size());
+        assertTrue(batch2.get(0).getSinkIds().contains("ALL"));
 	}
 	
 	@Test

@@ -69,6 +69,10 @@ public class Stream<V> {
 		return Stream.from(stream.map(mapFunction));
 	}
 	
+	public Stream<V> filter(Function<V, Boolean> filterFunction) {
+		return Stream.from(stream.filter(filterFunction));
+	}
+	
 	public void foreachRDD(VoidFunction<RDD<V>> function) {
 		stream.foreachRDD(rdd -> function.call(RDD.from(rdd)));
 	}
