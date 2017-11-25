@@ -862,3 +862,20 @@ spark.es.nodes=<nodes>
 spark.es.port=<port>
 spark.es.<any_other_attribute> = <value>
 ```
+
+#### HTTP notifications sink
+
+Notifications are converted to JSON and sunk to an HTTP (POST) end point.
+
+```
+notifications.sink.<sink-id>.type = http
+notifications.sink.<sink-id>.url = <url>
+# HTTP simple authentication
+notifications.sink.<sink-id>.auth = <true|false> (default: false)
+notifications.sink.<sink-id>.auth.user = <username>
+notifications.sink.<sink-id>.auth.password = <password>
+# Add properties to JSON document
+notifications.sink.<sink-id>.add.<key-1> = <value-1>
+notifications.sink.<sink-id>.add.<key-2> = <value-2>
+notifications.sink.<sink-id>.add.<key-n> = <value-n>
+```

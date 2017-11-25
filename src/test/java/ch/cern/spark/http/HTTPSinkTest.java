@@ -1,4 +1,4 @@
-package ch.cern.spark.metrics.results.sink.types;
+package ch.cern.spark.http;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
@@ -17,9 +17,10 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Stream;
 import ch.cern.spark.StreamTestHelper;
+import ch.cern.spark.http.HTTPSink;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
-public class HTTPAnalysisResultSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResult>{
+public class HTTPSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResult>{
 	
 	private static final long serialVersionUID = -8846451662432392890L;
 
@@ -28,7 +29,7 @@ public class HTTPAnalysisResultSinkTest extends StreamTestHelper<AnalysisResult,
 		HttpClient httpClient = mock(HttpClient.class);
 		when(httpClient.executeMethod(anyObject())).thenReturn(201);
 		
-		HTTPAnalysisResultSink.setClient(httpClient);
+		HTTPSink.setClient(httpClient);
 		
         Properties properties = new Properties();
 		properties.setProperty("url", "http://localhost:1234");
@@ -41,7 +42,7 @@ public class HTTPAnalysisResultSinkTest extends StreamTestHelper<AnalysisResult,
         
         Stream<AnalysisResult> resultsStream = createStream(AnalysisResult.class);
         
-        HTTPAnalysisResultSink sink = new HTTPAnalysisResultSink();
+        HTTPSink sink = new HTTPSink();
         sink.config(properties);
         sink.sink(resultsStream);
 		

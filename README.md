@@ -129,3 +129,4 @@ Several notifications sinks can be declared.
 
 Built-in notifications sink:
 - Elastic.
+- HTTP (POST).
