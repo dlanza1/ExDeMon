@@ -263,6 +263,8 @@ Aggregation operations available and the corresponding type:
 * weighted_avg (influence proportional with elapsed time) => filter by float type and produce float
 * count_floats => filter by float type and produce float
 * count_bools => filter by boolean type and produce float
+* count_true => filter by boolean type and produce float
+* count_false => filter by boolean type and produce float
 * count_strings => filter by string type and produce float
 * max => filter by float type and produce float
 * min => filter by float type and produce float

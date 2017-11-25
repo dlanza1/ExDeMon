@@ -3,8 +3,6 @@ package ch.cern.spark.metrics.defined.equation.var;
 import java.time.Instant;
 import java.util.Optional;
 
-import org.apache.kafka.common.config.ConfigException;
-
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -15,7 +13,7 @@ import ch.cern.spark.metrics.value.Value;
 
 public class BooleanMetricVariable extends MetricVariable{
 	
-	public static enum Operation {COUNT_BOOLS};
+	public static enum Operation {COUNT_BOOLS, COUNT_TRUE, COUNT_FALSE};
 	protected Operation aggregateOperation;
 
 	public BooleanMetricVariable(String name) {
@@ -31,7 +29,7 @@ public class BooleanMetricVariable extends MetricVariable{
 			try{
 				aggregateOperation = Operation.valueOf(aggregateVal.toUpperCase());
 			}catch(IllegalArgumentException e) {
-				throw new ConfigException("Variable " + name + ": aggregation operation (" + aggregateVal + ") not available");
+				throw new ConfigurationException("Variable " + name + ": aggregation operation (" + aggregateVal + ") not available");
 			}
 		
 		properties.confirmAllPropertiesUsed();
@@ -60,8 +58,12 @@ public class BooleanMetricVariable extends MetricVariable{
 			case COUNT_BOOLS:
 				val = new FloatValue(store.getAggregatedValues(name).size());
 				break;
-			default:
-				return new ExceptionValue("Agreggation (" + aggregateOperation + ") not available");
+			case COUNT_TRUE:
+				val = new FloatValue(store.getAggregatedValues(name).stream().filter(b -> b.getAsBoolean().get()).count());
+				break;
+			case COUNT_FALSE:
+				val = new FloatValue(store.getAggregatedValues(name).stream().filter(b -> !b.getAsBoolean().get()).count());
+				break;
 			}
 			
 			val.setSource(aggregateOperation.toString().toLowerCase() + "(" + name + ")=" + val);

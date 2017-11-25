@@ -3,8 +3,6 @@ package ch.cern.spark.metrics.defined.equation.var;
 import java.time.Instant;
 import java.util.Optional;
 
-import org.apache.kafka.common.config.ConfigException;
-
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -31,7 +29,7 @@ public class StringMetricVariable extends MetricVariable{
 			try{
 				aggregateOperation = Operation.valueOf(aggregateVal.toUpperCase());
 			}catch(IllegalArgumentException e) {
-				throw new ConfigException("Variable " + name + ": aggregation operation (" + aggregateVal + ") not available");
+				throw new ConfigurationException("Variable " + name + ": aggregation operation (" + aggregateVal + ") not available");
 			}
 		
 		properties.confirmAllPropertiesUsed();
@@ -60,8 +58,6 @@ public class StringMetricVariable extends MetricVariable{
 			case COUNT_STRINGS:
 				val = new FloatValue(store.getAggregatedValues(name).size());
 				break;
-			default:
-				return new ExceptionValue("Agreggation (" + aggregateOperation + ") not available.");
 			}
 			
 			val.setSource(aggregateOperation.toString().toLowerCase() + "(var(" + name + "))=" + val);

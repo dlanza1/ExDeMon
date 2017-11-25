@@ -8,8 +8,6 @@ import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 
-import org.apache.kafka.common.config.ConfigException;
-
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Pair;
@@ -37,7 +35,7 @@ public class FloatMetricVariable extends MetricVariable{
 			try{
 				aggregateOperation = Operation.valueOf(aggregateVal.toUpperCase());
 			}catch(IllegalArgumentException e) {
-				throw new ConfigException("Variable " + name + ": aggregation operation (" + aggregateVal + ") not available");
+				throw new ConfigurationException("Variable " + name + ": aggregation operation (" + aggregateVal + ") not available");
 			}
 		
 		properties.confirmAllPropertiesUsed();
@@ -84,8 +82,6 @@ public class FloatMetricVariable extends MetricVariable{
 			case DIFF:
 				val = differenceAggregation(store.getAggregatedDatedValues(name));
 				break;
-			default:
-				return new ExceptionValue("Agreggation (" + aggregateOperation + ") not available.");
 			}
 			
 			val.setSource(aggregateOperation.toString().toLowerCase() + "(var(" + name + "))=" + val);
