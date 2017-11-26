@@ -20,6 +20,7 @@ import ch.cern.spark.metrics.defined.equation.var.AnyMetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.Variable;
 import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.Value;
 
@@ -36,6 +37,8 @@ public class DefinedMetric implements Serializable{
 	private Equation equation;
 
 	private ConfigurationException configurationException;
+	
+	private MetricsFilter filter;
 
 	public DefinedMetric(String name) {
 		this.name = name;
@@ -59,6 +62,8 @@ public class DefinedMetric implements Serializable{
 		String groupByVal = properties.getProperty("metrics.groupby");
 		if(groupByVal != null)
 			metricsGroupBy = Arrays.stream(groupByVal.split(" ")).map(String::trim).collect(Collectors.toSet());
+		
+		filter = MetricsFilter.build(properties.getSubset("metrics.filter"));
 		
 		Properties variablesProperties = properties.getSubset("variables");
 		Set<String> variableNames = variablesProperties.getUniqueKeyFields();
@@ -113,6 +118,9 @@ public class DefinedMetric implements Serializable{
 		if(configurationException != null)
 			return true;
 		
+		if(!filter.test(metric))
+			return false;
+		
 		return equation.getVariables().values().stream()
 				.filter(variable -> variable.test(metric))
 				.count() > 0;
@@ -128,6 +136,9 @@ public class DefinedMetric implements Serializable{
 		if(isTriggerOnEveryBatch())
 			return false;
 		
+		if(!filter.test(metric))
+			return false;
+		
 		return equation.getVariables().entrySet().stream()
 				.filter(entry -> variablesWhen.contains(entry.getKey()))
 				.map(entry -> entry.getValue())
@@ -141,6 +152,9 @@ public class DefinedMetric implements Serializable{
 
 	public void updateStore(VariableStores stores, Metric metric, Set<String> groupByKeys) throws CloneNotSupportedException {
 		if(configurationException != null)
+			return;
+		
+		if(!filter.test(metric))
 			return;
 		
 		Map<String, MetricVariable> variablesToUpdate = getVariablesToUpdate(metric);

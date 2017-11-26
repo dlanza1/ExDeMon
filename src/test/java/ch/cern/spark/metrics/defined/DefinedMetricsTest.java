@@ -77,6 +77,36 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
         
         assertExpected(results);
 	}
+	
+	@Test
+	public void shouldApplyDefinedMetricFilter() throws Exception {
+		DefinedMetrics.getCache().reset();
+		
+        addInput(0,    Metric(1, 10f, "CLUSTER=c1", "HOSTNAME=host1"));
+        addInput(0,    Metric(1, 20f, "CLUSTER=c1", "HOSTNAME=host2"));
+        addExpected(0, Metric(1, 30f, "$defined_metric=dm1"));
+        
+        addInput(1,    Metric(2, 7f,  "CLUSTER=c22", "HOSTNAME=host1"));
+        addInput(1,    Metric(2, 13f, "CLUSTER=c22", "HOSTNAME=host2"));
+        addExpected(1, Metric(2, 30f, "$defined_metric=dm1"));
+        
+        addInput(2,    Metric(3, 20f, "CLUSTER=c1", "HOSTNAME=host1"));
+        addInput(2,    Metric(3, 30f, "CLUSTER=c1", "HOSTNAME=host2"));
+        addExpected(2, Metric(3, 50f, "$defined_metric=dm1"));
+		
+        Cache<Properties> propertiesCache = Properties.getCache();
+        propertiesCache.set(new Properties());
+        propertiesCache.get().setProperty("metrics.define.dm1.metrics.filter.attribute.CLUSTER", "c1");
+        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.filter.attribute.HOSTNAME", ".*");
+        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate", "sum");
+        propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
+	        
+        Stream<Metric> metricsStream = createStream(Metric.class);
+        
+		Stream<Metric> results = DefinedMetrics.generate(metricsStream, null);
+        
+        assertExpected(results);
+	}
     
 	@Test
 	public void shouldGenerateMetricsWithComplexEquation() throws Exception {
@@ -106,14 +136,11 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
 		
         Cache<Properties> propertiesCache = Properties.getCache();
         propertiesCache.set(new Properties());
+        propertiesCache.get().setProperty("metrics.define.dm1.metrics.filter.attribute.TYPE", "DirReport");
         propertiesCache.get().setProperty("metrics.define.dm1.value", "!shouldBeMonitored || ((trim(dir) == \"/tmp/\") && (abs(used / capacity) > 0.8))");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.shouldBeMonitored.filter.attribute.TYPE", "DirReport");
         propertiesCache.get().setProperty("metrics.define.dm1.variables.shouldBeMonitored.filter.attribute.$value_attribute", "monitor_enable");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.dir.filter.attribute.TYPE", "DirReport");
         propertiesCache.get().setProperty("metrics.define.dm1.variables.dir.filter.attribute.$value_attribute", "path");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.used.filter.attribute.TYPE", "DirReport");
         propertiesCache.get().setProperty("metrics.define.dm1.variables.used.filter.attribute.$value_attribute", "used_bytes");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.capacity.filter.attribute.TYPE", "DirReport");
         propertiesCache.get().setProperty("metrics.define.dm1.variables.capacity.filter.attribute.$value_attribute", "capacity_bytes");
         propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
 	        

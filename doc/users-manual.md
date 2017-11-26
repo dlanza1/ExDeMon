@@ -145,11 +145,12 @@ Independently of the type of value, values contains an attribute with name "sour
 metrics.define.<defined-metric-id>.value = <equation containing <variable-ids>> (default: <variable-id> if only one variable has been declared)
 metrics.define.<defined-metric-id>.when = <ANY|BATCH|space separated list of metric variable-ids> (default: the first metric variable after sorting)
 metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/space separated attribute names> (default: not set)
+# General filter for all metrics that update the variables (optional)
+metrics.define.<defined-metric-id>.metrics.filter.expr = <predicate with () | & = !=>
+metrics.define.<defined-metric-id>.metrics.filter.attribute.<attribute-name> = <value>
 # Variable that represent an incoming metric
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.expr = <predicate with () | & = !=>
-metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name-1> = <value-1>
-metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name-2> = <value-2>
-metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute....
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name> = <value->
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate = <not set|sum|avg|weighted_avg|count|max|min|diff>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.expire = <never|period like 1h, 3m or 45s> (default: 10m)
 # Variable that represent a set of properties for an analysis (could serve to configure an analysis: properties_variable)
@@ -201,13 +202,10 @@ metrics.define.temperature_change.variables.ana_props.error.upperbound = true
 metrics.define.temperature_change.variables.ana_props.error.lowerbound = true
 
 metrics.define.directory_full.value = !shouldBeMonitored || (trim(dir) == "/tmp/") && (abs(used / capacity) > 80)
-metrics.define.directory_full.variables.shouldBeMonitored.filter.attribute.TYPE = DirReport
+metrics.define.directory_full.metrics.filter.attribute.TYPE = DirReport
 metrics.define.directory_full.variables.shouldBeMonitored.filter.attribute.$value_attribute = monitor_enable
-metrics.define.directory_full.variables.dir.filter.attribute.TYPE = DirReport
 metrics.define.directory_full.variables.dir.filter.attribute.$value_attribute = path
-metrics.define.directory_full.variables.used.filter.attribute.TYPE = DirReport
 metrics.define.directory_full.variables.used.filter.attribute.$value_attribute = used_bytes
-metrics.define.directory_full.variables.capacity.filter.attribute.TYPE = DirReport
 metrics.define.directory_full.variables.capacity.filter.attribute.$value_attribute = capacity_bytes
 ```
 
@@ -272,6 +270,7 @@ Aggregation operations available and the corresponding type:
 
 A meta-attribute is set in the generated metrics. The meta attribute name is $defined_metric and his value the &lt;defined-metric-id&gt;. 
 This attribute can later be used to filter the defined metrics in a monitor like:
+
 ```
 monitor.<monitor_id>.filter.attribute.$defined_metric = <defined-metric-id>
 ```
@@ -281,6 +280,7 @@ Configuration of defined metrics can be updated while running.
 Some examples of defined metrics can be:
 
 - Multiply all metrics by 10
+
 ```
 metrics.define.all-multiply-by-10.value = value * 10
 metrics.define.all-multiply-by-10.metrics.groupby = ALL
@@ -290,6 +290,7 @@ metrics.define.all-multiply-by-10.variables.value.filter.attribute.METRIC_NAME =
 ```
 
 - Divide CPU usage coming from all machines by 1000
+
 ```
 metrics.define.cpu-percentage = value / 1000
 metrics.define.cpu-percentage.metrics.groupby = ALL
@@ -298,22 +299,8 @@ metrics.define.cpu-percentage.metrics.groupby = ALL
 metrics.define.cpu-percentage.variables.value.filter.attribute.METRIC_NAME = CPU Usage Per Sec
 ```
 
-- Temporary directory usage threshold
-```
-metrics.define.all-multiply-by-10.value = shouldBeMonitored && (trim(dir) == "/tmp/") && (abs(used / capacity) > 80)
-metrics.define.all-multiply-by-10.metrics.groupby = ALL
-# One of the following two would be enough
-metrics.define.all-multiply-by-10.variables.shouldBeMonitored.filter.attribute.METRIC_NAME = Directory Summary
-metrics.define.all-multiply-by-10.variables.shouldBeMonitored.filter.attribute.$value\_attribute = monitoring
-metrics.define.all-multiply-by-10.variables.dir.filter.attribute.METRIC_NAME = Directory Summary
-metrics.define.all-multiply-by-10.variables.dir.filter.attribute.$value\_attribute = path
-metrics.define.all-multiply-by-10.variables.used.filter.attribute.METRIC_NAME = Directory Summary
-metrics.define.all-multiply-by-10.variables.used.filter.attribute.$value\_attribute = used_bytes
-metrics.define.all-multiply-by-10.variables.capacity.filter.attribute.METRIC_NAME = Directory Summary
-metrics.define.all-multiply-by-10.variables.capacity.filter.attribute.$value\_attribute = max_bytes
-```
-
 - Compute the ratio read/write for all machines:
+
 ```
 metrics.define.ratio_read_write.value = readbytes / writebytes
 metrics.define.ratio_read_write.metrics.groupby = HOSTNAME
@@ -322,6 +309,7 @@ metrics.define.ratio_read_write.variables.writebytes.filter.attribute.METRIC_NAM
 ```
 
 - Temperature inside minus temperature outside in Fahrenheits: 
+
 ```
 metrics.define.diff_temp.value = (tempinside - tempoutside) * 9/5 + 32
 # We do not group by, so that we can aggregate any metrics
@@ -332,6 +320,7 @@ metrics.define.diff_temp.variables.tempoutside.filter.attribute.METRIC = Tempera
 ``` 
 
 - Compare values of production and development environments:
+
 ```
 metrics.define.diff-prod-dev.value = valueprod - valuedev
 metrics.define.diff-prod-dev.metrics.groupby = INSTANCE_NAME METRIC_NAME
