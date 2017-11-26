@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,6 +18,7 @@ import ch.cern.Cache;
 import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentManager;
 import ch.cern.properties.source.PropertiesSource;
+import ch.cern.spark.Pair;
 import ch.cern.utils.TimeUtils;
 
 public class Properties extends java.util.Properties{
@@ -205,6 +207,12 @@ public class Properties extends java.util.Properties{
 		
 		if(!leftKeys.isEmpty())
 			throw new ConfigurationException("Some configuration parameters ("+leftKeys+") were not used.");
+	}
+
+	public Map<String, String> toStringMap() {
+		return entrySet().stream()
+				.map(e -> new Pair<String, String>(e.getKey().toString(), e.getValue().toString()))
+				.collect(Collectors.toMap(Pair::first, Pair::second));
 	}
 	
 }

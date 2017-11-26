@@ -8,13 +8,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
+import ch.cern.Taggable;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MonitorIDMetricIDs;
 import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.Value;
 
-public class AnalysisResult implements Serializable {
+public class AnalysisResult implements Serializable, Taggable {
 
     private static final long serialVersionUID = -5307381437257371176L;
 
@@ -28,18 +29,23 @@ public class AnalysisResult implements Serializable {
     
     private Map<String, Object> analysis_params;
     
+    private Map<String, String> tags;
+    
     public AnalysisResult() {
         analysis_timestamp = Instant.now();
         analysis_params = new HashMap<String, Object>();
+        tags = new HashMap<>();
     }
 
-    public void setAnalyzedMetric(Metric metric) {
+	public void setAnalyzedMetric(Metric metric) {
     		if(metric.getValue().getAsException().isPresent()) {
     			this.status = Status.EXCEPTION;
     			this.status_reason = metric.getValue().getAsException().get();
     		}
     			
         this.analyzed_metric = metric;
+        
+        tags = replaceMetricAttributesInTags(tags);
     }
 
     public void setStatus(Status status, String reason) {
@@ -101,22 +107,32 @@ public class AnalysisResult implements Serializable {
         return result;
     }
 
-    public Map<String, Object> getMonitorParams() {
+    public Map<String, Object> getAnalysisParams() {
         return analysis_params;
     }
     
 	public void setTags(Map<String, String> tags) {
-		analysis_params.put("tags", tags);
+		this.tags = replaceMetricAttributesInTags(tags);
 	}
     
-    @SuppressWarnings("unchecked")
-	public Map<String, String> getTags() {
-    		Object tags = analysis_params.get("tags");
+    private Map<String, String> replaceMetricAttributesInTags(Map<String, String> tags) {
+    		if(analyzed_metric == null || tags == null)
+    			return tags;
     	
-    		if(tags instanceof HashMap)
-	    		return (Map<String, String>) analysis_params.get("tags");
-    		else
-    			return new HashMap<>();
+    		HashMap<String, String> newTags = new HashMap<>(tags);
+		newTags.entrySet().stream().filter(entry -> entry.getValue().startsWith("%")).forEach(entry -> {
+			String metricKey = entry.getValue().substring(1);
+			String metricValue = analyzed_metric.getIDs().get(metricKey);
+			
+			if(metricValue != null)
+				newTags.put(entry.getKey(), metricValue);
+		});
+		
+		return newTags;
+	}
+
+	public Map<String, String> getTags() {    	
+    		return tags;
 	}
     
 	public<R> Optional<R> map(Function<AnalysisResult, ? extends R> mapper) {

@@ -2,10 +2,13 @@ package ch.cern.spark.metrics.notifications;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class Notification implements Serializable {
+import ch.cern.Taggable;
+
+public class Notification implements Serializable, Taggable {
     
     private static final long serialVersionUID = 6730655599755849423L;
     
@@ -31,6 +34,8 @@ public class Notification implements Serializable {
         this.metricIDs = metricIDs;
         this.reason = reason;
         this.sinks = sinks;
+        
+        tags = replaceMetricAttributesInTags(tags);
     }
 
     public Notification() {
@@ -81,7 +86,23 @@ public class Notification implements Serializable {
     }
 
 	public void setTags(Map<String, String> tags) {
-		this.tags = tags;
+		this.tags = replaceMetricAttributesInTags(tags);
+	}
+    
+    private Map<String, String> replaceMetricAttributesInTags(Map<String, String> tags) {
+    		if(metricIDs == null)
+    			return tags;
+    	
+    		HashMap<String, String> newTags = new HashMap<>(tags);
+		newTags.entrySet().stream().filter(entry -> entry.getValue().startsWith("%")).forEach(entry -> {
+			String metricKey = entry.getValue().substring(1);
+			String metricValue = metricIDs.get(metricKey);
+			
+			if(metricValue != null)
+				newTags.put(entry.getKey(), metricValue);
+		});
+		
+		return newTags;
 	}
 	
 	public Map<String, String> getTags() {

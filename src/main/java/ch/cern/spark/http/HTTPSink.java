@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -17,10 +15,12 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.log4j.Logger;
 import org.apache.spark.streaming.api.java.JavaDStream;
 
+import ch.cern.Taggable;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Stream;
 import ch.cern.spark.json.JSONObject;
+import ch.cern.spark.json.JSONParser;
 
 public class HTTPSink implements Serializable{
 	
@@ -42,10 +42,7 @@ public class HTTPSink implements Serializable{
 	public void config(Properties properties) throws ConfigurationException {
 		url = properties.getProperty("url");
 		
-		Properties addProperties = properties.getSubset("add");
-		Set<String> keysToAdd = addProperties.getUniqueKeyFields();
-		propertiesToAdd = new HashMap<>();
-		keysToAdd.stream().forEach(key -> propertiesToAdd.put(key, addProperties.getProperty(key)));
+		propertiesToAdd = properties.getSubset("add").toStringMap();
 		
 		// Authentication configs
         boolean authentication = properties.getBoolean(AUTH_PROPERTY);
@@ -66,10 +63,21 @@ public class HTTPSink implements Serializable{
 	}
 	
 	public void sink(Stream<?> outputStream) {
-		Stream<JSONObject> jsonStream = outputStream.asJSON();
-		jsonStream = jsonStream.map(json -> {
-			for (Map.Entry<String, String> propertyToAdd : propertiesToAdd.entrySet())
-				json.setProperty(propertyToAdd.getKey(), propertyToAdd.getValue());
+		Stream<Object> jsonStream = outputStream.map(object -> {
+			JSONObject json = JSONParser.parse(object);
+			
+			Map<String, String> tags = null;
+			if(object instanceof Taggable)
+				tags = ((Taggable) object).getTags();
+			
+			for (Map.Entry<String, String> propertyToAdd : propertiesToAdd.entrySet()) {
+				String value = propertyToAdd.getValue();
+				
+				if(value.startsWith("%") && tags != null && tags.containsKey(value.substring(1)))
+					value = tags.get(value.substring(1));
+				
+				json.setProperty(propertyToAdd.getKey(), value);
+			}
 			
 			return json;
 		});

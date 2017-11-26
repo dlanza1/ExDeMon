@@ -70,9 +70,10 @@ public class InErrorMonitor extends Monitor {
 			
 			storeState.update(store);
 		}
-		
+
 		if(result != null) {
-			result.addAnalysisParam("name", id);
+			result.addAnalysisParam("monitor.name", id);
+			result.setAnalyzedMetric(metric);
 			result.setTags(tags);
 		}
 		
@@ -93,12 +94,13 @@ public class InErrorMonitor extends Monitor {
 		
 		ConstantNotificator notificator = new ConstantNotificator();
 		Properties properties = new Properties();
-		properties.put("sinks", "ALL");
 		properties.put("statuses", "EXCEPTION");
 		properties.put("period", "10m");
 		try {
 			notificator.config(properties);
-		} catch (ConfigurationException e) {}
+		} catch (ConfigurationException e) {
+			throw new RuntimeException("Notificator with wrong config");
+		}
 		notificators.put("monitor-in-error", notificator);
 		
 		return notificators;

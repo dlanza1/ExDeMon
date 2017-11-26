@@ -55,7 +55,6 @@ public class MonitorTest {
 		properties.setProperty("analysis.error.lowerbound", "10");
 		properties.setProperty("tags.email", "1234@cern.ch");
 		properties.setProperty("tags.group", "IT_DB");
-		properties.setProperty("tags.group", "IT_DB");
 		Monitor monitor = new Monitor("test").config(properties);
 		
 		State<Store> store = new StateImpl<>();
@@ -69,6 +68,36 @@ public class MonitorTest {
 		assertEquals(AnalysisResult.Status.OK, result.getStatus());
 		assertEquals("1234@cern.ch", result.getTags().get("email"));
 		assertEquals("IT_DB", result.getTags().get("group"));
+	}
+	
+	@Test
+	public void tagsShouldExtractMetricAttributes() throws Exception {
+		Properties properties = new Properties();
+		properties.setProperty("analysis.type", "fixed-threshold");
+		properties.setProperty("analysis.error.upperbound", "20");
+		properties.setProperty("analysis.error.lowerbound", "10");
+		properties.setProperty("tags.email", "1234@cern.ch");
+		properties.setProperty("tags.group", "IT_DB");
+		properties.setProperty("tags.sink-conf-id.target", "%target.conf");
+		Monitor monitor = new Monitor("test").config(properties);
+		
+		State<Store> store = new StateImpl<>();
+		
+		Map<String, String> metricIds = new HashMap<>();
+		metricIds.put("target.conf", "target-in-metric1");
+		AnalysisResult result = monitor.process(store, new Metric(Instant.now(), 0f, metricIds )).get();
+		assertEquals(AnalysisResult.Status.ERROR, result.getStatus());
+		assertEquals("1234@cern.ch", result.getTags().get("email"));
+		assertEquals("IT_DB", result.getTags().get("group"));
+		assertEquals("target-in-metric1", result.getTags().get("sink-conf-id.target"));
+		
+		metricIds = new HashMap<>();
+		metricIds.put("target.conf", "target-in-metric2");
+		result = monitor.process(store, new Metric(Instant.now(), 15f, metricIds)).get();
+		assertEquals(AnalysisResult.Status.OK, result.getStatus());
+		assertEquals("1234@cern.ch", result.getTags().get("email"));
+		assertEquals("IT_DB", result.getTags().get("group"));
+		assertEquals("target-in-metric2", result.getTags().get("sink-conf-id.target"));
 	}
 
 }

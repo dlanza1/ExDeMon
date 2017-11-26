@@ -34,7 +34,7 @@ public class HTTPSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResul
         Properties properties = new Properties();
 		properties.setProperty("url", "http://localhost:1234");
 		properties.setProperty("add.key1", "key1");
-		properties.setProperty("add.key2", "key2");
+		properties.setProperty("add.key2.a1", "key2");
         
 		AnalysisResult analysisResult = new AnalysisResult();
 		analysisResult.setAnalysisTimestamp(Instant.ofEpochMilli(0));
@@ -53,9 +53,10 @@ public class HTTPSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResul
 		
 		StringRequestEntity receivedEntity = (StringRequestEntity) methodCaptor.getAllValues().get(0).getRequestEntity();
 		assertEquals("{\"analysis_timestamp\":\"1970-01-01T01:00:00+0100\","
-					+ "\"analysis_params\":{},"
-					+ "\"key1\":\"key1\","
-					+ "\"key2\":\"key2\"}", receivedEntity.getContent());
+						+ "\"analysis_params\":{},"
+						+ "\"tags\":{},"
+						+ "\"key1\":\"key1\","
+						+ "\"key2.a1\":\"key2\"}", receivedEntity.getContent());
 	}
 
 }

@@ -27,8 +27,8 @@ public class ComputeIDsForAnalysisF implements PairFlatMapFunction<AnalysisResul
     @Override
     public Iterator<Tuple2<NotificatorID, AnalysisResult>> call(AnalysisResult analysis) throws Exception {
     		Monitors.initCache(propertiesSourceProperties);
-    	
-    		String monitorID = (String) analysis.getMonitorParams().get("name");
+    		
+    		String monitorID = (String) analysis.getAnalysisParams().get("monitor.name");
     		Optional<Monitor> monitorOpt = Optional.fromNullable(Monitors.getCache().get().get(monitorID));
         if(!monitorOpt.isPresent())
         		return new LinkedList<Tuple2<NotificatorID, AnalysisResult>>().iterator();

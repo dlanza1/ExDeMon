@@ -3,7 +3,9 @@ package ch.cern.spark.metrics.notificator;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -24,6 +26,8 @@ public abstract class Notificator extends Component implements Function<Analysis
     
     private Set<String> sinkIDs;
     
+    private Map<String, String> tags;
+    
     public Notificator() {
 	}
     
@@ -31,12 +35,19 @@ public abstract class Notificator extends Component implements Function<Analysis
     public void config(Properties properties) throws ConfigurationException {
     		String sinksString = properties.getProperty("sinks", "ALL");
     		sinkIDs = new HashSet<>(Arrays.asList(sinksString.split("\\s")));
+    		
+    		tags = properties.getSubset("tags").toStringMap();
     }
     
     public Optional<Notification> apply(AnalysisResult result) {
     		Optional<Notification> notificationOpt = process(result.getStatus(), result.getAnalyzedMetric().getInstant());
     		
-    		notificationOpt.ifPresent(notif -> notif.setTags(result.getTags()));
+    		notificationOpt.ifPresent(notif -> notif.setMetricIDs(result.getAnalyzedMetric().getIDs()));
+    		
+    		HashMap<String, String> notificationTags = new HashMap<>(result.getTags());
+    		notificationTags.putAll(tags);
+    		
+    		notificationOpt.ifPresent(notif -> notif.setTags(notificationTags));
     		notificationOpt.ifPresent(notif -> notif.setSinkIds(sinkIDs));
     		
     		return notificationOpt;

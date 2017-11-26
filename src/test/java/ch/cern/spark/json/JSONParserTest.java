@@ -46,8 +46,8 @@ public class JSONParserTest{
         
         Assert.assertEquals("12.0", jsonObject.getProperty("analyzed_metric.value.num"));
         
-        Assert.assertEquals("1234@cern.ch", jsonObject.getProperty("analysis_params.tags.email"));
-        Assert.assertEquals("IT_DB", jsonObject.getProperty("analysis_params.tags.group"));
+        Assert.assertEquals("1234@cern.ch", jsonObject.getProperty("tags.email"));
+        Assert.assertEquals("IT_DB", jsonObject.getProperty("tags.group"));
     }
     
     @Test

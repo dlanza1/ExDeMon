@@ -49,9 +49,7 @@ public class UpdateMetricStatusesF
         Metric metric = metricOpt.get();
 
         java.util.Optional<AnalysisResult> result = monitor.process(storeState, metric);
-        if(result.isPresent()) {
-        		result.get().setAnalyzedMetric(metric);
-            
+        if(result.isPresent()) {            
             return toOptinal(result);
         }else{
         		return Optional.empty();

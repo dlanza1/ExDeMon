@@ -2,7 +2,6 @@ package ch.cern.spark.metrics.notificator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
@@ -27,7 +26,6 @@ public class NotificatorTest {
     
 	@Test
     public void tagsShouldBePropagated() throws Exception{
-        
         ConstantNotificator notificator = new ConstantNotificator();
         Properties properties = new Properties();
         properties.setProperty("period", "10m");
@@ -38,9 +36,9 @@ public class NotificatorTest {
         
         AnalysisResult result = new AnalysisResult();
         Map<String, String> tags = new HashMap<>();
-        tags.put("tags.email", "1234@cern.ch");
-		tags.put("tags.group", "IT_DB");
-		result.setTags(tags);
+        tags.put("email", "1234@cern.ch");
+        tags.put("group", "IT_DB");
+        result.setTags(tags);
 		result.setStatus(Status.ERROR, "");
 		Metric metric = new Metric(now, 0f, new HashMap<>());
 		result.setAnalyzedMetric(metric);
@@ -51,7 +49,81 @@ public class NotificatorTest {
 		result.setAnalyzedMetric(metric);
 		Optional<Notification> notification = notificator.apply(result);
 		assertTrue(notification.isPresent());
-		assertSame(tags, notification.get().getTags());
+		assertEquals(tags, notification.get().getTags());
+    }
+	
+	@Test
+    public void analysisTagsShouldBeOverrideByNotificatorTags() throws Exception{
+        ConstantNotificator notificator = new ConstantNotificator();
+        Properties properties = new Properties();
+        properties.setProperty("period", "10m");
+        properties.setProperty("statuses", "ERROR");
+        properties.setProperty("tags.email", "notificator_email@cern.ch");
+        properties.setProperty("tags.new-tag.at-notificator", "notif-value");
+        notificator.config(properties);
+        
+        Instant now = Instant.now();
+        
+        AnalysisResult result = new AnalysisResult();
+        Map<String, String> tags = new HashMap<>();
+        tags.put("email", "1234@cern.ch");
+        tags.put("group", "IT_DB");
+        result.setTags(tags);
+		result.setStatus(Status.ERROR, "");
+		Metric metric = new Metric(now, 0f, new HashMap<>());
+		result.setAnalyzedMetric(metric);
+		
+		assertFalse(notificator.apply(result).isPresent());
+		
+		metric = new Metric(now.plus(Duration.ofMinutes(20)), 0f, new HashMap<>());
+		result.setAnalyzedMetric(metric);
+		Optional<Notification> notification = notificator.apply(result);
+		
+        Map<String, String> expectedTags = new HashMap<>();
+        expectedTags.put("email", "notificator_email@cern.ch");
+        expectedTags.put("group", "IT_DB");
+        expectedTags.put("new-tag.at-notificator", "notif-value");
+        
+		assertTrue(notification.isPresent());
+		assertEquals(expectedTags, notification.get().getTags());
+    }
+	
+	@Test
+    public void tagsShouldExtractMetricAttributes() throws Exception{
+        ConstantNotificator notificator = new ConstantNotificator();
+        Properties properties = new Properties();
+        properties.setProperty("period", "10m");
+        properties.setProperty("statuses", "ERROR");
+        properties.setProperty("tags.email", "%email");
+        properties.setProperty("tags.new-tag.at-notificator", "%no-in-metric");
+        notificator.config(properties);
+        
+        Instant now = Instant.now();
+        
+        AnalysisResult result = new AnalysisResult();
+        Map<String, String> tags = new HashMap<>();
+        tags.put("email", "1234@cern.ch");
+        tags.put("group", "IT_DB");
+        result.setTags(tags);
+		result.setStatus(Status.ERROR, "");
+		Metric metric = new Metric(now, 0f, new HashMap<>());
+		result.setAnalyzedMetric(metric);
+		
+		assertFalse(notificator.apply(result).isPresent());
+		
+		Map<String, String> metricIds = new HashMap<>();
+		metricIds.put("email", "email_at-metric@cern.ch");
+		metric = new Metric(now.plus(Duration.ofMinutes(20)), 0f, metricIds );
+		result.setAnalyzedMetric(metric);
+		Optional<Notification> notification = notificator.apply(result);
+		
+        Map<String, String> expectedTags = new HashMap<>();
+        expectedTags.put("email", "email_at-metric@cern.ch");
+        expectedTags.put("group", "IT_DB");
+        expectedTags.put("new-tag.at-notificator", "%no-in-metric");
+        
+		assertTrue(notification.isPresent());
+		assertEquals(expectedTags, notification.get().getTags());
     }
 	
 	@Test

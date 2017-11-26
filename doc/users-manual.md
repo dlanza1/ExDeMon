@@ -457,10 +457,13 @@ monitor.<monitor-id>.filter.attribute... (as many attributes as needed)
 monitor.<monitor-id>.analysis.type = <analysis_type>
 monitor.<monitor-id>.analysis.<other_confs> = <value>
 ## notificators (optional)
-monitor.<monitor-id>.notificator.<notificator-id>.type = <notificator-type>
-monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|space separated notificatios sink ids> (default: ALL)
-monitor.<monitor-id>.notificator.<notificator-id>.<other_confs> = <value>
-monitor.<monitor-id>.notificator.<notificator-id>... (as many notificators as needed)
+monitor.<monitor-id>.notificator.<notificator-id-1>.type = <notificator-type>
+monitor.<monitor-id>.notificator.<notificator-id-1>.sinks = <ALL|space separated notificatios sink ids> (default: ALL)
+monitor.<monitor-id>.notificator.<notificator-id-1>.tags.<tag-key-1> = <value-1>
+monitor.<monitor-id>.notificator.<notificator-id-1>.tags.<tag-key-2> = <value-2>
+monitor.<monitor-id>.notificator.<notificator-id-1>.tags.<tag-key-n> = <value-n>
+monitor.<monitor-id>.notificator.<notificator-id-1>.<other_confs> = <value>
+monitor.<monitor-id>.notificator.<notificator-id-n>... (as many notificators as needed)
 monitor.<monitor-id>.tags.<tag-key-1> = <value-1>
 monitor.<monitor-id>.tags.<tag-key-2> = <value-2>
 monitor.<monitor-id>.tags.<tag-key-n> = <value-n>
@@ -470,15 +473,30 @@ Configuration of monitors can be updated while running.
 
 #### Tags
 
-Each monitor can have different tags that are included in the analysis results and notifications that the monitor produces.
+Each monitor or notificator can have different tags that are included in the analysis results and notifications that the monitor produces.
 
-They could be used to later discriminate the data, to aggregate, to target notifications (email, group, system), etc.
+They could be used to later discriminate the data, to aggregate, to target notifications (email, group, system), configure sinks, ...
 
-They can be configured as:
+Monitor tags are included in the analysis results. They can be configured as:
+
 ```
 monitor.<monitor-id>.tags.<tag-key-1> = <value-1>
 monitor.<monitor-id>.tags.<tag-key-2> = <value-2>
 monitor.<monitor-id>.tags.<tag-key-n> = <value-n>
+```
+
+Tags at monitor level are override by notificator tags. Merged tags from monitor and notificator are included in notifications.
+
+```
+monitor.<monitor-id>.notificator.<notificator-id>.tags.<tag-key> = <value>
+```
+
+Tags used for configuring sinks are removed from the notifications.
+
+The value of any tag can be extracted from an attribute of the analyzed metric. For that you should follow the syntax:
+
+```
+<tag-key-1> = %<metric-key>
 ```
 
 ## Components
@@ -805,12 +823,22 @@ results.sink.auth = <true|false> (default: false)
 results.sink.auth.user = <username>
 results.sink.auth.password = <password>
 # Add properties to JSON document
-results.sink.add.<key-1> = <value-1>
-results.sink.add.<key-2> = <value-2>
-results.sink.add.<key-n> = <value-n>
+results.sink.add.<key-1> = <value-1|%analysis-result-tag-key>
+results.sink.add.<key-2> = <value-2|%analysis-result-tag-key>
+results.sink.add.<key-n> = <value-n|%analysis-result-tag-key>
 ```
 
 ### Notificators
+
+All notificators have at least the following parameters:
+
+```
+monitor.<monitor-id>.notificator.<notificator-id>.type = <type>
+monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|notifications-sinks-ids> (default: ALL)
+monitor.<monitor-id>.notificator.<notificator-id>.tags.<tag-key-1> = <value-1>
+monitor.<monitor-id>.notificator.<notificator-id>.tags.<tag-key-2> = <value-2>
+monitor.<monitor-id>.notificator.<notificator-id>.tags.<tag-key-n> = <value-n>
+```
 
 #### Constant status notificator
 
@@ -823,7 +851,6 @@ Possible statuses are: error, warning, ok, exception.
 Configuration:
 ```
 monitor.<monitor-id>.notificator.<notificator-id>.type = constant
-monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|notifications-sinks-ids> (default: ALL)
 monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses separated by comma>
 monitor.<monitor-id>.notificator.<notificator-id>.period = <period like 1h, 3m or 45s> (default: 15m)
 ```
@@ -877,7 +904,26 @@ notifications.sink.<sink-id>.auth = <true|false> (default: false)
 notifications.sink.<sink-id>.auth.user = <username>
 notifications.sink.<sink-id>.auth.password = <password>
 # Add properties to JSON document
-notifications.sink.<sink-id>.add.<key-1> = <value-1>
-notifications.sink.<sink-id>.add.<key-2> = <value-2>
-notifications.sink.<sink-id>.add.<key-n> = <value-n>
+notifications.sink.<sink-id>.add.<key-1> = <value|%notification-tag-key>
+notifications.sink.<sink-id>.add.<key-2> = <value|%notification-tag-key>
+notifications.sink.<sink-id>.add.<key-n> = <value|%notification-tag-key>
 ```
+
+#### CERN GNI notifications sink
+
+Notifications are converted to JSON and sunk to an HTTP (POST) end point.
+
+You can find all possible fields at: https://itmon.web.cern.ch/itmon/data_types/notifications_specification.html
+
+Integer fields will be parsed properly.
+
+```
+notifications.sink.<sink-id>.type = cern-gni
+notifications.sink.<sink-id>.url = <url>
+notifications.sink.<sink-id>.content.header.<header-key> = <value|%notification-tag-key>
+notifications.sink.<sink-id>.content.body.metadata.<metadata-key> = <value|%notification-tag-key>
+notifications.sink.<sink-id>.content.body.payload.<payload-key> = <value|%notification-tag-key>
+```
+
+
+

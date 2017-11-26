@@ -34,7 +34,7 @@ public class Monitor {
     
     private Map<String, Notificator> notificators;
 
-	private HashMap<String, String> tags;
+	private Map<String, String> tags;
     
     public Monitor(String id){
         this.id = id;
@@ -63,10 +63,7 @@ public class Monitor {
         		notificators.put(notificatorId, ComponentManager.build(Type.NOTIFICATOR, props));
 		}
         
-        tags = new HashMap<>();
-        Properties tagsProps = properties.getSubset("tags");
-        Set<String> tagKeys = tagsProps.getUniqueKeyFields();
-        tagKeys.forEach(key -> tags.put(key, tagsProps.getProperty(key)));
+        tags = properties.getSubset("tags").toStringMap();
         
         properties.confirmAllPropertiesUsed();
         
@@ -92,6 +89,7 @@ public class Monitor {
         }
         
         result.addAnalysisParam("monitor.name", id);
+        result.setAnalyzedMetric(metric);
         result.setTags(tags);
 
         return Optional.of(result);
