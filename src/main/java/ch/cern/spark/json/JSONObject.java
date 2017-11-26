@@ -59,7 +59,7 @@ public class JSONObject implements Serializable {
         return object.get(elementName);
     }
     
-    public void setProperty(String key, String value) throws ParseException {
+    public void setProperty(String fullKey, String value) throws ParseException {
 	    	if (object == null)
 	    		try {
 	    			object = PARSER.parse(string).getAsJsonObject();
@@ -67,7 +67,25 @@ public class JSONObject implements Serializable {
 	    			throw new ParseException(e.getMessage(), 0);
 	    		}
 	    	
-	    	object.addProperty(key, value);
+	    String[] keys = fullKey.split("\\.");
+	    JsonObject element = object;
+	    for (int i = 0; i < keys.length; i++) {
+	    		String key = keys[i];
+	    		
+	    		if(i == keys.length - 1) {
+	    			element.addProperty(key, value);
+	    		}else {
+	    			JsonElement elementTmp = element.get(key);
+	    			
+	    			if(elementTmp == null) {
+	    				element.add(key, new JsonObject());
+	    				element = element.getAsJsonObject(key);
+	    			}else if(elementTmp.isJsonObject())
+	    				element = elementTmp.getAsJsonObject();
+	    			else
+	    				throw new ParseException("It is not possible to add " + fullKey + " to JSON: " + object.toString(), 0);
+	    		}
+		}
 	    	this.string = this.object.toString();
     }
 

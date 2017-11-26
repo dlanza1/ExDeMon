@@ -53,10 +53,10 @@ public class HTTPSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResul
 		
 		StringRequestEntity receivedEntity = (StringRequestEntity) methodCaptor.getAllValues().get(0).getRequestEntity();
 		assertEquals("{\"analysis_timestamp\":\"1970-01-01T01:00:00+0100\","
-						+ "\"analysis_params\":{},"
-						+ "\"tags\":{},"
-						+ "\"key1\":\"key1\","
-						+ "\"key2.a1\":\"key2\"}", receivedEntity.getContent());
+					+ "\"analysis_params\":{},"
+					+ "\"tags\":{},"
+					+ "\"key1\":\"key1\","
+					+ "\"key2\":{\"a1\":\"key2\"}}", receivedEntity.getContent());
 	}
 
 }

@@ -71,10 +71,10 @@ public class HTTPNotificationsSinkTest extends StreamTestHelper<Notification, No
 		StringRequestEntity receivedEntity = (StringRequestEntity) methodCaptor.getAllValues().get(0).getRequestEntity();
 		assertEquals("{\"tags\":{\"metric_id_tag\":\"1234\",\"payload_tag\":\"fromtag2\",\"header_tag\":\"fromtag1\"},"
 					+ "\"sinks\":[\"ALL\"],"
-					+ "\"header.h1\":\"fromtag1\","
-					+ "\"body.payload.bp1\":\"fromtag2\","
-					+ "\"body.metadata.metric_id\":\"1234\","
-					+ "\"body.payload.bp2\":\"%no-tag\"}", receivedEntity.getContent());
+					+ "\"header\":{\"h1\":\"fromtag1\"},"
+					+ "\"body\":{"
+						+ "\"payload\":{\"bp1\":\"fromtag2\",\"bp2\":\"%no-tag\"},"
+						+ "\"metadata\":{\"metric_id\":\"1234\"}}}", receivedEntity.getContent());
 	}
 
 }
