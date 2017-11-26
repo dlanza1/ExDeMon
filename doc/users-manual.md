@@ -824,9 +824,7 @@ All notificators have at least the following parameters:
 ```
 monitor.<monitor-id>.notificator.<notificator-id>.type = <type>
 monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|notifications-sinks-ids> (default: ALL)
-monitor.<monitor-id>.notificator.<notificator-id>.tags.<tag-key-1> = <value-1>
-monitor.<monitor-id>.notificator.<notificator-id>.tags.<tag-key-2> = <value-2>
-monitor.<monitor-id>.notificator.<notificator-id>.tags.<tag-key-n> = <value-n>
+monitor.<monitor-id>.notificator.<notificator-id>.tags.<tag-key> = <value>
 ```
 
 #### Constant status notificator
@@ -840,9 +838,12 @@ Possible statuses are: error, warning, ok, exception.
 Configuration:
 ```
 monitor.<monitor-id>.notificator.<notificator-id>.type = constant
-monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses separated by comma>
+monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses separated by space>
 monitor.<monitor-id>.notificator.<notificator-id>.period = <period like 1h, 3m or 45s> (default: 15m)
+monitor.<monitor-id>.notificator.<notificator-id>.silent.period = <period like 1h, 3m or 45s> (default: 0)
 ```
+
+Minimum period between two notifications is ".period" plus ".silent.period".
 
 An example of the result of this notificator can be seen in the following image.
 ![Constant status notificator](img/notificator/constant.png)
@@ -859,10 +860,13 @@ Configuration:
 ```
 monitor.<monitor-id>.notificator.<notificator-id>.type = percentage
 monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|notifications-sinks-ids> (default: ALL)
-monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses separated by comma>
+monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses separated by space>
 monitor.<monitor-id>.notificator.<notificator-id>.period = <period like 1h, 3m or 45s> (default: 15m)
+monitor.<monitor-id>.notificator.<notificator-id>.silent.period = <period like 1h, 3m or 45s> (default: 0)
 monitor.<monitor-id>.notificator.<notificator-id>.percentage = <0-100> (default: 90)
 ```
+
+Minimum period between two notifications is ".period" plus ".silent.period".
 
 An example of the result of this notificator can be seen in the following image.
 ![Percentage status notificator](img/notificator/percentage.png)

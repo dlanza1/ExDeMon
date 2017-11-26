@@ -4,6 +4,7 @@ import static ch.cern.test.Utils.assertNotPresent;
 import static ch.cern.test.Utils.assertPresent;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
 
 import org.junit.Test;
@@ -42,6 +43,27 @@ public class PercentageNotificatorTest {
         assertNotPresent(notificator.process(Status.ERROR,   TimeUtils.toInstant("2017-09-19 13:09:00")));
         assertPresent(notificator.process(Status.ERROR,		TimeUtils.toInstant("2017-09-19 13:10:00")));
         assertNotPresent(notificator.process(Status.ERROR,   TimeUtils.toInstant("2017-09-19 13:11:00")));
+    }
+    
+	@Test
+    public void raiseAfterRaiseWithSilent() throws Exception{
+		PercentageNotificator notificator = new PercentageNotificator();
+        Properties properties = new Properties();
+        properties.setProperty("period", "10m");
+        properties.setProperty("silent.period", "5m");
+        properties.setProperty("statuses", "ERROR");
+        notificator.config(properties);
+        
+        Instant now = Instant.now();
+        
+        assertNotPresent(notificator.process(Status.ERROR, now));
+
+        assertNotPresent(notificator.process(Status.ERROR, now.plus(Duration.ofMinutes(9))));
+        assertPresent(   notificator.process(Status.ERROR, now.plus(Duration.ofMinutes(10))));
+        assertNotPresent(notificator.process(Status.ERROR, now.plus(Duration.ofMinutes(15))));
+        
+        assertNotPresent(notificator.process(Status.ERROR, now.plus(Duration.ofMinutes(24))));
+        assertPresent(   notificator.process(Status.ERROR, now.plus(Duration.ofMinutes(25))));
     }
     
     @Test

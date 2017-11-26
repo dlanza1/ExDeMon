@@ -33,6 +33,10 @@ public class PercentageNotificator extends Notificator implements HasStore {
     private static Duration PERIOD_DEFAULT = Duration.ofMinutes(15);
     private Duration period = PERIOD_DEFAULT;
     
+    private static final String SILENT_PERIOD_PARAM = "silent.period";
+    private Duration silentPeriod;
+    private Instant lastRaised;
+    
     private String PERCENTAGE_PARAM = "percentage";
     private String PERCENTAGE_DEFAULT = "90";
     private float percentage;
@@ -47,13 +51,15 @@ public class PercentageNotificator extends Notificator implements HasStore {
     public void config(Properties properties) throws ConfigurationException {
         super.config(properties);
         
-        expectedStatuses = Stream.of(properties.getProperty(STATUSES_PARAM).split(","))
+        expectedStatuses = Stream.of(properties.getProperty(STATUSES_PARAM).split("\\s"))
 									        		.map(String::trim)
 									        		.map(String::toUpperCase)
 									        		.map(Status::valueOf)
 									        		.collect(Collectors.toSet());
         
         period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
+        
+        silentPeriod = properties.getPeriod(SILENT_PERIOD_PARAM, Duration.ofSeconds(0));
         
         String percentage_s = properties.getProperty(PERCENTAGE_PARAM, PERCENTAGE_DEFAULT);
         percentage = Float.valueOf(percentage_s);
@@ -69,6 +75,7 @@ public class PercentageNotificator extends Notificator implements HasStore {
         Store_ data = (Store_) store;
         
         hits = data.hits;
+        lastRaised = data.lastRaised;
     }
 
     @Override
@@ -76,12 +83,18 @@ public class PercentageNotificator extends Notificator implements HasStore {
         Store_ store = new Store_();
         
         store.hits = hits;
+        store.lastRaised = lastRaised;
         
         return store;
     }
 
     @Override
     public Optional<Notification> process(Status status, Instant timestamp) {
+		if(lastRaised != null && lastRaised.plus(silentPeriod).compareTo(timestamp) > 0)
+			return Optional.empty();
+		else
+			lastRaised = null;
+		
         removeExpiredHits(timestamp);
         
         hits.add(new Pair<Instant, Boolean>(timestamp, isExpectedStatus(status)));
@@ -96,6 +109,7 @@ public class PercentageNotificator extends Notificator implements HasStore {
                     + TimeUtils.toString(period) + " in state " + expectedStatuses + ".");
             
             hits = new LinkedList<>();
+            lastRaised = timestamp;
             
             return Optional.of(notification);
         }else{
@@ -156,7 +170,6 @@ public class PercentageNotificator extends Notificator implements HasStore {
                 if(pair.second)
                     counter_true++;
             }
-                
         
         return counter_true / counter;
     }
@@ -169,8 +182,11 @@ public class PercentageNotificator extends Notificator implements HasStore {
     }
 
     public static class Store_ implements Store{
-        private static final long serialVersionUID = -1907347033980904180L;
+
+		private static final long serialVersionUID = -1907347033980904180L;
         
+		Instant lastRaised;
+		
         List<Pair<Instant, Boolean>> hits;
     }
 

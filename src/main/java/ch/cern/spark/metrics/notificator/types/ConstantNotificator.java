@@ -2,7 +2,6 @@ package ch.cern.spark.metrics.notificator.types;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,6 +21,7 @@ import ch.cern.utils.TimeUtils;
 public class ConstantNotificator extends Notificator implements HasStore {
     
     private static final long serialVersionUID = -7890231998987060652L;
+
     
     private String STATUSES_PARAM = "statuses";
     private Set<Status> expectedStatuses;
@@ -31,18 +31,24 @@ public class ConstantNotificator extends Notificator implements HasStore {
     private Duration period = PERIOD_DEFAULT;
     
     private Instant constantlySeenFrom;
+    
+    private static final String SILENT_PERIOD_PARAM = "silent.period";
+    private Duration silentPeriod;
+    private Instant lastRaised;
 
     @Override
     public void config(Properties properties) throws ConfigurationException {
         super.config(properties);
         
-        expectedStatuses = Stream.of(properties.getProperty(STATUSES_PARAM).split(","))
+        expectedStatuses = Stream.of(properties.getProperty(STATUSES_PARAM).split("\\s"))
 					        		.map(String::trim)
 					        		.map(String::toUpperCase)
 					        		.map(Status::valueOf)
 					        		.collect(Collectors.toSet());
 
         period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
+        
+        silentPeriod = properties.getPeriod(SILENT_PERIOD_PARAM, Duration.ofSeconds(0));
         
         properties.confirmAllPropertiesUsed();
     }
@@ -54,22 +60,27 @@ public class ConstantNotificator extends Notificator implements HasStore {
         
         Store_ data = (Store_) store;
         
-        if(data.constantlySeenFrom != null)
-        		constantlySeenFrom = data.constantlySeenFrom.toInstant();
+        constantlySeenFrom = data.constantlySeenFrom;
+        lastRaised = data.lastRaised;
     }
 
     @Override
     public Store save() {
         Store_ store = new Store_();
         
-        if(constantlySeenFrom != null)
-        		store.constantlySeenFrom = Date.from(constantlySeenFrom);
+        store.constantlySeenFrom = constantlySeenFrom;
+        store.lastRaised = lastRaised;
         
         return store;
     }
 
     @Override
     public Optional<Notification> process(Status status, Instant timestamp) {
+    		if(lastRaised != null && lastRaised.plus(silentPeriod).compareTo(timestamp) > 0)
+    			return Optional.empty();
+    		else
+    			lastRaised = null;
+    	
         boolean isExpectedStatus = isExpectedStatus(status);
         
         if(isExpectedStatus && constantlySeenFrom == null)
@@ -84,7 +95,8 @@ public class ConstantNotificator extends Notificator implements HasStore {
                     + expectedStatuses + " for " + TimeUtils.toString(getDiff(timestamp))
                     + ".");
             
-            constantlySeenFrom = timestamp;
+            constantlySeenFrom = null;
+            lastRaised = timestamp;
             
             return Optional.of(notification);
         }else{
@@ -110,7 +122,8 @@ public class ConstantNotificator extends Notificator implements HasStore {
     public static class Store_ implements Store{
         private static final long serialVersionUID = -1907347033980904180L;
         
-        Date constantlySeenFrom;
+        Instant constantlySeenFrom;
+        Instant lastRaised;
     }
 
 }
