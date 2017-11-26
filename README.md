@@ -46,7 +46,7 @@ Some possibilities of defined metrics could be:
 - Total throughput of machines per cluster in production 
 - Threshold for /tmp/ directory usage.
 ```
-<defined-metric-id>.value = !shouldBeMonitored || (trim(dir) == "/tmp/") && (abs(used / capacity) > 80)
+<defined-metric-id>.value = !shouldBeMonitored || (trim(dir) == "/tmp/") && (abs(used / capacity) > 0.8)
 ```
 
 Easy debugging, you would get:

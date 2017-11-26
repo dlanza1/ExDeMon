@@ -201,7 +201,7 @@ metrics.define.temperature_change.variables.ana_props.type = recent
 metrics.define.temperature_change.variables.ana_props.error.upperbound = true
 metrics.define.temperature_change.variables.ana_props.error.lowerbound = true
 
-metrics.define.directory_full.value = !shouldBeMonitored || (trim(dir) == "/tmp/") && (abs(used / capacity) > 80)
+metrics.define.directory_full.value = !shouldBeMonitored || (trim(dir) == "/tmp/") && (abs(used / capacity) > 0.8)
 metrics.define.directory_full.metrics.filter.attribute.TYPE = DirReport
 metrics.define.directory_full.variables.shouldBeMonitored.filter.attribute.$value_attribute = monitor_enable
 metrics.define.directory_full.variables.dir.filter.attribute.$value_attribute = path
