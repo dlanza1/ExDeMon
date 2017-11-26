@@ -915,6 +915,12 @@ Notifications are converted to JSON and sunk to an HTTP (POST) end point.
 
 You can find all possible fields at: https://itmon.web.cern.ch/itmon/data_types/notifications_specification.html
 
+Some fields are set by default but could be override. Default values:
+* header.m_version = "2"
+* header.m_type = "notification"
+* body.metadata.timestamp = (current epoch seconds)
+* body.metadata.uuid = (randomly generated UUID [+info](https://docs.oracle.com/javase/7/docs/api/java/util/UUID.html#randomUUID())
+
 Integer fields will be parsed properly.
 
 ```
