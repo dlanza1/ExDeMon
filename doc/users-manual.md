@@ -564,7 +564,7 @@ It has the following configuration parameters:
 
 "timestamp.attribute" indicates the key in the JSON document that contains the timestamp for the metric. If the JSON document does not contain the timestamp value, no metric will be generated. 
 
-"timestamp.format" indicates the format of the timestamp stored in the attribute configured by "timestamp.attribute". If the format is a number that represents epoch in milliseconds, it must be set to "epoch-ms", if seconds "epoch-s". If the JSON document contains a timestamp with wrong format, no metric will be generated. 
+"timestamp.format" indicates the format of the timestamp stored in the attribute configured by "timestamp.attribute". If the format is a number that represents epoch in milliseconds, it must be set to "epoch-ms", if seconds "epoch-s". If the JSON document contains a timestamp with wrong format, metric with exception value will be generated, setting the timestamp to current time. 
 
 "attributes" configure the keys that will be extracted from the JSON document. You can indicate a list of keys separated by space.
 You can also configure these attributes individually assigning aliases. Assigned alias will be used to refer to the attribute in any metric filter. 
