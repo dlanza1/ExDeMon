@@ -16,6 +16,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.spark.streaming.api.java.JavaDStream;
 
@@ -31,7 +32,7 @@ public class HTTPSink implements Serializable{
 	
 	private static final long serialVersionUID = 2779022310649799825L;
 
-	private final static Logger LOG = Logger.getLogger(HTTPSink.class.getName());
+	private final static Logger LOG = LogManager.getLogger(HTTPSink.class);
 
 	public static final String URL_PARAM = "url";
 
@@ -196,7 +197,7 @@ public class HTTPSink implements Serializable{
         if (statusCode != 201 && statusCode != 200) {
         		throw new HttpException("Unable to POST to url=" + url + " with status code=" + statusCode);
         } else {
-            LOG.debug("Results posted to " + url);
+            LOG.info("Batch of " + elementsToSend.size() + " JSON documents sent to " + url);
         }
 	}
 

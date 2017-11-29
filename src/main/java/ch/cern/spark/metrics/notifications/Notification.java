@@ -12,13 +12,13 @@ public class Notification implements Serializable, Taggable {
     
     private static final long serialVersionUID = 6730655599755849423L;
     
-    private Instant timestamp;
+    private Instant notification_timestamp;
     
-    private String monitorID;
+    private String monitor_id;
     
-    private String notificatorID;
+    private String notificator_id;
     
-    private Map<String, String> metricIDs;
+    private Map<String, String> metric_ids;
     
     private String reason;
 
@@ -28,10 +28,10 @@ public class Notification implements Serializable, Taggable {
 
     public Notification(Instant timestamp, String monitorID, String notificatorID, Map<String, String> metricIDs,
             String reason, Set<String> sinks) {
-        this.timestamp = timestamp;
-        this.monitorID = monitorID;
-        this.notificatorID = notificatorID;
-        this.metricIDs = metricIDs;
+        this.notification_timestamp = timestamp;
+        this.monitor_id = monitorID;
+        this.notificator_id = notificatorID;
+        this.metric_ids = metricIDs;
         this.reason = reason;
         this.sinks = sinks;
         
@@ -46,19 +46,19 @@ public class Notification implements Serializable, Taggable {
     }
 
     public Instant getTimestamp() {
-        return timestamp;
+        return notification_timestamp;
     }
 
     public String getMonitorID() {
-        return monitorID;
+        return monitor_id;
     }
 
     public String getNotificatorID() {
-        return notificatorID;
+        return notificator_id;
     }
 
     public Map<String, String> getMetricIDs() {
-        return metricIDs;
+        return metric_ids;
     }
 
     public String getReason() {
@@ -66,19 +66,19 @@ public class Notification implements Serializable, Taggable {
     }
 
     public void setTimestamp(Instant timestamp) {
-        this.timestamp = timestamp;
+        this.notification_timestamp = timestamp;
     }
 
     public void setMonitorID(String monitorID) {
-        this.monitorID = monitorID;
+        this.monitor_id = monitorID;
     }
 
     public void setNotificatorID(String notificatorID) {
-        this.notificatorID = notificatorID;
+        this.notificator_id = notificatorID;
     }
 
     public void setMetricIDs(Map<String, String> metricIDs) {
-        this.metricIDs = metricIDs;
+        this.metric_ids = metricIDs;
     }
 
     public void setReason(String reason) {
@@ -90,13 +90,13 @@ public class Notification implements Serializable, Taggable {
 	}
     
     private Map<String, String> replaceMetricAttributesInTags(Map<String, String> tags) {
-    		if(metricIDs == null)
+    		if(metric_ids == null)
     			return tags;
     	
     		HashMap<String, String> newTags = new HashMap<>(tags);
 		newTags.entrySet().stream().filter(entry -> entry.getValue().startsWith("%")).forEach(entry -> {
 			String metricKey = entry.getValue().substring(1);
-			String metricValue = metricIDs.get(metricKey);
+			String metricValue = metric_ids.get(metricKey);
 			
 			if(metricValue != null)
 				newTags.put(entry.getKey(), metricValue);
@@ -119,8 +119,8 @@ public class Notification implements Serializable, Taggable {
 
 	@Override
 	public String toString() {
-		return "Notification [timestamp=" + timestamp + ", monitorID=" + monitorID + ", notificatorID=" + notificatorID
-				+ ", metricIDs=" + metricIDs + ", reason=" + reason + ", tags=" + tags + ", sinks=" + sinks + "]";
+		return "Notification [timestamp=" + notification_timestamp + ", monitorID=" + monitor_id + ", notificatorID=" + notificator_id
+				+ ", metricIDs=" + metric_ids + ", reason=" + reason + ", tags=" + tags + ", sinks=" + sinks + "]";
 	}
 	
 }

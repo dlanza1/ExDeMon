@@ -95,12 +95,15 @@ public final class Driver {
     		Stream<Metric> metrics = getMetricsStream();
     		
 		metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps));
-    		
+		metrics.asJavaDStream().cache();
+		
 		Stream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps);
+		results.asJavaDStream().cache();
 
 		analysisResultsSink.ifPresent(results::sink);
 		
 		Stream<Notification> notifications = Monitors.notify(results, propertiesSourceProps);
+		notifications.asJavaDStream().cache();
 		
     		notificationsSinks.stream().forEach(notifications::sink);
 		
