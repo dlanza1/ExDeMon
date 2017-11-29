@@ -802,11 +802,15 @@ spark.es.<any_other_attribute> = <value>
 
 #### HTTP Analysis results sink
 
-Analysis results are converted to JSON and sunk to an HTTP (POST) end point.
+Analysis results are converted to JSON (array) and sunk to an HTTP (POST) end point.
 
 ```
 results.sink.type = http
 results.sink.url = <url>
+results.sink.parallelization = <number-of-parallel-clients> (default: 5)
+results.sink.batch.size = <max-number-of-records-in-a-POST-request> (default: 100)
+results.sink.retries = <max-number-of-retries> (default: 1)
+results.sink.timeout = <max-wait-time-in-ms> (default: 2000)
 # HTTP simple authentication
 results.sink.auth = <true|false> (default: false)
 results.sink.auth.user = <username>
@@ -887,11 +891,15 @@ spark.es.<any_other_attribute> = <value>
 
 #### HTTP notifications sink
 
-Notifications are converted to JSON and sunk to an HTTP (POST) end point.
+Notifications are converted to JSON (array) and sunk to an HTTP (POST) end point.
 
 ```
 notifications.sink.<sink-id>.type = http
 notifications.sink.<sink-id>.url = <url>
+notifications.sink.<sink-id>.parallelization = <number-of-parallel-clients> (default: 1)
+notifications.sink.<sink-id>.batch.size = <max-number-of-records-in-a-POST-request> (default: 100)
+notifications.sink.<sink-id>.retries = <max-number-of-retries> (default: 5)
+notifications.sink.<sink-id>.timeout = <max-wait-time-in-ms> (default: 2000)
 # HTTP simple authentication
 notifications.sink.<sink-id>.auth = <true|false> (default: false)
 notifications.sink.<sink-id>.auth.user = <username>
@@ -904,7 +912,7 @@ notifications.sink.<sink-id>.add.<key-n> = <value|%notification-tag-key>
 
 #### CERN GNI notifications sink
 
-Notifications are converted to JSON and sunk to an HTTP (POST) end point.
+Notifications are converted to JSON (array) and sunk to an HTTP (POST) end point.
 
 You can find all possible fields at: https://itmon.web.cern.ch/itmon/data_types/notifications_specification.html
 
@@ -919,6 +927,10 @@ Integer fields will be parsed properly.
 ```
 notifications.sink.<sink-id>.type = cern-gni
 notifications.sink.<sink-id>.url = <url>
+notifications.sink.<sink-id>.parallelization = <number-of-parallel-clients> (default: 1)
+notifications.sink.<sink-id>.batch.size = <max-number-of-records-in-a-POST-request> (default: 100)
+notifications.sink.<sink-id>.retries = <max-number-of-retries> (default: 5)
+notifications.sink.<sink-id>.timeout = <max-wait-time-in-ms> (default: 2000)
 notifications.sink.<sink-id>.content.header.<header-key> = <value|%notification-tag-key>
 notifications.sink.<sink-id>.content.body.metadata.<metadata-key> = <value|%notification-tag-key>
 notifications.sink.<sink-id>.content.body.payload.<payload-key> = <value|%notification-tag-key>

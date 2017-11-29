@@ -26,10 +26,10 @@ public class HTTPSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResul
 
 	@Test
 	public void send() throws ConfigurationException, HttpException, IOException {
-		HttpClient httpClient = mock(HttpClient.class);
+		HttpClient httpClient = mock(HttpClient.class, withSettings().serializable());
 		when(httpClient.executeMethod(anyObject())).thenReturn(201);
 		
-		HTTPSink.setClient(httpClient);
+		HTTPSink.setHTTPClient(httpClient);
 		
         Properties properties = new Properties();
 		properties.setProperty("url", "http://localhost:1234");
@@ -52,11 +52,11 @@ public class HTTPSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResul
 		verify(httpClient, times(1)).executeMethod(methodCaptor.capture());
 		
 		StringRequestEntity receivedEntity = (StringRequestEntity) methodCaptor.getAllValues().get(0).getRequestEntity();
-		assertEquals("{\"analysis_timestamp\":\"1970-01-01T01:00:00+0100\","
+		assertEquals("[{\"analysis_timestamp\":\"1970-01-01T01:00:00+0100\","
 					+ "\"analysis_params\":{},"
 					+ "\"tags\":{},"
 					+ "\"key1\":\"key1\","
-					+ "\"key2\":{\"a1\":\"key2\"}}", receivedEntity.getContent());
+					+ "\"key2\":{\"a1\":\"key2\"}}]", receivedEntity.getContent());
 	}
 
 }

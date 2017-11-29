@@ -23,6 +23,7 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import ch.cern.properties.ConfigurationException;
@@ -37,13 +38,15 @@ import ch.cern.spark.metrics.notifications.sink.types.CERNGNINotificationsSink;
 public class CERNGNINotificationsSinkTest extends StreamTestHelper<Notification, Notification>{
 	
 	private static final long serialVersionUID = -8846451662432392890L;
+	
+	JsonParser JSON = new JsonParser();
 
 	@Test
 	public void send() throws ConfigurationException, HttpException, IOException, ParseException {
 		HttpClient httpClient = mock(HttpClient.class);
 		when(httpClient.executeMethod(anyObject())).thenReturn(201);
 		
-		HTTPSink.setClient(httpClient);
+		HTTPSink.setHTTPClient(httpClient);
 		
         Properties properties = new Properties();
 		properties.setProperty("content.header.h1", "v1");
@@ -68,7 +71,7 @@ public class CERNGNINotificationsSinkTest extends StreamTestHelper<Notification,
 		verify(httpClient, times(1)).executeMethod(methodCaptor.capture());
 		
 		StringRequestEntity receivedEntity = (StringRequestEntity) methodCaptor.getAllValues().get(0).getRequestEntity();
-		JSONObject json = new JSONObject(receivedEntity.getContent());
+		JSONObject json = new JSONObject(JSON.parse(receivedEntity.getContent()).getAsJsonArray().get(0).getAsJsonObject());
 		assertEquals("v1", json.getProperty("header.h1"));
 		assertEquals("2", json.getProperty("header.m_version"));
 		assertEquals("notification", json.getProperty("header.m_type"));
@@ -83,7 +86,7 @@ public class CERNGNINotificationsSinkTest extends StreamTestHelper<Notification,
 		HttpClient httpClient = mock(HttpClient.class);
 		when(httpClient.executeMethod(anyObject())).thenReturn(201);
 		
-		HTTPSink.setClient(httpClient);
+		HTTPSink.setHTTPClient(httpClient);
 		
         Properties properties = new Properties();
 		properties.setProperty("content.body.metadata.metric_id", "12");
@@ -107,7 +110,7 @@ public class CERNGNINotificationsSinkTest extends StreamTestHelper<Notification,
 		verify(httpClient, times(1)).executeMethod(methodCaptor.capture());
 		
 		StringRequestEntity receivedEntity = (StringRequestEntity) methodCaptor.getAllValues().get(0).getRequestEntity();
-		JSONObject json = new JSONObject(receivedEntity.getContent());
+		JSONObject json = new JSONObject(JSON.parse(receivedEntity.getContent()).getAsJsonArray().get(0).getAsJsonObject());
 		
 		assertTrue(json.getElement("body.metadata.timestamp") instanceof JsonPrimitive);
 		assertTrue(((JsonPrimitive) json.getElement("body.metadata.timestamp")).getAsInt() > 0);
@@ -124,7 +127,7 @@ public class CERNGNINotificationsSinkTest extends StreamTestHelper<Notification,
 		HttpClient httpClient = mock(HttpClient.class);
 		when(httpClient.executeMethod(anyObject())).thenReturn(201);
 		
-		HTTPSink.setClient(httpClient);
+		HTTPSink.setHTTPClient(httpClient);
 		
         Properties properties = new Properties();
 		properties.setProperty("content.header.h1", "%header_tag");
@@ -155,7 +158,7 @@ public class CERNGNINotificationsSinkTest extends StreamTestHelper<Notification,
 		verify(httpClient, times(1)).executeMethod(methodCaptor.capture());
 		
 		StringRequestEntity receivedEntity = (StringRequestEntity) methodCaptor.getAllValues().get(0).getRequestEntity();
-		JSONObject json = new JSONObject(receivedEntity.getContent());
+		JSONObject json = new JSONObject(JSON.parse(receivedEntity.getContent()).getAsJsonArray().get(0).getAsJsonObject());
 		assertEquals("fromtag1", json.getProperty("header.h1"));
 		assertEquals("2", json.getProperty("header.m_version"));
 		assertEquals("notification", json.getProperty("header.m_type"));

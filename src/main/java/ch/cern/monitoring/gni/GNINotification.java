@@ -1,5 +1,6 @@
 package ch.cern.monitoring.gni;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,8 +12,10 @@ import java.util.UUID;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.notifications.Notification;
 
-public class GNINotification {
+public class GNINotification implements Serializable{
 	
+	private static final long serialVersionUID = 3907608853402802054L;
+
 	private Map<String, String> header;
 	
 	private Map<String, HashMap<String, Object>> body;

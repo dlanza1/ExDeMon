@@ -19,6 +19,7 @@ public class HTTPAnalysisResultSink extends AnalysisResultsSink {
 	public void config(Properties properties) throws ConfigurationException {
 		super.config(properties);
 		
+		properties.setPropertyIfAbsent(HTTPSink.PARALLELIZATION_PARAM, "5");
 		sink.config(properties);
 	}
 	

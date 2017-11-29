@@ -38,7 +38,7 @@ public class HTTPNotificationsSinkTest extends StreamTestHelper<Notification, No
 		HttpClient httpClient = mock(HttpClient.class);
 		when(httpClient.executeMethod(anyObject())).thenReturn(201);
 		
-		HTTPSink.setClient(httpClient);
+		HTTPSink.setHTTPClient(httpClient);
 		
         Properties properties = new Properties();
 		properties.setProperty("add.header.h1", "%header_tag");
@@ -69,12 +69,12 @@ public class HTTPNotificationsSinkTest extends StreamTestHelper<Notification, No
 		verify(httpClient, times(1)).executeMethod(methodCaptor.capture());
 		
 		StringRequestEntity receivedEntity = (StringRequestEntity) methodCaptor.getAllValues().get(0).getRequestEntity();
-		assertEquals("{\"tags\":{\"metric_id_tag\":\"1234\",\"payload_tag\":\"fromtag2\",\"header_tag\":\"fromtag1\"},"
+		assertEquals("[{\"tags\":{\"metric_id_tag\":\"1234\",\"payload_tag\":\"fromtag2\",\"header_tag\":\"fromtag1\"},"
 					+ "\"sinks\":[\"ALL\"],"
 					+ "\"header\":{\"h1\":\"fromtag1\"},"
 					+ "\"body\":{"
 						+ "\"payload\":{\"bp1\":\"fromtag2\",\"bp2\":\"%no-tag\"},"
-						+ "\"metadata\":{\"metric_id\":\"1234\"}}}", receivedEntity.getContent());
+						+ "\"metadata\":{\"metric_id\":\"1234\"}}}]", receivedEntity.getContent());
 	}
 
 }

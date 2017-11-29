@@ -108,5 +108,9 @@ public class Stream<V> {
 	public JavaSparkContext getSparkContext() {
 		return JavaSparkContext.fromSparkContext(stream.context().sparkContext());
 	}
+
+	public Stream<V> repartition(int parallelization) {
+		return Stream.from(stream.repartition(parallelization));
+	}
 	
 }

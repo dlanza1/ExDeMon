@@ -19,6 +19,7 @@ public class HTTPNotificationsSink extends NotificationsSink {
 	public void config(Properties properties) throws ConfigurationException {
 		super.config(properties);
 		
+		properties.setPropertyIfAbsent(HTTPSink.RETRIES_PARAM, "5");
 		sink.config(properties);
 	}
 
