@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ch.cern.Cache;
+import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import scala.Tuple2;
@@ -22,7 +23,8 @@ public class ComputeIDsForDefinedMetricsFTest {
 	private Cache<Map<String, DefinedMetric>> definedMetricsCache = DefinedMetrics.getCache();
 	
 	@Before
-	public void reset() {
+	public void reset() throws ConfigurationException {
+		Properties.initCache(null);
 		Properties.getCache().reset();
 		definedMetricsCache.reset();
 	}
