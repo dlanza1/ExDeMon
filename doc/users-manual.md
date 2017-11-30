@@ -73,9 +73,9 @@ metrics.source.kafka-prod.consumer.bootstrap.servers = habench101.cern.ch:9092,h
 metrics.source.kafka-prod.consumer.group.id = spark_metric_analyzer
 metrics.source.kafka-prod.topics = db-logging-platform
 # These two parameters are extracted from metrics (they are enough to identify a metric)
-metrics.source.kafka-prod.metrics.schema.attributes = INSTANCE_NAME METRIC_NAME
-metrics.source.kafka-prod.metrics.schema.value.attributes = VALUE
-metrics.source.kafka-prod.metrics.schema.timestamp.attribute = END_TIME
+metrics.source.kafka-prod.schema.attributes = INSTANCE_NAME METRIC_NAME
+metrics.source.kafka-prod.schema.value.attributes = VALUE
+metrics.source.kafka-prod.schema.timestamp.attribute = END_TIME
 
 metrics.define.DBCPUUsagePercentage.value = DBCPUUsagePerSec / HostCPUUsagePerSec
 metrics.define.DBCPUUsagePercentage.metrics.groupby = INSTANCE_NAME
