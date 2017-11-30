@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.Optional;
+import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.Function4;
@@ -111,6 +112,10 @@ public class Stream<V> {
 
 	public Stream<V> repartition(int parallelization) {
 		return Stream.from(stream.repartition(parallelization));
+	}
+
+	public<R> Stream<R> flatMap(FlatMapFunction<V, R> func) {
+		return Stream.from(stream.flatMap(func));
 	}
 	
 }

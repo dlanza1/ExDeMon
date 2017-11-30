@@ -24,13 +24,14 @@ import ch.cern.spark.Stream;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.JSONMetric;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.schema.MetricSchemas;
 
 public class MetricsStreamFromKafkaProvider implements Serializable{
 
 	private static final long serialVersionUID = 3857762447792729837L;
 	
-	private JavaStreamingContext sc = null;
-	public BatchCounter batchCounter;
+	private transient JavaStreamingContext sc = null;
+	public transient BatchCounter batchCounter;
 
 	private transient KafkaTestUtils kafkaTestUtils;
 	private KafkaMetricsSource metricsSource;
@@ -46,19 +47,18 @@ public class MetricsStreamFromKafkaProvider implements Serializable{
 		topics.put(topic, 1);
 		kafkaTestUtils.createTopic(topic);
 		
-		
 		Properties properties = new Properties();
 		properties.setProperty("type", "kafka");
 		properties.setProperty("topics", topic);
 		properties.setProperty("consumer.bootstrap.servers", kafkaTestUtils.brokerAddress());
 		properties.setProperty("consumer.group.id", "testing");
-		properties.setProperty("parser.attributes", "CLUSTER HOSTNAME METRIC KEY_TO_REMOVE");
-		properties.setProperty("parser.value.attributes", "VALUE");
-		properties.setProperty("parser.timestamp.attribute", "TIMESTAMP");
-		properties.setProperty("filter.attribute.KEY_TO_REMOVE", "!.*");
+		properties.setProperty("schema.attributes", "CLUSTER HOSTNAME METRIC KEY_TO_REMOVE");
+		properties.setProperty("schema.value.attributes", "VALUE");
+		properties.setProperty("schema.timestamp.attribute", "TIMESTAMP");
+		properties.setProperty("schema.filter.attribute.KEY_TO_REMOVE", "!.*");
 		metricsSource = new KafkaMetricsSource();
-		metricsSource.config(properties);
 		metricsSource.setId("kafka");
+		metricsSource.config(properties);
 		
 		Path checkpointPath = new Path("/tmp/spark-checkpoint-tests/");
 		FileSystem fs = FileSystem.get(new Configuration());
@@ -80,7 +80,7 @@ public class MetricsStreamFromKafkaProvider implements Serializable{
 	}
 	
 	public Stream<Metric> createStream(){
-		return metricsSource.createStream(sc);
+		return MetricSchemas.generate(metricsSource.createStream(sc), null, metricsSource.getId(), metricsSource.getSchema());
 	}
 	
 	public void sendMetrics(List<Metric> inputMetrics) {

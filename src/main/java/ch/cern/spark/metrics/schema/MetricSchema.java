@@ -1,5 +1,6 @@
-package ch.cern.spark.json;
+package ch.cern.spark.metrics.schema;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -8,13 +9,14 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.log4j.Logger;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
@@ -22,16 +24,25 @@ import com.google.gson.JsonPrimitive;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Pair;
+import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.StringValue;
 import ch.cern.spark.metrics.value.Value;
 
-public class JSONObjectToMetricParser implements FlatMapFunction<JSONObject, Metric>{
+public class MetricSchema implements Serializable{
+	
+	private static final long serialVersionUID = -8885058791228553794L;
 
-    private static final long serialVersionUID = -5490112720236337434L;
+	private transient final static Logger LOG = Logger.getLogger(MetricSchema.class.getName());
+    
+    private String id;
+    
+    public static String SOURCES_PARAM = "sources";
+    private List<String> sources;
     
     public static String ATTRIBUTES_PARAM = "attributes";
     private List<Pair<String, String>> attributes;
@@ -47,7 +58,31 @@ public class JSONObjectToMetricParser implements FlatMapFunction<JSONObject, Met
     public static String TIMESTAMP_ATTRIBUTE_PARAM = "timestamp.attribute";
     private String timestamp_attribute;
     
-    public JSONObjectToMetricParser(Properties properties) throws ConfigurationException {
+    public static String FILTER_PARAM = "filter";
+    private MetricsFilter filter;
+
+	private Exception configurationException;
+    
+    public MetricSchema(String id) {
+    		this.id = id;
+    }
+    
+    public MetricSchema config(Properties properties) {
+		try {
+			tryConfig(properties);
+		} catch (Exception e) {
+			configurationException = e;
+		}
+		
+		return this;
+    }
+    
+    public MetricSchema tryConfig(Properties properties) throws ConfigurationException {
+    		String sourcesValue = properties.getProperty(SOURCES_PARAM);
+    		if(sourcesValue == null)
+    			throw new ConfigurationException("sources must be spcified");
+    		sources = Arrays.asList(sourcesValue.split("\\s"));
+    	
     		timestamp_attribute = properties.getProperty(TIMESTAMP_ATTRIBUTE_PARAM);    
     		if(timestamp_attribute == null)
     			throw new ConfigurationException(TIMESTAMP_ATTRIBUTE_PARAM + " must be configured.");
@@ -96,14 +131,23 @@ public class JSONObjectToMetricParser implements FlatMapFunction<JSONObject, Met
 			
 			attributes.add(new Pair<String, String>(alias, key));
 		}
+		
+		filter = MetricsFilter.build(properties.getSubset(FILTER_PARAM));
+		
+		return this;
     }
 
-    @Override
-    public Iterator<Metric> call(JSONObject jsonObject) {
+    public List<Metric> call(JSONObject jsonObject) {
     		List<Metric> metrics = new LinkedList<>();
     		
+    		Map<String, String> ids = new HashMap<>();
+		ids.put("$schema", id);
+    		
 		try {		
-			Map<String, String> ids = new HashMap<>();
+			if(configurationException != null)
+				throw configurationException;
+			
+			Map<String, String> idsForMetric = new HashMap<>(ids);
 			for(Pair<String, String> attribute : attributes) {
 				String alias = attribute.first;
 				String key = attribute.second;
@@ -111,7 +155,7 @@ public class JSONObjectToMetricParser implements FlatMapFunction<JSONObject, Met
 				String value = jsonObject.getProperty(key);
 				
 				if(value != null)
-					ids.put(alias, value);
+					idsForMetric.put(alias, value);
 			}
 			
 			Exception timestampException = null;
@@ -131,7 +175,7 @@ public class JSONObjectToMetricParser implements FlatMapFunction<JSONObject, Met
 				String alias = value_attribute.first;
 				String key = value_attribute.second;
 				
-				Map<String, String> metric_ids = new HashMap<>(ids);
+				Map<String, String> metric_ids = new HashMap<>(idsForMetric);
 		        metric_ids.put("$value_attribute", alias);
 				
 				if(timestampException != null) {
@@ -153,18 +197,20 @@ public class JSONObjectToMetricParser implements FlatMapFunction<JSONObject, Met
 					else
 						value = new StringValue(primitive.getAsString());
 				}else {
-					value = new ExceptionValue("No metric was generated for value key \"" + key + "\" (alias: " + alias + "): value is not a JSON primitive.");
+					value = new ExceptionValue("No metric was generated for value key \"" + key + "\" (alias: " + alias + "): attribute is not a JSON primitive.");
 				}
 		        
 		        metrics.add(new Metric(timestamp, value, metric_ids));
 			}
-	        
-	        return metrics.iterator();
+			
+	        return metrics.stream().filter(filter).collect(Collectors.toList());
 		} catch (Exception e) {
-			ExceptionValue exception = new ExceptionValue("No metrics were generated for JSON\"" + jsonObject + "\": "+ e.getMessage());
-
-			metrics.add(new Metric(Instant.now(), exception, new HashMap<>()));
-			return metrics.iterator();
+			LOG.error(e.getMessage(), e);
+			
+			ExceptionValue exception = new ExceptionValue(e.getMessage());
+			
+			metrics.add(new Metric(Instant.now(), exception, ids));
+			return metrics;
 		}
     }
 
@@ -196,5 +242,13 @@ public class JSONObjectToMetricParser implements FlatMapFunction<JSONObject, Met
 			return LocalDate.from(temporalAccesor).atStartOfDay(ZoneOffset.systemDefault()).toInstant();
 		}
     }
+    
+    public String getID() {
+    		return id;
+    }
+
+	public boolean containsSource(String sourceID) {
+		return sources.contains(sourceID);
+	}
 
 }

@@ -49,8 +49,12 @@ public class ComponentManager {
         
         availableComponents.get(type).put(name, componentClass);
     }
-
-    public static<C extends Component> C build(Component.Type componentType, Properties properties) throws ConfigurationException  {
+	
+	public static<C extends Component> C build(Component.Type componentType, Properties properties) throws ConfigurationException  {
+		return build(componentType, null, properties);
+	}
+	
+	public static<C extends Component> C build(Type componentType, String id, Properties properties) throws ConfigurationException {
         String type = properties.getProperty("type");
         
         if(type == null)
@@ -74,6 +78,7 @@ public class ComponentManager {
             }
         }
         
+        component.setId(id);
         component.config(properties);
         
         return component;

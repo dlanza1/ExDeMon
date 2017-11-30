@@ -19,11 +19,12 @@ public class KafkaMetricsSourceTest extends MetricsStreamFromKafkaProvider{
 
 	private static final long serialVersionUID = 5080067774244349422L;
 
-	//@Test
+	@Test
 	public void parse() throws Exception {
 		List<Metric> inputMetrics = new LinkedList<Metric>();
 		Map<String, String> ids = new HashMap<>();
 		ids.put("$source", "kafka");
+		ids.put("$schema", "kafka");
 		ids.put("$value_attribute", "VALUE");
 		inputMetrics.add(new Metric(Instant.now(), (float) Math.random(), ids));
 		inputMetrics.add(new Metric(Instant.now(), (float) Math.random(), ids));

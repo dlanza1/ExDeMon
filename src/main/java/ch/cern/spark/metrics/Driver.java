@@ -28,6 +28,7 @@ import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notifications.sink.NotificationsSink;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
+import ch.cern.spark.metrics.schema.MetricSchemas;
 import ch.cern.spark.metrics.source.MetricsSource;
 
 public final class Driver {
@@ -92,7 +93,7 @@ public final class Driver {
 
     protected JavaStreamingContext createNewStreamingContext(Properties propertiesSourceProps) throws Exception {
 	    
-    		Stream<Metric> metrics = getMetricsStream();
+    		Stream<Metric> metrics = getMetricstream(propertiesSourceProps);
     		
 		metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps));
 		metrics.asJavaDStream().cache();
@@ -110,9 +111,9 @@ public final class Driver {
 		return ssc;
 	}
 
-	public Stream<Metric> getMetricsStream() {
+	public Stream<Metric> getMetricstream(Properties propertiesSourceProps) {
 		return metricSources.stream()
-				.map(source -> source.createStream(ssc))
+				.map(source -> MetricSchemas.generate(source.createStream(ssc), propertiesSourceProps, source.getId(), source.getSchema()))
 				.reduce((str, stro) -> str.union(stro)).get();
 	}
 
@@ -132,7 +133,7 @@ public final class Driver {
     		for (String id : ids) {
     			Properties props = metricSourcesProperties.getSubset(id);
 			
-    			MetricsSource source = ComponentManager.build(Type.METRIC_SOURCE, props);
+    			MetricsSource source = ComponentManager.build(Type.METRIC_SOURCE, id, props);
     			source.setId(id);
     			
     			metricSources.add(source);

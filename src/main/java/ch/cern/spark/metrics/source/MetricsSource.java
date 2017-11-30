@@ -5,48 +5,40 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import ch.cern.components.Component;
 import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.components.ComponentType;
 import ch.cern.spark.Stream;
-import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.filter.MetricsFilter;
+import ch.cern.spark.json.JSONObject;
+import ch.cern.spark.metrics.schema.MetricSchema;
 
 @ComponentType(Type.METRIC_SOURCE)
-public abstract class MetricsSource extends Component{
+public abstract class MetricsSource extends Component {
 
     private static final long serialVersionUID = -6197974524956447741L;
-    
-    private String id;
 
-	private MetricsFilter filter;
-	
+	private MetricSchema schema;
+
 	@Override
 	public void config(Properties properties) throws ConfigurationException {
 		properties.isTypeDefined();
 		
-		filter = MetricsFilter.build(properties.getSubset("filter"));
+		Properties schemaProps = properties.getSubset("schema");
+		schemaProps.setProperty("sources", getId());
+		if(schemaProps.size() > 0)
+			schema = new MetricSchema(getId()).tryConfig(schemaProps);
+		else
+			schema = null;
 	}
-    
-    public String getId() {
-		return id;
+	
+	public MetricSchema getSchema() {
+		return schema;
 	}
 
-	public void setId(String id) {
-		this.id = id;
-	}
-
-    public final Stream<Metric> createStream(JavaStreamingContext ssc){
-    		JavaDStream<Metric> metricStream = createJavaDStream(ssc);
-    	
-    		JavaDStream<Metric> filteredMetricStream = metricStream.filter(filter::test);
-    		
-    		return Stream.from(filteredMetricStream).map(metric -> {
-										    				metric.addID("$source", getId());
-										    				return metric;
-										    			});
+    public final Stream<JSONObject> createStream(JavaStreamingContext ssc){
+    		return Stream.from(createJavaDStream(ssc));
     }
 	
-	public abstract JavaDStream<Metric> createJavaDStream(JavaStreamingContext ssc);
+	public abstract JavaDStream<JSONObject> createJavaDStream(JavaStreamingContext ssc);
     
 }

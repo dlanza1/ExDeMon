@@ -24,8 +24,6 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.json.JSONObjectDeserializer;
-import ch.cern.spark.json.JSONObjectToMetricParser;
-import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.source.MetricsSource;
 
 @RegisterComponent("kafka")
@@ -36,8 +34,6 @@ public class KafkaMetricsSource extends MetricsSource {
     private Map<String, Object> kafkaParams;
     private Set<String> kafkaTopics;
 
-	private JSONObjectToMetricParser parser;
-
     @Override
     public void config(Properties properties) throws ConfigurationException {
     		super.config(properties);
@@ -45,22 +41,12 @@ public class KafkaMetricsSource extends MetricsSource {
         kafkaParams = getKafkaConsumerParams(properties);
         kafkaTopics = new HashSet<String>(Arrays.asList(properties.getProperty("topics").split(",")));
         
-        parser = new JSONObjectToMetricParser(properties.getSubset("parser"));
-        
         properties.confirmAllPropertiesUsed();
     }
     
     @Override
-	public JavaDStream<Metric> createJavaDStream(JavaStreamingContext ssc) {
-        JavaDStream<JSONObject> inputStream = createKafkaInputStream(ssc);
-
-        JavaDStream<Metric> metricsStream = inputStream.flatMap(parser);
-        
-        return metricsStream;
-    }
-    
-    public JavaDStream<JSONObject> createKafkaInputStream(JavaStreamingContext ssc) {
-        JavaInputDStream<ConsumerRecord<String, JSONObject>> inputStream = KafkaUtils.createDirectStream(
+	public JavaDStream<JSONObject> createJavaDStream(JavaStreamingContext ssc) {
+    		JavaInputDStream<ConsumerRecord<String, JSONObject>> inputStream = KafkaUtils.createDirectStream(
                 ssc,
                 LocationStrategies.PreferConsistent(),
                 ConsumerStrategies.<String, JSONObject>Subscribe(kafkaTopics, kafkaParams));
