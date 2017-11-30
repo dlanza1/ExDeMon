@@ -831,11 +831,24 @@ monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|notifications-sin
 monitor.<monitor-id>.notificator.<notificator-id>.tags.<tag-key> = <value>
 ```
 
+#### Statuses notificator
+
+If a metric arrives in any of the configured statuses, it produces a notification.
+
+Possible statuses are: error, warning, ok, exception.
+
+Configuration:
+```
+monitor.<monitor-id>.notificator.<notificator-id>.type = statuses
+monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses separated by space>
+monitor.<monitor-id>.notificator.<notificator-id>.silent.period = <period like 1h, 3m or 45s> (default: 0)
+```
+
+Minimum period between two notifications is ".silent.period".
+
 #### Constant status notificator
 
 If a metric has been in configured statuses during the configured period, it produces a notification.
-
-If a notification is raised, next notification will be produced as shorter as the period time.
 
 Possible statuses are: error, warning, ok, exception.
 
@@ -855,8 +868,6 @@ An example of the result of this notificator can be seen in the following image.
 #### Percentage status notificator
 
 If a metric has been in configured statuses during a percentage of the configured period, it produces a notification.
-
-If a notification is raised, next notification will be produced as shorter as the period time.
 
 Possible statuses are: error, warning, ok, exception.
 
