@@ -18,7 +18,7 @@ Notifications can be raised if certain statuses like error or warning are mainta
 - Metrics value can be float, string or boolean.
 - New metrics can be defined. Mathematical operations can be applied. Value of new metrics can be computed by aggregating different incoming metrics. 
 - Several monitors can be declared, each monitor can have a metric filter, a metric analysis and notificators. 
-- Several metric sources can be declared.
+- Several metric sources can be declared. Incoming data can have different schemas that can be configured to produce metrics.
 - One analysis result sink is shared by all monitors.
 - Several notifications sinks, to be able to notify several systems.
 - Components: properties source, metrics source, analysis, analysis results sink, notificator and notification sink. They can be easily replaced. 
@@ -86,6 +86,8 @@ This component is meant to consume metrics from a source and generate an stream 
 
 Several sources can be declared for the job. All monitors consume from all sources.
 
+Consumed metrics could come with different schemas. Each schema can be declared to parse metrics.
+
 Built-in metric sources:
 - Kafka.
 
@@ -118,6 +120,7 @@ A notificator determine when to raise a notifications based on analysis results.
 Several notificators can be configured in a monitor.
 
 Built-in notificators:
+- Statuses: raise a notification as soon as it receives a metric with onw of the configured statuses.
 - Constant status: if a metric has been in configured statuses during a certain period.
 - Percentage status: if a metric has been in configured statuses during a percentage of a certain period.
 
