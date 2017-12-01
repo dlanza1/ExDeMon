@@ -19,7 +19,7 @@ public class MetricVariableStore implements Store {
 
 	private static final long serialVersionUID = -7439047274576894171L;
 
-	public static final int MAX_AGGREGATION_SIZE = 1000;
+	public static final int MAX_AGGREGATION_SIZE = 100000;
 	
 	private DatedValue value;
 	
@@ -44,6 +44,8 @@ public class MetricVariableStore implements Store {
 	}
 	
 	public void updateAggregatedValue(int idHash, Value value, Instant instant) {
+		value = Value.clone(value);
+		
 		if(emptyAttrbutes(idHash)) {
 			//Removing the oldest entry if max size
 			if(aggregateValuesForEmptyAttributes.size() >= MAX_AGGREGATION_SIZE)

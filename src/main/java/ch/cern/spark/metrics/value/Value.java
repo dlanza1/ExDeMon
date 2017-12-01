@@ -48,4 +48,15 @@ public abstract class Value implements Serializable {
 		return source;
 	}
 
+	public static Value clone(Value value) {
+		if(value.getAsFloat().isPresent())
+			return new FloatValue(value.getAsFloat().get());
+		if(value.getAsString().isPresent())
+			return new StringValue(value.getAsString().get());
+		if(value.getAsBoolean().isPresent())
+			return new BooleanValue(value.getAsBoolean().get());
+		
+		throw new RuntimeException("Value is not any of the expected types");
+	}
+
 }
