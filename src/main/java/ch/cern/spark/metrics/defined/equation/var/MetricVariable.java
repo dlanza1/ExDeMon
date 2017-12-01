@@ -69,6 +69,33 @@ public abstract class MetricVariable extends Variable {
 	}
 	
 	public abstract void updateStore(MetricVariableStore store, Metric metric);
+	
+	public static Optional<Class<? extends Value>> typeFromAggregation(Properties metricVariableProperties) throws ConfigurationException {
+		String aggregateVal = metricVariableProperties.getProperty("aggregate");
+		
+		if(aggregateVal == null)
+			return Optional.empty();
+		
+		aggregateVal = aggregateVal.toUpperCase();
+		
+		try {
+			FloatMetricVariable.Operation.valueOf(aggregateVal);
+			
+			return Optional.of(FloatValue.class);
+		}catch(IllegalArgumentException e) {}
+		try {
+			StringMetricVariable.Operation.valueOf(aggregateVal);
+			
+			return Optional.of(StringValue.class);
+		}catch(IllegalArgumentException e) {}
+		try {
+			BooleanMetricVariable.Operation.valueOf(aggregateVal);
+			
+			return Optional.of(BooleanValue.class);
+		}catch(IllegalArgumentException e) {}
+		
+		throw new ConfigurationException("Aggregation function " + aggregateVal + " does not exist.");
+	}
 
 	public static Optional<Class<? extends Value>> returnTypeFromAggregation(Properties metricVariableProperties) throws ConfigurationException{
 		String aggregateVal = metricVariableProperties.getProperty("aggregate");
@@ -79,16 +106,19 @@ public abstract class MetricVariable extends Variable {
 		aggregateVal = aggregateVal.toUpperCase();
 		
 		try {
-			FloatMetricVariable.Operation.valueOf(aggregateVal);
-			return Optional.of(FloatValue.class);
+			ch.cern.spark.metrics.defined.equation.var.FloatMetricVariable.Operation aggreagation = FloatMetricVariable.Operation.valueOf(aggregateVal);
+			
+			return Optional.of(FloatMetricVariable.getReturnType(aggreagation));
 		}catch(IllegalArgumentException e) {}
 		try {
-			StringMetricVariable.Operation.valueOf(aggregateVal);
-			return Optional.of(StringValue.class);
+			ch.cern.spark.metrics.defined.equation.var.StringMetricVariable.Operation aggreagation = StringMetricVariable.Operation.valueOf(aggregateVal);
+			
+			return Optional.of(StringMetricVariable.getReturnType(aggreagation));
 		}catch(IllegalArgumentException e) {}
 		try {
-			BooleanMetricVariable.Operation.valueOf(aggregateVal);
-			return Optional.of(BooleanValue.class);
+			ch.cern.spark.metrics.defined.equation.var.BooleanMetricVariable.Operation aggreagation = BooleanMetricVariable.Operation.valueOf(aggregateVal);
+			
+			return Optional.of(BooleanMetricVariable.getReturnType(aggreagation));
 		}catch(IllegalArgumentException e) {}
 		
 		throw new ConfigurationException("Aggregation function " + aggregateVal + " does not exist.");

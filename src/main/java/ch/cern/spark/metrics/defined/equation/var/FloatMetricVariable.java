@@ -190,7 +190,11 @@ public class FloatMetricVariable extends MetricVariable{
 	}
 
 	@Override
-	public Class<FloatValue> returnType() {
+	public Class<? extends Value> returnType() {
+		return getReturnType(aggregateOperation);
+	}
+	
+	public static Class<? extends Value> getReturnType(Operation aggreagation) {
 		return FloatValue.class;
 	}
 	

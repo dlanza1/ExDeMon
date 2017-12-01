@@ -84,8 +84,22 @@ public class BooleanMetricVariable extends MetricVariable{
 	}
 
 	@Override
-	public Class<BooleanValue> returnType() {
-		return BooleanValue.class;
+	public Class<? extends Value> returnType() {
+		return getReturnType(aggregateOperation);
+	}
+	
+	public static Class<? extends Value> getReturnType(Operation aggreagation) {
+		if(aggreagation == null)
+			return BooleanValue.class;
+			
+		switch (aggreagation) {
+		case COUNT_BOOLS:
+		case COUNT_FALSE:
+		case COUNT_TRUE:
+			return FloatValue.class;
+		default:
+			return BooleanValue.class;
+		}
 	}
 	
 	@Override

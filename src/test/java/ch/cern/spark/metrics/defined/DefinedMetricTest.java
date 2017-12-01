@@ -38,14 +38,12 @@ public class DefinedMetricTest {
 		
 		Map<String, String> groupByMetricIDs = new HashMap<>();
 		
-		//Value must be specified.
 		DefinedMetric metric = new DefinedMetric("test").config(props);
 		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
 		VariableStores store = new VariableStores();
 		Optional<Metric> result = metric.generateByBatch(store, null, groupByMetricIDs);
 		assertEquals("ConfigurationException: Value must be specified.", result.get().getValue().getAsException().get());
 		
-		//Equation contain variables that have not been described.
 		props = new Properties();
 		props.setProperty("value", "x * 10");
 		props.setProperty("variables.y.filter.attribute.AA", "metricAA");
@@ -54,7 +52,6 @@ public class DefinedMetricTest {
 		result = metric.generateByBatch(store, null, groupByMetricIDs);
 		assertEquals("ConfigurationException: Problem parsing value: Unknown variable: x", result.get().getValue().getAsException().get());
 		
-		//Metrics listed in when parameter must be declared.
 		props = new Properties();
 		props.setProperty("value", "x * 10");
 		props.setProperty("when", "y");
@@ -63,6 +60,15 @@ public class DefinedMetricTest {
 		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
 		result = metric.generateByBatch(store, null, groupByMetricIDs);
 		assertEquals("ConfigurationException: Variables listed in when parameter must be declared.", result.get().getValue().getAsException().get());
+		
+		props = new Properties();
+		props.setProperty("value", "trim(count)");
+		props.setProperty("variables.count.aggregate", "count_strings");
+		metric = new DefinedMetric("test").config(props);
+		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
+		result = metric.generateByBatch(store, null, groupByMetricIDs);
+		assertEquals("ConfigurationException: Problem parsing value: Variable count returns type FloatValue because of its aggregation operation, "
+						+ "but in the equation there is a function that uses it as type StringValue", result.get().getValue().getAsException().get());
 		
 	}
 	

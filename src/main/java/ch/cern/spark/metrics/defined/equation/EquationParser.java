@@ -218,16 +218,20 @@ public class EquationParser {
 			variables.get(variableName).config(variablesProperties.getSubset(variableName));
 		}
 		
-		Optional<Class<? extends Value>> typeFromAggregation = MetricVariable.returnTypeFromAggregation(variablesProperties.getSubset(variableName));
-		if(typeFromAggregation.isPresent()) {
-			if(argumentTypeOpt.isPresent() && !typeFromAggregation.get().equals(argumentTypeOpt.get()))
-				throw new ParseException("Variable "+variableName+" has type "+typeFromAggregation.get().getSimpleName()+" because of its aggregation operation, "
+		Optional<Class<? extends Value>> variableTypeFromAggregation = MetricVariable.typeFromAggregation(variablesProperties.getSubset(variableName));
+		Optional<Class<? extends Value>> returnTypeFromAggregation = MetricVariable.returnTypeFromAggregation(variablesProperties.getSubset(variableName));
+		if(returnTypeFromAggregation.isPresent()) {
+			if(argumentTypeOpt.isPresent() && !returnTypeFromAggregation.get().equals(argumentTypeOpt.get()))
+				throw new ParseException("Variable "+variableName+" returns type "+returnTypeFromAggregation.get().getSimpleName()+" because of its aggregation operation, "
 						+ "but in the equation there is a function that uses it as type " + argumentTypeOpt.get().getSimpleName() , pos);
 			
-			argumentTypeOpt = typeFromAggregation;
+			argumentTypeOpt = returnTypeFromAggregation;
 		}
 		
 		if(!variables.containsKey(variableName)) {	
+			if(variableTypeFromAggregation.isPresent())
+				argumentTypeOpt = variableTypeFromAggregation;
+			
 			putMetricVariable(variableName, argumentTypeOpt);
 		}else{
 			Variable previousVariable = variables.get(variableName);

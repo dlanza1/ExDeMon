@@ -79,7 +79,19 @@ public class StringMetricVariable extends MetricVariable{
 	
 	@Override
 	public Class<? extends Value> returnType() {
-		return StringValue.class;
+		return getReturnType(aggregateOperation);
+	}
+	
+	public static Class<? extends Value> getReturnType(Operation aggreagation) {
+		if(aggreagation == null)
+			return StringValue.class;
+		
+		switch (aggreagation) {
+		case COUNT_STRINGS:
+			return FloatValue.class;
+		default:
+			return StringValue.class;
+		}
 	}
 
 	@Override
