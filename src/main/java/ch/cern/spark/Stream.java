@@ -117,5 +117,9 @@ public class Stream<V> {
 	public<R> Stream<R> flatMap(FlatMapFunction<V, R> func) {
 		return Stream.from(stream.flatMap(func));
 	}
+
+	public void cache() {
+		stream = stream.cache();
+	}
 	
 }
