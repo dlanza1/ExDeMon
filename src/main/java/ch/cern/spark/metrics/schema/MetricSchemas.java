@@ -30,7 +30,7 @@ public class MetricSchemas {
 	        		.filter(out -> out != null)
 	        		.collect(Collectors.toMap(MetricSchema::getID, m -> m));
 	        
-	        LOG.info("Metrics schemas: " + metricSchemas);
+	        LOG.info("Dynamic Metric schemas: " + metricSchemas);
 	        
 	        return metricSchemas;
 		}

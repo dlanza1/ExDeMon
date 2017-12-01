@@ -235,4 +235,11 @@ public class DefinedMetric implements Serializable{
 		return variablesWhen;
 	}
 
+	@Override
+	public String toString() {
+		return "DefinedMetric [name=" + name + ", metricsGroupBy=" + metricsGroupBy + ", variablesWhen=" + variablesWhen
+				+ ", equation=" + equation + ", configurationException=" + configurationException + ", filter=" + filter
+				+ "]";
+	}
+
 }

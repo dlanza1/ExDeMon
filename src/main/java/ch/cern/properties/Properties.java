@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.log4j.Logger;
 
 import ch.cern.Cache;
 import ch.cern.components.Component.Type;
@@ -24,6 +25,8 @@ import ch.cern.utils.TimeUtils;
 public class Properties extends java.util.Properties{
 	
 	private static transient final long serialVersionUID = 2510326766802151233L;
+	
+	private transient final static Logger LOG = Logger.getLogger(Properties.class.getName());
 	
 	private static Cache<Properties> cachedProperties = null;
 	
@@ -188,13 +191,21 @@ public class Properties extends java.util.Properties{
 		
 		@Override
 		protected Properties load() throws Exception {
+			LOG.info("Loading properties.");
+			LOG.info("Properties source parameters: " + propertiesSourceProps);
+			
 			if(propertiesSourceProps == null)
 				return new Properties();
 			
 			Optional<PropertiesSource> propertiesSource = ComponentManager.buildOptional(Type.PROPERTIES_SOURCE, propertiesSourceProps);
 
-			if(propertiesSource.isPresent())
-				return propertiesSource.get().load();
+			if(propertiesSource.isPresent()) {
+				Properties properties = propertiesSource.get().load();
+				
+				LOG.info("Properties loaded from source.");
+				
+				return properties;
+			}
 
 			return new Properties();
 		}
