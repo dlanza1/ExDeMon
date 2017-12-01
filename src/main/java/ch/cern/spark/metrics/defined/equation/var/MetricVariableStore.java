@@ -2,10 +2,9 @@ package ch.cern.spark.metrics.defined.equation.var;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -16,20 +15,20 @@ import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
 import ch.cern.utils.TimeUtils;
 
-public class MetricVariableStore implements Store{
+public class MetricVariableStore implements Store {
 
 	private static final long serialVersionUID = -7439047274576894171L;
 
-	public static final int MAX_AGGREGATION_SIZE = 100;
+	public static final int MAX_AGGREGATION_SIZE = 1000;
 	
 	private DatedValue value;
 	
-	private Map<Integer, DatedValue> aggregateValues;
-	private Map<Instant, Value> aggregateValuesForEmptyAttributes;
+	private LinkedHashMap<Integer, DatedValue> aggregateValues;
+	private LinkedHashMap<Instant, Value> aggregateValuesForEmptyAttributes;
 	
 	public MetricVariableStore() {
-		aggregateValues = new HashMap<>();
-		aggregateValuesForEmptyAttributes = new HashMap<>();
+		aggregateValues = new LinkedHashMap<>();
+		aggregateValuesForEmptyAttributes = new LinkedHashMap<>();
 	}
 
 	public void updateValue(Value newValue, Instant instant) {
@@ -46,11 +45,17 @@ public class MetricVariableStore implements Store{
 	
 	public void updateAggregatedValue(int idHash, Value value, Instant instant) {
 		if(emptyAttrbutes(idHash)) {
-			if(aggregateValuesForEmptyAttributes.size() <= MAX_AGGREGATION_SIZE)
-		        aggregateValuesForEmptyAttributes.put(instant, value);
+			//Removing the oldest entry if max size
+			if(aggregateValuesForEmptyAttributes.size() >= MAX_AGGREGATION_SIZE)
+				aggregateValuesForEmptyAttributes.remove(aggregateValuesForEmptyAttributes.keySet().iterator().next());
+		    
+			aggregateValuesForEmptyAttributes.put(instant, value);
 		}else {
-			if(aggregateValues.size() <= MAX_AGGREGATION_SIZE)
-		        aggregateValues.put(idHash, new DatedValue(instant, value));
+			//Removing the oldest entry if max size
+			if(aggregateValues.size() >= MAX_AGGREGATION_SIZE)
+				aggregateValues.remove(aggregateValues.keySet().iterator().next());
+		    
+			aggregateValues.put(idHash, new DatedValue(instant, value));
 		}
 	}
 	
@@ -58,7 +63,7 @@ public class MetricVariableStore implements Store{
         return idHash == 0;
     }
 	
-	public List<Value> getAggregatedValues(String variableID) {
+	public List<Value> getAggregatedValues() {
 	    List<Value> values = new LinkedList<>();
 	    
 		values.addAll(aggregateValues.values().stream()
@@ -70,7 +75,7 @@ public class MetricVariableStore implements Store{
 		return values;
 	}
 	
-	public List<DatedValue> getAggregatedDatedValues(String variableID) {
+	public List<DatedValue> getAggregatedDatedValues() {
 	    List<DatedValue> values = new LinkedList<>();
 	    
 		values.addAll(aggregateValues.values());

@@ -62,25 +62,25 @@ public class FloatMetricVariable extends MetricVariable{
 		}else {
 			switch (aggregateOperation) {
 			case SUM:
-				val = sumAggregation(store.getAggregatedValues(name));
+				val = sumAggregation(store.getAggregatedValues());
 				break;
 			case COUNT_FLOATS:
-				val = new FloatValue(store.getAggregatedValues(name).size());
+				val = new FloatValue(store.getAggregatedValues().size());
 				break;
 			case AVG:
-				val = averageAggregation(store.getAggregatedValues(name));
+				val = averageAggregation(store.getAggregatedValues());
 				break;
 			case WEIGHTED_AVG:
-				val = weightedAverageAggregation(store.getAggregatedDatedValues(name), time);
+				val = weightedAverageAggregation(store.getAggregatedDatedValues(), time);
 				break;
 			case MIN:
-				val = minAggregation(store.getAggregatedValues(name));
+				val = minAggregation(store.getAggregatedValues());
 				break;
 			case MAX:
-				val = maxAggregation(store.getAggregatedValues(name));
+				val = maxAggregation(store.getAggregatedValues());
 				break;
 			case DIFF:
-				val = differenceAggregation(store.getAggregatedDatedValues(name));
+				val = differenceAggregation(store.getAggregatedDatedValues());
 				break;
 			}
 			

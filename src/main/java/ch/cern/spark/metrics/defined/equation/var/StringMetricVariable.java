@@ -56,7 +56,7 @@ public class StringMetricVariable extends MetricVariable{
 		}else {
 			switch (aggregateOperation) {
 			case COUNT_STRINGS:
-				val = new FloatValue(store.getAggregatedValues(name).size());
+				val = new FloatValue(store.getAggregatedValues().size());
 				break;
 			}
 			

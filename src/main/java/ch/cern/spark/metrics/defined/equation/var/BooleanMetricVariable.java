@@ -56,13 +56,13 @@ public class BooleanMetricVariable extends MetricVariable{
 		}else {
 			switch (aggregateOperation) {
 			case COUNT_BOOLS:
-				val = new FloatValue(store.getAggregatedValues(name).size());
+				val = new FloatValue(store.getAggregatedValues().size());
 				break;
 			case COUNT_TRUE:
-				val = new FloatValue(store.getAggregatedValues(name).stream().filter(b -> b.getAsBoolean().get()).count());
+				val = new FloatValue(store.getAggregatedValues().stream().filter(b -> b.getAsBoolean().get()).count());
 				break;
 			case COUNT_FALSE:
-				val = new FloatValue(store.getAggregatedValues(name).stream().filter(b -> !b.getAsBoolean().get()).count());
+				val = new FloatValue(store.getAggregatedValues().stream().filter(b -> !b.getAsBoolean().get()).count());
 				break;
 			}
 			
