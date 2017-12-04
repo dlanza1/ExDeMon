@@ -8,6 +8,7 @@ import static ch.cern.spark.metrics.schema.MetricSchema.VALUE_ATTRIBUTES_PARAM;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.text.ParseException;
@@ -311,6 +312,74 @@ public class MetricSchemaTest {
 		assertEquals("metric", metric.getIDs().get("type.meta"));
 		assertEquals("001", metric.getIDs().get("version"));
 		
+		assertFalse(metrics.hasNext());
+	}
+	
+	@Test
+	public void attributeNulIfNoJsonPrimitive() throws ParseException, ConfigurationException {
+		Properties props = new Properties();
+		props.setProperty(SOURCES_PARAM, "test");
+		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+		props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
+		props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
+		
+		String att_name_no_primitive = "data.payload.WMBS_INFO.thresholds";
+		props.setProperty(ATTRIBUTES_PARAM, att_name_no_primitive);
+		
+		String jsonString = "{\"metadata\":{"
+								+ "\"timestamp\":1509520209883"
+							+ "},\"data\":{"
+								+ "\"payload\":{"
+									+ "\"WMBS_INFO\":{"
+										+ "\"thresholds\":{"
+											+ "\"pending_slots\":2111.89},"
+										+ "\"thresholdsGQ2LQ\":2111.0}"
+								+ "}}}";
+		JSONObject jsonObject = new JSONObject(jsonString);
+		
+		MetricSchema parser = new MetricSchema("test");
+		parser.config(props);
+		
+		Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+		
+		metrics.hasNext();
+		Metric metric = metrics.next();
+		assertNull(metric.getIDs().get(att_name_no_primitive));
+
+		assertFalse(metrics.hasNext());
+	}
+	
+	@Test
+	public void attributeStringFromNumber() throws ParseException, ConfigurationException {
+		Properties props = new Properties();
+		props.setProperty(SOURCES_PARAM, "test");
+		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+		props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
+		props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
+		
+		String att_name_no_primitive = "data.payload.WMBS_INFO.thresholdsGQ2LQ";
+		props.setProperty(ATTRIBUTES_PARAM, att_name_no_primitive);
+		
+		String jsonString = "{\"metadata\":{"
+								+ "\"timestamp\":1509520209883"
+							+ "},\"data\":{"
+								+ "\"payload\":{"
+									+ "\"WMBS_INFO\":{"
+										+ "\"thresholds\":{"
+											+ "\"pending_slots\":2111.89},"
+										+ "\"thresholdsGQ2LQ\":2111.0}"
+								+ "}}}";
+		JSONObject jsonObject = new JSONObject(jsonString);
+		
+		MetricSchema parser = new MetricSchema("test");
+		parser.config(props);
+		
+		Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+		
+		metrics.hasNext();
+		Metric metric = metrics.next();
+		assertEquals("2111.0", metric.getIDs().get(att_name_no_primitive));
+
 		assertFalse(metrics.hasNext());
 	}
 	
