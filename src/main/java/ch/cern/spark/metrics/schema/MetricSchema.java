@@ -152,10 +152,10 @@ public class MetricSchema implements Serializable{
 				String alias = attribute.first;
 				String key = attribute.second;
 				
-				String value = jsonObject.getProperty(key);
+				JsonElement value = jsonObject.getElement(key);
 				
-				if(value != null)
-					idsForMetric.put(alias, value);
+				if(value != null && value.isJsonPrimitive())
+					idsForMetric.put(alias, value.getAsString());
 			}
 			
 			Exception timestampException = null;
