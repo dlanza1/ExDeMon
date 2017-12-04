@@ -26,12 +26,17 @@ public abstract class MetricsSource extends Component {
 		Properties schemaProps = properties.getSubset("schema");
 		if(schemaProps.size() > 0) {
 			schemaProps.setProperty("sources", getId());
-			schema = new MetricSchema(getId()).tryConfig(schemaProps);
+			
+			this.schema = new MetricSchema(getId()).tryConfig(schemaProps);
 		}else {
 			schema = null;
 		}
 	}
 	
+	protected void setSchema(MetricSchema schema) {
+		this.schema = schema;
+	}
+
 	public MetricSchema getSchema() {
 		return schema;
 	}
