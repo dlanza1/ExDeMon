@@ -251,4 +251,12 @@ public class MetricSchema implements Serializable{
 		return sources.contains(sourceID);
 	}
 
+	@Override
+	public String toString() {
+		return "MetricSchema [id=" + id + ", sources=" + sources + ", attributes=" + attributes + ", value_attributes="
+				+ value_attributes + ", timestamp_format=" + timestamp_format + ", timestamp_attribute="
+				+ timestamp_attribute + ", filter=" + filter + ", configurationException=" + configurationException
+				+ "]";
+	}
+
 }
