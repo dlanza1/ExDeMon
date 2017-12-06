@@ -43,7 +43,7 @@ public class ComputeBatchDefinedMetricsFTest {
 		
 		Instant now = Instant.now();
 		
-		ComputeBatchDefineMetricsF func = new ComputeBatchDefineMetricsF(new Time(now.toEpochMilli()));
+		ComputeBatchDefineMetricsF func = new ComputeBatchDefineMetricsF(new Time(now.toEpochMilli()), null);
 		
 		DefinedMetricID id = new DefinedMetricID("dmID1", new HashMap<>());
 		State<VariableStores> status = new StateImpl<>();

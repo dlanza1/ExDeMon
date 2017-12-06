@@ -84,7 +84,7 @@ public class DefinedMetricTest {
 		VariableStores store = new VariableStores();
 		
 		//First batch
-		ComputeBatchDefineMetricsF computeBatchDefineMetricsF = new ComputeBatchDefineMetricsF(new Time(0));
+		ComputeBatchDefineMetricsF computeBatchDefineMetricsF = new ComputeBatchDefineMetricsF(new Time(0), null);
 		Metric metric = Metric(0, 0, "HOST=host2131423");
 		Iterator<Tuple2<DefinedMetricID, Metric>> ids = computeIDsForDefinedMetricsF.call(metric);
 		ids.hasNext();
@@ -113,7 +113,7 @@ public class DefinedMetricTest {
 		assertFalse(definedMetrics.hasNext());
 		
 		//Second batch
-		computeBatchDefineMetricsF = new ComputeBatchDefineMetricsF(new Time(5));
+		computeBatchDefineMetricsF = new ComputeBatchDefineMetricsF(new Time(5), null);
 		metric = Metric(6, 0, "HOST=host234234");
 		ids = computeIDsForDefinedMetricsF.call(metric);
 		ids.hasNext();

@@ -44,7 +44,7 @@ public class DefinedMetrics {
 		StatusStream<DefinedMetricID, Metric, VariableStores, Metric> statuses = 
 				metrics.mapWithState("definedMetrics", new ComputeIDsForDefinedMetricsF(propertiesSourceProps), new UpdateDefinedMetricStatusesF(propertiesSourceProps));
 		
-        Stream<Metric> definedMetricsWhenBatch = statuses.getStatuses().transform((rdd, time) -> rdd.flatMap(new ComputeBatchDefineMetricsF(time)));
+        Stream<Metric> definedMetricsWhenBatch = statuses.getStatuses().transform((rdd, time) -> rdd.flatMap(new ComputeBatchDefineMetricsF(time, propertiesSourceProps)));
         
         return statuses.union(definedMetricsWhenBatch); 
 	}

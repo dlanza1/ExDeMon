@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.streaming.Time;
 
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.var.VariableStores;
 import scala.Tuple2;
@@ -19,12 +20,17 @@ public class ComputeBatchDefineMetricsF implements FlatMapFunction<Tuple2<Define
 
 	private Instant time;
 
-	public ComputeBatchDefineMetricsF(Time time) {
+	private Properties propertiesSourceProps;
+	
+	public ComputeBatchDefineMetricsF(Time time, Properties propertiesSourceProps) {
         this.time = Instant.ofEpochMilli(time.milliseconds());
+        this.propertiesSourceProps = propertiesSourceProps;
     }
 
 	@Override
 	public Iterator<Metric> call(Tuple2<DefinedMetricID, VariableStores> pair) throws Exception {
+		DefinedMetrics.initCache(propertiesSourceProps);
+		
         List<Metric> result = new LinkedList<>();
 
         DefinedMetricID ids = pair._1;
