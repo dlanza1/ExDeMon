@@ -47,7 +47,7 @@ public class MetricSchema implements Serializable{
     public static String ATTRIBUTES_PARAM = "attributes";
     private List<Pair<String, String>> attributes;
     
-    public static String VALUE_ATTRIBUTES_PARAM = "value.attributes";
+    public static String VALUE_ATTRIBUTES_PARAM = "value.keys";
     private List<Pair<String, String>> value_attributes;
     
     public static String TIMESTAMP_FORMAT_PARAM = "timestamp.format";
@@ -55,7 +55,7 @@ public class MetricSchema implements Serializable{
     private String timestamp_format_pattern;
     private transient DateTimeFormatter timestamp_format;
 
-    public static String TIMESTAMP_ATTRIBUTE_PARAM = "timestamp.attribute";
+    public static String TIMESTAMP_ATTRIBUTE_PARAM = "timestamp.key";
     private String timestamp_attribute;
     
     public static String FILTER_PARAM = "filter";

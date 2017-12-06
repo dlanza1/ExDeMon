@@ -534,7 +534,7 @@ properties.source.path = <path_to_configuration_file>
 For any metrics source, a metrics schema can be configured.
 
 ```
-metrics.source.<metric-source-id-n>.schema.<configs at JSON to Metric parser> = <values>
+metrics.source.<metric-source-id-n>.schema.<configs at JSON to Metric schema> = <values>
 ```
 
 Metric sources produces JSON documents which represent metrics. These JSON documents are later interpreted by metric schemas.
@@ -579,22 +579,22 @@ For both cases, the configuration parameters are the following:
 
 ```
 metrics.schema.<schema-id>.sources = <space-separated-source-ids>
-metrics.schema.<schema-id>.timestamp.attribute = <attribute that represent the time>
+metrics.schema.<schema-id>.timestamp.key = <attribute that represent the time>
 metrics.schema.<schema-id>.timestamp.format = <timestamp_format> (default: yyyy-MM-dd'T'HH:mm:ssZ)
 metrics.schema.<schema-id>.attributes = <attributs separated by comma to extract from the JSON>
 metrics.schema.<schema-id>.attributes.<alias-1> = <key-to-attribute-1>
 metrics.schema.<schema-id>.attributes.<alias-2> = <key-to-attribute-2>
 metrics.schema.<schema-id>.attributes.<alias-n> = <key-to-attribute-n>
-metrics.schema.<schema-id>.value.attributes = <attributes that represent values>
-metrics.schema.<schema-id>.value.attributes.<alias-1> = <key-to-value-1>
-metrics.schema.<schema-id>.value.attributes.<alias-2> = <key-to-value-2>
-metrics.schema.<schema-id>.value.attributes.<alias-n> = <key-to-value-n>
+metrics.schema.<schema-id>.value.keys = <attributes that represent values>
+metrics.schema.<schema-id>.value.keys.<alias-1> = <key-to-value-1>
+metrics.schema.<schema-id>.value.keys.<alias-2> = <key-to-value-2>
+metrics.schema.<schema-id>.value.keys.<alias-n> = <key-to-value-n>
 metrics.schema.<schema-id>.filter.<configs at Metrics filter> = <values>
 ```
 
 For configuring the schema in the source, you replace metrics.schema.schema-id by metrics.source.source-id.schema.
 
-"timestamp.attribute" indicates the key in the JSON document that contains the timestamp for the metric. If the JSON document does not contain the timestamp value, no metric will be generated. 
+"timestamp.key" indicates the key in the JSON document that contains the timestamp for the metric. If the JSON document does not contain the timestamp value, no metric will be generated. 
 
 "timestamp.format" indicates the format of the timestamp stored in the attribute configured by "timestamp.attribute". If the format is a number that represents epoch in milliseconds, it must be set to "epoch-ms", if seconds "epoch-s". If the JSON document contains a timestamp with wrong format, metric with exception value will be generated, setting the timestamp to current time. 
 
@@ -603,7 +603,7 @@ You can also configure these attributes individually assigning aliases. Assigned
 List of keys or aliases can be combined.
 If the JSON document does not contain the attribute, the metric will not contain such attribute.
 
-"value.attributes" configure the keys from which metric values will be extracted from the JSON document. You can indicate a list of keys separated by space. A metric will be created for each key, all metrics generated from the same JSON document will share the same ids and attributes. All generated metrics will contain an extra attribute with name "$value\_attribute", its value indicates the key from which the value has been extracted. 
+"value.keys" configure the keys from which metric values will be extracted from the JSON document. You can indicate a list of keys separated by space. A metric will be created for each key, all metrics generated from the same JSON document will share the same timestamp and attributes. All generated metrics will contain an extra attribute with name "$value\_attribute", its value indicates the key (or alias) from which the value has been extracted. 
 You can also configure these attributes for values individually assigning aliases. Assigned alias will be stored at "$value\_attribute", so the alias will be used in any metric filter.
 List of keys or aliases can be combined.
 If JSON document does not contain the value, the metric will not be generated.
@@ -628,16 +628,16 @@ Commonly, you can face two different scenarios. One where each incoming JSON rep
 For this kind of documents, the configuration would looks like the following.
 
 ```
-metrics.schema.<schema-id>.timestamp.attribute = header.TIMESTAMP
+metrics.schema.<schema-id>.timestamp.key = header.TIMESTAMP
 
 metrics.schema.<schema-id>.attributes = headers.type headers.hostname
 # or/and with aliases
 metrics.schema.<schema-id>.attributes.type = headers.type
 metrics.schema.<schema-id>.attributes.hostname = headers.hostname
 
-metrics.schema.<schema-id>.value.attributes = body.metric.value
+metrics.schema.<schema-id>.value.keys = body.metric.value
 # or/and with aliases
-metrics.schema.<schema-id>.value.attributes.value_float = body.metric.value
+metrics.schema.<schema-id>.value.keys.value_float = body.metric.value
 ```
 
 One metric will be generated per JSON document. The metric timestamp will be "2017-11-01T10:29:14+02:00" and the value 295.13. If not using aliases, metric will have the following attributes:
@@ -668,17 +668,17 @@ A different scenario is when a single document contains several metrics, an exam
 For this kind of documents, the configuration would looks like the following.
 
 ```
-metrics.schema.<schema-id>.timestamp.attribute = header.TIMESTAMP
+metrics.schema.<schema-id>.timestamp.keys = header.TIMESTAMP
 
 metrics.schema.<schema-id>.attributes = headers.hostname
 # or/and with aliases
 metrics.schema.<schema-id>.attributes.hostname = headers.hostname
 
-metrics.schema.<schema-id>.value.attributes = body.CPUUsage body.MemoryUsage body.WriteBytesPerSecond body.ReadBytesPerSecond
+metrics.schema.<schema-id>.value.keys = body.CPUUsage body.MemoryUsage body.WriteBytesPerSecond body.ReadBytesPerSecond
 # or/and with aliases
-metrics.schema.<schema-id>.value.attributes.CPUUsage = body.CPUUsage
-metrics.schema.<schema-id>.value.attributes.WriteBytesPerSecond = body.WriteBytesPerSecond
-metrics.schema.<schema-id>.value.attributes.ReadBytesPerSecond = body.ReadBytesPerSecond
+metrics.schema.<schema-id>.value.keys.CPUUsage = body.CPUUsage
+metrics.schema.<schema-id>.value.keys.WriteBytesPerSecond = body.WriteBytesPerSecond
+metrics.schema.<schema-id>.value.keys.ReadBytesPerSecond = body.ReadBytesPerSecond
 ```
 
 In this case, three metrics will be generated per JSON document (as many as attributes for values). Generated metrics will be (if aliases are not used):

@@ -53,8 +53,8 @@ public class MetricsStreamFromKafkaProvider implements Serializable{
 		properties.setProperty("consumer.bootstrap.servers", kafkaTestUtils.brokerAddress());
 		properties.setProperty("consumer.group.id", "testing");
 		properties.setProperty("schema.attributes", "CLUSTER HOSTNAME METRIC KEY_TO_REMOVE");
-		properties.setProperty("schema.value.attributes", "VALUE");
-		properties.setProperty("schema.timestamp.attribute", "TIMESTAMP");
+		properties.setProperty("schema.value.keys", "VALUE");
+		properties.setProperty("schema.timestamp.key", "TIMESTAMP");
 		properties.setProperty("schema.filter.attribute.KEY_TO_REMOVE", "!.*");
 		metricsSource = new KafkaMetricsSource();
 		metricsSource.setId("kafka");
