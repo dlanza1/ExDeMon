@@ -33,6 +33,19 @@ public class AnalysisFuncTest {
 	}
 	
 	@Test
+	public void noneAnalysis() {
+		properties.setProperty("value", "analysis(value, ana_props) == \"OK\"");
+		properties.setProperty("variables.value.filter.attribute.INSTANCE_NAME", ".*");
+		properties.setProperty("variables.value.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
+		properties.setProperty("variables.ana_props.type", "none");
+		definedMetric.config(properties);
+		
+		assertResult(true, 	Metric(0, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
+		assertResult(true, 	Metric(1, 91f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
+		assertResult(true,	Metric(2, 89f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
+	}
+	
+	@Test
 	public void thresholdAnalysis() {
 		properties.setProperty("value", "analysis(value, ana_props) == \"OK\"");
 		properties.setProperty("variables.value.filter.attribute.INSTANCE_NAME", ".*");

@@ -16,6 +16,7 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.analysis.Analysis;
+import ch.cern.spark.metrics.analysis.types.NoneAnalysis;
 import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult;
@@ -54,6 +55,9 @@ public class Monitor {
 	public Monitor tryConfig(Properties properties) throws ConfigurationException {
         filter = MetricsFilter.build(properties.getSubset("filter"));
         
+        Properties analysis_props = properties.getSubset("analysis");
+        if(!analysis_props.isTypeDefined())
+        		analysis_props.setProperty("type", NoneAnalysis.class.getAnnotation(RegisterComponent.class).value());
     		analysis = ComponentManager.build(Type.ANAYLSIS, properties.getSubset("analysis"));
         
         Properties notificatorsProps = properties.getSubset("notificator");

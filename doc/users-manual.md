@@ -449,7 +449,7 @@ monitor.<monitor-id>.filter.expr = <predicate with () | & = !=>
 monitor.<monitor-id>.filter.attribute.<metric_attribute_key> = <[!]regex_or_exact_value>
 monitor.<monitor-id>.filter.attribute... (as many attributes as needed)
 ## analysis
-monitor.<monitor-id>.analysis.type = <analysis_type>
+monitor.<monitor-id>.analysis.type = <analysis_type> (default: none)
 monitor.<monitor-id>.analysis.<other_confs> = <value>
 ## notificators (optional)
 monitor.<monitor-id>.notificator.<notificator-id-1>.type = <notificator-type>
@@ -706,6 +706,17 @@ If aliases are used:
 ### Metric analysis
 
 Each metric analysis works only with a type metric values.
+
+#### None analysis
+
+Result of this analysis is always OK.
+
+This is the default analysis of a monitor.
+
+Configuration:
+```
+monitor.<monitor-id>.analysis.type = none
+```
 
 #### Always true analysis
 

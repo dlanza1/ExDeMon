@@ -2,15 +2,18 @@ package ch.cern.spark.metrics.defined.equation.functions.analysis;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.HashMap;
 
 import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentManager;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
+import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.analysis.BooleanAnalysis;
 import ch.cern.spark.metrics.analysis.NumericAnalysis;
 import ch.cern.spark.metrics.analysis.StringAnalysis;
+import ch.cern.spark.metrics.analysis.types.NoneAnalysis;
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
 import ch.cern.spark.metrics.defined.equation.functions.Function;
 import ch.cern.spark.metrics.defined.equation.functions.FunctionCaller;
@@ -69,6 +72,15 @@ public class AnalysisFunc extends Function {
 			result = computeStringAnalysis((StringAnalysis) analysis, propsVal, value, time);
 		}else if(analysis instanceof BooleanAnalysis) {
 			result = computeBooleanAnalysis((BooleanAnalysis) analysis, propsVal, value, time);
+		}else if(analysis instanceof NoneAnalysis) {
+			AnalysisResult analysisResult = analysis.apply(new Metric(time, value, new HashMap<>()));
+			
+			result = new StringValue(analysisResult.getStatus().toString());
+			setSourceFromArgumentmValues(result, result.toString(), value, propsVal);
+		}else {
+			result = new ExceptionValue("Analysis not available for defined metrics..");
+			
+			setSourceFromArgumentmValues(result, new ExceptionValue("argument 1: requires boolean value").toString(), value, propsVal);
 		}
 		
 		if(analysis instanceof HasStatus)

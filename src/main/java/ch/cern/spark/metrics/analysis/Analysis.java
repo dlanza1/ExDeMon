@@ -24,7 +24,7 @@ public abstract class Analysis extends Component implements Function<Metric, Ana
 		
 		return process(metric);
 	}
-		
+	
     protected abstract AnalysisResult process(Metric metric);
 	
 }
