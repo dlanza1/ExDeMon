@@ -9,7 +9,7 @@ import java.time.Instant;
 import org.junit.Test;
 
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.StringValue;
@@ -27,7 +27,7 @@ public class NumericFunctionTest {
 			}
 			
 			@Override
-			public Value compute(VariableStores store, Instant time) {
+			public Value compute(VariableStatuses store, Instant time) {
 				return new FloatValue(10);
 			}
 		};
@@ -50,7 +50,7 @@ public class NumericFunctionTest {
 			}
 			
 			@Override
-			public Value compute(VariableStores store, Instant time) {
+			public Value compute(VariableStatuses store, Instant time) {
 				return new StringValue("");
 			}
 		};
@@ -74,7 +74,7 @@ public class NumericFunctionTest {
 			}
 			
 			@Override
-			public Value compute(VariableStores store, Instant time) {
+			public Value compute(VariableStatuses store, Instant time) {
 				return new ExceptionValue("exception message");
 			}
 		};

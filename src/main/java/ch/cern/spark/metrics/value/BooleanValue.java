@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 
 public class BooleanValue extends Value implements ValueComputable{
 
@@ -48,7 +48,7 @@ public class BooleanValue extends Value implements ValueComputable{
 	}
 
 	@Override
-	public BooleanValue compute(VariableStores store, Instant time) {
+	public BooleanValue compute(VariableStatuses store, Instant time) {
 		return new BooleanValue(bool);
 	}
 

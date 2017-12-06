@@ -15,6 +15,7 @@ import org.junit.After;
 import org.junit.Before;
 
 import ch.cern.spark.TestInputStream.JTestInputStream;
+import ch.cern.spark.status.storage.StatusesStorage;
 import scala.reflect.ClassTag;
 
 public class StreamTestHelper<IN, OUT> implements Serializable {
@@ -42,7 +43,8 @@ public class StreamTestHelper<IN, OUT> implements Serializable {
         sparkConf.set("spark.driver.host", "localhost");
         sparkConf.set("spark.driver.allowMultipleContexts", "true");
         sparkConf.set("spark.streaming.clock", "org.apache.spark.util.ManualClock");
-        sparkConf.set(RDD.CHECKPPOINT_DIR_PARAM, checkpointPath.toString());
+        sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".type", "single-file");
+        sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".path", checkpointPath.toString() + "/statuses");
         
         if(batchDuration == null)
     			batchDuration = Durations.seconds(1);

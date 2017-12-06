@@ -5,14 +5,15 @@ import java.util.Optional;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.store.HasStore;
-import ch.cern.spark.metrics.store.Store;
+import ch.cern.spark.status.HasStatus;
+import ch.cern.spark.status.StatusValue;
 
 public abstract class Component implements Serializable {
     
     private static final long serialVersionUID = -2299173239147440553L;
     
-    public enum Type {PROPERTIES_SOURCE,
+    public enum Type {STATUS_STORAGE,
+    						PROPERTIES_SOURCE,
     						METRIC_SOURCE, 
     						ANAYLSIS, 
     						ANALYSIS_RESULTS_SINK, 
@@ -32,13 +33,13 @@ public abstract class Component implements Serializable {
     public void config(Properties properties) throws ConfigurationException {
     }
 
-    public boolean hasStore() {
-    		return this instanceof HasStore;
+    public boolean hasStatus() {
+    		return this instanceof HasStatus;
     }
     
-	public Optional<Store> getStore() {
-		if(hasStore())
-			return Optional.ofNullable(((HasStore) this).save());
+	public Optional<StatusValue> getStatus() {
+		if(hasStatus())
+			return Optional.ofNullable(((HasStatus) this).save());
 		else
 			return Optional.empty();
 	}

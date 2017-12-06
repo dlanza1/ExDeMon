@@ -17,8 +17,8 @@ import ch.cern.Cache;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.defined.equation.var.MetricVariableStore;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.MetricVariableStatus;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.spark.metrics.value.FloatValue;
 import scala.Tuple2;
 
@@ -45,11 +45,11 @@ public class ComputeBatchDefinedMetricsFTest {
 		
 		ComputeBatchDefineMetricsF func = new ComputeBatchDefineMetricsF(new Time(now.toEpochMilli()), null);
 		
-		DefinedMetricID id = new DefinedMetricID("dmID1", new HashMap<>());
-		State<VariableStores> status = new StateImpl<>();
+		DefinedMetricStatuskey id = new DefinedMetricStatuskey("dmID1", new HashMap<>());
+		State<VariableStatuses> status = new StateImpl<>();
 		
-		VariableStores varStores = new VariableStores();
-		MetricVariableStore valueStore = new MetricVariableStore();
+		VariableStatuses varStores = new VariableStatuses();
+		MetricVariableStatus valueStore = new MetricVariableStatus();
 		varStores.put("value", valueStore);
 		
 		Map<String, String> ids = new HashMap<>();
@@ -59,40 +59,40 @@ public class ComputeBatchDefinedMetricsFTest {
 		valueStore.updateAggregatedValue(ids.hashCode(), 0f, now);
 		
 		status.update(varStores);
-		Iterator<Metric> result = func.call(new Tuple2<DefinedMetricID, VariableStores>(id, status.get()));
+		Iterator<Metric> result = func.call(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id, status.get()));
 		result.hasNext();
 		assertEquals(1, result.next().getValue().getAsFloat().get(), 0.001f);
 		
-		id = new DefinedMetricID("dmID1", new HashMap<>());
+		id = new DefinedMetricStatuskey("dmID1", new HashMap<>());
 		ids = new HashMap<>();
 		ids.put("DB_NAME", "DB1");
 		ids.put("INSTANCE_NAME", "DB1_2");
 		ids.put("METRIC_NAME", "Read");
 		valueStore.updateAggregatedValue(ids.hashCode(), 0f, now);
 		status.update(varStores);
-		result = func.call(new Tuple2<DefinedMetricID, VariableStores>(id, status.get()));
+		result = func.call(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id, status.get()));
 		result.hasNext();
 		assertEquals(2, result.next().getValue().getAsFloat().get(), 0.001f);
 		
-		id = new DefinedMetricID("dmID1", new HashMap<>());
+		id = new DefinedMetricStatuskey("dmID1", new HashMap<>());
 		ids = new HashMap<>();
 		ids.put("DB_NAME", "DB1");
 		ids.put("INSTANCE_NAME", "DB1_1");
 		ids.put("METRIC_NAME", "Read");
 		valueStore.updateAggregatedValue(ids.hashCode(), new FloatValue(0), now);
 		status.update(varStores);
-		result = func.call(new Tuple2<DefinedMetricID, VariableStores>(id, status.get()));
+		result = func.call(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id, status.get()));
 		result.hasNext();
 		assertEquals(2, result.next().getValue().getAsFloat().get(), 0.001f);
 		
-		id = new DefinedMetricID("dmID1", new HashMap<>());
+		id = new DefinedMetricStatuskey("dmID1", new HashMap<>());
 		ids = new HashMap<>();
 		ids.put("DB_NAME", "DB1");
 		ids.put("INSTANCE_NAME", "DB1_2");
 		ids.put("METRIC_NAME", "Read");
 		valueStore.updateAggregatedValue(ids.hashCode(), new FloatValue(0), now);
 		status.update(varStores);
-		result = func.call(new Tuple2<DefinedMetricID, VariableStores>(id, status.get()));
+		result = func.call(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id, status.get()));
 		result.hasNext();
 		assertEquals(2, result.next().getValue().getAsFloat().get(), 0.001f);
 	}

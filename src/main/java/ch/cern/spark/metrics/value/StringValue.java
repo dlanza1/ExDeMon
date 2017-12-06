@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 
 public class StringValue extends Value implements ValueComputable{
 
@@ -47,7 +47,7 @@ public class StringValue extends Value implements ValueComputable{
 	}
 
 	@Override
-	public StringValue compute(VariableStores store, Instant time) {
+	public StringValue compute(VariableStatuses store, Instant time) {
 		return new StringValue(str);
 	}
 	

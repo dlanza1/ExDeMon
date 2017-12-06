@@ -24,7 +24,7 @@ public class PropertiesVariable extends Variable {
 	}
 
 	@Override
-	public Value compute(VariableStores store, Instant time) {
+	public Value compute(VariableStatuses store, Instant time) {
 		PropertiesValue value = new PropertiesValue(name, properties);
 		value.setSource("props(" + name + ")");
 		

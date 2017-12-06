@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
@@ -41,7 +41,7 @@ public abstract class Function implements ValueComputable{
 	}
 
 	@Override
-	public Value compute(VariableStores stores, Instant time) {
+	public Value compute(VariableStatuses stores, Instant time) {
 		Value[] argumentValues = new Value[arguments.length];
 		
 		Set<String> exceptions = new HashSet<>();

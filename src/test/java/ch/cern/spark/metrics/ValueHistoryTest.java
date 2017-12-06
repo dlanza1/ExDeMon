@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ch.cern.spark.metrics.ValueHistory.Store_;
+import ch.cern.spark.metrics.ValueHistory.Status;
 import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
@@ -31,7 +31,7 @@ public class ValueHistoryTest {
     
     @Test
     public void floatValueSerializationSize() throws IOException, ParseException{
-        ValueHistory.Store_ store = new Store_();
+        ValueHistory.Status store = new Status();
         store.history = new ValueHistory(Duration.ofSeconds(60));
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -56,7 +56,7 @@ public class ValueHistoryTest {
     
     @Test
     public void stringValueSerializationSize() throws IOException, ParseException{
-        ValueHistory.Store_ store = new Store_();
+        ValueHistory.Status store = new Status();
         store.history = new ValueHistory(Duration.ofSeconds(60));
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -81,7 +81,7 @@ public class ValueHistoryTest {
     
     @Test
     public void booleanValueSerializationSize() throws IOException, ParseException{
-        ValueHistory.Store_ store = new Store_();
+        ValueHistory.Status store = new Status();
         store.history = new ValueHistory(Duration.ofSeconds(60));
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -106,7 +106,7 @@ public class ValueHistoryTest {
     
     @Test
     public void exceptionValueSerializationSize() throws IOException, ParseException{
-        ValueHistory.Store_ store = new Store_();
+        ValueHistory.Status store = new Status();
         store.history = new ValueHistory(Duration.ofSeconds(60));
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -131,7 +131,7 @@ public class ValueHistoryTest {
     
     @Test
     public void saveAndLoad() throws IOException, ParseException, ClassNotFoundException{
-        Store_ store = new Store_();
+        Status store = new Status();
         store.history = new ValueHistory(Duration.ofSeconds(60));
         int numberOfRecords = 10;
         for (int i = 0; i < numberOfRecords; i++) 
@@ -146,7 +146,7 @@ public class ValueHistoryTest {
         
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
         ObjectInputStream ois = new ObjectInputStream(bis);
-        Store_ restoredStore = (ValueHistory.Store_) ois.readObject();
+        Status restoredStore = (ValueHistory.Status) ois.readObject();
         ois.close();
         
         assertNotSame(store.history.getDatedValues(), restoredStore.history.getDatedValues());

@@ -19,7 +19,6 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.properties.source.PropertiesSource;
 import ch.cern.spark.PairStream;
-import ch.cern.spark.RDD;
 import ch.cern.spark.SparkConf;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.defined.DefinedMetrics;
@@ -30,6 +29,7 @@ import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
 import ch.cern.spark.metrics.schema.MetricSchemas;
 import ch.cern.spark.metrics.source.MetricsSource;
+import ch.cern.spark.status.storage.StatusesStorage;
 
 public final class Driver {
     
@@ -172,13 +172,14 @@ public final class Driver {
         sparkConf.addProperties(properties, "spark.");
         
         String checkpointDir = properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT);
-        sparkConf.set(RDD.CHECKPPOINT_DIR_PARAM, checkpointDir);
         
+        if(!sparkConf.contains(StatusesStorage.STATUS_STORAGE_PARAM + ".type")) {
+        		sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".type", "single-file");
+        		sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".path", checkpointDir + "/statuses");
+        }
         Duration dataExpirationPeriod = properties.getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);
         sparkConf.set(PairStream.CHECKPPOINT_DURATION_PARAM, dataExpirationPeriod.toString());
-        
-		sparkConf.addProperties(properties, PropertiesSource.CONFIGURATION_PREFIX);
-        
+
     		long batchInterval = properties.getPeriod(BATCH_INTERVAL_PARAM, Duration.ofMinutes(1)).getSeconds();
 		
     		JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, Durations.seconds(batchInterval));

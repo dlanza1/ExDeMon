@@ -1,8 +1,11 @@
-package ch.cern.spark;
+package ch.cern.spark.status;
 
 import org.apache.spark.streaming.api.java.JavaMapWithStateDStream;
 
-public class StatusStream<K, V, S, R> extends Stream<R> {
+import ch.cern.spark.PairStream;
+import ch.cern.spark.Stream;
+
+public class StatusStream<K extends StatusKey, V, S extends StatusValue, R> extends Stream<R> {
 	
 	private PairStream<K, S> statuses;
 	
@@ -12,7 +15,7 @@ public class StatusStream<K, V, S, R> extends Stream<R> {
 		this.statuses = PairStream.from(stateStream.stateSnapshots());
 	}
 
-	public static<K, V, S, R> StatusStream<K, V, S, R> from(JavaMapWithStateDStream<K, V, S, R> input) {
+	public static<K extends StatusKey, V, S extends StatusValue, R> StatusStream<K, V, S, R> from(JavaMapWithStateDStream<K, V, S, R> input) {
 		return new StatusStream<>(input);
 	}
 

@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.util.Arrays;
 
-import ch.cern.spark.metrics.store.Store;
+import ch.cern.spark.status.StatusValue;
+import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
 import ch.cern.utils.TimeUtils;
 
 public class LearningRatioValuePredictor implements Serializable {
@@ -123,7 +124,8 @@ public class LearningRatioValuePredictor implements Serializable {
         return new Prediction(values[position], stndDev);
     }
     
-    public static class Store_ implements Store{
+    @JSONSerializationClassNameAlias("learning-ratio")
+    public static class Status_ extends StatusValue{
         private static final long serialVersionUID = 4807764662439943004L;
         
         public LearningRatioValuePredictor predictor;

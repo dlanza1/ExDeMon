@@ -11,13 +11,13 @@ import ch.cern.Cache;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Stream;
-import ch.cern.spark.metrics.ComputeIDsForMetricsF;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.UpdateMetricStatusesF;
 import ch.cern.spark.metrics.notifications.Notification;
-import ch.cern.spark.metrics.notifications.UpdateNotificationStatusesF;
+import ch.cern.spark.metrics.notificator.ComputeNotificatorKeysF;
+import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
+import ch.cern.spark.metrics.notificator.UpdateNotificatorStatusesF;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import ch.cern.spark.metrics.results.ComputeIDsForAnalysisF;
+import ch.cern.spark.status.StatusValue;
 
 public class Monitors {
 
@@ -45,11 +45,11 @@ public class Monitors {
 	};
 	
 	public static Stream<AnalysisResult> analyze(Stream<Metric> metrics, Properties propertiesSourceProps) throws Exception {
-        return metrics.mapWithState("metricStores", new ComputeIDsForMetricsF(propertiesSourceProps), new UpdateMetricStatusesF(propertiesSourceProps));
+        return metrics.mapWithState(MonitorStatusKey.class, StatusValue.class, new ComputeMonitorKeysF(propertiesSourceProps), new UpdateMonitorStatusesF(propertiesSourceProps));
 	}
 
 	public static Stream<Notification> notify(Stream<AnalysisResult> results, Properties propertiesSourceProps) throws IOException, ClassNotFoundException, ConfigurationException {
-        return results.mapWithState("notificators", new ComputeIDsForAnalysisF(propertiesSourceProps), new UpdateNotificationStatusesF(propertiesSourceProps));
+        return results.mapWithState(NotificatorStatusKey.class, StatusValue.class, new ComputeNotificatorKeysF(propertiesSourceProps), new UpdateNotificatorStatusesF(propertiesSourceProps));
 	}
 	
 	public static Cache<Map<String, Monitor>> getCache() {

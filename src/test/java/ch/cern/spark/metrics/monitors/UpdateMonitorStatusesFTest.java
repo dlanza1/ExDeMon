@@ -1,4 +1,4 @@
-package ch.cern.spark.metrics.store;
+package ch.cern.spark.metrics.monitors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -18,12 +18,10 @@ import ch.cern.Cache;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.MonitorIDMetricIDs;
-import ch.cern.spark.metrics.UpdateMetricStatusesF;
-import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
+import ch.cern.spark.status.StatusValue;
 
-public class UpdateMetricStatusesFTest {
+public class UpdateMonitorStatusesFTest {
 	
 	private Cache<Properties> propertiesCache;
 
@@ -38,13 +36,13 @@ public class UpdateMetricStatusesFTest {
     public void timingOutMetric() throws Exception{
     		propertiesCache.get().setProperty("monitor.ID.analysis.type", "fixed-threshold");
         
-        UpdateMetricStatusesF func = new UpdateMetricStatusesF(null);
+        UpdateMonitorStatusesF func = new UpdateMonitorStatusesF(null);
         
         Time time = new Time(1000);
-        MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
+        MonitorStatusKey ids = new MonitorStatusKey("ID", new HashMap<String, String>());
         Optional<Metric> metricOpt = null;
         @SuppressWarnings("unchecked")
-        State<Store> storeState = mock(State.class);
+        State<StatusValue> storeState = mock(State.class);
         when(storeState.isTimingOut()).thenReturn(true);
         
         Optional<AnalysisResult> resultOpt = func.call(time, ids, metricOpt, storeState);
@@ -56,13 +54,13 @@ public class UpdateMetricStatusesFTest {
     
     @Test
     public void noMetric() throws Exception{
-        UpdateMetricStatusesF func = new UpdateMetricStatusesF(null);
+        UpdateMonitorStatusesF func = new UpdateMonitorStatusesF(null);
         
         Time time = new Time(1000);
-        MonitorIDMetricIDs ids = new MonitorIDMetricIDs("ID", new HashMap<String, String>());
+        MonitorStatusKey ids = new MonitorStatusKey("ID", new HashMap<String, String>());
         Optional<Metric> metricOpt = Optional.absent();
         @SuppressWarnings("unchecked")
-        State<Store> storeState = mock(State.class);
+        State<StatusValue> storeState = mock(State.class);
         
         Optional<AnalysisResult> resultOpt = func.call(time, ids, metricOpt, storeState);
         

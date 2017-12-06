@@ -21,6 +21,7 @@ import ch.cern.components.ComponentManager;
 import ch.cern.properties.source.PropertiesSource;
 import ch.cern.spark.Pair;
 import ch.cern.utils.TimeUtils;
+import scala.Tuple2;
 
 public class Properties extends java.util.Properties{
 	
@@ -224,6 +225,15 @@ public class Properties extends java.util.Properties{
 		return entrySet().stream()
 				.map(e -> new Pair<String, String>(e.getKey().toString(), e.getValue().toString()))
 				.collect(Collectors.toMap(Pair::first, Pair::second));
+	}
+
+	public static Properties from(Tuple2<String, String>[] values) {
+		Properties properties = new Properties();
+		
+		for (Tuple2<String, String> value : values)
+			properties.setProperty(value._1, value._2);
+		
+		return properties;
 	}
 	
 }

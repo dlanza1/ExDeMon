@@ -18,13 +18,13 @@ import java.util.Arrays;
 import org.junit.Test;
 
 import ch.cern.spark.metrics.predictor.LearningRatioValuePredictor.Period;
-import ch.cern.spark.metrics.predictor.LearningRatioValuePredictor.Store_;
+import ch.cern.spark.metrics.predictor.LearningRatioValuePredictor.Status_;
 
 public class LearningRatioValuePredictorTest {
     
     @Test
     public void serializationSize() throws IOException, ParseException{
-        LearningRatioValuePredictor.Store_ store = new Store_();
+        LearningRatioValuePredictor.Status_ store = new Status_();
         store.predictor = new LearningRatioValuePredictor(0.5f, Period.HOUR);
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -33,12 +33,12 @@ public class LearningRatioValuePredictorTest {
         out.flush();
         byte[] bytes = bos.toByteArray();
         
-        assertEquals(690, bytes.length);
+        assertEquals(767, bytes.length);
     }
     
     @Test
     public void saveAndLoad() throws IOException, ParseException, ClassNotFoundException{
-        LearningRatioValuePredictor.Store_ store = new Store_();
+        LearningRatioValuePredictor.Status_ store = new Status_();
         store.predictor = new LearningRatioValuePredictor(0.5f, Period.HOUR);
         int numberOfRecords = 10;
         for (int i = 0; i < numberOfRecords; i++) 
@@ -53,7 +53,7 @@ public class LearningRatioValuePredictorTest {
         
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
         ObjectInputStream ois = new ObjectInputStream(bis);
-        Store_ restoredStore = (LearningRatioValuePredictor.Store_) ois.readObject();
+        Status_ restoredStore = (LearningRatioValuePredictor.Status_) ois.readObject();
         ois.close();
         
         assertNotSame(store.predictor, restoredStore.predictor);

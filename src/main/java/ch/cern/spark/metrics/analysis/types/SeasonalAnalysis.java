@@ -9,11 +9,11 @@ import ch.cern.spark.metrics.analysis.NumericAnalysis;
 import ch.cern.spark.metrics.predictor.LearningRatioValuePredictor;
 import ch.cern.spark.metrics.predictor.Prediction;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import ch.cern.spark.metrics.store.HasStore;
-import ch.cern.spark.metrics.store.Store;
+import ch.cern.spark.status.HasStatus;
+import ch.cern.spark.status.StatusValue;
 
 @RegisterComponent("seasonal")
-public class SeasonalAnalysis extends NumericAnalysis implements HasStore{
+public class SeasonalAnalysis extends NumericAnalysis implements HasStatus{
 
     private static final long serialVersionUID = 6395895250358427351L;
 
@@ -50,19 +50,19 @@ public class SeasonalAnalysis extends NumericAnalysis implements HasStore{
     }
     
     @Override
-    public void load(Store store) {
+    public void load(StatusValue store) {
         if(store == null){
             predictor = new LearningRatioValuePredictor(learning_ratio, LearningRatioValuePredictor.Period.valueOf(season));
         }else{
-            predictor = ((LearningRatioValuePredictor.Store_) store).predictor;
+            predictor = ((LearningRatioValuePredictor.Status_) store).predictor;
             predictor.setLearningRatio(learning_ratio);
             predictor.setPeriod(LearningRatioValuePredictor.Period.valueOf(season));
         }
     }
     
     @Override
-    public Store save() {
-        LearningRatioValuePredictor.Store_ store = new LearningRatioValuePredictor.Store_();
+    public StatusValue save() {
+        LearningRatioValuePredictor.Status_ store = new LearningRatioValuePredictor.Status_();
         
         store.predictor = predictor;
         

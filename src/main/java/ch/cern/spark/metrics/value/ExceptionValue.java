@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 
 public class ExceptionValue extends Value implements ValueComputable{
 
@@ -47,7 +47,7 @@ public class ExceptionValue extends Value implements ValueComputable{
 	}
 
 	@Override
-	public ExceptionValue compute(VariableStores store, Instant time) {
+	public ExceptionValue compute(VariableStatuses store, Instant time) {
 		return new ExceptionValue(exception_message);
 	}
 

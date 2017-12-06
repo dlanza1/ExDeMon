@@ -8,15 +8,15 @@ Internal components should annotate the class with @RegisterComponent("<name>"),
 
 Any component can override the config() method. Properties parameter will contain only the corresponding configuration for the component.
 
-### Store for stateful components
+### State for stateful components
 
-Analysis and notificators may need to keep some historical data. If so, implemented component can implement the interface ch.cern.spark.metrics.store.HasStore.
+Defined metrics, analysis and notificators may need to keep some historical data. If so, the component can implement the interface ch.cern.spark.status.HasState.
 
-The save() method must return an object which implemeants the interface Store and contains only the data that needs to be stored.
+The save() method must return an object which implemeants the interface StateValue and contains only the data that needs to be stored.
 
-The load() method receives the previous saved store.
+The load() method receives the previous saved status.
 
-Data contained in Store will be serialized and may thousands of these are stored. Taking into account that, the Store should contain as less data as possible.
+Data contained in Status will be serialized and may thousands of these are stored. Taking into account that, the Status should contain as less data as possible.
 
 ### Properties source 
 
@@ -39,7 +39,7 @@ This component is meant to determine the status (error, warning, exception, ok) 
 
 Externally developed analysis must extend ch.cern.spark.metrics.analysis.Analysis.
 
-If same data need to be kept, this component can make use of a [Store](#store-for-stateful-components).
+If same data need to be kept, this component can have a [Status](#store-for-stateful-components).
 
 ### Analysis results sink
 
@@ -53,7 +53,7 @@ This component determines when to raise a notifications based on analysis result
 
 Externally developed notificators must extend ch.cern.spark.metrics.notificator.Notificator.
 
-If same data need to be kept, this component can make use of a [Store](#store-for-stateful-components).
+If same data need to be kept, this component can have a [Status](#store-for-stateful-components).
 
 ### Notifications sink
 

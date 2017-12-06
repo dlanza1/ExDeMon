@@ -21,13 +21,13 @@ import ch.cern.spark.metrics.value.Value;
 public class BooleanMetricVariableTest {
 	
 	private BooleanMetricVariable variable;
-	private MetricVariableStore store;
+	private MetricVariableStatus store;
 	private Instant now = Instant.now();
 	
 	@Before
 	public void setUp() {
 		variable = new BooleanMetricVariable("name");
-		store = new MetricVariableStore();
+		store = new MetricVariableStatus();
 	}
 	
 	@Test

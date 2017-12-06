@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import ch.cern.Cache;
@@ -17,16 +18,24 @@ import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.DefinedMetrics;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
+import ch.cern.spark.metrics.schema.MetricSchemas;
 
 public class MonitorReturningAnalysisResultsStreamTest extends StreamTestHelper<Metric, AnalysisResult> {
 	
 	private static final long serialVersionUID = -444431845152738589L;
 
+	@Before
+	public void setUp() throws Exception {
+		super.setUp();
+		
+		Properties.initCache(null);
+		Monitors.getCache().reset();	
+		DefinedMetrics.getCache().reset();
+		MetricSchemas.getCache().reset();
+	}
+	
 	@Test
 	public void monitorAndDefinedMetric() throws Exception {
-		DefinedMetrics.getCache().reset();		
-		Monitors.getCache().reset();		
-        Properties.initCache(null);
         Cache<Properties> propertiesCache = Properties.getCache();
         Properties properties = new Properties();
 		properties.setProperty("metrics.define.testdm.value", "analysis(value, ana_props) == \"OK\"");
@@ -64,8 +73,6 @@ public class MonitorReturningAnalysisResultsStreamTest extends StreamTestHelper<
 	
 	@Test
 	public void shouldProduceExceptionAnaylisisResultWithConfigurationExceptionAndFilterOK() throws Exception {
-		Monitors.getCache().reset();		
-        Properties.initCache(null);
         Cache<Properties> propertiesCache = Properties.getCache();
         Properties properties = new Properties();
 		properties.setProperty("monitor.mon1.filter.expr", "HOST=host1");
@@ -110,8 +117,6 @@ public class MonitorReturningAnalysisResultsStreamTest extends StreamTestHelper<
 
 	@Test
 	public void shouldProducePeriodicExceptionAnaylisisResultWithFilterConfigurationException() throws Exception {
-		Monitors.getCache().reset();		
-        Properties.initCache(null);
         Cache<Properties> propertiesCache = Properties.getCache();
         Properties properties = new Properties();
         properties.setProperty("monitor.mon1.filter.expr", "does not work");

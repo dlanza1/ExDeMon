@@ -40,12 +40,12 @@ public abstract class MetricVariable extends Variable {
 	}
 
 	@Override
-	public Value compute(VariableStores variableStores, Instant time) {
-		MetricVariableStore store = null;
-		if(variableStores.containsKey(name) && variableStores.get(name) instanceof MetricVariableStore)
-			store = (MetricVariableStore) variableStores.get(name);
+	public Value compute(VariableStatuses variableStores, Instant time) {
+		MetricVariableStatus store = null;
+		if(variableStores.containsVariable(name) && variableStores.get(name) instanceof MetricVariableStatus)
+			store = (MetricVariableStatus) variableStores.get(name);
 		else
-			store = new MetricVariableStore();
+			store = new MetricVariableStatus();
 		
 		Value value = compute(store, time);
 		
@@ -54,21 +54,21 @@ public abstract class MetricVariable extends Variable {
 		return value;
 	}
 	
-	public abstract Value compute(MetricVariableStore store, Instant time);
+	public abstract Value compute(MetricVariableStatus store, Instant time);
 	
-	public void updateStore(VariableStores variableStores, Metric metric) {
-		MetricVariableStore store = null;
-		if(variableStores.containsKey(name) && variableStores.get(name) instanceof MetricVariableStore)
-			store = (MetricVariableStore) variableStores.get(name);
+	public void updateStore(VariableStatuses variableStores, Metric metric) {
+		MetricVariableStatus store = null;
+		if(variableStores.containsVariable(name) && variableStores.get(name) instanceof MetricVariableStatus)
+			store = (MetricVariableStatus) variableStores.get(name);
 		else
-			store = new MetricVariableStore();
+			store = new MetricVariableStatus();
 		
 		updateStore(store, metric);
 		
 		variableStores.put(name, store);
 	}
 	
-	public abstract void updateStore(MetricVariableStore store, Metric metric);
+	public abstract void updateStore(MetricVariableStatus store, Metric metric);
 	
 	public static Optional<Class<? extends Value>> typeFromAggregation(Properties metricVariableProperties) throws ConfigurationException {
 		String aggregateVal = metricVariableProperties.getProperty("aggregate");

@@ -18,17 +18,17 @@ import org.junit.Before;
 
 import ch.cern.properties.Properties;
 import ch.cern.spark.BatchCounter;
-import ch.cern.spark.RDD;
 import ch.cern.spark.SparkConf;
 import ch.cern.spark.Stream;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.JSONMetric;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.schema.MetricSchemas;
+import ch.cern.spark.status.storage.StatusesStorage;
 
 public class MetricsStreamFromKafkaProvider implements Serializable{
 
-	private static final long serialVersionUID = 3857762447792729837L;
+	private static final long serialVersionUID = 1857762447792729837L;
 	
 	private transient JavaStreamingContext sc = null;
 	public transient BatchCounter batchCounter;
@@ -46,7 +46,7 @@ public class MetricsStreamFromKafkaProvider implements Serializable{
 		Map<String, Integer> topics = new HashMap<String, Integer>();
 		topics.put(topic, 1);
 		kafkaTestUtils.createTopic(topic);
-		
+	
 		Properties properties = new Properties();
 		properties.setProperty("type", "kafka");
 		properties.setProperty("topics", topic);
@@ -70,7 +70,8 @@ public class MetricsStreamFromKafkaProvider implements Serializable{
         sparkConf.set("spark.driver.host", "localhost");
         sparkConf.set("spark.driver.allowMultipleContexts", "true");
         sparkConf.set("spark.streaming.clock", "org.apache.spark.util.ManualClock");
-        sparkConf.set(RDD.CHECKPPOINT_DIR_PARAM, checkpointPath.toString());
+        sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".type", "single-file");
+        sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".path", checkpointPath.toString());
         
     		sc = new JavaStreamingContext(sparkConf, Durations.seconds(1));
     		sc.checkpoint(checkpointPath.toString());

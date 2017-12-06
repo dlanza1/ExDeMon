@@ -112,7 +112,7 @@ public class ComponentManager {
         return availableComponents.get(componentType);
     }
 
-	public static <C extends Component> Optional<C> buildOptional(Type type, Properties props) throws Exception {
+	public static <C extends Component> Optional<C> buildOptional(Type type, Properties props) throws ConfigurationException  {
 		if(!props.isTypeDefined())
 			return Optional.empty();
 		

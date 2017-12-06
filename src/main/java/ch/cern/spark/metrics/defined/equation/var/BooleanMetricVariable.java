@@ -38,7 +38,7 @@ public class BooleanMetricVariable extends MetricVariable{
 	}
 	
 	@Override
-	public Value compute(MetricVariableStore store, Instant time) {
+	public Value compute(MetricVariableStatus store, Instant time) {
 		Optional<Instant> oldestUpdate = Optional.empty();
 		if(expirePeriod != null)
 			oldestUpdate = Optional.of(time.minus(expirePeriod));
@@ -73,7 +73,7 @@ public class BooleanMetricVariable extends MetricVariable{
 	}
 
 	@Override
-	public void updateStore(MetricVariableStore store, Metric metric) {	
+	public void updateStore(MetricVariableStatus store, Metric metric) {	
 		if(!metric.getValue().getAsBoolean().isPresent())
 			return;
 		

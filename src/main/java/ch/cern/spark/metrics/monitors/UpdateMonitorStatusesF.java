@@ -1,4 +1,4 @@
-package ch.cern.spark.metrics;
+package ch.cern.spark.metrics.monitors;
 
 import java.time.Instant;
 
@@ -8,28 +8,23 @@ import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.monitors.Monitor;
-import ch.cern.spark.metrics.monitors.Monitors;
+import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import ch.cern.spark.metrics.store.Store;
+import ch.cern.spark.status.StatusValue;
 
-public class UpdateMetricStatusesF
-        implements Function4<Time, MonitorIDMetricIDs, Optional<Metric>, State<Store>, Optional<AnalysisResult>> {
+public class UpdateMonitorStatusesF implements Function4<Time, MonitorStatusKey, Optional<Metric>, State<StatusValue>, Optional<AnalysisResult>> {
 
     private static final long serialVersionUID = 3156649511706333348L;
     
-    public static String DATA_EXPIRATION_PARAM = "data.expiration";
-    public static java.time.Duration DATA_EXPIRATION_DEFAULT = java.time.Duration.ofHours(3);
-
     private Properties propertiesSourceProperties;
     
-    public UpdateMetricStatusesF(Properties propertiesSourceProperties) {
+    public UpdateMonitorStatusesF(Properties propertiesSourceProperties) {
     		this.propertiesSourceProperties = propertiesSourceProperties;
     }
     
     @Override
     public Optional<AnalysisResult> call(
-            Time time, MonitorIDMetricIDs ids, Optional<Metric> metricOpt, State<Store> storeState) 
+            Time time, MonitorStatusKey ids, Optional<Metric> metricOpt, State<StatusValue> storeState) 
             throws Exception {
     		Monitors.initCache(propertiesSourceProperties);
         
@@ -48,7 +43,7 @@ public class UpdateMetricStatusesF
         
         Metric metric = metricOpt.get();
 
-        java.util.Optional<AnalysisResult> result = monitor.process(storeState, metric);
+        java.util.Optional<AnalysisResult> result = monitor.process(storeState, metric, time);
         if(result.isPresent()) {            
             return toOptinal(result);
         }else{

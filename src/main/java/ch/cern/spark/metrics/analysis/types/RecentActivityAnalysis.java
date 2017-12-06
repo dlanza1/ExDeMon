@@ -11,12 +11,12 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.analysis.NumericAnalysis;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import ch.cern.spark.metrics.store.HasStore;
-import ch.cern.spark.metrics.store.Store;
 import ch.cern.spark.metrics.value.FloatValue;
+import ch.cern.spark.status.HasStatus;
+import ch.cern.spark.status.StatusValue;
 
 @RegisterComponent("recent")
-public class RecentActivityAnalysis extends NumericAnalysis implements HasStore{
+public class RecentActivityAnalysis extends NumericAnalysis implements HasStatus{
     
     private static final long serialVersionUID = 5419076430764447352L;
     
@@ -65,18 +65,18 @@ public class RecentActivityAnalysis extends NumericAnalysis implements HasStore{
     }
     
     @Override
-    public void load(Store store) {
+    public void load(StatusValue store) {
         if(store == null){
             history = new ValueHistory(period);
         }else{
-            history = ((ValueHistory.Store_) store).history;
+            history = ((ValueHistory.Status) store).history;
             history.setPeriod(period);
         }
     }
     
     @Override
-    public Store save() {
-        ValueHistory.Store_ store = new ValueHistory.Store_();
+    public StatusValue save() {
+        ValueHistory.Status store = new ValueHistory.Status();
         
         store.history = history;
         

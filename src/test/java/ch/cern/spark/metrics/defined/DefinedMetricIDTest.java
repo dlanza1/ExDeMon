@@ -15,12 +15,12 @@ public class DefinedMetricIDTest {
 		Map<String, String> ids1 = new HashMap<>();
 		ids1.put("a", "a1");
 		ids1.put("b", "b1");
-		DefinedMetricID id1 = new DefinedMetricID("id1", ids1);
+		DefinedMetricStatuskey id1 = new DefinedMetricStatuskey("id1", ids1);
 		
 		Map<String, String> ids2 = new HashMap<>();
 		ids2.put("a", "a1");
 		ids2.put("b", "b1");
-		DefinedMetricID id2 = new DefinedMetricID("id1", ids2);
+		DefinedMetricStatuskey id2 = new DefinedMetricStatuskey("id1", ids2);
 		
 		assertEquals(id1, id2);
 		assertEquals(id1.hashCode(), id2.hashCode());
@@ -32,12 +32,12 @@ public class DefinedMetricIDTest {
 		ids1.put("a", "a1");
 		ids1.put("b", "b1");
 		ids1.put("c", "c1");
-		DefinedMetricID id1 = new DefinedMetricID("id1", ids1);
+		DefinedMetricStatuskey id1 = new DefinedMetricStatuskey("id1", ids1);
 		
 		Map<String, String> ids2 = new HashMap<>();
 		ids2.put("a", "a1");
 		ids2.put("b", "b1");
-		DefinedMetricID id2 = new DefinedMetricID("id1", ids2);
+		DefinedMetricStatuskey id2 = new DefinedMetricStatuskey("id1", ids2);
 		
 		assertNotEquals(id1, id2);
 		assertNotEquals(id1.hashCode(), id2.hashCode());

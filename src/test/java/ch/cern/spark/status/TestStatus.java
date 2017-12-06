@@ -1,12 +1,15 @@
-package ch.cern.spark.metrics.store;
+package ch.cern.spark.status;
 
-public class TestStore implements Store {
+import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
+
+@JSONSerializationClassNameAlias("test-status")
+public class TestStatus extends StatusValue {
 
 	private static final long serialVersionUID = 2051099937848011407L;
 	
-	long number = 10;
+	private long number = 10;
 
-	public TestStore(int i) {
+	public TestStatus(int i) {
 		number = i;
 	}
 
@@ -26,7 +29,7 @@ public class TestStore implements Store {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		TestStore other = (TestStore) obj;
+		TestStatus other = (TestStatus) obj;
 		if (number != other.number)
 			return false;
 		return true;
@@ -34,7 +37,7 @@ public class TestStore implements Store {
 
 	@Override
 	public String toString() {
-		return "Store_ [number=" + number + "]";
+		return "TestStatus [number=" + number + "]";
 	}
 
 }

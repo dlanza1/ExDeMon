@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import ch.cern.Cache;
@@ -16,23 +17,33 @@ import ch.cern.spark.Batches;
 import ch.cern.spark.Stream;
 import ch.cern.spark.StreamTestHelper;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.defined.DefinedMetrics;
 import ch.cern.spark.metrics.notifications.Notification;
+import ch.cern.spark.metrics.schema.MetricSchemas;
 
 public class MonitorReturningNotificationsStreamTest extends StreamTestHelper<Metric, Notification> {
 	
 	private static final long serialVersionUID = -444431845152738589L;
+	
+	@Before
+	public void setUp() throws Exception {
+		super.setUp();
+		
+		Properties.initCache(null);
+		Monitors.getCache().reset();	
+		DefinedMetrics.getCache().reset();
+		MetricSchemas.getCache().reset();
+	}
 
 	@Test
 	public void shouldProducePeriodicNotificationsWithConfigurationExceptionAndFilterOK() throws Exception {
-		setBatchDuration(5 * 60);
-		
-		Monitors.getCache().reset();		
-        Properties.initCache(null);
-        Cache<Properties> propertiesCache = Properties.getCache();
+		Cache<Properties> propertiesCache = Properties.getCache();
         Properties properties = new Properties();
         properties.setProperty("monitor.mon1.filter.expr", "HOST=host1");
 		properties.setProperty("monitor.mon1.analysis.type", "does not exist");
         propertiesCache.set(properties);
+        
+		setBatchDuration(5 * 60);
         
         Instant now = Instant.now();
         addInput(0,    Metric(now, 0, "HOST=host1"));
@@ -90,9 +101,7 @@ public class MonitorReturningNotificationsStreamTest extends StreamTestHelper<Me
 	@Test
 	public void shouldProducePeriodicNotificationsWithFilterConfigurationException() throws Exception {
 		setBatchDuration(5 * 60);
-		
-		Monitors.getCache().reset();		
-        Properties.initCache(null);
+
         Cache<Properties> propertiesCache = Properties.getCache();
         Properties properties = new Properties();
 		properties.setProperty("monitor.mon1.filter.expr", "does not work");

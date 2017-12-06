@@ -22,7 +22,7 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.properties.source.StaticPropertiesSource;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import scala.Tuple2;
 
 public class DefinedMetricTest {
@@ -40,7 +40,7 @@ public class DefinedMetricTest {
 		
 		DefinedMetric metric = new DefinedMetric("test").config(props);
 		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
-		VariableStores store = new VariableStores();
+		VariableStatuses store = new VariableStatuses();
 		Optional<Metric> result = metric.generateByBatch(store, null, groupByMetricIDs);
 		assertEquals("ConfigurationException: Value must be specified.", result.get().getValue().getAsException().get());
 		
@@ -80,15 +80,15 @@ public class DefinedMetricTest {
 		Properties.resetCache();
 		DefinedMetrics.getCache().reset();
 		
-		ComputeIDsForDefinedMetricsF computeIDsForDefinedMetricsF = new ComputeIDsForDefinedMetricsF(propertiesSource);
-		VariableStores store = new VariableStores();
+		ComputeDefinedMetricKeysF computeIDsForDefinedMetricsF = new ComputeDefinedMetricKeysF(propertiesSource);
+		VariableStatuses store = new VariableStatuses();
 		
 		//First batch
 		ComputeBatchDefineMetricsF computeBatchDefineMetricsF = new ComputeBatchDefineMetricsF(new Time(0), null);
 		Metric metric = Metric(0, 0, "HOST=host2131423");
-		Iterator<Tuple2<DefinedMetricID, Metric>> ids = computeIDsForDefinedMetricsF.call(metric);
+		Iterator<Tuple2<DefinedMetricStatuskey, Metric>> ids = computeIDsForDefinedMetricsF.call(metric);
 		ids.hasNext();
-		Tuple2<DefinedMetricID, VariableStores> pair = new Tuple2<DefinedMetricID, VariableStores>(ids.next()._1, store);
+		Tuple2<DefinedMetricStatuskey, VariableStatuses> pair = new Tuple2<DefinedMetricStatuskey, VariableStatuses>(ids.next()._1, store);
 		Iterator<Metric> definedMetrics = computeBatchDefineMetricsF.call(pair);
 		definedMetrics.hasNext();
 		Metric definedMetric = definedMetrics.next();
@@ -101,14 +101,14 @@ public class DefinedMetricTest {
 		metric = Metric(3, 0);
 		ids = computeIDsForDefinedMetricsF.call(metric);
 		ids.hasNext();
-		pair = new Tuple2<DefinedMetricID, VariableStores>(ids.next()._1, store);
+		pair = new Tuple2<DefinedMetricStatuskey, VariableStatuses>(ids.next()._1, store);
 		definedMetrics = computeBatchDefineMetricsF.call(pair);
 		assertFalse(definedMetrics.hasNext());
 		
 		metric = Metric(4, 0, "HOST=host1");
 		ids = computeIDsForDefinedMetricsF.call(metric);
 		ids.hasNext();
-		pair = new Tuple2<DefinedMetricID, VariableStores>(ids.next()._1, store);
+		pair = new Tuple2<DefinedMetricStatuskey, VariableStatuses>(ids.next()._1, store);
 		definedMetrics = computeBatchDefineMetricsF.call(pair);
 		assertFalse(definedMetrics.hasNext());
 		
@@ -117,7 +117,7 @@ public class DefinedMetricTest {
 		metric = Metric(6, 0, "HOST=host234234");
 		ids = computeIDsForDefinedMetricsF.call(metric);
 		ids.hasNext();
-		pair = new Tuple2<DefinedMetricID, VariableStores>(ids.next()._1, store);
+		pair = new Tuple2<DefinedMetricStatuskey, VariableStatuses>(ids.next()._1, store);
 		definedMetrics = computeBatchDefineMetricsF.call(pair);
 		definedMetrics.hasNext();
 		definedMetric = definedMetrics.next();
@@ -130,7 +130,7 @@ public class DefinedMetricTest {
 		metric = Metric(10, 0);
 		ids = computeIDsForDefinedMetricsF.call(metric);
 		ids.hasNext();
-		pair = new Tuple2<DefinedMetricID, VariableStores>(ids.next()._1, store);
+		pair = new Tuple2<DefinedMetricStatuskey, VariableStatuses>(ids.next()._1, store);
 		definedMetrics = computeBatchDefineMetricsF.call(pair);
 		assertFalse(definedMetrics.hasNext());
 	}
@@ -289,7 +289,7 @@ public class DefinedMetricTest {
 		properties.setProperty("variables.trigger.filter.attribute.TYPE", "Trigger");
 		definedMetric.config(properties);
 		
-		VariableStores store = new VariableStores();
+		VariableStatuses store = new VariableStatuses();
 		
 		Instant now = Instant.now();
 		
@@ -330,7 +330,7 @@ public class DefinedMetricTest {
 		properties.setProperty("variables.running_count.expire", "10m");
 		definedMetric.config(properties);
 		
-		VariableStores store = new VariableStores();
+		VariableStatuses store = new VariableStatuses();
 		
 		Instant now = Instant.now();
 		
@@ -369,7 +369,7 @@ public class DefinedMetricTest {
 		properties.setProperty("variables.readbytestotal.aggregate", "sum");
 		definedMetric.config(properties);
 		
-		VariableStores store = new VariableStores();;
+		VariableStatuses store = new VariableStatuses();;
 		
 		Metric metric = Metric(Instant.now(), 10, "HOSTNAME=host1", "TYPE=Read Bytes");
 		definedMetric.updateStore(store, metric, null);
@@ -402,7 +402,7 @@ public class DefinedMetricTest {
 		properties.setProperty("variables.writebytestotal.filter.attribute.METRIC_NAME", "Write Bytes");
 		definedMetric.config(properties);
 		
-		VariableStores stores = new VariableStores();;
+		VariableStatuses stores = new VariableStatuses();;
 		
 		Instant now = Instant.now();
 		
@@ -442,7 +442,7 @@ public class DefinedMetricTest {
 		properties.setProperty("variables.trigger.filter.attribute.METRIC_NAME", ".*");
 		definedMetric.config(properties);
 		
-		VariableStores stores = new VariableStores();;
+		VariableStatuses stores = new VariableStatuses();;
 		
 		Instant now = Instant.now();
 	
@@ -490,7 +490,7 @@ public class DefinedMetricTest {
 		properties.setProperty("variables.readbytestotal.expire", "1m");
 		definedMetric.config(properties);
 		
-		VariableStores stores = new VariableStores();;
+		VariableStatuses stores = new VariableStatuses();;
 		
 		Instant now = Instant.now();
 		
@@ -527,7 +527,7 @@ public class DefinedMetricTest {
 		properties.setProperty("variables.readbytestotal.aggregate", "sum");
 		definedMetric.config(properties);
 		
-		VariableStores stores = new VariableStores();;
+		VariableStatuses stores = new VariableStatuses();;
 		
 		Metric metric = Metric(0, 10, "HOSTNAME=host1");
 		definedMetric.updateStore(stores, metric, null);
@@ -556,7 +556,7 @@ public class DefinedMetricTest {
 		properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
 		definedMetric.config(properties);
 		
-		VariableStores store = new VariableStores();;
+		VariableStatuses store = new VariableStatuses();;
 		
 		Metric metric = Metric(0, 10, "HOSTNAME=host1", "METRIC_NAME=Read Bytes");
 		assertTrue(definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).isPresent());

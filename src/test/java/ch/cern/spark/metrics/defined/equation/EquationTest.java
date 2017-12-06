@@ -11,8 +11,8 @@ import org.junit.Test;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.defined.equation.var.MetricVariableStore;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.MetricVariableStatus;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.StringValue;
@@ -79,14 +79,14 @@ public class EquationTest {
 		Instant time = Instant.now();
 		Properties props = new Properties();
 		
-		VariableStores stores = new VariableStores();
-		MetricVariableStore var1store = new MetricVariableStore();
+		VariableStatuses stores = new VariableStatuses();
+		MetricVariableStatus var1store = new MetricVariableStatus();
 		stores.put("var1", var1store);
-		MetricVariableStore var2store = new MetricVariableStore();
+		MetricVariableStatus var2store = new MetricVariableStatus();
 		stores.put("var2", var2store);
-		MetricVariableStore xstore = new MetricVariableStore();
+		MetricVariableStatus xstore = new MetricVariableStatus();
 		stores.put("x", xstore);
-		MetricVariableStore ystore = new MetricVariableStore();
+		MetricVariableStatus ystore = new MetricVariableStatus();
 		stores.put("y", ystore);
 		
 		props = new Properties();
@@ -159,10 +159,10 @@ public class EquationTest {
 		Properties props = new Properties();;
 		props.setProperty("x.filter.attribute.A", "A");
 		
-		VariableStores stores = new VariableStores();
-		MetricVariableStore xstore = new MetricVariableStore();
+		VariableStatuses stores = new VariableStatuses();
+		MetricVariableStatus xstore = new MetricVariableStatus();
 		stores.put("x", xstore);
-		MetricVariableStore ystore = new MetricVariableStore();
+		MetricVariableStatus ystore = new MetricVariableStatus();
 		stores.put("y", ystore);
 		
 		xstore.updateValue(new FloatValue(9), time);

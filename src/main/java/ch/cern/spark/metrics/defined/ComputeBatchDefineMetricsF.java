@@ -11,10 +11,10 @@ import org.apache.spark.streaming.Time;
 
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import scala.Tuple2;
 
-public class ComputeBatchDefineMetricsF implements FlatMapFunction<Tuple2<DefinedMetricID, VariableStores>, Metric> {
+public class ComputeBatchDefineMetricsF implements FlatMapFunction<Tuple2<DefinedMetricStatuskey, VariableStatuses>, Metric> {
 
 	private static final long serialVersionUID = 3779814069810467993L;
 
@@ -28,13 +28,13 @@ public class ComputeBatchDefineMetricsF implements FlatMapFunction<Tuple2<Define
     }
 
 	@Override
-	public Iterator<Metric> call(Tuple2<DefinedMetricID, VariableStores> pair) throws Exception {
+	public Iterator<Metric> call(Tuple2<DefinedMetricStatuskey, VariableStatuses> pair) throws Exception {
 		DefinedMetrics.initCache(propertiesSourceProps);
 		
         List<Metric> result = new LinkedList<>();
 
-        DefinedMetricID ids = pair._1;
-        VariableStores store = pair._2;
+        DefinedMetricStatuskey ids = pair._1;
+        VariableStatuses store = pair._2;
         
         Optional<DefinedMetric> definedMetricOpt = Optional.ofNullable(DefinedMetrics.getCache().get().get(ids.getDefinedMetricName()));
         if(!definedMetricOpt.isPresent())

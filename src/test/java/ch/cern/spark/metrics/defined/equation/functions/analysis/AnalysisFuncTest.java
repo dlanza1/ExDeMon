@@ -12,22 +12,22 @@ import org.junit.Test;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.DefinedMetric;
-import ch.cern.spark.metrics.defined.equation.var.MetricVariableStore;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.MetricVariableStatus;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 
 public class AnalysisFuncTest {
 	
 	DefinedMetric definedMetric = new DefinedMetric("A");
 	Properties properties = new Properties();
-	VariableStores stores = new VariableStores();
-	MetricVariableStore store = new MetricVariableStore();
+	VariableStatuses stores = new VariableStatuses();
+	MetricVariableStatus store = new MetricVariableStatus();
 	
 	@Before
 	public void setUp() {
 		definedMetric = new DefinedMetric("A");
 		properties = new Properties();
-		stores = new VariableStores();
-		store = new MetricVariableStore();
+		stores = new VariableStatuses();
+		store = new MetricVariableStatus();
 		
 		stores.put("value", store);
 	}

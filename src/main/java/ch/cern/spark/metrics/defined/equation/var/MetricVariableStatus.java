@@ -9,13 +9,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import ch.cern.spark.metrics.DatedValue;
-import ch.cern.spark.metrics.store.Store;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
+import ch.cern.spark.status.StatusValue;
+import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
 import ch.cern.utils.TimeUtils;
 
-public class MetricVariableStore implements Store {
+@JSONSerializationClassNameAlias("metric-variable")
+public class MetricVariableStatus extends StatusValue {
 
 	private static final long serialVersionUID = -7439047274576894171L;
 
@@ -26,7 +28,7 @@ public class MetricVariableStore implements Store {
 	private LinkedHashMap<Integer, DatedValue> aggregateValues;
 	private LinkedHashMap<Instant, Value> aggregateValuesForEmptyAttributes;
 	
-	public MetricVariableStore() {
+	public MetricVariableStatus() {
 		aggregateValues = new LinkedHashMap<>();
 		aggregateValuesForEmptyAttributes = new LinkedHashMap<>();
 	}

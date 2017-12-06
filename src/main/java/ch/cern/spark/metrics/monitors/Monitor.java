@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.spark.streaming.State;
+import org.apache.spark.streaming.Time;
 
 import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentManager;
@@ -19,8 +20,8 @@ import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
-import ch.cern.spark.metrics.store.HasStore;
-import ch.cern.spark.metrics.store.Store;
+import ch.cern.spark.status.HasStatus;
+import ch.cern.spark.status.StatusValue;
 
 public class Monitor {
     
@@ -70,19 +71,19 @@ public class Monitor {
         return this;
     }
 
-    public Optional<AnalysisResult> process(State<Store> storeState, Metric metric) {
+    public Optional<AnalysisResult> process(State<StatusValue> state, Metric metric, Time time) {
     		AnalysisResult result = null;
 
         try{
-        		if(analysis.hasStore() && storeState.exists())
-            		((HasStore) analysis).load(storeState.get());
+        		if(analysis.hasStatus() && state.exists())
+            		((HasStatus) analysis).load(state.get());
         		
             result = analysis.apply(metric);
             
             result.addAnalysisParam("type", analysis.getClass().getAnnotation(RegisterComponent.class).value());
             
-            if(analysis.hasStore())
-            		storeState.update(analysis.getStore().get());
+            if(analysis.hasStatus())
+            		analysis.getStatus().ifPresent(status -> status.update(state, time));
         }catch(Throwable e){
             result = AnalysisResult.buildWithStatus(Status.EXCEPTION, e.getClass().getSimpleName() + ": " + e.getMessage());
             LOG.error(e.getMessage(), e);

@@ -1,4 +1,4 @@
-package ch.cern.spark.metrics.notifications;
+package ch.cern.spark.metrics.notificator;
 
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.Function4;
@@ -8,26 +8,27 @@ import org.apache.spark.streaming.Time;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.monitors.Monitors;
+import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notificator.Notificator;
-import ch.cern.spark.metrics.notificator.NotificatorID;
+import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import ch.cern.spark.metrics.store.HasStore;
-import ch.cern.spark.metrics.store.Store;
+import ch.cern.spark.status.HasStatus;
+import ch.cern.spark.status.StatusValue;
 
-public class UpdateNotificationStatusesF
-        implements Function4<Time, NotificatorID, Optional<AnalysisResult>, State<Store>, Optional<Notification>> {
+public class UpdateNotificatorStatusesF
+        implements Function4<Time, NotificatorStatusKey, Optional<AnalysisResult>, State<StatusValue>, Optional<Notification>> {
 
     private static final long serialVersionUID = 1540971922358997509L;
     
     private Properties propertiesSourceProperties;
 
-    public UpdateNotificationStatusesF(Properties propertiesSourceProps) {
+    public UpdateNotificatorStatusesF(Properties propertiesSourceProps) {
     		this.propertiesSourceProperties = propertiesSourceProps;
     }
-
+    
     @Override
-    public Optional<Notification> call(Time time, NotificatorID ids, Optional<AnalysisResult> resultOpt,
-            State<Store> notificatorState) throws Exception {
+    public Optional<Notification> call(Time time, NotificatorStatusKey ids, Optional<AnalysisResult> resultOpt,
+            State<StatusValue> notificatorState) throws Exception {
     		Monitors.initCache(propertiesSourceProperties);
 
         if (notificatorState.isTimingOut() || !resultOpt.isPresent())
@@ -39,12 +40,12 @@ public class UpdateNotificationStatusesF
         Monitor monitor = monitorOpt.get();
         
         Notificator notificator = monitor.getNotificators().get(ids.getNotificatorID());        
-        if(notificator.hasStore())
-        		toOptional(notificatorState).ifPresent(((HasStore) notificator)::load);
+        if(notificator.hasStatus())
+        		toOptional(notificatorState).ifPresent(((HasStatus) notificator)::load);
         
         java.util.Optional<Notification> notification = notificator.apply(resultOpt.get());
-        
-        notificator.getStore().ifPresent(notificatorState::update);
+
+        notificator.getStatus().ifPresent(status -> status.update(notificatorState, time));
         
         notification.ifPresent(n -> {
             n.setMonitorID(ids.getMonitorID());
@@ -56,7 +57,7 @@ public class UpdateNotificationStatusesF
         return notification.isPresent() ? Optional.of(notification.get()) : Optional.empty();
     }
 
-    private java.util.Optional<Store> toOptional(State<Store> notificatorState) {
+    private java.util.Optional<StatusValue> toOptional(State<StatusValue> notificatorState) {
         return notificatorState.exists() ? 
         				java.util.Optional.of(notificatorState.get()) 
         				: java.util.Optional.empty();

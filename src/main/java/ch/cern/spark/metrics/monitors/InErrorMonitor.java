@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.spark.streaming.State;
+import org.apache.spark.streaming.Time;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -17,7 +18,8 @@ import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.notificator.types.ConstantNotificator;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
-import ch.cern.spark.metrics.store.Store;
+import ch.cern.spark.status.StatusValue;
+import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
 
 public class InErrorMonitor extends Monitor {
 
@@ -48,27 +50,27 @@ public class InErrorMonitor extends Monitor {
 	}
 	
 	@Override
-	public Optional<AnalysisResult> process(State<Store> storeState, Metric metric) {
+	public Optional<AnalysisResult> process(State<StatusValue> storeState, Metric metric, Time time) {
 		AnalysisResult result = null;
 		
 		if(filter != null) {
 			result = AnalysisResult.buildWithStatus(Status.EXCEPTION, exception.getClass().getSimpleName() + ": " + exception.getMessage());
 		}else{
-			Store_ store = null;
+			Status_ store = null;
 			
-			if(storeState.exists() && storeState.get() instanceof Store_) {
-				store = (Store_) storeState.get();
+			if(storeState.exists() && storeState.get() instanceof Status_) {
+				store = (Status_) storeState.get();
 				
 				if(store.hasExpired(metric.getInstant()))
 					result = AnalysisResult.buildWithStatus(Status.EXCEPTION, exception.getClass().getSimpleName() + ": " + exception.getMessage());
 			}else{
-				store = new Store_();
+				store = new Status_();
 				store.lastResult = metric.getInstant();
 				
 				result = AnalysisResult.buildWithStatus(Status.EXCEPTION, exception.getClass().getSimpleName() + ": " + exception.getMessage());
 			}
 			
-			storeState.update(store);
+			store.update(storeState, time);
 		}
 
 		if(result != null) {
@@ -114,7 +116,8 @@ public class InErrorMonitor extends Monitor {
 			return new HashMap<>();
 	}
 	
-	private static class Store_ implements Store{
+	@JSONSerializationClassNameAlias("in-error-notificator")
+	private static class Status_ extends StatusValue {
 
 		private static final long serialVersionUID = -6991497562392525744L;
 

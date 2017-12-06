@@ -9,7 +9,7 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.Variable;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.spark.metrics.value.Value;
 
 public class Equation implements ValueComputable{
@@ -25,7 +25,7 @@ public class Equation implements ValueComputable{
 	}
 	
 	@Override
-	public Value compute(VariableStores stores, Instant time) {
+	public Value compute(VariableStatuses stores, Instant time) {
 		return formula.compute(stores, time);
 	}
 

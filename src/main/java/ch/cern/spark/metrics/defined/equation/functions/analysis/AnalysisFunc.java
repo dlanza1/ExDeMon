@@ -14,13 +14,13 @@ import ch.cern.spark.metrics.analysis.StringAnalysis;
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
 import ch.cern.spark.metrics.defined.equation.functions.Function;
 import ch.cern.spark.metrics.defined.equation.functions.FunctionCaller;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import ch.cern.spark.metrics.store.HasStore;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.PropertiesValue;
 import ch.cern.spark.metrics.value.StringValue;
 import ch.cern.spark.metrics.value.Value;
+import ch.cern.spark.status.HasStatus;
 
 public class AnalysisFunc extends Function {
 	
@@ -52,7 +52,7 @@ public class AnalysisFunc extends Function {
 	}
 	
 	@Override
-	public Value compute(VariableStores stores, Instant time) {
+	public Value compute(VariableStatuses stores, Instant time) {
 		Value result = null;
 		
 		Value value = arguments[0].compute(stores, time);
@@ -71,8 +71,8 @@ public class AnalysisFunc extends Function {
 			result = computeBooleanAnalysis((BooleanAnalysis) analysis, propsVal, value, time);
 		}
 		
-		if(analysis instanceof HasStore)
-			stores.put(propsVal.getName(), ((HasStore) analysis).save());
+		if(analysis instanceof HasStatus)
+			stores.put(propsVal.getName(), ((HasStatus) analysis).save());
 		
 		return result;
 	}

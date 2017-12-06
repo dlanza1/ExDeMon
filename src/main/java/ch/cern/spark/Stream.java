@@ -12,6 +12,7 @@ import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.apache.spark.api.java.function.VoidFunction;
+import org.apache.spark.api.java.function.VoidFunction2;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaDStream;
@@ -20,6 +21,9 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.Sink;
+import ch.cern.spark.status.StatusKey;
+import ch.cern.spark.status.StatusStream;
+import ch.cern.spark.status.StatusValue;
 
 public class Stream<V> {
 
@@ -36,15 +40,16 @@ public class Stream<V> {
 	public<K> PairStream<K, V> toPair(PairFlatMapFunction<V, K, V> function) {
 		return PairStream.from(stream.flatMapToPair(function));
 	}
-
-	public<K, S, R> StatusStream<K, V, S, R> mapWithState(
-			String id,
+	
+	public<K extends StatusKey, S extends StatusValue, R> StatusStream<K, V, S, R> mapWithState(
+			Class<K> keyClass, 
+			Class<S> statusClass,
 			PairFlatMapFunction<V, K, V> toPairFunction, 
 			Function4<Time, K, Optional<V>, State<S>, Optional<R>> updateStatusFunction) throws ClassNotFoundException, IOException, ConfigurationException {
 
 		PairStream<K, V> keyValuePairs = toPair(toPairFunction);
 		
-		return keyValuePairs.mapWithState(id, updateStatusFunction);
+		return PairStream.mapWithState(keyClass, statusClass, keyValuePairs, updateStatusFunction);
 	}
 
 	public Stream<V> union(Stream<V> input) {
@@ -78,6 +83,10 @@ public class Stream<V> {
 		stream.foreachRDD(rdd -> function.call(RDD.from(rdd)));
 	}
 	
+	public void foreachRDD(VoidFunction2<RDD<V>, Time> function) {
+		stream.foreachRDD((rdd, time) -> function.call(RDD.from(rdd), time));
+	}
+	
 	public<R> Stream<R> transform(Function2<JavaRDD<V>, Time, JavaRDD<R>> transformFunc) {
 		return Stream.from(stream.transform(transformFunc));
 	}
@@ -100,10 +109,6 @@ public class Stream<V> {
 	
 	public void sink(Sink<V> sink) {
 		sink.sink(this);
-	}
-	
-	public void save(String id) {
-		foreachRDD(rdd -> rdd.save(id));
 	}
 	
 	public JavaSparkContext getSparkContext() {

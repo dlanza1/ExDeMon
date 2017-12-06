@@ -9,6 +9,7 @@ import java.util.Map;
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateImpl;
+import org.apache.spark.streaming.Time;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -16,8 +17,8 @@ import ch.cern.Cache;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.defined.equation.var.MetricVariableStore;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.MetricVariableStatus;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 
 public class UpdateDefinedMetricStatusesFTest {
 	
@@ -39,24 +40,24 @@ public class UpdateDefinedMetricStatusesFTest {
 
         UpdateDefinedMetricStatusesF func = new UpdateDefinedMetricStatusesF(null);
 
-        DefinedMetricID id = new DefinedMetricID("dmID1", new HashMap<>());
-        State<VariableStores> status = new StateImpl<>();
+        DefinedMetricStatuskey id = new DefinedMetricStatuskey("dmID1", new HashMap<>());
+        State<VariableStatuses> status = new StateImpl<>();
         Optional<Metric> metricOpt= null;
         
         metricOpt = Optional.of(Metric(0, 0f, "DB_NAME=DB1", "INSTANCE_NAME=DB1_1", "METRIC_NAME=Read"));
-        Optional<Metric> result = func.call(null, id, metricOpt, status);
+        Optional<Metric> result = func.call(new Time(0), id, metricOpt, status);
         assertEquals(1, result.get().getValue().getAsFloat().get(), 0.001f);
 
         metricOpt = Optional.of(Metric(0, 0f, "DB_NAME=DB1", "INSTANCE_NAME=DB1_2", "METRIC_NAME=Read"));
-        result = func.call(null, id, metricOpt, status);
+        result = func.call(new Time(0), id, metricOpt, status);
         assertEquals(2, result.get().getValue().getAsFloat().get(), 0.001f);
 
         metricOpt = Optional.of(Metric(10, 0f, "DB_NAME=DB1", "INSTANCE_NAME=DB1_1", "METRIC_NAME=Read"));
-        result = func.call(null, id, metricOpt, status);
+        result = func.call(new Time(0), id, metricOpt, status);
         assertEquals(2, result.get().getValue().getAsFloat().get(), 0.001f);
 
         metricOpt = Optional.of(Metric(10, 0f, "DB_NAME=DB1", "INSTANCE_NAME=DB1_2", "METRIC_NAME=Read"));
-        result = func.call(null, id, metricOpt, status);
+        result = func.call(new Time(0), id, metricOpt, status);
         assertEquals(2, result.get().getValue().getAsFloat().get(), 0.001f);
     }
     
@@ -70,24 +71,24 @@ public class UpdateDefinedMetricStatusesFTest {
 
         Map<String, String> groupByIDs = new HashMap<>();
         groupByIDs.put("INSTANCE_NAME", "DB1_1");
-        DefinedMetricID id = new DefinedMetricID("dmID1", groupByIDs);
-        State<VariableStores> status = new StateImpl<>();
-        VariableStores varStores = new VariableStores();
-        MetricVariableStore varStore = new MetricVariableStore();
+        DefinedMetricStatuskey id = new DefinedMetricStatuskey("dmID1", groupByIDs);
+        State<VariableStatuses> status = new StateImpl<>();
+        VariableStatuses varStores = new VariableStatuses();
+        MetricVariableStatus varStore = new MetricVariableStatus();
 		varStores.put("value", varStore );
 		status.update(varStores );
         Optional<Metric> metricOpt = null;
         
         metricOpt = Optional.of(Metric(0, 0f, "INSTANCE_NAME=DB1_1"));
-        Optional<Metric> result = func.call(null, id, metricOpt, status);
+        Optional<Metric> result = func.call(new Time(0), id, metricOpt, status);
         assertEquals(1, result.get().getValue().getAsFloat().get(), 0.001f);
 
         metricOpt = Optional.of(Metric(1, 0f, "INSTANCE_NAME=DB1_1"));
-        result = func.call(null, id, metricOpt, status);
+        result = func.call(new Time(0), id, metricOpt, status);
         assertEquals(2, result.get().getValue().getAsFloat().get(), 0.001f);
 
         metricOpt = Optional.of(Metric(2, 0f, "INSTANCE_NAME=DB1_1"));
-        result = func.call(null, id, metricOpt, status);
+        result = func.call(new Time(0), id, metricOpt, status);
         assertEquals(3, result.get().getValue().getAsFloat().get(), 0.001f);
     }
 
@@ -101,30 +102,30 @@ public class UpdateDefinedMetricStatusesFTest {
 
         Map<String, String> groupByIDs = new HashMap<>();
         groupByIDs.put("INSTANCE_NAME", "DB1_1");
-        DefinedMetricID id = new DefinedMetricID("dmID1", groupByIDs );
-        State<VariableStores> status = new StateImpl<>();
+        DefinedMetricStatuskey id = new DefinedMetricStatuskey("dmID1", groupByIDs );
+        State<VariableStatuses> status = new StateImpl<>();
         Optional<Metric> metricOpt= null;
         
         metricOpt = Optional.of(Metric(0, 0f, "INSTANCE_NAME=DB1_1"));
-        Optional<Metric> result = func.call(null, id, metricOpt, status);
+        Optional<Metric> result = func.call(new Time(0), id, metricOpt, status);
         assertEquals(1, result.get().getValue().getAsFloat().get(), 0.001f);
 
         metricOpt = Optional.of(Metric(2, 0f, "INSTANCE_NAME=DB1_1"));
-        result = func.call(null, id, metricOpt, status);
+        result = func.call(new Time(0), id, metricOpt, status);
         assertEquals(2, result.get().getValue().getAsFloat().get(), 0.001f);
 
         metricOpt = Optional.of(Metric(4, 0f, "INSTANCE_NAME=DB1_1"));
-        result = func.call(null, id, metricOpt, status);
+        result = func.call(new Time(0), id, metricOpt, status);
         assertEquals(3, result.get().getValue().getAsFloat().get(), 0.001f);
         
         //Metric at time 0 expired
         metricOpt = Optional.of(Metric(6, 0f, "INSTANCE_NAME=DB1_1"));
-        result = func.call(null, id, metricOpt, status);
+        result = func.call(new Time(0), id, metricOpt, status);
         assertEquals(3, result.get().getValue().getAsFloat().get(), 0.001f);
         
         //Metric at time 1 expired
         metricOpt = Optional.of(Metric(8, 0f, "INSTANCE_NAME=DB1_1"));
-        result = func.call(null, id, metricOpt, status);
+        result = func.call(new Time(0), id, metricOpt, status);
         assertEquals(3, result.get().getValue().getAsFloat().get(), 0.001f);
     }
     

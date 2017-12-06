@@ -21,13 +21,13 @@ import ch.cern.spark.metrics.value.Value;
 public class FloatMetricVariableTest {
 	
 	private FloatMetricVariable variable;
-	private MetricVariableStore store;
+	private MetricVariableStatus store;
 	private Instant now = Instant.now();
 	
 	@Before
 	public void setUp() {
 		variable = new FloatMetricVariable("name");
-		store = new MetricVariableStore();
+		store = new MetricVariableStatus();
 	}
 	
 	@Test

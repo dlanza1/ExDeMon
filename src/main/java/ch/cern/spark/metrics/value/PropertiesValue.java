@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 
 public class PropertiesValue extends Value implements ValueComputable{
 
@@ -26,7 +26,7 @@ public class PropertiesValue extends Value implements ValueComputable{
 	}
 
 	@Override
-	public Value compute(VariableStores store, Instant time) {
+	public Value compute(VariableStatuses store, Instant time) {
 		return this;
 	}
 

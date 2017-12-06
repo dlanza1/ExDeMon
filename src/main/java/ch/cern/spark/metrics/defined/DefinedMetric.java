@@ -19,7 +19,7 @@ import ch.cern.spark.metrics.defined.equation.Equation;
 import ch.cern.spark.metrics.defined.equation.var.AnyMetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.Variable;
-import ch.cern.spark.metrics.defined.equation.var.VariableStores;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.Value;
@@ -150,7 +150,7 @@ public class DefinedMetric implements Serializable{
 		return variablesWhen == null;
 	}
 
-	public void updateStore(VariableStores stores, Metric metric, Set<String> groupByKeys) throws CloneNotSupportedException {
+	public void updateStore(VariableStatuses stores, Metric metric, Set<String> groupByKeys) throws CloneNotSupportedException {
 		if(configurationException != null)
 			return;
 		
@@ -167,21 +167,21 @@ public class DefinedMetric implements Serializable{
 			variableToUpdate.updateStore(stores, metricForStore);
 	}
 
-	public Optional<Metric> generateByUpdate(VariableStores stores, Metric metric, Map<String, String> groupByMetricIDs) {
+	public Optional<Metric> generateByUpdate(VariableStatuses stores, Metric metric, Map<String, String> groupByMetricIDs) {
 		if(!shouldBeTrigeredByUpdate(metric))
 			return Optional.empty();
 		
 		return generate(stores, metric.getInstant(), groupByMetricIDs);
 	}
 	
-	public Optional<Metric> generateByBatch(VariableStores stores, Instant time, Map<String, String> groupByMetricIDs) {
+	public Optional<Metric> generateByBatch(VariableStatuses stores, Instant time, Map<String, String> groupByMetricIDs) {
 		if(!isTriggerOnEveryBatch())
 			return Optional.empty();
 		
 		return generate(stores, time, groupByMetricIDs);
 	}
 	
-	private Optional<Metric> generate(VariableStores stores, Instant time, Map<String, String> groupByMetricIDs) {		
+	private Optional<Metric> generate(VariableStatuses stores, Instant time, Map<String, String> groupByMetricIDs) {		
 		Map<String, String> metricIDs = new HashMap<>(groupByMetricIDs);
 		metricIDs.put("$defined_metric", name);
 		

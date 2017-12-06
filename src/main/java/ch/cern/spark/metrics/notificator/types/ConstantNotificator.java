@@ -13,12 +13,13 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
-import ch.cern.spark.metrics.store.HasStore;
-import ch.cern.spark.metrics.store.Store;
+import ch.cern.spark.status.HasStatus;
+import ch.cern.spark.status.StatusValue;
+import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
 import ch.cern.utils.TimeUtils;
 
 @RegisterComponent("constant")
-public class ConstantNotificator extends Notificator implements HasStore {
+public class ConstantNotificator extends Notificator implements HasStatus {
     
     private static final long serialVersionUID = -7890231998987060652L;
 
@@ -54,19 +55,19 @@ public class ConstantNotificator extends Notificator implements HasStore {
     }
     
     @Override
-    public void load(Store store) {
-        if(store == null || !(store instanceof Store_))
+    public void load(StatusValue store) {
+        if(store == null || !(store instanceof Status_))
             return;
         
-        Store_ data = (Store_) store;
+        Status_ data = (Status_) store;
         
         constantlySeenFrom = data.constantlySeenFrom;
         lastRaised = data.lastRaised;
     }
 
     @Override
-    public Store save() {
-        Store_ store = new Store_();
+    public StatusValue save() {
+        Status_ store = new Status_();
         
         store.constantlySeenFrom = constantlySeenFrom;
         store.lastRaised = lastRaised;
@@ -119,7 +120,8 @@ public class ConstantNotificator extends Notificator implements HasStore {
         return getDiff(timestamp).compareTo(period) >= 0;
     }
 
-    public static class Store_ implements Store{
+    @JSONSerializationClassNameAlias("constant-notificator")
+    public static class Status_ extends StatusValue{
         private static final long serialVersionUID = -1907347033980904180L;
         
         Instant constantlySeenFrom;

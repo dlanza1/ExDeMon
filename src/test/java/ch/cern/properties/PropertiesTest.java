@@ -11,12 +11,19 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import ch.cern.Cache;
+import ch.cern.spark.metrics.defined.DefinedMetrics;
+import ch.cern.spark.metrics.monitors.Monitors;
+import ch.cern.spark.metrics.schema.MetricSchemas;
+
 public class PropertiesTest {
 	
 	@Before
-	public void setUp() throws ConfigurationException {
+	public void setUp() throws Exception {
 		Properties.initCache(null);
-		Properties.getCache().reset();
+		Monitors.getCache().reset();	
+		DefinedMetrics.getCache().reset();
+		MetricSchemas.getCache().reset();
 	}
     
     @Test
@@ -33,8 +40,9 @@ public class PropertiesTest {
 
 	@Test
 	public void cacheExpiration() throws Exception{
-		Properties.getCache().setExpiration(Duration.ofSeconds(1));
-		Properties p1 = Properties.getCache().get();
+		Cache<Properties> propertiesCache = Properties.getCache();
+		propertiesCache.setExpiration(Duration.ofSeconds(1));
+		Properties p1 = propertiesCache.get();
 		
 		try {
 			Thread.sleep(100);
@@ -42,7 +50,7 @@ public class PropertiesTest {
 			e.printStackTrace();
 		}
 		
-		Properties p2 = Properties.getCache().get();
+		Properties p2 = propertiesCache.get();
 		
 		assertSame(p1, p2);
 		
@@ -52,8 +60,9 @@ public class PropertiesTest {
 			e.printStackTrace();
 		}
 		
-		Properties p3 = Properties.getCache().get();
+		Properties p3 = propertiesCache.get();
 		
+		propertiesCache.setExpiration(null);
 		assertNotSame(p1, p3);
 	}
 	
