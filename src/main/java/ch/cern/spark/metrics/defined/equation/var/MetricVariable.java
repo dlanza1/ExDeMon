@@ -2,7 +2,12 @@ package ch.cern.spark.metrics.defined.equation.var;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -19,6 +24,8 @@ public abstract class MetricVariable extends Variable {
 
 	protected Duration expirePeriod;
 
+	private Set<String> aggregateSelectAtt;
+
 	public MetricVariable(String name) {
 		super(name);
 	}
@@ -30,6 +37,12 @@ public abstract class MetricVariable extends Variable {
 			expirePeriod = null;
 		else
 			expirePeriod = properties.getPeriod("expire", Duration.ofMinutes(10));
+		
+		String aggregateSelect = properties.getProperty("aggregate.attributes", "ALL");
+		if(aggregateSelect == null || aggregateSelect.equals("ALL"))
+			aggregateSelectAtt = null;
+		else
+			aggregateSelectAtt = new HashSet<String>(Arrays.asList(aggregateSelect.split("\\s")));
 		
 		return this;
 	}
@@ -63,12 +76,23 @@ public abstract class MetricVariable extends Variable {
 		else
 			store = new MetricVariableStatus();
 		
+		metric.setIDs(getAggSelectAttributes(metric.getIDs()));
+		
 		updateStore(store, metric);
 		
 		variableStores.put(name, store);
 	}
-	
+
 	public abstract void updateStore(MetricVariableStatus store, Metric metric);
+	
+	private Map<String, String> getAggSelectAttributes(Map<String, String> attributes) {
+		if(aggregateSelectAtt == null)
+			return attributes;
+		
+		return attributes.entrySet().stream()
+					.filter(entry -> aggregateSelectAtt.contains(entry.getKey()))
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+	}
 	
 	public static Optional<Class<? extends Value>> typeFromAggregation(Properties metricVariableProperties) throws ConfigurationException {
 		String aggregateVal = metricVariableProperties.getProperty("aggregate");

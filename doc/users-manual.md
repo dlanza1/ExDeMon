@@ -158,6 +158,7 @@ metrics.define.<defined-metric-id>.metrics.filter.attribute.<attribute-name> = <
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name> = <value->
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate = <not set|sum|avg|weighted_avg|count|max|min|diff>
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.attributes = <ALL|space separated list of attributes> (default: ALL)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.expire = <never|period like 1h, 3m or 45s> (default: 10m)
 # Variable that represent a set of properties for an analysis (could serve to configure an analysis: properties_variable)
 metrics.define.<defined-metric-id>.variables.<variable-id-2>.type = <analysis_type>
@@ -250,14 +251,14 @@ Metrics can be grouped by (e.g. machine) with the "metrics.groupby" parameter in
 Group by can be set to ALL, then each metric will be treated independently. 
 If group by is configured to ALL (or all attributes the metrics contain are listed) there is no attributes to differenciate metrics and aggregate them, so aggregation is done over the historical values coming from the metric.
 
-You need to specify what the variables in your equation represent by declaring variables. Then, &lt;variable-id-X&gt; can be used in the equation. The type of a variable is determined by the aggregation operation, if no aggregation operation is applied, it can become any time in the equation.
+You need to specify what the variables in your equation represent by declaring variables. Then, &lt;variable-id-X&gt; can be used in the equation. The type of a variable is determined by the aggregation operation, if no aggregation operation is applied, it can become any type in the equation.
 
 Variables are supposed to be updated periodically. In case they are not updated, its value expires after the period of time specified with the parameter "expire". 
 You can make variables to never expire configuring "expire" parameter to "never". By default, variables get expired after 10 minutes. 
 If a variable expires and the variable is used for the computation, no metrics will be produced. For aggregations, individual values are removed from the aggregation if they are not updated after such period. 
 In the case all the values for a given aggregated variable expire, count is 0.
 
-A variable could be the result of an aggregation of values. Values from all metrics that pass the specified filter (and after grouping) will be aggregated. Note that in order to differentiate between metric, any attribute not specified in "groupby" will be used. 
+A variable could be the result of an aggregation of values. Values from all metrics that pass the specified filter (and after grouping) will be aggregated. Note that in order to differentiate between metrics, attributes specified in "aggregation.attributes" will be used, by default all attributes not specified in groupby will be used. Only attributes not specified in groupby can be used in "aggregation.attributes".
 This can be configured using the "aggregate" parameter, where you configure the operation to perform the aggregation. Operation determines the variable type. The maximum number of different metrics that can be aggregated is 100000, if more, oldest metrics are removed.
 
 Aggregation operations available and the corresponding type:
@@ -295,6 +296,12 @@ metrics.define.all-multiply-by-10.variables.value.filter.attribute.INSTANCE_NAME
 metrics.define.all-multiply-by-10.variables.value.filter.attribute.METRIC_NAME = .*
 ```
 
+In SQL would correspond:
+
+```
+SELECT all_attributes, value*10 FROM metric GROUP BY all_attributes
+```
+
 - Divide CPU usage coming from all machines by 1000
 
 ```
@@ -305,6 +312,12 @@ metrics.define.cpu-percentage.metrics.groupby = ALL
 metrics.define.cpu-percentage.variables.value.filter.attribute.METRIC_NAME = CPU Usage Per Sec
 ```
 
+In SQL would correspond:
+
+```
+SELECT all_attributes, value/1000 FROM metric GROUP BY all_attributes
+```
+
 - Compute the ratio read/write for all machines:
 
 ```
@@ -312,6 +325,15 @@ metrics.define.ratio_read_write.value = readbytes / writebytes
 metrics.define.ratio_read_write.metrics.groupby = HOSTNAME
 metrics.define.ratio_read_write.variables.readbytes.filter.attribute.METRIC_NAME = Read Bytes Per Sec
 metrics.define.ratio_read_write.variables.writebytes.filter.attribute.METRIC_NAME = Write Bytes Per Sec
+```
+
+In SQL would correspond:
+
+```
+SELECT HOSTNAME, read.value / write.value
+  FROM (SELECT HOSTNAME, value FROM metric WHERE METRIC_NAME="Read Bytes Per Sec") read 
+       JOIN (SELECT HOSTNAME, value FROM metric WHERE METRIC_NAME="Write Bytes Per Sec") write
+          ON  read.HOSTNAME = write.HOSTNAME;
 ```
 
 - Temperature inside minus temperature outside in Fahrenheits: 
@@ -371,6 +393,32 @@ metrics.define.cluster-machines-running.when = BATCH
 metrics.define.cluster-machines-running.variables.value.filter.attribute.TYPE = "running"
 metrics.define.cluster-machines-running.variables.value.aggregate = count
 metrics.define.cluster-machines-running.variables.value.expire = 5m
+```
+
+In SQL would correspond:
+
+```
+SELECT CLUSTER_NAME, count(value) FROM metric WHERE TYPE="running" AND now()-time<5m GROUP BY CLUSTER_NAME
+```
+
+- Count number of machines running per cluster (without "running" metric)
+
+Scenario: a machine that is running, produce many metrics. If the machine stops, no metrics are sent.
+
+If the machine do not send any metric after 5 minutes, its corresponding aggregated value is removed from the aggregation. 
+
+``` 
+metrics.define.cluster-machines-running.metrics.groupby = CLUSTER_NAME
+metrics.define.cluster-machines-running.when = BATCH
+metrics.define.cluster-machines-running.variables.value.aggregate = count
+metrics.define.cluster-machines-running.variables.value.aggregate.attributes = HOSTNMAE
+metrics.define.cluster-machines-running.variables.value.expire = 5m
+```
+
+In SQL would correspond:
+
+```
+SELECT CLUSTER_NAME, count(value) FROM (SELECT CLUSTER_NAME, HOSTNMAE, value FROM metric WHERE now()-time<5m) GROUP BY CLUSTER_NAME
 ```
 
 - Average value from each metric during the period of the last 5 minutes 

@@ -360,6 +360,102 @@ public class DefinedMetricTest {
 	}
 	
 	@Test
+	public void computeAggregateCountWithSelect() throws ConfigurationException, CloneNotSupportedException {
+		
+		DefinedMetric definedMetric = new DefinedMetric("A");
+		
+		Properties properties = new Properties();
+		properties.setProperty("when", "batch");
+		properties.setProperty("variables.running_count.aggregate", "count_floats");
+		properties.setProperty("variables.running_count.aggregate.attributes", "HOSTNAME");
+		definedMetric.config(properties);
+		
+		VariableStatuses store = new VariableStatuses();
+		
+		Instant now = Instant.now();
+		
+		Metric metric = Metric(now, 10f, "HOSTNAME=host1", "TYPE=CPU");
+		definedMetric.updateStore(store, metric, null);
+		assertFalse(definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).isPresent());
+		
+		metric = Metric(now.plus(Duration.ofMinutes(1)), 13, "HOSTNAME=host1", "TYPE=MEMORY");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(1f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+		
+		metric = Metric(now.plus(Duration.ofMinutes(2)), 13, "HOSTNAME=host2", "TYPE=CPU");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(2f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+		
+		metric = Metric(now.plus(Duration.ofMinutes(3)), 7, "HOSTNAME=host2", "TYPE=MEMORY");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(2f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+		
+		metric = Metric(now.plus(Duration.ofMinutes(4)), 13, "HOSTNAME=host3", "TYPE=CPU");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(3f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+		
+		metric = Metric(now.plus(Duration.ofMinutes(5)), 7, "HOSTNAME=host3", "TYPE=MEMORY");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(3f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+		
+		metric = Metric(now.plus(Duration.ofMinutes(6)), 7, "HOSTNAME=host3", "TYPE=NETWORK");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(3f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+	}
+	
+	@Test
+	public void computeAggregateCountWithSelectAll() throws ConfigurationException, CloneNotSupportedException {
+		
+		DefinedMetric definedMetric = new DefinedMetric("A");
+		
+		Properties properties = new Properties();
+		properties.setProperty("when", "batch");
+		properties.setProperty("variables.running_count.aggregate", "count_floats");
+		properties.setProperty("variables.running_count.aggregate.attributes", "ALL");
+		definedMetric.config(properties);
+		
+		VariableStatuses store = new VariableStatuses();
+		
+		Instant now = Instant.now();
+		
+		Metric metric = Metric(now, 10f, "HOSTNAME=host1", "TYPE=CPU");
+		definedMetric.updateStore(store, metric, null);
+		assertFalse(definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).isPresent());
+		
+		metric = Metric(now.plus(Duration.ofMinutes(1)), 13, "HOSTNAME=host1", "TYPE=MEMORY");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(2f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+		
+		metric = Metric(now.plus(Duration.ofMinutes(2)), 13, "HOSTNAME=host2", "TYPE=CPU");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(3f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+		
+		metric = Metric(now.plus(Duration.ofMinutes(3)), 7, "HOSTNAME=host2", "TYPE=MEMORY");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(4f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+		
+		metric = Metric(now.plus(Duration.ofMinutes(4)), 13, "HOSTNAME=host3", "TYPE=CPU");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(5f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+		
+		metric = Metric(now.plus(Duration.ofMinutes(5)), 7, "HOSTNAME=host3", "TYPE=MEMORY");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(6f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+		
+		metric = Metric(now.plus(Duration.ofMinutes(6)), 7, "HOSTNAME=host3", "TYPE=NETWORK");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(7f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+		
+		metric = Metric(now.plus(Duration.ofMinutes(7)), 7, "HOSTNAME=host1", "TYPE=CPU");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(7f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+		
+		metric = Metric(now.plus(Duration.ofMinutes(8)), 7, "HOSTNAME=host1", "TYPE=MEMORY");
+		definedMetric.updateStore(store, metric, null);
+		assertEquals(7f, definedMetric.generateByBatch(store, metric.getInstant(), new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+	}
+	
+	@Test
 	public void computeAggregateSumMetric() throws ConfigurationException, CloneNotSupportedException {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
