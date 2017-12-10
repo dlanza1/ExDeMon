@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.streaming.StateImpl;
 import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.kafka010.KafkaTestUtils;
 import org.apache.spark.streaming.kafka010.OffsetRange;
@@ -223,6 +224,57 @@ public class KafkaStatusesStorageTest {
 		status = new TestStatus(12);
 		varStatuses.put("var3-id2", status);
 		expectedList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id2, varStatuses));
+		
+		assertEquals(expectedList, outputList);
+	}
+	
+	@Test
+	public void shouldSaveOnlyRecordsOfBatchTime() throws Exception {
+		KafkaStatusesStorage storage = new KafkaStatusesStorage();
+		
+		Properties properties = new Properties();
+		properties.setProperty("topic", topic);
+		properties.setProperty("producer.bootstrap.servers", kafkaTestUtils.brokerAddress());
+		properties.setProperty("consumer.bootstrap.servers", kafkaTestUtils.brokerAddress());
+		properties.setProperty("consumer.group.id", "testing4");
+		storage.config(properties);
+		
+		List<Tuple2<DefinedMetricStatuskey, TestStatus>> inputList = new LinkedList<>();
+		
+		DefinedMetricStatuskey id = new DefinedMetricStatuskey("df1", new HashMap<>());
+		
+		TestStatus status = new TestStatus(10);
+		status.update(new StateImpl<>(), new Time(1));
+		inputList.add(new Tuple2<DefinedMetricStatuskey, TestStatus>(id, status));
+		
+		RDD<Tuple2<DefinedMetricStatuskey, TestStatus>> inputRDD = RDD.from(context.parallelize(inputList));
+		storage.save(inputRDD, new Time(1));
+		inputList = new LinkedList<>();
+		
+		
+		status = new TestStatus(11);
+		status.update(new StateImpl<>(), new Time(2));
+		inputList.add(new Tuple2<DefinedMetricStatuskey, TestStatus>(id, status));
+		
+		inputRDD = RDD.from(context.parallelize(inputList));
+		storage.save(inputRDD, new Time(0));
+		inputList = new LinkedList<>();
+		
+		
+		status = new TestStatus(12);
+		status.update(new StateImpl<>(), new Time(3));
+		inputList.add(new Tuple2<DefinedMetricStatuskey, TestStatus>(id, status));
+		
+		inputRDD = RDD.from(context.parallelize(inputList));
+		storage.save(inputRDD, new Time(0));
+		
+		JavaRDD<Tuple2<DefinedMetricStatuskey, TestStatus>> outputRDD = storage.load(context, DefinedMetricStatuskey.class, TestStatus.class);
+		List<Tuple2<DefinedMetricStatuskey, TestStatus>> outputList = outputRDD.collect();
+		
+		List<Tuple2<DefinedMetricStatuskey, TestStatus>> expectedList = new LinkedList<>();
+		status = new TestStatus(10);
+		status.update(new StateImpl<>(), new Time(1));
+		expectedList.add(new Tuple2<DefinedMetricStatuskey, TestStatus>(id, status));
 		
 		assertEquals(expectedList, outputList);
 	}
