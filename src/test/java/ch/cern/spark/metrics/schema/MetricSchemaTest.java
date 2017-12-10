@@ -21,6 +21,7 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.metrics.Metric;
+import java.time.Instant;
 
 public class MetricSchemaTest {
 
@@ -469,7 +470,9 @@ public class MetricSchemaTest {
 		
 		metrics.hasNext();
 		Metric metric = metrics.next();
-		assertEquals(1508457612000l, metric.getInstant().toEpochMilli());
+                // Value should be --> Fri Oct 20 2017 00:00:12 UTC
+                Instant timestamp = Instant.parse("2017-10-20T02:00:12.000Z");
+		assertEquals(timestamp.toEpochMilli(), metric.getInstant().toEpochMilli());
 		
 		assertFalse(metrics.hasNext());
 	}
@@ -499,7 +502,8 @@ public class MetricSchemaTest {
 		
 		metrics.hasNext();
 		Metric metric = metrics.next();
-		assertEquals("2017-10-19T22:00:00Z", metric.getInstant().toString());
+                Instant timestamp = Instant.parse("2017-10-20T00:00:00Z");
+		assertEquals(timestamp.toString(), metric.getInstant().toString());
 		
 		assertFalse(metrics.hasNext());
 	}
