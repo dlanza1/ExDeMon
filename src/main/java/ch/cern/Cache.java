@@ -23,7 +23,7 @@ public abstract class Cache<T> {
 		return object;
 	}
 	
-	private T loadCache(Instant currentTime) throws Exception {
+	public T loadCache(Instant currentTime) throws Exception {
 	    lastLoadTime = currentTime;
 	    
         return load();
