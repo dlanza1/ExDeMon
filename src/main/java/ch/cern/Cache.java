@@ -29,7 +29,7 @@ public abstract class Cache<T> {
         return load();
     }
 
-    private boolean hasExpired(Instant currentTime) {
+    public boolean hasExpired(Instant currentTime) {
     		if(expirationPeriod == null)
     			return false;
     		

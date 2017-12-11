@@ -1,11 +1,11 @@
 package ch.cern.properties;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
+import java.time.Instant;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -42,28 +42,16 @@ public class PropertiesTest {
 	public void cacheExpiration() throws Exception{
 		Cache<Properties> propertiesCache = Properties.getCache();
 		propertiesCache.setExpiration(Duration.ofSeconds(1));
+		
+		Instant now = Instant.now();
 		Properties p1 = propertiesCache.get();
 		
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
 		Properties p2 = propertiesCache.get();
-		
 		assertSame(p1, p2);
 		
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		Properties p3 = propertiesCache.get();
+		assertTrue(propertiesCache.hasExpired(now.plus(Duration.ofSeconds(2))));
 		
 		propertiesCache.setExpiration(null);
-		assertNotSame(p1, p3);
 	}
 	
 	@Test
