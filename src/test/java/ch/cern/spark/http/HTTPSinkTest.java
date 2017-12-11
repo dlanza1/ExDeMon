@@ -19,6 +19,8 @@ import ch.cern.spark.Stream;
 import ch.cern.spark.StreamTestHelper;
 import ch.cern.spark.http.HTTPSink;
 import ch.cern.spark.metrics.results.AnalysisResult;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class HTTPSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResult>{
 	
@@ -36,8 +38,9 @@ public class HTTPSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResul
 		properties.setProperty("add.key1", "key1");
 		properties.setProperty("add.key2.a1", "key2");
         
+                Instant instant = Instant.ofEpochMilli(0);
 		AnalysisResult analysisResult = new AnalysisResult();
-		analysisResult.setAnalysisTimestamp(Instant.ofEpochMilli(0));
+		analysisResult.setAnalysisTimestamp(instant);
 		addInput(0, analysisResult);
         
         Stream<AnalysisResult> resultsStream = createStream(AnalysisResult.class);
@@ -50,9 +53,11 @@ public class HTTPSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResul
 		
 		ArgumentCaptor<PostMethod> methodCaptor = ArgumentCaptor.forClass(PostMethod.class);
 		verify(httpClient, times(1)).executeMethod(methodCaptor.capture());
-		
+                
 		StringRequestEntity receivedEntity = (StringRequestEntity) methodCaptor.getAllValues().get(0).getRequestEntity();
-		assertEquals("[{\"analysis_timestamp\":\"1970-01-01T01:00:00+0100\","
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+                String expectedTimestamp = sdf.format(Date.from(instant));
+		assertEquals("[{\"analysis_timestamp\":\"" + expectedTimestamp + "\","
 					+ "\"analysis_params\":{},"
 					+ "\"tags\":{},"
 					+ "\"key1\":\"key1\","

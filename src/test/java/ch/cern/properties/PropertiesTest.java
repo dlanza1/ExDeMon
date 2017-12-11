@@ -1,29 +1,18 @@
 package ch.cern.properties;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-
-import java.time.Duration;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import ch.cern.Cache;
-import ch.cern.spark.metrics.defined.DefinedMetrics;
-import ch.cern.spark.metrics.monitors.Monitors;
-import ch.cern.spark.metrics.schema.MetricSchemas;
 
 public class PropertiesTest {
 	
 	@Before
 	public void setUp() throws Exception {
 		Properties.initCache(null);
-		Monitors.getCache().reset();	
-		DefinedMetrics.getCache().reset();
-		MetricSchemas.getCache().reset();
+		Properties.getCache().reset();
 	}
     
     @Test
@@ -37,34 +26,6 @@ public class PropertiesTest {
         Assert.assertEquals(1, subProp.size());
         Assert.assertEquals("val2", subProp.get("prop1"));
     }
-
-	@Test
-	public void cacheExpiration() throws Exception{
-		Cache<Properties> propertiesCache = Properties.getCache();
-		propertiesCache.setExpiration(Duration.ofSeconds(1));
-		Properties p1 = propertiesCache.get();
-		
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		Properties p2 = propertiesCache.get();
-		
-		assertSame(p1, p2);
-		
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		Properties p3 = propertiesCache.get();
-		
-		propertiesCache.setExpiration(null);
-		assertNotSame(p1, p3);
-	}
 	
 	@Test
 	public void propertiesFromDefaultSource() throws Exception{

@@ -1,7 +1,7 @@
 package ch.cern.spark.metrics.schema;
 
-import static ch.cern.spark.metrics.schema.MetricSchema.SOURCES_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.ATTRIBUTES_PARAM;
+import static ch.cern.spark.metrics.schema.MetricSchema.SOURCES_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.TIMESTAMP_ATTRIBUTE_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.TIMESTAMP_FORMAT_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.VALUE_ATTRIBUTES_PARAM;
@@ -12,6 +12,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.text.ParseException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.Iterator;
 import java.util.List;
 
@@ -449,11 +453,11 @@ public class MetricSchemaTest {
 		Properties props = new Properties();
 		props.setProperty(SOURCES_PARAM, "test");
 		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-		props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy-MM-dd HH:mm:ss");
+		props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy-MM-dd HH:mm:ssZ");
 		props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
 		
 		String jsonString = "{\"metadata\":{"
-								+ "\"timestamp\":\"2017-10-20 02:00:12\""
+								+ "\"timestamp\":\"2017-10-20 02:00:12+0000\""
 							+ "},\"data\":{"
 								+ "\"payload\":{"
 									+ "\"WMBS_INFO\":{"
@@ -469,10 +473,47 @@ public class MetricSchemaTest {
 		
 		metrics.hasNext();
 		Metric metric = metrics.next();
-		assertEquals(1508457612000l, metric.getInstant().toEpochMilli());
+		// Value should be --> Fri Oct 20 2017 00:00:12 UTC
+	    Instant timestamp = Instant.parse("2017-10-20T02:00:12.000Z");
+		assertEquals(timestamp.toEpochMilli(), metric.getInstant().toEpochMilli());
 		
 		assertFalse(metrics.hasNext());
 	}
+	
+    @Test
+    public void shouldParseDateTimeTimestampWithFormatInDateFormatWithoutTimeZone() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy-MM-dd HH:mm:ss");
+        props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
+
+        String jsonString = "{\"metadata\":{"
+                                + "\"timestamp\":\"2017-12-20 02:00:12\""
+                          + "},\"data\":{"
+                              + "\"payload\":{"
+                                  + "\"WMBS_INFO\":{"
+                                      + "\"thresholds\":{"
+                                          + "\"pending_slots\":2111.89},"
+                                      + "\"thresholdsGQ2LQ\":2111.0}"
+                          + "}}}";
+        JSONObject jsonObject = new JSONObject(jsonString);
+
+        MetricSchema parser = new MetricSchema("test");
+        parser.config(props);
+        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+
+        metrics.hasNext();
+        Metric metric = metrics.next();
+        
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd HH:mm:ss").toFormatter().withZone(ZoneId.systemDefault());
+        
+        // Value should be --> Fri Oct 20 2017 00:00:12 UTC
+        Instant timestamp = Instant.from(formatter.parse("2017-12-20 02:00:12"));
+        assertEquals(timestamp, metric.getInstant());
+
+        assertFalse(metrics.hasNext());
+    }
 	
 	@Test
 	public void shouldParseDateTimestampWithFormatInDateFormat() throws ParseException, ConfigurationException {
@@ -483,7 +524,7 @@ public class MetricSchemaTest {
 		props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
 		
 		String jsonString = "{\"metadata\":{"
-								+ "\"timestamp\":\"2017 10 20\""
+								+ "\"timestamp\":\"2017 12 20\""
 							+ "},\"data\":{"
 								+ "\"payload\":{"
 									+ "\"WMBS_INFO\":{"
@@ -499,7 +540,11 @@ public class MetricSchemaTest {
 		
 		metrics.hasNext();
 		Metric metric = metrics.next();
-		assertEquals("2017-10-19T22:00:00Z", metric.getInstant().toString());
+		
+		DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("yyyy MM dd HH:mm:ss").toFormatter().withZone(ZoneId.systemDefault());
+		
+		Instant timestamp = Instant.from(formatter.parse("2017 12 20 00:00:00"));
+		assertEquals(timestamp, metric.getInstant());
 		
 		assertFalse(metrics.hasNext());
 	}
