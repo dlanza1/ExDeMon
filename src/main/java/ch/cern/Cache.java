@@ -23,13 +23,13 @@ public abstract class Cache<T> {
 		return object;
 	}
 	
-	public T loadCache(Instant currentTime) throws Exception {
+	protected T loadCache(Instant currentTime) throws Exception {
 	    lastLoadTime = currentTime;
 	    
         return load();
     }
 
-    public boolean hasExpired(Instant currentTime) {
+	protected boolean hasExpired(Instant currentTime) {
     		if(expirationPeriod == null)
     			return false;
     		
