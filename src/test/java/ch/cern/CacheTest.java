@@ -20,6 +20,7 @@ public class CacheTest {
     @Before
     public void setUp() throws Exception {
         Properties.initCache(null);
+        Properties.getCache().reset();
     }
     
     @Test

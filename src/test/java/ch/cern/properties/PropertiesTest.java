@@ -7,18 +7,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.spark.metrics.defined.DefinedMetrics;
-import ch.cern.spark.metrics.monitors.Monitors;
-import ch.cern.spark.metrics.schema.MetricSchemas;
-
 public class PropertiesTest {
 	
 	@Before
 	public void setUp() throws Exception {
 		Properties.initCache(null);
-		Monitors.getCache().reset();	
-		DefinedMetrics.getCache().reset();
-		MetricSchemas.getCache().reset();
+		Properties.getCache().reset();
 	}
     
     @Test
