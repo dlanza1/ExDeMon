@@ -22,12 +22,12 @@ public class MetricVariableStatus extends StatusValue {
 
     public static final int MAX_AGGREGATION_SIZE = 100000;
 
-    private LinkedHashMap<Integer, DatedValue> aggregationValues;
-    private LinkedHashMap<Instant, Value> alongTimeValues;
+    private Map<Integer, DatedValue> aggregationValues;
+    private List<DatedValue> alongTimeValues;
 
     public MetricVariableStatus() {
         aggregationValues = new LinkedHashMap<>();
-        alongTimeValues = new LinkedHashMap<>();
+        alongTimeValues = new LinkedList<>();
     }
 
     public Value getValue(Optional<Instant> oldestMetricAt, Optional<Instant> newestMetricAt) {
@@ -53,9 +53,9 @@ public class MetricVariableStatus extends StatusValue {
         if (emptyAttrbutes(idHash)) {
             // Removing the oldest entry if max size
             if (alongTimeValues.size() >= MAX_AGGREGATION_SIZE)
-                alongTimeValues.remove(alongTimeValues.keySet().iterator().next());
+                alongTimeValues.remove(alongTimeValues.iterator().next());
 
-            alongTimeValues.put(instant, value);
+            alongTimeValues.add(new DatedValue(instant, value));
         } else {
             // Removing the oldest entry if max size
             if (aggregationValues.size() >= MAX_AGGREGATION_SIZE)
@@ -77,9 +77,9 @@ public class MetricVariableStatus extends StatusValue {
                                                 .map(DatedValue::getValue)
                                                 .collect(Collectors.toList()));
 
-        allValues.addAll(alongTimeValues.entrySet().stream()
-                                                .filter(datedValue -> !newestMetricAt.isPresent() || datedValue.getKey().compareTo(newestMetricAt.get()) < 0)
-                                                .map(Map.Entry::getValue)
+        allValues.addAll(alongTimeValues.stream()
+                                                .filter(datedValue -> !newestMetricAt.isPresent() || datedValue.getInstant().compareTo(newestMetricAt.get()) < 0)
+                                                .map(DatedValue::getValue)
                                                 .collect(Collectors.toList()));
 
         return allValues;
@@ -92,9 +92,8 @@ public class MetricVariableStatus extends StatusValue {
                                                 .filter(datedValue -> !newestMetricAt.isPresent() || datedValue.getInstant().compareTo(newestMetricAt.get()) < 0)
                                                 .collect(Collectors.toList()));
 
-        allValues.addAll(alongTimeValues.entrySet().stream()
-                                                .filter(datedValue -> !newestMetricAt.isPresent() || datedValue.getKey().compareTo(newestMetricAt.get()) < 0)
-                                                .map(entry -> new DatedValue(entry.getKey(), entry.getValue()))
+        allValues.addAll(alongTimeValues.stream()
+                                                .filter(datedValue -> !newestMetricAt.isPresent() || datedValue.getInstant().compareTo(newestMetricAt.get()) < 0)
                                                 .collect(Collectors.toList()));
 
         return allValues;
@@ -110,7 +109,7 @@ public class MetricVariableStatus extends StatusValue {
             aggregationValues.values().removeIf(value -> value.getInstant().isBefore(oldestUpdate));
 
         if (alongTimeValues != null)
-            alongTimeValues.keySet().removeIf(time -> time.isBefore(oldestUpdate));
+            alongTimeValues.removeIf(value -> value.getInstant().isBefore(oldestUpdate));
     }
 
     @Override
