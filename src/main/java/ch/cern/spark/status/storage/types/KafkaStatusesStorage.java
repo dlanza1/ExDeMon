@@ -27,6 +27,7 @@ import org.apache.spark.streaming.kafka010.OffsetRange;
 
 import com.google.common.collect.Sets;
 
+import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.ByteArray;
@@ -39,6 +40,7 @@ import ch.cern.spark.status.storage.StatusSerializer;
 import ch.cern.spark.status.storage.StatusesStorage;
 import scala.Tuple2;
 
+@RegisterComponent("kafka")
 public class KafkaStatusesStorage extends StatusesStorage {
 
 	private static final long serialVersionUID = 1194347587683707148L;
