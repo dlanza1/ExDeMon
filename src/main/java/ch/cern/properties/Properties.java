@@ -35,6 +35,10 @@ public class Properties extends java.util.Properties{
 
 	public Properties() {
     }
+	
+	public Properties(Properties props) {
+	    putAll(props);
+	}
 
     public static Properties fromFile(String loadingPath) throws IOException {
     		Properties props = new Properties();

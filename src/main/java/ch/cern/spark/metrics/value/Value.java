@@ -55,6 +55,13 @@ public abstract class Value implements Serializable {
 			return new StringValue(value.getAsString().get());
 		if(value.getAsBoolean().isPresent())
 			return new BooleanValue(value.getAsBoolean().get());
+		if(value.getAsException().isPresent())
+            return new ExceptionValue(value.getAsException().get());
+		if(value.getAsProperties().isPresent()) {
+		    PropertiesValue valueRef = (PropertiesValue) value;
+		    
+            return new PropertiesValue(valueRef.getName(), new Properties(valueRef.getAsProperties().get()));
+		}
 		
 		throw new RuntimeException("Value is not any of the expected types");
 	}

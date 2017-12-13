@@ -117,4 +117,35 @@ public class MetricVariableStatus extends StatusValue {
         return "MetricVariableStore [alongTimeValues=" + alongTimeValues + ", aggregationValues=" + aggregationValues + "]";
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((aggregationValues == null) ? 0 : aggregationValues.hashCode());
+        result = prime * result + ((alongTimeValues == null) ? 0 : alongTimeValues.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        MetricVariableStatus other = (MetricVariableStatus) obj;
+        if (aggregationValues == null) {
+            if (other.aggregationValues != null)
+                return false;
+        } else if (!aggregationValues.equals(other.aggregationValues))
+            return false;
+        if (alongTimeValues == null) {
+            if (other.alongTimeValues != null)
+                return false;
+        } else if (!alongTimeValues.equals(other.alongTimeValues))
+            return false;
+        return true;
+    }
+
 }
