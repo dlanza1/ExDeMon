@@ -104,7 +104,7 @@ public class AnalysisFuncTest {
 	}
 
 	private void assertResult(boolean expected, Metric metric) {
-		store.updateValue(metric.getValue(), metric.getInstant());
+		store.add(metric.getValue(), metric.getInstant());
 		
 		Optional<Metric> result = definedMetric.generateByUpdate(stores, metric, new HashMap<>());
 		

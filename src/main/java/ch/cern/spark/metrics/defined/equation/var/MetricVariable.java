@@ -1,6 +1,5 @@
 package ch.cern.spark.metrics.defined.equation.var;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -17,12 +16,14 @@ import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.StringValue;
 import ch.cern.spark.metrics.value.Value;
+import ch.cern.utils.DurationAndTruncate;
 
 public abstract class MetricVariable extends Variable {
 	
 	private MetricsFilter filter;
 
-	protected Duration expirePeriod;
+	protected DurationAndTruncate expire;
+	protected DurationAndTruncate ignore;
 
 	private Set<String> aggregateSelectAtt;
 
@@ -34,9 +35,14 @@ public abstract class MetricVariable extends Variable {
 		filter = MetricsFilter.build(properties.getSubset("filter"));
 		
 		if(properties.containsKey("expire") && properties.getProperty("expire").toLowerCase().equals("never"))
-			expirePeriod = null;
+			expire = null;
 		else
-			expirePeriod = properties.getPeriod("expire", Duration.ofMinutes(10));
+			expire = DurationAndTruncate.from(properties.getProperty("expire", "10m"));
+		
+		if(!properties.containsKey("ignore"))
+		    ignore = null;
+        else
+            ignore = DurationAndTruncate.from(properties.getProperty("ignore"));
 		
 		String aggregateSelect = properties.getProperty("aggregate.attributes", "ALL");
 		if(aggregateSelect == null || aggregateSelect.equals("ALL"))

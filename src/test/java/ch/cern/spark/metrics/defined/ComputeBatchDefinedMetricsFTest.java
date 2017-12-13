@@ -56,7 +56,7 @@ public class ComputeBatchDefinedMetricsFTest {
 		ids.put("DB_NAME", "DB1");
 		ids.put("INSTANCE_NAME", "DB1_1");
 		ids.put("METRIC_NAME", "Read");
-		valueStore.updateAggregatedValue(ids.hashCode(), 0f, now);
+		valueStore.add(ids.hashCode(), 0f, now);
 		
 		status.update(varStores);
 		Iterator<Metric> result = func.call(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id, status.get()));
@@ -68,7 +68,7 @@ public class ComputeBatchDefinedMetricsFTest {
 		ids.put("DB_NAME", "DB1");
 		ids.put("INSTANCE_NAME", "DB1_2");
 		ids.put("METRIC_NAME", "Read");
-		valueStore.updateAggregatedValue(ids.hashCode(), 0f, now);
+		valueStore.add(ids.hashCode(), 0f, now);
 		status.update(varStores);
 		result = func.call(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id, status.get()));
 		result.hasNext();
@@ -79,7 +79,7 @@ public class ComputeBatchDefinedMetricsFTest {
 		ids.put("DB_NAME", "DB1");
 		ids.put("INSTANCE_NAME", "DB1_1");
 		ids.put("METRIC_NAME", "Read");
-		valueStore.updateAggregatedValue(ids.hashCode(), new FloatValue(0), now);
+		valueStore.add(ids.hashCode(), new FloatValue(0), now);
 		status.update(varStores);
 		result = func.call(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id, status.get()));
 		result.hasNext();
@@ -90,7 +90,7 @@ public class ComputeBatchDefinedMetricsFTest {
 		ids.put("DB_NAME", "DB1");
 		ids.put("INSTANCE_NAME", "DB1_2");
 		ids.put("METRIC_NAME", "Read");
-		valueStore.updateAggregatedValue(ids.hashCode(), new FloatValue(0), now);
+		valueStore.add(ids.hashCode(), new FloatValue(0), now);
 		status.update(varStores);
 		result = func.call(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id, status.get()));
 		result.hasNext();

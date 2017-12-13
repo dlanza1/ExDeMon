@@ -39,6 +39,22 @@ public class BooleanMetricVariableTest {
 		assertResult(false, false, 2);
 		assertResult(true, true, 3);
 	}
+	
+    @Test
+    public void ignorePeriodWithAggregation() throws ConfigurationException, ComputationException {
+        Properties properties = new Properties();
+        properties.setProperty("aggregate", "count_bools");
+        properties.setProperty("ignore", "1m");
+        variable.config(properties);
+
+        assertResult(0, false, 0);
+        assertResult(0, false, 20);
+        assertResult(0, false, 40);
+        assertResult(0, false, 60);
+        assertResult(1, false, 80);
+        assertResult(2, false, 100);
+        assertResult(3, false, 120);
+    }
 
 	@Test
 	public void countAggreagtion() throws ConfigurationException, ComputationException {
@@ -96,12 +112,9 @@ public class BooleanMetricVariableTest {
 	
 	private void assertResult(float expected, boolean newValue, int nowPlusSeconds) {
 		Map<String, String> ids = new HashMap<>();
-		variable.updateStore(store, new Metric(
-									now.plus(Duration.ofSeconds(nowPlusSeconds)), 
-									new BooleanValue(newValue), 
-									ids));
+		variable.updateStore(store, new Metric(now.plus(Duration.ofSeconds(nowPlusSeconds)), new BooleanValue(newValue), ids));
 		
-		Value result = variable.compute(store, now);
+		Value result = variable.compute(store, now.plus(Duration.ofSeconds(nowPlusSeconds)));
 		
 		assertTrue(result.getAsFloat().isPresent());
 		assertEquals(expected, result.getAsFloat().get(), 0.00001f);

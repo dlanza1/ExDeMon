@@ -159,7 +159,8 @@ metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.expr = <pred
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name> = <value->
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate = <not set|sum|avg|weighted_avg|count|max|min|diff>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.attributes = <ALL|space separated list of attributes> (default: ALL)
-metrics.define.<defined-metric-id>.variables.<variable-id-1>.expire = <never|period like 1h, 3m or 45s> (default: 10m)
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.ignore = <not set|period like 1h, 3m or 45s[, truncate d, h, m]> (default: not set)
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.expire = <never|period like 1h, 3m or 45s[, truncate d, h, m]> (default: 10m)
 # Variable that represent a set of properties for an analysis (could serve to configure an analysis: properties_variable)
 metrics.define.<defined-metric-id>.variables.<variable-id-2>.type = <analysis_type>
 metrics.define.<defined-metric-id>.variables.<variable-id-2>.<analysis-conf-key-1> = <value-1>
@@ -257,6 +258,14 @@ Variables are supposed to be updated periodically. In case they are not updated,
 You can make variables to never expire configuring "expire" parameter to "never". By default, variables get expired after 10 minutes. 
 If a variable expires and the variable is used for the computation, no metrics will be produced. For aggregations, individual values are removed from the aggregation if they are not updated after such period. 
 In the case all the values for a given aggregated variable expire, count is 0.
+You can also ignore recent metrics by specifying an "ignore" period . Metrics will be taken into account once they epass the ignore period.
+Ignore and expire can be truncate by minute(m), hour (h) or day (d), so that variable could take, for example, only data of the previuos minute.
+
+```
+# Variable only take into account metrics of the previous minute
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.ignore = 0m,m
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.expire = 1m,m
+```
 
 A variable could be the result of an aggregation of values. Values from all metrics that pass the specified filter (and after grouping) will be aggregated. Note that in order to differentiate between metrics, attributes specified in "aggregation.attributes" will be used, by default all attributes not specified in groupby will be used. Only attributes not specified in groupby can be used in "aggregation.attributes".
 This can be configured using the "aggregate" parameter, where you configure the operation to perform the aggregation. Operation determines the variable type. The maximum number of different metrics that can be aggregated is 100000, if more, oldest metrics are removed.

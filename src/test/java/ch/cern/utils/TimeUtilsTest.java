@@ -5,10 +5,12 @@ import java.time.Duration;
 import org.junit.Assert;
 import org.junit.Test;
 
+import ch.cern.properties.ConfigurationException;
+
 public class TimeUtilsTest {
 
     @Test
-    public void stringWithUnitToSeconds(){
+    public void stringWithUnitToSeconds() throws ConfigurationException{
         Assert.assertEquals(3, TimeUtils.parsePeriod("3").getSeconds());
         Assert.assertEquals(23, TimeUtils.parsePeriod("23").getSeconds());
         Assert.assertEquals(34, TimeUtils.parsePeriod("34s").getSeconds());

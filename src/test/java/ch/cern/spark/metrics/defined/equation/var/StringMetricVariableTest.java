@@ -39,6 +39,22 @@ public class StringMetricVariableTest {
 		assertResult("b\"a", "b\"a", 2);
 		assertResult("223", "223", 3);
 	}
+	
+    @Test
+    public void ignorePeriodInAggregation() throws ConfigurationException, ComputationException {
+        Properties properties = new Properties();
+        properties.setProperty("aggregate", "count_strings");
+        properties.setProperty("ignore", "1m");
+        variable.config(properties);
+
+        assertResult(0, "", 0);
+        assertResult(0, "", 20);
+        assertResult(0, "", 40);
+        assertResult(0, "", 60);
+        assertResult(1, "", 80);
+        assertResult(2, "", 100);
+        assertResult(3, "", 120);
+    }
 
 	@Test
 	public void countAggreagtion() throws ConfigurationException, ComputationException {
@@ -73,12 +89,9 @@ public class StringMetricVariableTest {
 	
 	private void assertResult(float expected, String newValue, int nowPlusSeconds) {
 		Map<String, String> ids = new HashMap<>();
-		variable.updateStore(store, new Metric(
-									now.plus(Duration.ofSeconds(nowPlusSeconds)), 
-									new StringValue(newValue), 
-									ids));
+		variable.updateStore(store, new Metric(now.plus(Duration.ofSeconds(nowPlusSeconds)), new StringValue(newValue), ids));
 		
-		Value result = variable.compute(store, now);
+		Value result = variable.compute(store, now.plus(Duration.ofSeconds(nowPlusSeconds)));
 		
 		assertTrue(result.getAsFloat().isPresent());
 		assertEquals(expected, result.getAsFloat().get(), 0.00001f);

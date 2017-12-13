@@ -1,10 +1,10 @@
 package ch.cern.spark.metrics.defined.equation.var;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -14,102 +14,108 @@ import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
-import ch.cern.utils.TimeUtils;
 
 @JSONSerializationClassNameAlias("metric-variable")
 public class MetricVariableStatus extends StatusValue {
 
-	private static final long serialVersionUID = -7439047274576894171L;
+    private static final long serialVersionUID = -7439047274576894171L;
 
-	public static final int MAX_AGGREGATION_SIZE = 100000;
-	
-	private DatedValue value;
-	
-	private LinkedHashMap<Integer, DatedValue> aggregateValues;
-	private LinkedHashMap<Instant, Value> aggregateValuesForEmptyAttributes;
-	
-	public MetricVariableStatus() {
-		aggregateValues = new LinkedHashMap<>();
-		aggregateValuesForEmptyAttributes = new LinkedHashMap<>();
-	}
+    public static final int MAX_AGGREGATION_SIZE = 100000;
 
-	public void updateValue(Value newValue, Instant instant) {
-		value = new DatedValue(instant, newValue);
-	}
-	
-	public Value getValue(Duration expirePeriod) {
-		return value != null ? value.getValue() : new ExceptionValue("no value" + (expirePeriod != null ? " for the last " + TimeUtils.toString(expirePeriod) : ""));
-	}
-	
-	public void updateAggregatedValue(int idHash, float value, Instant instant) {
-		updateAggregatedValue(idHash, new FloatValue(value), instant);
-	}
-	
-	public void updateAggregatedValue(int idHash, Value value, Instant instant) {
-		value = Value.clone(value);
-		
-		if(emptyAttrbutes(idHash)) {
-			//Removing the oldest entry if max size
-			if(aggregateValuesForEmptyAttributes.size() >= MAX_AGGREGATION_SIZE)
-				aggregateValuesForEmptyAttributes.remove(aggregateValuesForEmptyAttributes.keySet().iterator().next());
-		    
-			aggregateValuesForEmptyAttributes.put(instant, value);
-		}else {
-			//Removing the oldest entry if max size
-			if(aggregateValues.size() >= MAX_AGGREGATION_SIZE)
-				aggregateValues.remove(aggregateValues.keySet().iterator().next());
-		    
-			aggregateValues.put(idHash, new DatedValue(instant, value));
-		}
-	}
-	
-	private boolean emptyAttrbutes(int idHash) {
+    private LinkedHashMap<Integer, DatedValue> aggregationValues;
+    private LinkedHashMap<Instant, Value> alongTimeValues;
+
+    public MetricVariableStatus() {
+        aggregationValues = new LinkedHashMap<>();
+        alongTimeValues = new LinkedHashMap<>();
+    }
+
+    public Value getValue(Optional<Instant> oldestMetricAt, Optional<Instant> newestMetricAt) {
+        List<DatedValue> values = getAggregatedDatedValues(newestMetricAt);
+        
+        if(values.isEmpty())
+            return new ExceptionValue("no value during validity period");
+        
+        return values.stream().reduce((a, b) -> a.getInstant().compareTo(b.getInstant()) > 0 ? a : b).get().getValue();
+    }
+    
+    public void add(Value value, Instant instant) {
+        add(0, value, instant);
+    }
+
+    public void add(int idHash, float value, Instant instant) {
+        add(idHash, new FloatValue(value), instant);
+    }
+
+    public void add(int idHash, Value value, Instant instant) {
+        value = Value.clone(value);
+
+        if (emptyAttrbutes(idHash)) {
+            // Removing the oldest entry if max size
+            if (alongTimeValues.size() >= MAX_AGGREGATION_SIZE)
+                alongTimeValues.remove(alongTimeValues.keySet().iterator().next());
+
+            alongTimeValues.put(instant, value);
+        } else {
+            // Removing the oldest entry if max size
+            if (aggregationValues.size() >= MAX_AGGREGATION_SIZE)
+                aggregationValues.remove(aggregationValues.keySet().iterator().next());
+
+            aggregationValues.put(idHash, new DatedValue(instant, value));
+        }
+    }
+
+    private boolean emptyAttrbutes(int idHash) {
         return idHash == 0;
     }
-	
-	public List<Value> getAggregatedValues() {
-	    List<Value> values = new LinkedList<>();
-	    
-		values.addAll(aggregateValues.values().stream()
-                                                    .map(DatedValue::getValue)
-                                                    .collect(Collectors.toList()));
-		
-		values.addAll(aggregateValuesForEmptyAttributes.values());
-		
-		return values;
-	}
-	
-	public List<DatedValue> getAggregatedDatedValues() {
-	    List<DatedValue> values = new LinkedList<>();
-	    
-		values.addAll(aggregateValues.values());
-		
-		values.addAll(aggregateValuesForEmptyAttributes.entrySet().stream()
-		    											.map(entry -> new DatedValue(entry.getKey(), entry.getValue()))
-		    											.collect(Collectors.toList()));
-		
-		return values;
-	}
-	
-	public void purge(String variableID, Optional<Instant> oldestUpdateOpt) {
-		if(!oldestUpdateOpt.isPresent())
-			return;
-		
-		Instant oldestUpdate = oldestUpdateOpt.get();
-		
-		if(value != null && value.getInstant().isBefore(oldestUpdate))
-			value = null;
 
-		if(aggregateValues != null)
-			aggregateValues.values().removeIf(value -> value.getInstant().isBefore(oldestUpdate));
-		
-        if(aggregateValuesForEmptyAttributes != null)
-        		aggregateValuesForEmptyAttributes.keySet().removeIf(time -> time.isBefore(oldestUpdate));
-	}
+    public List<Value> getAggregatedValues(Optional<Instant> newestMetricAt) {
+        List<Value> allValues = new LinkedList<>();
 
-	@Override
-	public String toString() {
-		return "MetricVariableStore [value=" + value + ", aggregateValues=" + aggregateValues + "]";
-	}
+        allValues.addAll(aggregationValues.values().stream()
+                                                .filter(datedValue -> !newestMetricAt.isPresent() || datedValue.getInstant().compareTo(newestMetricAt.get()) < 0)
+                                                .map(DatedValue::getValue)
+                                                .collect(Collectors.toList()));
+
+        allValues.addAll(alongTimeValues.entrySet().stream()
+                                                .filter(datedValue -> !newestMetricAt.isPresent() || datedValue.getKey().compareTo(newestMetricAt.get()) < 0)
+                                                .map(Map.Entry::getValue)
+                                                .collect(Collectors.toList()));
+
+        return allValues;
+    }
+
+    public List<DatedValue> getAggregatedDatedValues(Optional<Instant> newestMetricAt) {
+        List<DatedValue> allValues = new LinkedList<>();
+
+        allValues.addAll(aggregationValues.values().stream()
+                                                .filter(datedValue -> !newestMetricAt.isPresent() || datedValue.getInstant().compareTo(newestMetricAt.get()) < 0)
+                                                .collect(Collectors.toList()));
+
+        allValues.addAll(alongTimeValues.entrySet().stream()
+                                                .filter(datedValue -> !newestMetricAt.isPresent() || datedValue.getKey().compareTo(newestMetricAt.get()) < 0)
+                                                .map(entry -> new DatedValue(entry.getKey(), entry.getValue()))
+                                                .collect(Collectors.toList()));
+
+        return allValues;
+    }
+
+    public void purge(String variableID, Optional<Instant> oldestUpdateOpt) {
+        if (!oldestUpdateOpt.isPresent())
+            return;
+
+        Instant oldestUpdate = oldestUpdateOpt.get();
+
+        if (aggregationValues != null)
+            aggregationValues.values().removeIf(value -> value.getInstant().isBefore(oldestUpdate));
+
+        if (alongTimeValues != null)
+            alongTimeValues.keySet().removeIf(time -> time.isBefore(oldestUpdate));
+    }
+
+    @Override
+    public String toString() {
+        return "MetricVariableStore [alongTimeValues=" + alongTimeValues + ", aggregationValues=" + aggregationValues + "]";
+    }
 
 }

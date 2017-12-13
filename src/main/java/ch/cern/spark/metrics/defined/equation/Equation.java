@@ -30,11 +30,11 @@ public class Equation implements ValueComputable{
 	}
 
 	@Override
-	public String toString() {
-		return formula.toString();
-	}
+    public String toString() {
+        return "Equation [formula=" + formula + ", variables=" + variables + "]";
+    }
 
-	@Override
+    @Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

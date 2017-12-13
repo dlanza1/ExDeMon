@@ -486,6 +486,43 @@ public class DefinedMetricTest {
 	}
 	
 	@Test
+    public void computeCountBetweenExpireAndIgnore() throws ConfigurationException, CloneNotSupportedException {
+        
+        DefinedMetric definedMetric = new DefinedMetric("A");
+        
+        Properties properties = new Properties();
+        properties.setProperty("variables.readbytestotal.aggregate", "count_floats");
+        properties.setProperty("variables.readbytestotal.aggregate.attributes", "NONE");
+        properties.setProperty("variables.readbytestotal.ignore", "0h,h");
+        properties.setProperty("variables.readbytestotal.expire", "1h,h");
+        definedMetric.config(properties);
+        
+        VariableStatuses store = new VariableStatuses();
+        
+        Instant now = Instant.parse("2017-12-10T22:00:00Z");
+        
+        Metric metric = Metric(now.plus(Duration.ofMinutes(0)), 10, "HOSTNAME=host1");
+        definedMetric.updateStore(store, metric, null);
+        assertEquals(0f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+        
+        metric = Metric(now.plus(Duration.ofMinutes(20)), 10, "HOSTNAME=host1");
+        definedMetric.updateStore(store, metric, null);
+        assertEquals(0f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+        
+        metric = Metric(now.plus(Duration.ofMinutes(40)), 10, "HOSTNAME=host1");
+        definedMetric.updateStore(store, metric, null);
+        assertEquals(0f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+        
+        metric = Metric(now.plus(Duration.ofMinutes(60)), 10, "HOSTNAME=host1");
+        definedMetric.updateStore(store, metric, null);
+        assertEquals(3f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+        
+        metric = Metric(now.plus(Duration.ofMinutes(80)), 10, "HOSTNAME=host1");
+        definedMetric.updateStore(store, metric, null);
+        assertEquals(3f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+    }
+	
+	@Test
 	public void neverExpire() throws ConfigurationException, CloneNotSupportedException {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
@@ -546,15 +583,15 @@ public class DefinedMetricTest {
 		definedMetric.updateStore(stores, metric, null);
 		Optional<Metric> result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
 		assertTrue(result.isPresent());
-		assertEquals("Variable readbytestotal: no value for the last 1 minute, Variable writebytestotal: no value for the last 10 minutes", result.get().getValue().getAsException().get());
-		assertEquals("(var(readbytestotal)={Error: no value for the last 1 minute} + var(writebytestotal)={Error: no value for the last 10 minutes})={Error: in arguments}", result.get().getValue().getSource());
+		assertEquals("Variable writebytestotal: no value during validity period, Variable readbytestotal: no value during validity period", result.get().getValue().getAsException().get());
+		assertEquals("(var(readbytestotal)={Error: no value during validity period} + var(writebytestotal)={Error: no value during validity period})={Error: in arguments}", result.get().getValue().getSource());
 		
 		metric = Metric(now, 10, "METRIC_NAME=Read Bytes");
 		definedMetric.updateStore(stores, metric, null);
 		result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
 		assertTrue(result.isPresent());
-		assertEquals("Variable writebytestotal: no value for the last 10 minutes", result.get().getValue().getAsException().get());
-		assertEquals("(var(readbytestotal)=10.0 + var(writebytestotal)={Error: no value for the last 10 minutes})={Error: in arguments}", result.get().getValue().getSource());
+		assertEquals("Variable writebytestotal: no value during validity period", result.get().getValue().getAsException().get());
+		assertEquals("(var(readbytestotal)=10.0 + var(writebytestotal)={Error: no value during validity period})={Error: in arguments}", result.get().getValue().getSource());
 		
 		metric = Metric(now.plus(Duration.ofSeconds(20)), 7, "METRIC_NAME=Write Bytes");
 		definedMetric.updateStore(stores, metric, null);
@@ -574,6 +611,48 @@ public class DefinedMetricTest {
 		assertTrue(definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).isPresent());
 		assertTrue(definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsException().isPresent());
 	}
+	
+    @Test
+    public void valueIgnored() throws ConfigurationException, CloneNotSupportedException {
+
+        DefinedMetric definedMetric = new DefinedMetric("A");
+
+        Properties properties = new Properties();
+        properties.setProperty("value", "readbytestotal + writebytestotal");
+        properties.setProperty("when", "ANY");
+        properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
+        properties.setProperty("variables.readbytestotal.ignore", "1m");
+        properties.setProperty("variables.readbytestotal.expire", "2m");
+        properties.setProperty("variables.writebytestotal.filter.attribute.METRIC_NAME", "Write Bytes");
+        properties.setProperty("variables.trigger.filter.attribute.METRIC_NAME", ".*");
+        definedMetric.config(properties);
+
+        VariableStatuses stores = new VariableStatuses();
+
+        Instant now = Instant.now();
+
+        Metric metric = Metric(now, 10, "METRIC_NAME=Read Bytes");
+        definedMetric.updateStore(stores, metric, null);
+        Optional<Metric> result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
+        assertTrue(result.isPresent());
+        assertEquals("Variable writebytestotal: no value during validity period, Variable readbytestotal: no value during validity period", result.get().getValue().getAsException().get());
+        assertEquals("(var(readbytestotal)={Error: no value during validity period} + var(writebytestotal)={Error: no value during validity period})={Error: in arguments}", result.get().getValue().getSource());
+
+        metric = Metric(now.plus(Duration.ofSeconds(20)), 7, "METRIC_NAME=Write Bytes");
+        definedMetric.updateStore(stores, metric, null);
+        result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
+        assertTrue(result.isPresent());
+        assertEquals("Variable readbytestotal: no value during validity period", result.get().getValue().getAsException().get());
+        assertEquals("(var(readbytestotal)={Error: no value during validity period} + var(writebytestotal)=7.0)={Error: in arguments}", result.get().getValue().getSource());
+
+        metric = Metric(now.plus(Duration.ofSeconds(80)), 8, "METRIC_NAME=Write Bytes");
+        definedMetric.updateStore(stores, metric, null);
+        assertEquals(18f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+
+        metric = Metric(now.plus(Duration.ofSeconds(90)), 9, "METRIC_NAME=Write Bytes");
+        definedMetric.updateStore(stores, metric, null);
+        assertEquals(19f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+    }
 	
 	@Test
 	public void valueExpireInAggregation() throws ConfigurationException, CloneNotSupportedException {

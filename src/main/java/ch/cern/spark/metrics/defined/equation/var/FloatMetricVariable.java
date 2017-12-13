@@ -45,14 +45,18 @@ public class FloatMetricVariable extends MetricVariable{
 	
 	@Override
 	public Value compute(MetricVariableStatus store, Instant time) {
-		Optional<Instant> oldestUpdate = Optional.empty();
-		if(expirePeriod != null)
-			oldestUpdate = Optional.of(time.minus(expirePeriod));
-		store.purge(name, oldestUpdate);
+		Optional<Instant> oldestMetricAt = Optional.empty();
+		if(expire != null)
+		    oldestMetricAt = Optional.of(expire.adjust(time));
+		store.purge(name, oldestMetricAt);
+		
+		Optional<Instant> newestMetricAt = Optional.empty();
+		if(ignore != null)
+		    newestMetricAt = Optional.of(ignore.adjust(time));
 		
 		Value val = null;
 		if(aggregateOperation == null) {
-			val = store.getValue(expirePeriod);
+			val = store.getValue(oldestMetricAt, newestMetricAt);
 			
 			String source = val.toString();
 			if(val.getAsException().isPresent())
@@ -62,25 +66,25 @@ public class FloatMetricVariable extends MetricVariable{
 		}else {
 			switch (aggregateOperation) {
 			case SUM:
-				val = sumAggregation(store.getAggregatedValues());
+				val = sumAggregation(store.getAggregatedValues(newestMetricAt));
 				break;
 			case COUNT_FLOATS:
-				val = new FloatValue(store.getAggregatedValues().size());
+				val = new FloatValue(store.getAggregatedValues(newestMetricAt).size());
 				break;
 			case AVG:
-				val = averageAggregation(store.getAggregatedValues());
+				val = averageAggregation(store.getAggregatedValues(newestMetricAt));
 				break;
 			case WEIGHTED_AVG:
-				val = weightedAverageAggregation(store.getAggregatedDatedValues(), time);
+				val = weightedAverageAggregation(store.getAggregatedDatedValues(newestMetricAt), time);
 				break;
 			case MIN:
-				val = minAggregation(store.getAggregatedValues());
+				val = minAggregation(store.getAggregatedValues(newestMetricAt));
 				break;
 			case MAX:
-				val = maxAggregation(store.getAggregatedValues());
+				val = maxAggregation(store.getAggregatedValues(newestMetricAt));
 				break;
 			case DIFF:
-				val = differenceAggregation(store.getAggregatedDatedValues());
+				val = differenceAggregation(store.getAggregatedDatedValues(newestMetricAt));
 				break;
 			}
 			
@@ -156,10 +160,10 @@ public class FloatMetricVariable extends MetricVariable{
     private float computeWeight(Instant time, Instant metric_timestamp) {
         Duration time_difference = Duration.between(time, metric_timestamp).abs();
         
-        if(expirePeriod.compareTo(time_difference) < 0)
+        if(expire.getDuration().compareTo(time_difference) < 0)
         		return 0;
         				
-        return (float) (expirePeriod.getSeconds() - time_difference.getSeconds()) / (float) expirePeriod.getSeconds();
+        return (float) (expire.getDuration().getSeconds() - time_difference.getSeconds()) / (float) expire.getDuration().getSeconds();
     }
     
 	private Value differenceAggregation(List<DatedValue> aggregatedDatedValues) {
@@ -184,9 +188,9 @@ public class FloatMetricVariable extends MetricVariable{
 			return;
 		
 		if(aggregateOperation == null)
-			store.updateValue(metric.getValue(), metric.getInstant());
+			store.add(0, metric.getValue(), metric.getInstant());
 		else
-			store.updateAggregatedValue(metric.getIDs().hashCode(), metric.getValue(), metric.getInstant());
+			store.add(metric.getIDs().hashCode(), metric.getValue(), metric.getInstant());
 	}
 
 	@Override
@@ -201,9 +205,9 @@ public class FloatMetricVariable extends MetricVariable{
 	@Override
 	public String toString() {
 		if(aggregateOperation != null)
-			return aggregateOperation + "(filter_float(" + name + "))";
+			return aggregateOperation + "(filter_float(" + name + ", from:"+expire+", to:"+ignore+"))";
 		else
-			return "filter_float(" + name + ")";
+			return "filter_float(" + name + ", from:"+expire+", to:"+ignore+")";
 	}
 	
 }
