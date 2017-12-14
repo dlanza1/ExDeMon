@@ -3,7 +3,6 @@ package ch.cern.spark.status.storage.types;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,11 +13,9 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.StateImpl;
 import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.kafka010.KafkaTestUtils;
-import org.apache.spark.streaming.kafka010.OffsetRange;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.RDD;
 import ch.cern.spark.SparkConf;
@@ -52,43 +49,6 @@ public class KafkaStatusesStorageTest {
         sparkConf.set("spark.driver.allowMultipleContexts", "true");
         
     		context = new JavaSparkContext(sparkConf);
-	}
-	
-	@Test
-	public void shouldGetFullTopicOffsets() throws ConfigurationException, IllegalArgumentException, IOException {
-		KafkaStatusesStorage storage = new KafkaStatusesStorage();
-		
-		Properties properties = new Properties();
-		properties.setProperty("topic", topic);
-		properties.setProperty("producer.bootstrap.servers", kafkaTestUtils.brokerAddress());
-		properties.setProperty("consumer.bootstrap.servers", kafkaTestUtils.brokerAddress());
-		properties.setProperty("consumer.group.id", "testing0");
-		storage.config(properties);
-		
-		OffsetRange[] offsets = storage.getTopicOffsets();
-		assertEquals(0, offsets[0].fromOffset());
-		assertEquals(0, offsets[0].untilOffset());
-		
-		List<Tuple2<DefinedMetricStatuskey, TestStatus>> inputList = new LinkedList<>();
-		DefinedMetricStatuskey id = new DefinedMetricStatuskey("df1", new HashMap<>());
-		TestStatus status = new TestStatus(1);
-		inputList.add(new Tuple2<DefinedMetricStatuskey, TestStatus>(id, status));
-		RDD<Tuple2<DefinedMetricStatuskey, TestStatus>> inputRDD = RDD.from(context.parallelize(inputList));
-		storage.save(inputRDD, new Time(0));
-		
-		offsets = storage.getTopicOffsets();
-		assertEquals(0, offsets[0].fromOffset());
-		assertEquals(1, offsets[0].untilOffset());
-		
-		inputList = new LinkedList<>();
-		for (int i = 0; i < 10; i++)
-			inputList.add(new Tuple2<DefinedMetricStatuskey, TestStatus>(id, status));
-		inputRDD = RDD.from(context.parallelize(inputList));
-		storage.save(inputRDD, new Time(0));
-		
-		offsets = storage.getTopicOffsets();
-		assertEquals(0, offsets[0].fromOffset());
-		assertEquals(11, offsets[0].untilOffset());
 	}
 	
 	@Test

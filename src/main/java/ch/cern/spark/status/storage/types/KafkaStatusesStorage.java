@@ -1,14 +1,18 @@
 package ch.cern.spark.status.storage.types;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -17,13 +21,12 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.BytesDeserializer;
 import org.apache.kafka.common.serialization.BytesSerializer;
 import org.apache.kafka.common.utils.Bytes;
+import org.apache.log4j.Logger;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.VoidFunction;
+import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.Time;
-import org.apache.spark.streaming.kafka010.KafkaUtils;
-import org.apache.spark.streaming.kafka010.LocationStrategies;
-import org.apache.spark.streaming.kafka010.OffsetRange;
 
 import com.google.common.collect.Sets;
 
@@ -45,24 +48,26 @@ public class KafkaStatusesStorage extends StatusesStorage {
 
 	private static final long serialVersionUID = 1194347587683707148L;
 	
-	private Map<String, Object> kafkaProducer;
-	private Map<String, Object> kafkaParams = null;
+	private transient final static Logger LOG = Logger.getLogger(KafkaStatusesStorage.class.getName());
+	
+	private Map<String, Object> kafkaProducer = null;
+	private Map<String, Object> kafkaConsumer;
 
 	private String topic;
 	
 	private StatusSerializer serializer;
 
-	private transient KafkaConsumer<Object, Object> consumer;
+	private transient KafkaConsumer<Bytes, Bytes> consumer;
+
+    private Duration timeout;
 	
 	public void config(Properties properties) throws ConfigurationException {
 		kafkaProducer = getKafkaProducerParams(properties);
-		kafkaParams = getKafkaConsumerParams(properties);
+		kafkaConsumer = getKafkaConsumerParams(properties);
         
 		topic = properties.getProperty("topic");
 		
-		consumer = new KafkaConsumer<Object, Object>(kafkaParams);
-		consumer.subscribe(Sets.newHashSet(topic));
-		consumer.poll(0);
+		timeout = properties.getPeriod("timeout", Duration.ofSeconds(2));
 		
 		String serializationType = properties.getProperty("serialization", "json");
 		switch (serializationType) {
@@ -81,24 +86,81 @@ public class KafkaStatusesStorage extends StatusesStorage {
 	
 	@Override
 	public JavaRDD<Tuple2<StatusKey, StatusValue>> load(JavaSparkContext context) throws IOException, ConfigurationException {
-
-		OffsetRange[] offsetRanges = getTopicOffsets();
+	    setUpConsumer();
+        
+		List<ConsumerRecordSer> list = getAllRecords();
 		
-		JavaRDD<ConsumerRecord<Bytes, Bytes>> kafkaContent = 
-				KafkaUtils.<Bytes, Bytes>createRDD(context, kafkaParams, offsetRanges, LocationStrategies.PreferConsistent());
+		consumer.close();
+		
+        JavaRDD<ConsumerRecordSer> kafkaContent = context.parallelize(list);
 		
 		JavaRDD<Tuple2<ByteArray, ByteArray>> latestRecords = getLatestRecords(kafkaContent);
 		
-		return parseRecords(latestRecords);
+		JavaRDD<Tuple2<StatusKey, StatusValue>> parsed = parseRecords(latestRecords);
+		
+		LOG.info(parsed.count() + " statuses loaded from Kafka topic " + topic);
+		
+		parsed = parsed.persist(StorageLevel.MEMORY_AND_DISK());
+		
+        return parsed;
 	}
-	
-	private JavaRDD<Tuple2<ByteArray, ByteArray>> getLatestRecords(JavaRDD<ConsumerRecord<Bytes, Bytes>> kafkaContent) {
+
+    private void setUpConsumer() {
+        kafkaConsumer.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
+        
+        consumer = new KafkaConsumer<Bytes, Bytes>(kafkaConsumer);
+        consumer.subscribe(Sets.newHashSet(topic));
+    }
+
+    private List<ConsumerRecordSer> getAllRecords() {
+        List<ConsumerRecordSer> list = new LinkedList<>();
+        
+        long[] lastOffsets = new long[consumer.partitionsFor(topic).size()];
+        
+        ConsumerRecords<Bytes, Bytes> records = consumer.poll(timeout.toMillis());
+        while(!records.isEmpty()) {
+            records.forEach(r -> {
+                long offset = r.offset();
+                if(lastOffsets[r.partition()] < offset)
+                    lastOffsets[r.partition()] = offset;
+                
+                list.add(new ConsumerRecordSer(r));
+            });
+
+            records = consumer.poll(timeout.toMillis());
+        }
+        
+        checkAllRecordsConsumed(lastOffsets);
+        
+        return list;
+    }
+    
+    public void checkAllRecordsConsumed(long[] lastOffsets) {
+        List<TopicPartition> partitions = new LinkedList<>();
+        for (PartitionInfo partitionInfo : consumer.partitionsFor(topic))
+            partitions.add(new TopicPartition(partitionInfo.topic(), partitionInfo.partition()));
+
+        long[] until = new long[partitions.size()];
+
+        consumer.seekToEnd(partitions);
+        consumer.poll(0);
+        for (TopicPartition tp : partitions)
+            until[tp.partition()] = consumer.position(tp) - 1;
+        
+        if(!Arrays.equals(until, lastOffsets)) {
+            LOG.error("Some partitions were not completelly consumed when reading the state.");
+            LOG.error("Topic " + topic + " last partition offsets: " + Arrays.toString(until));
+            LOG.error("Consumed from topic " + topic + " till offsets: " + Arrays.toString(lastOffsets));
+            
+            throw new RuntimeException("Topic has not been completelly consumed.");
+        }
+    }
+
+    private JavaRDD<Tuple2<ByteArray, ByteArray>> getLatestRecords(JavaRDD<ConsumerRecordSer> kafkaContent) {
 		return kafkaContent.mapToPair(consumedRecord -> {
-									Bytes key = consumedRecord.key();
+									Tuple2<Long, ByteArray> value = new Tuple2<>(consumedRecord.offset(), consumedRecord.value());
 									
-									Tuple2<Long, ByteArray> value = new Tuple2<>(consumedRecord.offset(), new ByteArray(consumedRecord.value().get()));
-									
-									return new Tuple2<ByteArray, Tuple2<Long, ByteArray>>(new ByteArray(key.get()), value);
+									return new Tuple2<ByteArray, Tuple2<Long, ByteArray>>(consumedRecord.key(), value);
 								})
 								.groupByKey()
 								.map(pair -> {
@@ -124,30 +186,6 @@ public class KafkaStatusesStorage extends StatusesStorage {
 														serializer.toKey(binaryRecord._1.get()),
 														serializer.toValue(binaryRecord._2.get()))
 													);
-	}
-
-	public OffsetRange[] getTopicOffsets() {
-		Map<TopicPartition, OffsetRange> offsetRanges = new HashMap<>();	
-		
-		List<TopicPartition> partitions = new LinkedList<>();
-		for (PartitionInfo partitionInfo : consumer.partitionsFor(topic))
-			partitions.add(new TopicPartition(partitionInfo.topic(), partitionInfo.partition()));
-
-		long[] from = new long[partitions.size()];
-		long[] until = new long[partitions.size()];
-		
-		consumer.seekToBeginning(partitions);
-		for (TopicPartition tp : partitions)
-			from[tp.partition()] = consumer.position(tp);
-		
-		consumer.seekToEnd(partitions);
-		for (TopicPartition tp : partitions)
-			until[tp.partition()] = consumer.position(tp);
-		
-		for (TopicPartition tp : partitions)
-			offsetRanges.put(tp, OffsetRange.create(tp, from[tp.partition()], until[tp.partition()]));
-		
-		return offsetRanges.values().toArray(new OffsetRange[0]);
 	}
 	
 	@Override
@@ -185,6 +223,10 @@ public class KafkaStatusesStorage extends StatusesStorage {
         
         kafkaParams.put("key.deserializer", BytesDeserializer.class);
         kafkaParams.put("value.deserializer", BytesDeserializer.class);
+       
+        kafkaParams.put(ConsumerConfig.CLIENT_ID_CONFIG, "spark-metrics-monitor");
+        kafkaParams.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        kafkaParams.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         
         Properties kafkaPropertiesFromConf = props.getSubset("consumer");
         for (Entry<Object, Object> kafkaPropertyFromConf : kafkaPropertiesFromConf.entrySet()) {
@@ -219,6 +261,8 @@ public class KafkaStatusesStorage extends StatusesStorage {
 			
 			while(records.hasNext()) {
 				Tuple2<K, V> record = records.next();
+				
+//				System.out.println("Produce: " + topic + " " + new String(serializer.fromKey(record._1)) + "  - " + new String(serializer.fromValue(record._2)));
 				
 				Bytes key = new Bytes(serializer.fromKey(record._1));
 				Bytes value = new Bytes(serializer.fromValue(record._2));
