@@ -5,7 +5,7 @@ Metrics can come from several sources like Kafka, results and notifications can 
 
 This tool was introduced at Spark Summit 2017 conference, you can watch the talk [here](https://www.youtube.com/watch?v=1IsMMmug5q0&feature=youtu.be&t=11m17s).
 
-[User's manual](doc/users-manual.md)
+[User's manual](doc/users-manual/users-manual.md)
 
 An example of a monitored metric can be observed in the following image. As it can be observed, thresholds around the value are calculated and statuses are generated if analyzed value exceed these limits. 
 Notifications can be raised if certain statuses like error or warning are maintained during some time.    
@@ -44,6 +44,7 @@ Some possibilities of defined metrics could be:
 - Temperature inside minus temperature outside: tempinside - tempoutside
 - Average of CPU usage of all machines per cluster
 - Total throughput of machines per cluster in production 
+- Count log lines of the previous hour 
 - Threshold for /tmp/ directory usage.
 ```
 <defined-metric-id>.value = !shouldBeMonitored || (trim(dir) == "/tmp/") && (abs(used / capacity) > 0.8)
