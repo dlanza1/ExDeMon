@@ -1,32 +1,33 @@
 package ch.cern.spark;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.Optional;
-import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.streaming.Duration;
-import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateSpec;
-import org.apache.spark.streaming.Time;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentManager;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
+import ch.cern.spark.status.ActionOrValue;
+import ch.cern.spark.status.ActionOrValue.Action;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusStream;
 import ch.cern.spark.status.StatusValue;
+import ch.cern.spark.status.UpdateStatusFunction;
 import ch.cern.spark.status.storage.StatusesStorage;
+import scala.Option;
 import scala.Tuple2;
 
 public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 	
-	public static final String CHECKPPOINT_DURATION_PARAM = "spark.cern.streaming.rdd.checkpoint.timeout";
-	public static final String CHECKPPOINT_DURATION_DEFAULT = java.time.Duration.ofMinutes(30).toString();
+	public static final String STATUSES_EXPIRATION_PERIOD_PARAM = "spark.cern.streaming.status.timeout";
 	
 	private PairStream(JavaPairDStream<K, V> stream) {
 		super(stream.map(tuple -> tuple));
@@ -35,43 +36,67 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 	public static<K, V> PairStream<K, V> from(JavaPairDStream<K, V> input) {
 		return new PairStream<>(input);
 	}
+	
+    public static <K, V> PairStream<K, V> fromT(JavaDStream<Tuple2<K, V>> input) {
+        return new PairStream<>(input.mapToPair(p -> p));
+    }
 
 	public static<K extends StatusKey, V, S extends StatusValue, R> StatusStream<K, V, S, R> mapWithState(
 			Class<K> keyClass,
 			Class<S> statusClass,
-			PairStream<K, V> input,
-			Function4<Time, K, Optional<V>, State<S>, Optional<R>> updateStatusFunction) 
+			PairStream<K, V> valuesStream,
+			UpdateStatusFunction<K, V, S, R> updateStatusFunction,
+			Optional<Stream<K>> removeKeysStream) 
 					throws ClassNotFoundException, IOException, ConfigurationException {
 		
-		JavaSparkContext context = input.getSparkContext();
+		JavaSparkContext context = valuesStream.getSparkContext();
 		
-		java.util.Optional<StatusesStorage> storageOpt = getStorage(context);
+		Optional<StatusesStorage> storageOpt = getStorage(context);
 		if(!storageOpt.isPresent())
-			throw new ConfigurationException("Storgae need to be configured");
+			throw new ConfigurationException("Storage needs to be configured");
 		StatusesStorage storage = storageOpt.get();
 		
 		JavaRDD<Tuple2<K, S>> initialStates = storage.load(context, keyClass, statusClass);
 
-        StateSpec<K, V, S, R> statusSpec = StateSpec
-							                .function(updateStatusFunction)
-							                .initialState(initialStates.rdd())
-							                .timeout(getDataExpirationPeriod(input.getSparkContext()));
+        StateSpec<K, ActionOrValue<V>, S, R> statusSpec = StateSpec
+        							                .function(updateStatusFunction)
+        							                .initialState(initialStates.rdd());
         
-        StatusStream<K, V, S, R> statusStream = StatusStream.from(input.asJavaDStream()
-        																	.mapToPair(pair -> pair)
-        																	.mapWithState(statusSpec));
+        Option<Duration> timeout = getStatusExpirationPeriod(valuesStream.getSparkContext());
+        if(timeout.isDefined())
+            statusSpec = statusSpec.timeout(timeout.get());
+        
+        PairStream<K, ActionOrValue<V>> actionsAndValues = valuesStream.mapToPair(tuple -> new Tuple2<K, ActionOrValue<V>>(tuple._1, new ActionOrValue<>(tuple._2)));
+
+        if(removeKeysStream.isPresent()) {
+            actionsAndValues = actionsAndValues.union(
+                    removeKeysStream.get().mapToPair(k -> new Tuple2<K, ActionOrValue<V>>(k, new ActionOrValue<>(Action.REMOVE))));
+            
+            removeKeysStream.get().foreachRDD(rdd -> storage.remove(rdd));
+        }
+        
+        StatusStream<K, V, S, R> statusStream = StatusStream.from(actionsAndValues.asJavaDStream()
+                    																	.mapToPair(pair -> pair)
+                    																	.mapWithState(statusSpec));
         
         statusStream.getStatuses().foreachRDD((rdd, time) -> storage.save(rdd, time));
         		
 		return statusStream;
 	}
 
-	private static Duration getDataExpirationPeriod(JavaSparkContext context) {
+	private PairStream<K, V> union(PairStream<K, V> other) {
+        return fromT(asJavaDStream().union(other.asJavaDStream()));
+    }
+
+    private static Option<Duration> getStatusExpirationPeriod(JavaSparkContext context) {
 		SparkConf conf = context.getConf();
 		
-		String valueString = conf.get(CHECKPPOINT_DURATION_PARAM, CHECKPPOINT_DURATION_DEFAULT);
+		Option<String> valueString = conf.getOption(STATUSES_EXPIRATION_PERIOD_PARAM);
 		
-		return new Duration(java.time.Duration.parse(valueString).toMillis());
+		if(valueString.isDefined())
+		    return Option.apply(new Duration(java.time.Duration.parse(valueString.get()).toMillis()));
+		else
+		    return Option.empty();
 	}
 
 	public JavaPairDStream<K, V> asJavaPairDStream() {

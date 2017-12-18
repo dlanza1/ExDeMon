@@ -86,11 +86,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
 	
 	@Override
 	public JavaRDD<Tuple2<StatusKey, StatusValue>> load(JavaSparkContext context) throws IOException, ConfigurationException {
-	    setUpConsumer();
-        
-		List<ConsumerRecordSer> list = getAllRecords();
-		
-		consumer.close();
+	    List<ConsumerRecordSer> list = getAllRecords();
 		
         JavaRDD<ConsumerRecordSer> kafkaContent = context.parallelize(list);
 		
@@ -98,7 +94,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
 		
 		JavaRDD<Tuple2<StatusKey, StatusValue>> parsed = parseRecords(latestRecords);
 		
-		LOG.info(parsed.count() + " statuses loaded from Kafka topic " + topic);
+		LOG.info("Statuses loaded from Kafka topic " + topic);
 		
 		parsed = parsed.persist(StorageLevel.MEMORY_AND_DISK());
 		
@@ -113,6 +109,8 @@ public class KafkaStatusesStorage extends StatusesStorage {
     }
 
     private List<ConsumerRecordSer> getAllRecords() {
+        setUpConsumer();
+        
         List<ConsumerRecordSer> list = new LinkedList<>();
         
         long[] lastOffsets = new long[consumer.partitionsFor(topic).size()];
@@ -132,6 +130,8 @@ public class KafkaStatusesStorage extends StatusesStorage {
         
         checkAllRecordsConsumed(lastOffsets);
         
+        consumer.close();
+        
         return list;
     }
     
@@ -144,8 +144,12 @@ public class KafkaStatusesStorage extends StatusesStorage {
 
         consumer.seekToEnd(partitions);
         consumer.poll(0);
-        for (TopicPartition tp : partitions)
+        for (TopicPartition tp : partitions) {
             until[tp.partition()] = consumer.position(tp) - 1;
+            
+            if(until[tp.partition()] < 0)
+                until[tp.partition()] = 0;
+        }
         
         if(!Arrays.equals(until, lastOffsets)) {
             LOG.error("Some partitions were not completelly consumed when reading the state.");
@@ -178,7 +182,8 @@ public class KafkaStatusesStorage extends StatusesStorage {
 									}
 									
 									return new Tuple2<ByteArray, ByteArray>(key, latestValue._2);
-								});
+								})
+								.filter(pair -> pair._2 != null);
 	}
 	
 	private JavaRDD<Tuple2<StatusKey, StatusValue>> parseRecords(JavaRDD<Tuple2<ByteArray, ByteArray>> latestRecords) {
@@ -197,8 +202,15 @@ public class KafkaStatusesStorage extends StatusesStorage {
 		rdd.asJavaRDD().foreachPartition(new KafkaProducerFunc<K, V>(kafkaProducer, serializer, topic));
 	}
 	
+    @Override
+    public <K extends StatusKey> void remove(RDD<K> rdd) {
+        JavaRDD<Tuple2<K, StatusValue>> keyWithNulls = rdd.asJavaRDD().map(key -> new Tuple2<K, StatusValue>(key, null));
+        
+        keyWithNulls.foreachPartition(new KafkaProducerFunc<K, StatusValue>(kafkaProducer, serializer, topic));
+    }
+	
     private <K extends StatusKey, V extends StatusValue> RDD<Tuple2<K, V>> filterOnlyUpdatedStates(RDD<Tuple2<K, V>> rdd, Time time) {
-		return RDD.from(rdd.asJavaRDD().filter(tuple -> tuple._2.getUpdatedTime() == time.milliseconds() || tuple._2.getUpdatedTime() == 0));
+		return RDD.from(rdd.asJavaRDD().filter(tuple -> tuple._2 == null || tuple._2.getUpdatedTime() == time.milliseconds() || tuple._2.getUpdatedTime() == 0));
 	}
 
 	private Map<String, Object> getKafkaProducerParams(Properties props) {
@@ -261,11 +273,9 @@ public class KafkaStatusesStorage extends StatusesStorage {
 			
 			while(records.hasNext()) {
 				Tuple2<K, V> record = records.next();
-				
-//				System.out.println("Produce: " + topic + " " + new String(serializer.fromKey(record._1)) + "  - " + new String(serializer.fromValue(record._2)));
-				
-				Bytes key = new Bytes(serializer.fromKey(record._1));
-				Bytes value = new Bytes(serializer.fromValue(record._2));
+
+				Bytes key = record._1 != null ? new Bytes(serializer.fromKey(record._1)) : null;
+				Bytes value = record._2 != null ? new Bytes(serializer.fromValue(record._2)) : null;
 				
 				producer.send(new ProducerRecord<Bytes, Bytes>(topic, key, value));
 			}

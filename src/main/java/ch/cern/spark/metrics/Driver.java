@@ -18,7 +18,6 @@ import ch.cern.components.ComponentManager;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.properties.source.PropertiesSource;
-import ch.cern.spark.PairStream;
 import ch.cern.spark.SparkConf;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.defined.DefinedMetrics;
@@ -29,6 +28,8 @@ import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
 import ch.cern.spark.metrics.schema.MetricSchemas;
 import ch.cern.spark.metrics.source.MetricsSource;
+import ch.cern.spark.status.StatusKey;
+import ch.cern.spark.status.StatusesKeyReceiver;
 import ch.cern.spark.status.storage.StatusesStorage;
 
 public final class Driver {
@@ -38,17 +39,26 @@ public final class Driver {
 	public static String CHECKPOINT_DIR_PARAM = "checkpoint.dir";  
     public static String CHECKPOINT_DIR_DEFAULT = "/tmp/";  
     
-    public static String DATA_EXPIRATION_PARAM = "data.expiration";
-    public static Duration DATA_EXPIRATION_DEFAULT = Duration.ofHours(3);
-    
     private JavaStreamingContext ssc;
     
 	private List<MetricsSource> metricSources;
 	private Optional<AnalysisResultsSink> analysisResultsSink;
 	private List<NotificationsSink> notificationsSinks;
 
+	public static String STATUSES_REMOVAL_SOCKET_PARAM = "statuses.removal.socket";
+	private String statuses_removal_socket_host;
+	private Integer statuses_removal_socket_port;
+
 	public Driver(Properties properties) throws Exception {
 		removeSparkCheckpointDir(properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT));
+		
+		String removalSocket = properties.getProperty(STATUSES_REMOVAL_SOCKET_PARAM);
+		if(removalSocket != null) {
+		    String[] host_port = removalSocket.trim().split(":");
+		    
+		    statuses_removal_socket_host = host_port[0];
+		    statuses_removal_socket_port = Integer.parseInt(host_port[1]);
+		}
 		
         ssc = newStreamingContext(properties);
 
@@ -93,17 +103,19 @@ public final class Driver {
 
     protected JavaStreamingContext createNewStreamingContext(Properties propertiesSourceProps) throws Exception {
 	    
-    		Stream<Metric> metrics = getMetricstream(propertiesSourceProps);
+    		Stream<Metric> metrics = getMetricStream(propertiesSourceProps);
     		
-		metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps));
+    		Optional<Stream<StatusKey>> statusesToRemove = getStatusesToRemoveStream();
+    		
+		metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps, statusesToRemove));
 		metrics.cache();
 		
-		Stream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps);
+		Stream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps, statusesToRemove);
 		results.cache();
 
 		analysisResultsSink.ifPresent(results::sink);
 		
-		Stream<Notification> notifications = Monitors.notify(results, propertiesSourceProps);
+		Stream<Notification> notifications = Monitors.notify(results, propertiesSourceProps, statusesToRemove);
 		notifications.cache();
 		
     		notificationsSinks.stream().forEach(notifications::sink);
@@ -111,7 +123,14 @@ public final class Driver {
 		return ssc;
 	}
 
-	public Stream<Metric> getMetricstream(Properties propertiesSourceProps) {
+	private Optional<Stream<StatusKey>> getStatusesToRemoveStream() {
+	    if(statuses_removal_socket_host == null || statuses_removal_socket_port == null)
+	        return Optional.empty();
+
+        return Optional.of(Stream.from(ssc.receiverStream(new StatusesKeyReceiver(statuses_removal_socket_host, statuses_removal_socket_port))));
+    }
+
+    public Stream<Metric> getMetricStream(Properties propertiesSourceProps) {
 		return metricSources.stream()
 				.map(source -> MetricSchemas.generate(source.createStream(ssc), propertiesSourceProps, source.getId(), source.getSchema()))
 				.reduce((str, stro) -> str.union(stro)).get();
@@ -177,8 +196,6 @@ public final class Driver {
         		sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".type", "single-file");
         		sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".path", checkpointDir + "/statuses");
         }
-        Duration dataExpirationPeriod = properties.getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);
-        sparkConf.set(PairStream.CHECKPPOINT_DURATION_PARAM, dataExpirationPeriod.toString());
 
     		long batchInterval = properties.getPeriod(BATCH_INTERVAL_PARAM, Duration.ofMinutes(1)).getSeconds();
 		

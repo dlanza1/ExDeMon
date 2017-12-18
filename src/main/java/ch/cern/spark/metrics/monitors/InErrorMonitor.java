@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.spark.streaming.State;
-import org.apache.spark.streaming.Time;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -19,7 +18,7 @@ import ch.cern.spark.metrics.notificator.types.ConstantNotificator;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.StatusValue;
-import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
+import ch.cern.spark.status.storage.ClassNameAlias;
 
 public class InErrorMonitor extends Monitor {
 
@@ -50,7 +49,7 @@ public class InErrorMonitor extends Monitor {
 	}
 	
 	@Override
-	public Optional<AnalysisResult> process(State<StatusValue> storeState, Metric metric, Time time) {
+	public Optional<AnalysisResult> process(State<StatusValue> storeState, Metric metric) {
 		AnalysisResult result = null;
 		
 		if(filter != null) {
@@ -70,7 +69,7 @@ public class InErrorMonitor extends Monitor {
 				result = AnalysisResult.buildWithStatus(Status.EXCEPTION, exception.getClass().getSimpleName() + ": " + exception.getMessage());
 			}
 			
-			store.update(storeState, time);
+			storeState.update(store);
 		}
 
 		if(result != null) {
@@ -116,7 +115,7 @@ public class InErrorMonitor extends Monitor {
 			return new HashMap<>();
 	}
 	
-	@JSONSerializationClassNameAlias("in-error-notificator")
+	@ClassNameAlias("in-error-notificator")
 	private static class Status_ extends StatusValue {
 
 		private static final long serialVersionUID = -6991497562392525744L;

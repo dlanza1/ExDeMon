@@ -2,18 +2,17 @@ package ch.cern.spark;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
-import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.api.java.function.VoidFunction2;
-import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaDStream;
 
@@ -24,6 +23,7 @@ import ch.cern.spark.metrics.Sink;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusStream;
 import ch.cern.spark.status.StatusValue;
+import ch.cern.spark.status.UpdateStatusFunction;
 
 public class Stream<V> {
 
@@ -45,11 +45,12 @@ public class Stream<V> {
 			Class<K> keyClass, 
 			Class<S> statusClass,
 			PairFlatMapFunction<V, K, V> toPairFunction, 
-			Function4<Time, K, Optional<V>, State<S>, Optional<R>> updateStatusFunction) throws ClassNotFoundException, IOException, ConfigurationException {
+			Optional<Stream<K>> removeKeys,
+			UpdateStatusFunction<K, V, S, R> updateStatusFunction) throws ClassNotFoundException, IOException, ConfigurationException {
 
 		PairStream<K, V> keyValuePairs = toPair(toPairFunction);
 		
-		return PairStream.mapWithState(keyClass, statusClass, keyValuePairs, updateStatusFunction);
+		return PairStream.mapWithState(keyClass, statusClass, keyValuePairs, updateStatusFunction, removeKeys);
 	}
 
 	public Stream<V> union(Stream<V> input) {
@@ -126,5 +127,9 @@ public class Stream<V> {
 	public void cache() {
 		stream = stream.cache();
 	}
+
+    public<K, T> PairStream<K, T> mapToPair(PairFunction<V, K, T> func) {
+        return PairStream.from(stream.mapToPair(func));
+    }
 	
 }

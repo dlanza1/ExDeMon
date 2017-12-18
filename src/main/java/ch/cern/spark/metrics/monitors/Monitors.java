@@ -3,6 +3,7 @@ package ch.cern.spark.metrics.monitors;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -17,6 +18,7 @@ import ch.cern.spark.metrics.notificator.ComputeNotificatorKeysF;
 import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
 import ch.cern.spark.metrics.notificator.UpdateNotificatorStatusesF;
 import ch.cern.spark.metrics.results.AnalysisResult;
+import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
 
 public class Monitors {
@@ -44,12 +46,34 @@ public class Monitors {
 		}
 	};
 	
-	public static Stream<AnalysisResult> analyze(Stream<Metric> metrics, Properties propertiesSourceProps) throws Exception {
-        return metrics.mapWithState(MonitorStatusKey.class, StatusValue.class, new ComputeMonitorKeysF(propertiesSourceProps), new UpdateMonitorStatusesF(propertiesSourceProps));
+	public static Stream<AnalysisResult> analyze(Stream<Metric> metrics, Properties propertiesSourceProps, Optional<Stream<StatusKey>> allStatusesToRemove) throws Exception {
+	    Stream<MonitorStatusKey> statusesToRemove = null;
+	    if(allStatusesToRemove.isPresent())
+	        statusesToRemove = allStatusesToRemove.get()
+	                                .filter(key -> key instanceof MonitorStatusKey)
+	                                .map(key -> (MonitorStatusKey) key);
+	    
+        return metrics.mapWithState(
+                            MonitorStatusKey.class, 
+                            StatusValue.class, 
+                            new ComputeMonitorKeysF(propertiesSourceProps), 
+                            Optional.ofNullable(statusesToRemove),
+                            new UpdateMonitorStatusesF(propertiesSourceProps));
 	}
 
-	public static Stream<Notification> notify(Stream<AnalysisResult> results, Properties propertiesSourceProps) throws IOException, ClassNotFoundException, ConfigurationException {
-        return results.mapWithState(NotificatorStatusKey.class, StatusValue.class, new ComputeNotificatorKeysF(propertiesSourceProps), new UpdateNotificatorStatusesF(propertiesSourceProps));
+	public static Stream<Notification> notify(Stream<AnalysisResult> results, Properties propertiesSourceProps, Optional<Stream<StatusKey>> allStatusesToRemove) throws IOException, ClassNotFoundException, ConfigurationException {
+	    Stream<NotificatorStatusKey> statusesToRemove = null;
+	    if(allStatusesToRemove.isPresent())
+	        statusesToRemove = allStatusesToRemove.get()
+	                                    .filter(key -> key instanceof NotificatorStatusKey)
+	                                    .map(key -> (NotificatorStatusKey) key);
+	        
+        return results.mapWithState(
+                            NotificatorStatusKey.class, 
+                            StatusValue.class, 
+                            new ComputeNotificatorKeysF(propertiesSourceProps), 
+                            Optional.ofNullable(statusesToRemove),
+                            new UpdateNotificatorStatusesF(propertiesSourceProps));
 	}
 	
 	public static Cache<Map<String, Monitor>> getCache() {

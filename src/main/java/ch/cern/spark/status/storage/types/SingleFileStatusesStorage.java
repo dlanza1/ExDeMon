@@ -39,7 +39,7 @@ public class SingleFileStatusesStorage extends StatusesStorage{
 	public void config(Properties properties) throws ConfigurationException {
 		super.config(properties);
 		
-		path = properties.getProperty("path");
+		path = properties.getProperty("path", "/tmp/metrics-monitor-statuses/");
 	}
 	
 	@Override
@@ -140,5 +140,9 @@ public class SingleFileStatusesStorage extends StatusesStorage{
 		if (fs == null)
 			fs = FileSystem.get(new Configuration());
 	}
+
+    @Override
+    public <K extends StatusKey> void remove(RDD<K> rdd) {
+    }
 	
 }
