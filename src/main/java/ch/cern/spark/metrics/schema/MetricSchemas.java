@@ -23,7 +23,7 @@ public class MetricSchemas {
 		protected Map<String, MetricSchema> load() throws Exception {
 	        Properties properties = Properties.getCache().get().getSubset("metrics.schema");
 	        
-	        Set<String> metricSchemaIDs = properties.getUniqueKeyFields();
+	        Set<String> metricSchemaIDs = properties.getIDs();
 	        
 	        Map<String, MetricSchema> metricSchemas = metricSchemaIDs.stream()
 	        		.map(id -> new MetricSchema(id).config(properties.getSubset(id)))

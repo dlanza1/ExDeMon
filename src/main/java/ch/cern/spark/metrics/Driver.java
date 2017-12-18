@@ -147,7 +147,7 @@ public final class Driver {
 		
     		Properties metricSourcesProperties = properties.getSubset("metrics.source");
 		
-    		Set<String> ids = metricSourcesProperties.getUniqueKeyFields();
+    		Set<String> ids = metricSourcesProperties.getIDs();
     		
     		for (String id : ids) {
     			Properties props = metricSourcesProperties.getSubset(id);
@@ -169,7 +169,7 @@ public final class Driver {
 		
     		Properties sinkProperties = properties.getSubset("notifications.sink");
 		
-    		Set<String> ids = sinkProperties.getUniqueKeyFields();
+    		Set<String> ids = sinkProperties.getIDs();
     		
     		for (String id : ids) {
     			Properties props = sinkProperties.getSubset(id);

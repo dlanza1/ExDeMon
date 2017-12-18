@@ -31,7 +31,7 @@ public class Monitors {
 		protected Map<String, Monitor> load() throws Exception {
 	        Properties properties = Properties.getCache().get().getSubset("monitor");
 	        
-	        Set<String> monitorNames = properties.getUniqueKeyFields();
+	        Set<String> monitorNames = properties.getIDs();
 	        
 	        Map<String, Monitor> monitors = new HashMap<>();
 	        for (String monitorName : monitorNames) {
