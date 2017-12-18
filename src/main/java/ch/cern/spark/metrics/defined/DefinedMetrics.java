@@ -28,7 +28,7 @@ public class DefinedMetrics {
 		protected Map<String, DefinedMetric> load() throws Exception {
 	        Properties properties = Properties.getCache().get().getSubset("metrics.define");
 	        
-	        Set<String> metricsDefinedNames = properties.getUniqueKeyFields();
+	        Set<String> metricsDefinedNames = properties.getIDs();
 	        
 	        Map<String, DefinedMetric> definedMetrics = metricsDefinedNames.stream()
 	        		.map(id -> new Pair<String, Properties>(id, properties.getSubset(id)))

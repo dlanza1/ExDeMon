@@ -42,7 +42,7 @@ public class InErrorMonitor extends Monitor {
 		
 		tags = new HashMap<>();
         Properties tagsProps = properties.getSubset("tags");
-        Set<String> tagKeys = tagsProps.getUniqueKeyFields();
+        Set<String> tagKeys = tagsProps.getIDs();
         tagKeys.forEach(key -> tags.put(key, tagsProps.getProperty(key)));
 		
 		return this;

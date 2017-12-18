@@ -66,7 +66,7 @@ public class DefinedMetric implements Serializable{
 		filter = MetricsFilter.build(properties.getSubset("metrics.filter"));
 		
 		Properties variablesProperties = properties.getSubset("variables");
-		Set<String> variableNames = variablesProperties.getUniqueKeyFields();
+		Set<String> variableNames = variablesProperties.getIDs();
 		
 		String equationString = properties.getProperty("value");
 		try {

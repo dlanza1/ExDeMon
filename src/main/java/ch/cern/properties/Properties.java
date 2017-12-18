@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.hadoop.conf.Configuration;
@@ -30,6 +31,8 @@ public class Properties extends java.util.Properties{
 	private transient final static Logger LOG = Logger.getLogger(Properties.class.getName());
 	
 	private static Cache<Properties> cachedProperties = null;
+	
+	private static Pattern ID_REGEX = Pattern.compile("[a-zA-Z0-9_-]+");
 	
 	private Set<String> usedKeys = new HashSet<>();
 
@@ -87,13 +90,13 @@ public class Properties extends java.util.Properties{
 		return value != null ? value : defaultValue;
 	}
 
-	public Set<String> getUniqueKeyFields() {
+	public Set<String> getIDs() {
     		return keySet().stream()
 		    			.map(String::valueOf)
 		    			.map(s -> s.split("\\."))
 		    			.filter(spl -> spl.length > 0)
 		    			.map(spl -> spl[0])
-		    			.distinct()
+		    			.filter(id -> ID_REGEX.matcher(id).matches())
 		    			.collect(Collectors.toSet());
     }
 

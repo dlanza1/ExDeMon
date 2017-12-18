@@ -47,7 +47,7 @@ public class PropertiesTest {
         prop.setProperty("prop3.prop31", "val2");
         prop.setProperty("prop3.prop32", "val2");
         
-        Object[] uniq = prop.getUniqueKeyFields().toArray();
+        Object[] uniq = prop.getIDs().toArray();
         String[] expectedValue = {"prop2", "prop1", "prop3"};
         Assert.assertArrayEquals(expectedValue, uniq);
 	}

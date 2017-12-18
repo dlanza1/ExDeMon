@@ -60,7 +60,7 @@ public class Monitor {
     		analysis = ComponentManager.build(Type.ANAYLSIS, properties.getSubset("analysis"));
         
         Properties notificatorsProps = properties.getSubset("notificator");
-        Set<String> notificatorIds = notificatorsProps.getUniqueKeyFields();
+        Set<String> notificatorIds = notificatorsProps.getIDs();
         notificators = new HashMap<>();
         for (String notificatorId : notificatorIds) {
         		Properties props = notificatorsProps.getSubset(notificatorId);

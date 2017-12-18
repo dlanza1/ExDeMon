@@ -67,7 +67,7 @@ public class EquationParser {
 			Map<String, Variable> variables) throws ParseException, ConfigurationException {
 		
 		this.variablesProperties = variablesProperties;
-		this.variableNames = variablesProperties.getUniqueKeyFields();
+		this.variableNames = variablesProperties.getIDs();
 		this.variables = variables;
 		str = equationAsString;
 		
