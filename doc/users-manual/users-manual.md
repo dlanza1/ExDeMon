@@ -19,6 +19,8 @@ A basic configuration contains a [metrics source](metric-sources.md), one or mor
 
 Note that the configuration of [metric schemas](metrics-schema.md), [defined metrics](define-metrics.md) and [monitors](monitor.md) is dynamic, so it can be updated while running. This dynamic configuration is obtained from the configured [properties source](properties-source.md), which by default is configured to read the same configuration file.
 
+Any ID in the configuration must follow the regular expression: "[a-zA-Z0-9_-]+"
+
 The general structure of the configuration file is shown below.
 
 ```
