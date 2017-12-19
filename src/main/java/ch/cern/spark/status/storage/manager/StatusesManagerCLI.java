@@ -79,9 +79,11 @@ public class StatusesManagerCLI {
         
         JavaPairRDD<StatusKey, StatusValue> filteredStatuses = manager.loadAndFilter();
         
+        long size = filteredStatuses.count();
+        
         StatusKey key = null;
         StatusValue value = null;
-        if(filteredStatuses.count() > 1) {
+        if(size > 1) {
             Map<Integer, StatusKey> indexedKeys = getInxedKeys(filteredStatuses);
             manager.printKeys(indexedKeys);
             
@@ -95,6 +97,14 @@ public class StatusesManagerCLI {
             }
             
             value = values.get(0);
+        }else if(size == 1){
+            Tuple2<StatusKey, StatusValue> tuple = filteredStatuses.collect().get(0);
+            
+            key = tuple._1;
+            value = tuple._2;
+        }else {
+            System.out.println("No key found with that criteria.");
+            System.exit(0);
         }
 
         manager.printDetailedInfo(key, value);
