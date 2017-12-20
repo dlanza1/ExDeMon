@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -183,7 +184,13 @@ public class StatusesManagerCLI {
         System.out.println();
         System.out.println("Detailed information:");
         System.out.println("- Key: " + new String(serializer.fromKey(key)));
-        System.out.println("- Value: " + new String(serializer.fromValue(value)));
+        System.out.println("- Updated value at: " + Instant.ofEpochMilli(value.getUpdatedTime()));
+        
+        String valueString = new String(serializer.fromValue(value));
+        if(valueString.length() > 1001)
+            valueString = valueString.substring(0, 1000) + "...";
+        
+        System.out.println("- Value: " + valueString);
     }
 
     private static int askForIndex() {
