@@ -11,8 +11,8 @@ import org.junit.Test;
 
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.defined.DefinedMetric;
-import ch.cern.spark.metrics.defined.equation.var.MetricVariableStatus;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 
 public class AnalysisFuncTest {
@@ -20,14 +20,14 @@ public class AnalysisFuncTest {
 	DefinedMetric definedMetric = new DefinedMetric("A");
 	Properties properties = new Properties();
 	VariableStatuses stores = new VariableStatuses();
-	MetricVariableStatus store = new MetricVariableStatus();
+	ValueHistory.Status store = new ValueHistory.Status();
 	
 	@Before
 	public void setUp() {
 		definedMetric = new DefinedMetric("A");
 		properties = new Properties();
 		stores = new VariableStatuses();
-		store = new MetricVariableStatus();
+		store = new ValueHistory.Status();
 		
 		stores.put("value", store);
 	}
@@ -104,7 +104,7 @@ public class AnalysisFuncTest {
 	}
 
 	private void assertResult(boolean expected, Metric metric) {
-		store.add(metric.getValue(), metric.getInstant());
+		store.history.add(metric.getInstant(), metric.getValue());
 		
 		Optional<Metric> result = definedMetric.generateByUpdate(stores, metric, new HashMap<>());
 		

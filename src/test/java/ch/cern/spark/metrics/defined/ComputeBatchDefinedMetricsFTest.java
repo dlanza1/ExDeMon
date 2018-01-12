@@ -17,8 +17,8 @@ import ch.cern.Cache;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.defined.equation.var.MetricVariableStatus;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
+import ch.cern.spark.metrics.defined.equation.var.agg.AggregationValues;
 import ch.cern.spark.metrics.value.FloatValue;
 import scala.Tuple2;
 
@@ -38,6 +38,7 @@ public class ComputeBatchDefinedMetricsFTest {
 	public void aggregateCountUpdate() throws Exception {
 		propertiesCache.get().setProperty("metrics.define.dmID1.metrics.groupby", "DB_NAME METRIC_NAME");
 		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate", "count_floats");
+		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.attributes", "ALL");
 		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.expire", "5m");
 		propertiesCache.get().setProperty("metrics.define.dmID1.when", "batch");
 		
@@ -49,7 +50,7 @@ public class ComputeBatchDefinedMetricsFTest {
 		State<VariableStatuses> status = new StateImpl<>();
 		
 		VariableStatuses varStores = new VariableStatuses();
-		MetricVariableStatus valueStore = new MetricVariableStatus();
+		AggregationValues valueStore = new AggregationValues(100);
 		varStores.put("value", valueStore);
 		
 		Map<String, String> ids = new HashMap<>();

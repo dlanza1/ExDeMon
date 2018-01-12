@@ -15,7 +15,6 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.Equation;
-import ch.cern.spark.metrics.defined.equation.var.AnyMetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.Variable;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
@@ -92,12 +91,12 @@ public class DefinedMetric implements Serializable{
 		if(variablesWhen != null) {
 			for (String variableWhen : variablesWhen) {
 				if(!equation.getVariables().containsKey(variableWhen)) {
-					AnyMetricVariable trigger = new AnyMetricVariable(variableWhen);
-					trigger.config(variablesProperties.getSubset(variableWhen));
+					MetricVariable trigger = new MetricVariable(variableWhen);
+					trigger.config(variablesProperties.getSubset(variableWhen), Optional.empty());
 					
 					equation.getVariables().put(variableWhen, trigger);
 				}
-				
+			
 				if(!variableNames.contains(variableWhen))
 					throw new ConfigurationException("Variables listed in when parameter must be declared.");
 			}
@@ -164,7 +163,7 @@ public class DefinedMetric implements Serializable{
 			metricForStore.getIDs().entrySet().removeIf(entry -> groupByKeys.contains(entry.getKey()));
 		
 		for (MetricVariable variableToUpdate : variablesToUpdate.values())
-			variableToUpdate.updateStore(stores, metricForStore);
+			variableToUpdate.updateVariableStatuses(stores, metricForStore);
 	}
 
 	public Optional<Metric> generateByUpdate(VariableStatuses stores, Metric metric, Map<String, String> groupByMetricIDs) {

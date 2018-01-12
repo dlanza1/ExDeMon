@@ -15,6 +15,7 @@ public abstract class Component implements Serializable {
     public enum Type {STATUS_STORAGE,
     						PROPERTIES_SOURCE,
     						METRIC_SOURCE, 
+    						AGGREGATION,
     						ANAYLSIS, 
     						ANALYSIS_RESULTS_SINK, 
     						NOTIFICATOR, 

@@ -33,13 +33,10 @@ import ch.cern.spark.metrics.defined.equation.functions.num.TanFunc;
 import ch.cern.spark.metrics.defined.equation.functions.string.ConcatFunc;
 import ch.cern.spark.metrics.defined.equation.functions.string.IfStringFunc;
 import ch.cern.spark.metrics.defined.equation.functions.string.TrimFunc;
-import ch.cern.spark.metrics.defined.equation.var.AnyMetricVariable;
-import ch.cern.spark.metrics.defined.equation.var.BooleanMetricVariable;
-import ch.cern.spark.metrics.defined.equation.var.FloatMetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.PropertiesVariable;
-import ch.cern.spark.metrics.defined.equation.var.StringMetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.Variable;
+import ch.cern.spark.metrics.defined.equation.var.agg.LastValueAggregation;
 import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.PropertiesValue;
@@ -200,7 +197,7 @@ public class EquationParser {
 			throws ConfigurationException, ParseException {
 
 		if(!(valueComputable instanceof MetricVariable) 
-				|| argumentType.equals(AnyMetricVariable.class)
+				|| argumentType.equals(Value.class)
 				|| valueComputable.getClass().equals(argumentType))
 			return valueComputable;
 		
@@ -215,51 +212,36 @@ public class EquationParser {
 		
 		if(argumentTypeOpt.isPresent() && argumentTypeOpt.get().equals(PropertiesValue.class)) {
 			variables.put(variableName, new PropertiesVariable(variableName));
-			variables.get(variableName).config(variablesProperties.getSubset(variableName));
+			variables.get(variableName).config(variablesProperties.getSubset(variableName), Optional.empty());
 		}
-		
-		Optional<Class<? extends Value>> variableTypeFromAggregation = MetricVariable.typeFromAggregation(variablesProperties.getSubset(variableName));
-		Optional<Class<? extends Value>> returnTypeFromAggregation = MetricVariable.returnTypeFromAggregation(variablesProperties.getSubset(variableName));
-		if(returnTypeFromAggregation.isPresent()) {
-			if(argumentTypeOpt.isPresent() && !returnTypeFromAggregation.get().equals(argumentTypeOpt.get()))
-				throw new ParseException("Variable "+variableName+" returns type "+returnTypeFromAggregation.get().getSimpleName()+" because of its aggregation operation, "
-						+ "but in the equation there is a function that uses it as type " + argumentTypeOpt.get().getSimpleName() , pos);
-			
-			argumentTypeOpt = returnTypeFromAggregation;
-		}
-		
-		if(!variables.containsKey(variableName)) {	
-			if(variableTypeFromAggregation.isPresent())
-				argumentTypeOpt = variableTypeFromAggregation;
-			
+
+		if(!variables.containsKey(variableName)) {				
 			putMetricVariable(variableName, argumentTypeOpt);
 		}else{
 			Variable previousVariable = variables.get(variableName);
 			
-			if(previousVariable.getClass().equals(AnyMetricVariable.class) && argumentTypeOpt.isPresent()) {
+			if(previousVariable.returnType().equals(Value.class) && argumentTypeOpt.isPresent()) {
 				putMetricVariable(variableName, argumentTypeOpt);
 				
-				variables.get(variableName).config(variablesProperties.getSubset(variableName));
-			}else if(argumentTypeOpt.isPresent() && !previousVariable.returnType().equals(argumentTypeOpt.get()))
-				throw new ParseException("Variable "+variableName+" is used by functions that expect it as different types "
+				variables.get(variableName).config(variablesProperties.getSubset(variableName), argumentTypeOpt);
+			}else if(argumentTypeOpt.isPresent() && !previousVariable.returnType().equals(argumentTypeOpt.get())) {
+			    if(previousVariable instanceof MetricVariable && !(((MetricVariable) previousVariable).getAggregation() instanceof LastValueAggregation))
+			        throw new ConfigurationException("Variable "+variableName+" returns type "+previousVariable.returnType().getSimpleName()+" because of its aggregation operation, "
+		                                                            + "but in the equation there is a function that uses it as type " + argumentTypeOpt.get().getSimpleName());
+			    else
+			        throw new ParseException("Variable "+variableName+" is used by functions that expect it as different types "
 							+ "(" + previousVariable.returnType().getSimpleName() + ", " + argumentTypeOpt.get().getSimpleName()+")" , pos);
+			}
 		}
 		
 		return variables.get(variableName);
 	}
 
 	private void putMetricVariable(String variableName, Optional<Class<? extends Value>> argumentTypeOpt) throws ConfigurationException {
-		if(!argumentTypeOpt.isPresent())
-			variables.put(variableName, new AnyMetricVariable(variableName));
-		else if(argumentTypeOpt.get().equals(FloatValue.class))
-			variables.put(variableName, new FloatMetricVariable(variableName));
-		else if(argumentTypeOpt.get().equals(BooleanValue.class))
-			variables.put(variableName, new BooleanMetricVariable(variableName));
-		else if(argumentTypeOpt.get().equals(StringValue.class))
-			variables.put(variableName, new StringMetricVariable(variableName));
-		
-		if(variables.containsKey(variableName))
-			variables.get(variableName).config(variablesProperties.getSubset(variableName));
+	    MetricVariable var = new MetricVariable(variableName);
+	    var.config(variablesProperties.getSubset(variableName), argumentTypeOpt);
+	    
+		variables.put(variableName, var);
 	}
 
 	private ValueComputable parseFunction(String functionRepresentation) throws ParseException, ConfigurationException {

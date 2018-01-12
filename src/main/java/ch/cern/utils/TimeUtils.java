@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -95,6 +96,23 @@ public class TimeUtils {
             return hours_s + " and " + seconds_s;
 
         return hours_s + ", " + minutes_s + " and " + seconds_s;
+    }
+
+    public static ChronoUnit parseGranularity(String granularityString) throws ConfigurationException {
+        switch (granularityString) {
+        case "d":
+            return ChronoUnit.DAYS;
+        case "h":
+            return ChronoUnit.HOURS;
+        case "m":
+            return ChronoUnit.MINUTES;
+        case "s":
+            return ChronoUnit.SECONDS;
+        case "ms":
+            return ChronoUnit.MILLIS;
+        default:
+            throw new ConfigurationException("Granularity is configured to an incompatible value.");
+        }
     }
 
 }

@@ -11,8 +11,6 @@ public interface ValueComputable {
 	
 	/**
 	 * Serves the check casting (generic types are not checked when parsing equation) 
-	 * 
-	 * @return Should be same as <T>
 	 */
 	public Class<? extends Value> returnType();
 	

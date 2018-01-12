@@ -2,6 +2,8 @@ package ch.cern.spark.metrics;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,6 +14,7 @@ import java.io.ObjectOutputStream;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,11 +23,16 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import ch.cern.spark.metrics.ValueHistory.Status;
+import ch.cern.spark.metrics.defined.equation.ComputationException;
+import ch.cern.spark.metrics.defined.equation.var.agg.Aggregation;
+import ch.cern.spark.metrics.defined.equation.var.agg.CountAgregation;
+import ch.cern.spark.metrics.defined.equation.var.agg.SumAggregation;
 import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.StringValue;
 import ch.cern.spark.metrics.value.Value;
+import ch.cern.utils.DurationAndTruncate;
 import ch.cern.utils.TimeUtils;
 
 public class ValueHistoryTest {
@@ -130,7 +138,7 @@ public class ValueHistoryTest {
     }
     
     @Test
-    public void saveAndLoad() throws IOException, ParseException, ClassNotFoundException{
+    public void saveAndLoad() throws IOException, ParseException, ClassNotFoundException, ComputationException{
         Status store = new Status();
         store.history = new ValueHistory(Duration.ofSeconds(60));
         int numberOfRecords = 10;
@@ -152,6 +160,145 @@ public class ValueHistoryTest {
         assertNotSame(store.history.getDatedValues(), restoredStore.history.getDatedValues());
         assertEquals(store.history.getPeriod(), restoredStore.history.getPeriod());
         assertEquals(store.history.getDatedValues(), restoredStore.history.getDatedValues());
+    }
+    
+    @Test
+    public void shouldGenerateExceptionWhenMaxSizeIsReached() throws ComputationException {
+        ValueHistory values = new ValueHistory(new DurationAndTruncate(Duration.ofSeconds(30)), 3, null, null);
+        
+        Instant now = Instant.now();
+        
+        values.add(now, 0f);
+        values.getDatedValues();
+        
+        values.add(now, 0f);
+        values.getDatedValues();
+        
+        values.add(now, 0f);
+        values.getDatedValues();
+        
+        values.add(now, 0f);
+        try {
+            values.getDatedValues();
+            fail();
+        }catch(Exception e) {}
+    }
+    
+    @Test
+    public void granularityShouldProvideSameResults() throws ComputationException {
+        Aggregation aggregation = new SumAggregation();
+        
+        ValueHistory values = new ValueHistory(new DurationAndTruncate(Duration.ofMinutes(30)), 10000, null, null);
+        
+        ChronoUnit granularity = ChronoUnit.MINUTES;
+        ValueHistory granularValues = new ValueHistory(new DurationAndTruncate(Duration.ofMinutes(30)), 100, granularity, aggregation);
+        
+        Instant time = Instant.parse("2007-12-03T10:15:00.00Z");
+        float num = (float) Math.random();
+        values.add(time, num);
+        granularValues.add(time, num);
+        assertEquals(aggregation.aggregateValues(values.getDatedValues(), time), aggregation.aggregateValues(granularValues.getDatedValues(), time));
+        assertEquals(values.size(), granularValues.size());
+        
+        time = Instant.parse("2007-12-03T10:15:30.00Z");
+        num = (float) Math.random();
+        values.add(time, num);
+        granularValues.add(time, num);
+        assertEquals(aggregation.aggregateValues(values.getDatedValues(), time), aggregation.aggregateValues(granularValues.getDatedValues(), time));
+        assertEquals(values.size(), granularValues.size());
+        
+        for (int i = 0; i < 1000; i++) {
+            Instant tmpTime = time.plus(Duration.ofSeconds((long) (3000f * Math.random())));
+
+            num = (float) Math.random();
+            values.add(tmpTime, num);
+            granularValues.add(tmpTime, num);
+            assertEquals(
+                    aggregation.aggregateValues(values.getDatedValues(), time).getAsAggregated().get().getAsFloat().get(), 
+                    aggregation.aggregateValues(granularValues.getDatedValues(), time).getAsAggregated().get().getAsFloat().get(),
+                    0.0001f);
+        }
+        
+        time = Instant.parse("2007-12-03T10:16:30.00Z");
+        num = (float) Math.random();
+        values.add(time, num);
+        granularValues.add(time, num);
+        assertEquals(
+                aggregation.aggregateValues(values.getDatedValues(), time).getAsAggregated().get().getAsFloat().get(), 
+                aggregation.aggregateValues(granularValues.getDatedValues(), time).getAsAggregated().get().getAsFloat().get(),
+                0.0001f);
+        assertTrue(values.size() > granularValues.size());
+    }
+    
+    @Test
+    public void granularityWithDifferentInputOutputTypeInAggregation() throws ComputationException {
+        Aggregation aggregation = new CountAgregation();
+        
+        ValueHistory values = new ValueHistory(new DurationAndTruncate(Duration.ofMinutes(30)), 100, null, null);
+        
+        ChronoUnit granularity = ChronoUnit.MINUTES;
+        ValueHistory granularValues = new ValueHistory(new DurationAndTruncate(Duration.ofMinutes(30)), 10, granularity, aggregation);
+        
+        Instant time = Instant.parse("2007-12-03T10:15:00.00Z");
+        StringValue input = new StringValue("a");
+        values.add(time, input);
+        granularValues.add(time, input);
+        assertEquals(aggregation.aggregateValues(values.getDatedValues(), time), aggregation.aggregateValues(granularValues.getDatedValues(), time));
+        assertEquals(values.size(), granularValues.size());
+        
+        time = Instant.parse("2007-12-03T10:15:30.00Z");
+        input = new StringValue("b");
+        values.add(time, input);
+        granularValues.add(time, input);
+        assertEquals(aggregation.aggregateValues(values.getDatedValues(), time), aggregation.aggregateValues(granularValues.getDatedValues(), time));
+        assertEquals(values.size(), granularValues.size());
+        
+        for (int i = 0; i < 10; i++) {
+            time = time.plus(Duration.ofSeconds(20));
+            input = new StringValue("c");
+            values.add(time, input);
+            granularValues.add(time, input);
+            assertEquals(aggregation.aggregateValues(values.getDatedValues(), time), aggregation.aggregateValues(granularValues.getDatedValues(), time));
+        }
+        
+        time = Instant.parse("2007-12-03T10:30:00.00Z");
+        input = new StringValue("d");
+        values.add(time, input);
+        granularValues.add(time, input);
+        assertEquals(aggregation.aggregateValues(values.getDatedValues(), time), aggregation.aggregateValues(granularValues.getDatedValues(), time));
+        assertTrue(values.size() > granularValues.size());
+    }
+    
+    @Test
+    public void shouldRecoverAfterMaxSizeIsReached() throws ComputationException {
+        ValueHistory values = new ValueHistory(new DurationAndTruncate(Duration.ofSeconds(6)), 3, null, null);
+        
+        Instant now = Instant.now();
+        
+        values.add(now, 0f);
+        values.getDatedValues();
+        
+        values.add(now.plus(Duration.ofSeconds(2)), 0f);
+        values.getDatedValues();
+        
+        values.add(now.plus(Duration.ofSeconds(4)), 0f);
+        values.getDatedValues();
+        
+        values.add(now.plus(Duration.ofSeconds(6)), 0f);
+        try {
+            values.getDatedValues();
+            fail();
+        }catch(Exception e) {}
+        
+        values.purge(now.plus(Duration.ofSeconds(7)));
+        
+        values.getDatedValues();
+        
+        values.add(now.plus(Duration.ofSeconds(6)), 0f);
+        try {
+            values.getDatedValues();
+            fail();
+        }catch(Exception e) {}
     }
     
     @Test

@@ -26,7 +26,7 @@ public abstract class UpdateStatusFunction<K extends StatusKey, V, S extends Sta
         
         StatusImpl<S> status = new StatusImpl<S>(state, time);
         
-        Optional<R> result = toOptional(update(key, actionOrValue.get().getValue(), state));
+        Optional<R> result = toOptional(update(key, actionOrValue.get().getValue(), status));
         
         if(status.isRemoved())
             return Optional.of(new RemoveAndValue<>(key, result));

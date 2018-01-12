@@ -19,6 +19,8 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
+import ch.cern.spark.metrics.defined.equation.var.agg.Aggregation;
+import ch.cern.spark.metrics.value.AggregatedValue;
 import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
@@ -34,9 +36,10 @@ public class JSONStatusSerializer implements StatusSerializer {
 
     private static Gson parser = new GsonBuilder().registerTypeAdapter(Instant.class, new InstantAdapter())
                                                     .registerTypeAdapter(Value.class, new ValueAdapter())
+                                                    .registerTypeAdapter(Aggregation.class, new HierarchyAdapter<Aggregation>())
                                                     .registerTypeAdapter(StatusKey.class, new HierarchyAdapter<StatusKey>())
                                                     .registerTypeAdapter(StatusValue.class, new HierarchyAdapter<StatusValue>()).create();
-
+    
     @Override
     public byte[] fromKey(StatusKey key) throws IOException {
         return parser.toJson(key, StatusKey.class).getBytes();
@@ -88,6 +91,8 @@ public class JSONStatusSerializer implements StatusSerializer {
                 return context.deserialize(json, BooleanValue.class);
             else if(jsonObject.has("exception_message"))
                 return context.deserialize(json, ExceptionValue.class);
+            else if(jsonObject.has("agg"))
+                return context.deserialize(json, AggregatedValue.class);
             else if(jsonObject.has("properties_name"))
                 return context.deserialize(json, PropertiesValue.class);
             else
@@ -148,7 +153,7 @@ public class JSONStatusSerializer implements StatusSerializer {
         @Override
         public JsonElement serialize(T object, Type type, JsonSerializationContext context) {
             JsonObject json = context.serialize(object).getAsJsonObject();
-
+            
             Class<?> klass = object.getClass();
             if (klass.isAnnotationPresent(ClassNameAlias.class))
                 json.addProperty(KEY_ALIAS_TYPE, klass.getAnnotation(ClassNameAlias.class).value());

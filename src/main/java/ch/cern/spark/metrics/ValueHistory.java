@@ -8,49 +8,93 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import ch.cern.spark.metrics.defined.equation.ComputationException;
+import ch.cern.spark.metrics.defined.equation.var.agg.Aggregation;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
+import ch.cern.utils.DurationAndTruncate;
 import ch.cern.utils.TimeUtils;
 
 public class ValueHistory implements Serializable {
 
     private static final long serialVersionUID = 9141577304066319408L;
+    
+    private static final long MAX_SIZE_DEFAULT = 100000;
 
     private List<DatedValue> values;
     
-    private Duration period = Duration.ofMinutes(30);
+    private DurationAndTruncate period = new DurationAndTruncate(Duration.ofMinutes(30));
 
-    public ValueHistory(Duration period){
-        this.values = new LinkedList<>();
-        
-        this.period = period;
+    private long max_size;
+
+    private ChronoUnit granularity;
+    private Aggregation aggregation;
+
+    public ValueHistory(Duration expire){
+        this(new DurationAndTruncate(expire), MAX_SIZE_DEFAULT, null, null);
     }
     
-    public void setPeriod(Duration period) {
+    public ValueHistory(DurationAndTruncate expire, long max_size, ChronoUnit granularity, Aggregation aggregation){
+        this.values = new LinkedList<>();
+        
+        this.max_size = max_size;
+        
+        this.max_size = max_size;
+        this.period = expire;
+        this.granularity = granularity;
+        this.aggregation = aggregation;
+    }
+    
+    public void setPeriod(DurationAndTruncate period) {
         this.period = period;
     }
 
     public void add(Instant time, float value) {
-        values.add(new DatedValue(time, new FloatValue(value)));
+        add(time, new FloatValue(value));
     }
     
     public void add(Instant time, Value value) {
+        if(values.size() >= (max_size * 0.9))
+            summarizeValues(time);
+
+        // Removing the oldest entry if max size
+        if (values.size() >= max_size + 1)
+            values.remove(values.iterator().next());
+        
         values.add(new DatedValue(time, value));
     }
     
-    public void purge(Instant time) {
-    		Instant oldest_time = time.minus(period);
+    private void summarizeValues(Instant time) {
+        if(granularity == null || aggregation == null)
+            return;
+  
+        Map<Instant, List<DatedValue>> groupedValues = values.stream()
+                                                        .collect(Collectors.groupingBy(v -> v.getInstant().truncatedTo(granularity)));
         
+        values = new LinkedList<>();
+        for (Map.Entry<Instant, List<DatedValue>> group : groupedValues.entrySet())
+            values.add(new DatedValue(group.getKey(), aggregation.aggregateValues(group.getValue(), group.getKey())));
+        
+        values = values.stream().sorted().collect(Collectors.toList());
+    }
+
+    public void purge(Instant time) {
+        if(period == null)
+            return;
+        
+    		Instant oldest_time = period.adjust(time);
     		values.removeIf(value -> value.getInstant().isBefore(oldest_time));
     }
 
@@ -58,13 +102,17 @@ public class ValueHistory implements Serializable {
         return values.size();
     }
 
-    public List<DatedValue> getDatedValues() {
+    public List<DatedValue> getDatedValues() throws ComputationException {
+        if(values.size() > max_size)
+            throw new ComputationException("Maximum aggregation size reached. You may mitigate that by increasing granularity.");
+        
         return values;
     }
 
     @Override
     public String toString() {
-        return "ValueHistory [metrics=" + values + ", period=" + period + "]";
+        return "ValueHistory [values=" + values + ", period=" + period + ", max_size=" + max_size + ", granularity="
+                + granularity + ", aggregation=" + aggregation + "]";
     }
 
     public List<Value> getHourlyValues(Instant time) {
@@ -117,10 +165,20 @@ public class ValueHistory implements Serializable {
         
         public ValueHistory history;
         
+        public Status() {
+            history = new ValueHistory(Duration.ofMinutes(10));
+        }
+
+        public Status(int max_aggregation_size, DurationAndTruncate expire, ChronoUnit granularity, Aggregation aggregation) {
+            history = new ValueHistory(expire, max_aggregation_size, granularity, aggregation);
+        }
+
         private void writeObject(ObjectOutputStream out) throws IOException{
-            List<DatedValue> datedValues = history.getDatedValues();
+            List<DatedValue> datedValues = history.values;
             
-            long period = history.getPeriod().getSeconds();
+            DurationAndTruncate period = history.getPeriod();
+            ChronoUnit granularity = history.getGranularity();
+            Aggregation agg = history.getAggregation();
             
             int[] times = new int[datedValues.size()];
             Value[] values = new Value[datedValues.size()];
@@ -133,14 +191,18 @@ public class ValueHistory implements Serializable {
                 i++;
             }
             
-            out.writeLong(period);
+            out.writeObject(period);
+            out.writeObject(granularity);
+            out.writeObject(agg);
             out.writeObject(times);
             out.writeObject(values);
         }
         
         private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException{
-            long period = in.readLong();
-            history = new ValueHistory(Duration.ofSeconds(period));
+            DurationAndTruncate period = (DurationAndTruncate) in.readObject();
+            ChronoUnit granularity = (ChronoUnit) in.readObject();
+            Aggregation aggregation = (Aggregation) in.readObject();
+            history = new ValueHistory(period, MAX_SIZE_DEFAULT, granularity, aggregation);
             
             int[] times = (int[]) in.readObject();
             Value[] values = (Value[]) in.readObject();
@@ -162,8 +224,71 @@ public class ValueHistory implements Serializable {
         this.values = newValues;
     }
 
-    public Duration getPeriod() {
+    public DurationAndTruncate getPeriod() {
         return period;
+    }
+    
+    public ChronoUnit getGranularity() {
+        return granularity;
+    }
+    
+    public void setGranularity(ChronoUnit granularity) {
+        this.granularity = granularity;
+    }
+    
+    public void setAggregation(Aggregation aggregation) {
+        this.aggregation = aggregation;
+    }
+    
+    public Aggregation getAggregation() {
+        return aggregation;
+    }
+    
+    public void setMax_size(long max_size) {
+        this.max_size = max_size;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((aggregation == null) ? 0 : aggregation.hashCode());
+        result = prime * result + ((granularity == null) ? 0 : granularity.hashCode());
+        result = prime * result + (int) (max_size ^ (max_size >>> 32));
+        result = prime * result + ((period == null) ? 0 : period.hashCode());
+        result = prime * result + ((values == null) ? 0 : values.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ValueHistory other = (ValueHistory) obj;
+        if (aggregation == null) {
+            if (other.aggregation != null)
+                return false;
+        } else if (!aggregation.getClass().equals(other.aggregation.getClass()))
+            return false;
+        if (granularity != other.granularity)
+            return false;
+        if (max_size != other.max_size)
+            return false;
+        if (period == null) {
+            if (other.period != null)
+                return false;
+        } else if (!period.equals(other.period))
+            return false;
+        if (values == null) {
+            if (other.values != null)
+                return false;
+        } else if (!values.equals(other.values))
+            return false;
+        return true;
     }
     
 }

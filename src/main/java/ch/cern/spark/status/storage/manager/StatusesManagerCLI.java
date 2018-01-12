@@ -11,6 +11,9 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +63,8 @@ public class StatusesManagerCLI {
     
     private Duration expired_period;
     
+    private boolean remove_all;
+    
     private static Scanner STDIN = new Scanner(System.in);
     
     public StatusesManagerCLI() {
@@ -92,6 +97,13 @@ public class StatusesManagerCLI {
             Map<Integer, StatusKey> indexedKeys = getInxedKeys(filteredStatuses);
             manager.printKeys(indexedKeys);
             
+            if(manager.shouldRemoveAll()) {
+                manager.removeAll(indexedKeys.values());
+                
+                System.out.println("All filtered statuses removed.");
+                return;
+            }
+            
             int index = askForIndex();
             
             key = indexedKeys.get(index);
@@ -119,6 +131,15 @@ public class StatusesManagerCLI {
             manager.remove(key);
         
         STDIN.close();
+    }
+
+    private boolean shouldRemoveAll() {
+        return remove_all;
+    }
+
+    private void removeAll(Collection<StatusKey> values) throws UnknownHostException, IOException, ConfigurationException {
+        for (StatusKey statusKey : values)
+            remove(statusKey);
     }
 
     private void remove(StatusKey key) throws UnknownHostException, IOException, ConfigurationException {
@@ -184,7 +205,7 @@ public class StatusesManagerCLI {
         System.out.println();
         System.out.println("Detailed information:");
         System.out.println("- Key: " + new String(serializer.fromKey(key)));
-        System.out.println("- Updated value at: " + Instant.ofEpochMilli(value.getUpdatedTime()));
+        System.out.println("- Updated value at: " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(value.getUpdatedTime()), ZoneOffset.systemDefault()));
         
         String valueString = new String(serializer.fromValue(value));
         if(valueString.length() > 1001)
@@ -263,6 +284,8 @@ public class StatusesManagerCLI {
         
         options.addOption(new Option("s", "save", true, "path to write result as JSON"));
         
+        options.addOption(new Option("r", "remove", false, "remove all statuses filtered"));
+        
         options.addOption(new Option("e", "expired", true, "filter by expired values, expiration period like 1m, 3h, 5d"));
         
         CommandLineParser parser = new BasicParser();
@@ -304,6 +327,8 @@ public class StatusesManagerCLI {
             throw new ConfigurationException("Print option " + cmd.getOptionValue("print") + " is not available");
         
         saving_path = cmd.getOptionValue("save");
+        
+        remove_all = cmd.hasOption("remove");
         
         String expiredString = cmd.getOptionValue("expired");
         if(expiredString != null)

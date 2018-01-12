@@ -3,6 +3,7 @@ package ch.cern.spark.metrics.defined;
 import static ch.cern.spark.metrics.MetricTest.Metric;
 import static org.junit.Assert.assertEquals;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -16,8 +17,9 @@ import ch.cern.Cache;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.defined.equation.var.MetricVariableStatus;
+import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
+import ch.cern.utils.DurationAndTruncate;
 
 public class UpdateDefinedMetricStatusesFTest {
 	
@@ -35,6 +37,7 @@ public class UpdateDefinedMetricStatusesFTest {
     public void shouldGenerateWhenUpdatingVariable() throws Exception {
     		propertiesCache.get().setProperty("metrics.define.dmID1.metrics.groupby", "DB_NAME, METRIC_NAME");
     		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate", "count_floats");
+    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.attributes", "ALL");
     		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.expire", "10s");
 
         UpdateDefinedMetricStatusesF func = new UpdateDefinedMetricStatusesF(null);
@@ -61,7 +64,7 @@ public class UpdateDefinedMetricStatusesFTest {
     }
     
     @Test
-    public void shouldAggregateWhenGroupByIncludeAllAttributes() throws Exception {
+    public void shouldAggregateAlongTime() throws Exception {
     		propertiesCache.get().setProperty("metrics.define.dmID1.metrics.groupby", "INSTANCE_NAME");
     		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate", "count_floats");
     		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.expire", "5s");
@@ -73,7 +76,7 @@ public class UpdateDefinedMetricStatusesFTest {
         DefinedMetricStatuskey id = new DefinedMetricStatuskey("dmID1", groupByIDs);
         State<VariableStatuses> status = new StateImpl<>();
         VariableStatuses varStores = new VariableStatuses();
-        MetricVariableStatus varStore = new MetricVariableStatus();
+        ValueHistory.Status varStore = new ValueHistory.Status(100, new DurationAndTruncate(Duration.ofMinutes(1)), null, null);
 		varStores.put("value", varStore);
 		status.update(varStores);
         Metric metric = null;
@@ -101,7 +104,7 @@ public class UpdateDefinedMetricStatusesFTest {
 
         Map<String, String> groupByIDs = new HashMap<>();
         groupByIDs.put("INSTANCE_NAME", "DB1_1");
-        DefinedMetricStatuskey id = new DefinedMetricStatuskey("dmID1", groupByIDs );
+        DefinedMetricStatuskey id = new DefinedMetricStatuskey("dmID1", groupByIDs);
         State<VariableStatuses> status = new StateImpl<>();
         Metric metric= null;
         

@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.defined.equation.var;
 
 import java.time.Instant;
+import java.util.Optional;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -17,7 +18,7 @@ public class PropertiesVariable extends Variable {
 	}
 	
 	@Override
-	public Variable config(Properties properties) throws ConfigurationException {
+	public Variable config(Properties properties, Optional<Class<? extends Value>> type) throws ConfigurationException {
 		this.properties = properties;
 		
 		return this;

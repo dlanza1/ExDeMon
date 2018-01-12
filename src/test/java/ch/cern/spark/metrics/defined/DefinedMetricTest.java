@@ -67,7 +67,7 @@ public class DefinedMetricTest {
 		metric = new DefinedMetric("test").config(props);
 		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
 		result = metric.generateByBatch(store, null, groupByMetricIDs);
-		assertEquals("ConfigurationException: Problem parsing value: Variable count returns type FloatValue because of its aggregation operation, "
+		assertEquals("ConfigurationException: Variable count returns type FloatValue because of its aggregation operation, "
 						+ "but in the equation there is a function that uses it as type StringValue", result.get().getValue().getAsException().get());
 		
 	}
@@ -327,6 +327,7 @@ public class DefinedMetricTest {
 		properties.setProperty("when", "batch");
 		properties.setProperty("variables.running_count.filter.attribute.TYPE", "Running");
 		properties.setProperty("variables.running_count.aggregate", "count_floats");
+		properties.setProperty("variables.running_count.aggregate.attributes", "ALL");
 		properties.setProperty("variables.running_count.expire", "10m");
 		definedMetric.config(properties);
 		
@@ -463,6 +464,7 @@ public class DefinedMetricTest {
 		Properties properties = new Properties();
 		properties.setProperty("variables.readbytestotal.filter.attribute.TYPE", "Read Bytes");
 		properties.setProperty("variables.readbytestotal.aggregate", "sum");
+		properties.setProperty("variables.readbytestotal.aggregate.attributes", "ALL");
 		definedMetric.config(properties);
 		
 		VariableStatuses store = new VariableStatuses();;
@@ -492,7 +494,6 @@ public class DefinedMetricTest {
         
         Properties properties = new Properties();
         properties.setProperty("variables.readbytestotal.aggregate", "count_floats");
-        properties.setProperty("variables.readbytestotal.aggregate.attributes", "NONE");
         properties.setProperty("variables.readbytestotal.ignore", "0h,h");
         properties.setProperty("variables.readbytestotal.expire", "1h,h");
         definedMetric.config(properties);
@@ -583,15 +584,15 @@ public class DefinedMetricTest {
 		definedMetric.updateStore(stores, metric, null);
 		Optional<Metric> result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
 		assertTrue(result.isPresent());
-		assertEquals("Variable writebytestotal: no value during validity period, Variable readbytestotal: no value during validity period", result.get().getValue().getAsException().get());
-		assertEquals("(var(readbytestotal)={Error: no value during validity period} + var(writebytestotal)={Error: no value during validity period})={Error: in arguments}", result.get().getValue().getSource());
+		assertEquals("Variable writebytestotal: no values, Variable readbytestotal: no values", result.get().getValue().getAsException().get());
+		assertEquals("(var(readbytestotal)={Error: no values} + var(writebytestotal)={Error: no values})={Error: in arguments}", result.get().getValue().getSource());
 		
 		metric = Metric(now, 10, "METRIC_NAME=Read Bytes");
 		definedMetric.updateStore(stores, metric, null);
 		result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
 		assertTrue(result.isPresent());
-		assertEquals("Variable writebytestotal: no value during validity period", result.get().getValue().getAsException().get());
-		assertEquals("(var(readbytestotal)=10.0 + var(writebytestotal)={Error: no value during validity period})={Error: in arguments}", result.get().getValue().getSource());
+		assertEquals("Variable writebytestotal: no values", result.get().getValue().getAsException().get());
+		assertEquals("(var(readbytestotal)=10.0 + var(writebytestotal)={Error: no values})={Error: in arguments}", result.get().getValue().getSource());
 		
 		metric = Metric(now.plus(Duration.ofSeconds(20)), 7, "METRIC_NAME=Write Bytes");
 		definedMetric.updateStore(stores, metric, null);
@@ -635,15 +636,15 @@ public class DefinedMetricTest {
         definedMetric.updateStore(stores, metric, null);
         Optional<Metric> result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
         assertTrue(result.isPresent());
-        assertEquals("Variable writebytestotal: no value during validity period, Variable readbytestotal: no value during validity period", result.get().getValue().getAsException().get());
-        assertEquals("(var(readbytestotal)={Error: no value during validity period} + var(writebytestotal)={Error: no value during validity period})={Error: in arguments}", result.get().getValue().getSource());
+        assertEquals("Variable writebytestotal: no values, Variable readbytestotal: no values", result.get().getValue().getAsException().get());
+        assertEquals("(var(readbytestotal)={Error: no values} + var(writebytestotal)={Error: no values})={Error: in arguments}", result.get().getValue().getSource());
 
         metric = Metric(now.plus(Duration.ofSeconds(20)), 7, "METRIC_NAME=Write Bytes");
         definedMetric.updateStore(stores, metric, null);
         result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
         assertTrue(result.isPresent());
-        assertEquals("Variable readbytestotal: no value during validity period", result.get().getValue().getAsException().get());
-        assertEquals("(var(readbytestotal)={Error: no value during validity period} + var(writebytestotal)=7.0)={Error: in arguments}", result.get().getValue().getSource());
+        assertEquals("Variable readbytestotal: no values", result.get().getValue().getAsException().get());
+        assertEquals("(var(readbytestotal)={Error: no values} + var(writebytestotal)=7.0)={Error: in arguments}", result.get().getValue().getSource());
 
         metric = Metric(now.plus(Duration.ofSeconds(80)), 8, "METRIC_NAME=Write Bytes");
         definedMetric.updateStore(stores, metric, null);
@@ -662,6 +663,7 @@ public class DefinedMetricTest {
 		Properties properties = new Properties();
 		properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
 		properties.setProperty("variables.readbytestotal.aggregate", "sum");
+		properties.setProperty("variables.readbytestotal.aggregate.attributes", "ALL");
 		properties.setProperty("variables.readbytestotal.expire", "1m");
 		definedMetric.config(properties);
 		
@@ -700,6 +702,7 @@ public class DefinedMetricTest {
 		
 		Properties properties = new Properties();
 		properties.setProperty("variables.readbytestotal.aggregate", "sum");
+		properties.setProperty("variables.readbytestotal.aggregate.attributes", "ALL");
 		definedMetric.config(properties);
 		
 		VariableStatuses stores = new VariableStatuses();;
@@ -712,9 +715,9 @@ public class DefinedMetricTest {
 		definedMetric.updateStore(stores, metric, null);
 		assertEquals(23f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
-		metric = Metric(0, 13, "HOSTNAME=host3");
+		metric = Metric(0, 3, "HOSTNAME=host3");
 		definedMetric.updateStore(stores, metric, null);
-		assertEquals(36f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
+		assertEquals(26f, definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
 		
 		// same host -> update value
 		metric = Metric(0, 7, "HOSTNAME=host3");
