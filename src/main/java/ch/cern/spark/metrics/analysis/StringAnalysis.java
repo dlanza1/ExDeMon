@@ -19,7 +19,7 @@ public abstract class StringAnalysis extends Analysis {
 	        return result;
 		}
 		
-		return process(metric.getInstant(), metric.getValue().getAsString().get());
+		return process(metric.getTimestamp(), metric.getValue().getAsString().get());
 	}
 
     public abstract AnalysisResult process(Instant timestamp, String value);

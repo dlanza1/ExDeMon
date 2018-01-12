@@ -38,8 +38,8 @@ public class JSONParserTest{
         
         JSONObject jsonObject = JSONParser.parse(analysisResult);
         
-        Assert.assertEquals("val_id1", jsonObject.getProperty("analyzed_metric.ids.id1"));
-        Assert.assertEquals("val_id2", jsonObject.getProperty("analyzed_metric.ids.id2"));
+        Assert.assertEquals("val_id1", jsonObject.getProperty("analyzed_metric.attributes.id1"));
+        Assert.assertEquals("val_id2", jsonObject.getProperty("analyzed_metric.attributes.id2"));
         
         String expected_timestamp = TIMESTAMP_FORMAT_DEFAULT.format(timestamp);
         Assert.assertEquals(expected_timestamp, jsonObject.getProperty("analyzed_metric.timestamp"));

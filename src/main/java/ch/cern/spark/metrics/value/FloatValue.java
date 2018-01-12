@@ -5,7 +5,9 @@ import java.util.Optional;
 
 import ch.cern.spark.metrics.defined.equation.ValueComputable;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper=false)
 public class FloatValue extends Value implements ValueComputable{
 
 	private static final long serialVersionUID = 6026199196915653369L;
@@ -24,28 +26,6 @@ public class FloatValue extends Value implements ValueComputable{
 	@Override
 	public Optional<Float> getAsFloat() {
 		return Optional.of(this.num);
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + Float.floatToIntBits(num);
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		FloatValue other = (FloatValue) obj;
-		if (Float.floatToIntBits(num) != Float.floatToIntBits(other.num))
-			return false;
-		return true;
 	}
 
 	public static FloatValue from(String value_string) {

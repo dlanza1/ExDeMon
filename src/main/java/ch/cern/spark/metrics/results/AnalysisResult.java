@@ -107,7 +107,7 @@ public class AnalysisResult implements Serializable, Taggable {
     		HashMap<String, String> newTags = new HashMap<>(tags);
 		newTags.entrySet().stream().filter(entry -> entry.getValue().startsWith("%")).forEach(entry -> {
 			String metricKey = entry.getValue().substring(1);
-			String metricValue = analyzed_metric.getIDs().get(metricKey);
+			String metricValue = analyzed_metric.getAttributes().get(metricKey);
 			
 			if(metricValue != null)
 				newTags.put(entry.getKey(), metricValue);

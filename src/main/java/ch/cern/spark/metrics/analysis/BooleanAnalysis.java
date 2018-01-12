@@ -19,7 +19,7 @@ public abstract class BooleanAnalysis extends Analysis {
 	        return result;
 		}
 		
-		return process(metric.getInstant(), metric.getValue().getAsBoolean().get());
+		return process(metric.getTimestamp(), metric.getValue().getAsBoolean().get());
 	}
 
     public abstract AnalysisResult process(Instant timestamp, boolean value);

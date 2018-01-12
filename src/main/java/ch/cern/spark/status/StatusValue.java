@@ -5,15 +5,14 @@ import java.io.Serializable;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
+import lombok.Getter;
+
 public abstract class StatusValue implements Serializable {
 
 	private static final long serialVersionUID = -2362831624128266105L;
 	
+	@Getter
 	private long status_update_time = 0;
-	
-	public long getUpdatedTime(){
-		return status_update_time;
-	}
 	
 	@SuppressWarnings("unchecked")
 	public<T> void update(State<T> status, Time time) {

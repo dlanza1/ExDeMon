@@ -79,38 +79,38 @@ public class MetricSchemaTest {
 		
 		metrics.hasNext();
 		Metric metric = metrics.next();
-		assertEquals(1509520209883l, metric.getInstant().toEpochMilli());
+		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
 		assertEquals(2815f, metric.getValue().getAsFloat().get(), 0f);
-		assertEquals(6, metric.getIDs().size());
-		assertEquals("test", metric.getIDs().get("$schema"));
-		assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getIDs().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getIDs().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getIDs().get("data.payload.agent_url"));
-		assertEquals("metric", metric.getIDs().get("type.meta"));
-		assertEquals("001", metric.getIDs().get("version"));
+		assertEquals(6, metric.getAttributes().size());
+		assertEquals("test", metric.getAttributes().get("$schema"));
+		assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getAttributes().get("$value_attribute"));
+		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
+		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
+		assertEquals("metric", metric.getAttributes().get("type.meta"));
+		assertEquals("001", metric.getAttributes().get("version"));
 		
 		metrics.hasNext();
 		metric = metrics.next();
-		assertEquals(1509520209883l, metric.getInstant().toEpochMilli());
+		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
 		assertEquals(2111.89f, metric.getValue().getAsFloat().get(), 0f);
-		assertEquals(6, metric.getIDs().size());
-		assertEquals("data.payload.WMBS_INFO.thresholds.pending_slots", metric.getIDs().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getIDs().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getIDs().get("data.payload.agent_url"));
-		assertEquals("metric", metric.getIDs().get("type.meta"));
-		assertEquals("001", metric.getIDs().get("version"));
+		assertEquals(6, metric.getAttributes().size());
+		assertEquals("data.payload.WMBS_INFO.thresholds.pending_slots", metric.getAttributes().get("$value_attribute"));
+		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
+		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
+		assertEquals("metric", metric.getAttributes().get("type.meta"));
+		assertEquals("001", metric.getAttributes().get("version"));
 		
 		metrics.hasNext();
 		metric = metrics.next();
-		assertEquals(1509520209883l, metric.getInstant().toEpochMilli());
+		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
 		assertEquals(2111.0f, metric.getValue().getAsFloat().get(), 0f);
-		assertEquals(6, metric.getIDs().size());
-		assertEquals("test", metric.getIDs().get("$schema"));
-		assertEquals("thresholdsGQ2LQ", metric.getIDs().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getIDs().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getIDs().get("data.payload.agent_url"));
-		assertEquals("metric", metric.getIDs().get("type.meta"));
-		assertEquals("001", metric.getIDs().get("version"));
+		assertEquals(6, metric.getAttributes().size());
+		assertEquals("test", metric.getAttributes().get("$schema"));
+		assertEquals("thresholdsGQ2LQ", metric.getAttributes().get("$value_attribute"));
+		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
+		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
+		assertEquals("metric", metric.getAttributes().get("type.meta"));
+		assertEquals("001", metric.getAttributes().get("version"));
 		
 		assertFalse(metrics.hasNext());
 	}
@@ -166,27 +166,27 @@ public class MetricSchemaTest {
 		
 		metrics.hasNext();
 		Metric metric = metrics.next();
-		assertEquals(1509520209883l, metric.getInstant().toEpochMilli());
+		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
 		assertEquals(false, metric.getValue().getAsBoolean().get());
-		assertEquals(6, metric.getIDs().size());
-		assertEquals("test", metric.getIDs().get("$schema"));
-		assertEquals("plain_text", metric.getIDs().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getIDs().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getIDs().get("data.payload.agent_url"));
-		assertEquals("metric", metric.getIDs().get("type.meta"));
-		assertEquals("001", metric.getIDs().get("version"));
+		assertEquals(6, metric.getAttributes().size());
+		assertEquals("test", metric.getAttributes().get("$schema"));
+		assertEquals("plain_text", metric.getAttributes().get("$value_attribute"));
+		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
+		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
+		assertEquals("metric", metric.getAttributes().get("type.meta"));
+		assertEquals("001", metric.getAttributes().get("version"));
 		
 		metrics.hasNext();
 		metric = metrics.next();
-		assertEquals(1509520209883l, metric.getInstant().toEpochMilli());
+		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
 		assertEquals(true, metric.getValue().getAsBoolean().get());
-		assertEquals(6, metric.getIDs().size());
-		assertEquals("test", metric.getIDs().get("$schema"));
-		assertEquals("json", metric.getIDs().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getIDs().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getIDs().get("data.payload.agent_url"));
-		assertEquals("metric", metric.getIDs().get("type.meta"));
-		assertEquals("001", metric.getIDs().get("version"));
+		assertEquals(6, metric.getAttributes().size());
+		assertEquals("test", metric.getAttributes().get("$schema"));
+		assertEquals("json", metric.getAttributes().get("$value_attribute"));
+		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
+		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
+		assertEquals("metric", metric.getAttributes().get("type.meta"));
+		assertEquals("001", metric.getAttributes().get("version"));
 		
 		assertFalse(metrics.hasNext());
 	}
@@ -241,15 +241,15 @@ public class MetricSchemaTest {
 		
 		metrics.hasNext();
 		Metric metric = metrics.next();
-		assertEquals(1509520209883l, metric.getInstant().toEpochMilli());
+		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
 		assertEquals("site_info", metric.getValue().getAsString().get());
-		assertEquals(6, metric.getIDs().size());
-		assertEquals("test", metric.getIDs().get("$schema"));
-		assertEquals("payload_type", metric.getIDs().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getIDs().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getIDs().get("data.payload.agent_url"));
-		assertEquals("metric", metric.getIDs().get("type.meta"));
-		assertEquals("001", metric.getIDs().get("version"));
+		assertEquals(6, metric.getAttributes().size());
+		assertEquals("test", metric.getAttributes().get("$schema"));
+		assertEquals("payload_type", metric.getAttributes().get("$value_attribute"));
+		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
+		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
+		assertEquals("metric", metric.getAttributes().get("type.meta"));
+		assertEquals("001", metric.getAttributes().get("version"));
 		
 		assertFalse(metrics.hasNext());
 	}
@@ -304,17 +304,17 @@ public class MetricSchemaTest {
 		
 		metrics.hasNext();
 		Metric metric = metrics.next();
-		assertEquals(1509520209883l, metric.getInstant().toEpochMilli());
+		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
 		assertTrue(metric.getValue().getAsException().isPresent());
 		assertEquals("No metric was generated for value key \"data.payload.type\" (alias: payload_type): document does not contian such key or is null.", 
 				metric.getValue().getAsException().get());
-		assertEquals(6, metric.getIDs().size());
-		assertEquals("test", metric.getIDs().get("$schema"));
-		assertEquals("payload_type", metric.getIDs().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getIDs().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getIDs().get("data.payload.agent_url"));
-		assertEquals("metric", metric.getIDs().get("type.meta"));
-		assertEquals("001", metric.getIDs().get("version"));
+		assertEquals(6, metric.getAttributes().size());
+		assertEquals("test", metric.getAttributes().get("$schema"));
+		assertEquals("payload_type", metric.getAttributes().get("$value_attribute"));
+		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
+		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
+		assertEquals("metric", metric.getAttributes().get("type.meta"));
+		assertEquals("001", metric.getAttributes().get("version"));
 		
 		assertFalse(metrics.hasNext());
 	}
@@ -348,7 +348,7 @@ public class MetricSchemaTest {
 		
 		metrics.hasNext();
 		Metric metric = metrics.next();
-		assertNull(metric.getIDs().get(att_name_no_primitive));
+		assertNull(metric.getAttributes().get(att_name_no_primitive));
 
 		assertFalse(metrics.hasNext());
 	}
@@ -382,7 +382,7 @@ public class MetricSchemaTest {
 		
 		metrics.hasNext();
 		Metric metric = metrics.next();
-		assertEquals("2111.0", metric.getIDs().get(att_name_no_primitive));
+		assertEquals("2111.0", metric.getAttributes().get(att_name_no_primitive));
 
 		assertFalse(metrics.hasNext());
 	}
@@ -413,7 +413,7 @@ public class MetricSchemaTest {
 		
 		metrics.hasNext();
 		Metric metric = metrics.next();
-		assertEquals(1509520209883l, metric.getInstant().toEpochMilli());
+		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
 
 		assertFalse(metrics.hasNext());
 	}
@@ -443,7 +443,7 @@ public class MetricSchemaTest {
 		
 		metrics.hasNext();
 		Metric metric = metrics.next();
-		assertEquals(1509520209000l, metric.getInstant().toEpochMilli());
+		assertEquals(1509520209000l, metric.getTimestamp().toEpochMilli());
 		
 		assertFalse(metrics.hasNext());
 	}
@@ -475,7 +475,7 @@ public class MetricSchemaTest {
 		Metric metric = metrics.next();
 		// Value should be --> Fri Oct 20 2017 00:00:12 UTC
 	    Instant timestamp = Instant.parse("2017-10-20T02:00:12.000Z");
-		assertEquals(timestamp.toEpochMilli(), metric.getInstant().toEpochMilli());
+		assertEquals(timestamp.toEpochMilli(), metric.getTimestamp().toEpochMilli());
 		
 		assertFalse(metrics.hasNext());
 	}
@@ -510,7 +510,7 @@ public class MetricSchemaTest {
         
         // Value should be --> Fri Oct 20 2017 00:00:12 UTC
         Instant timestamp = Instant.from(formatter.parse("2017-12-20 02:00:12"));
-        assertEquals(timestamp, metric.getInstant());
+        assertEquals(timestamp, metric.getTimestamp());
 
         assertFalse(metrics.hasNext());
     }
@@ -544,7 +544,7 @@ public class MetricSchemaTest {
 		DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("yyyy MM dd HH:mm:ss").toFormatter().withZone(ZoneId.systemDefault());
 		
 		Instant timestamp = Instant.from(formatter.parse("2017 12 20 00:00:00"));
-		assertEquals(timestamp, metric.getInstant());
+		assertEquals(timestamp, metric.getTimestamp());
 		
 		assertFalse(metrics.hasNext());
 	}
@@ -604,11 +604,11 @@ public class MetricSchemaTest {
 
 		assertTrue(metrics.hasNext());
 		Metric metric = metrics.next();
-		assertNotNull(metric.getInstant());
+		assertNotNull(metric.getTimestamp());
 		assertTrue(metric.getValue().getAsException().isPresent());
-		assertEquals(2, metric.getIDs().size());
-		assertEquals("test", metric.getIDs().get("$schema"));
-		assertEquals("data.payload.WMBS_INFO.thresholds.pending_slots", metric.getIDs().get("$value_attribute"));
+		assertEquals(2, metric.getAttributes().size());
+		assertEquals("test", metric.getAttributes().get("$schema"));
+		assertEquals("data.payload.WMBS_INFO.thresholds.pending_slots", metric.getAttributes().get("$value_attribute"));
 
 		assertFalse(metrics.hasNext());
 	}
@@ -653,13 +653,13 @@ public class MetricSchemaTest {
 		
 		metrics.hasNext();
 		Metric metric = metrics.next();
-		assertEquals(1509520209883l, metric.getInstant().toEpochMilli());
+		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
 		assertEquals(2815f, metric.getValue().getAsFloat().get(), 0f);
-		assertEquals(4, metric.getIDs().size());
-		assertEquals("test", metric.getIDs().get("$schema"));
-		assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getIDs().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getIDs().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getIDs().get("data.payload.agent_url"));
+		assertEquals(4, metric.getAttributes().size());
+		assertEquals("test", metric.getAttributes().get("$schema"));
+		assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getAttributes().get("$value_attribute"));
+		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
+		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
 
 		assertFalse(metrics.hasNext());
 	}
@@ -701,23 +701,23 @@ public class MetricSchemaTest {
 		
 		assertTrue(metrics.hasNext());
 		Metric metric = metrics.next();
-		assertEquals(1509520209883l, metric.getInstant().toEpochMilli());
+		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
 		assertTrue(metric.getValue().getAsException().isPresent());
-		assertEquals(4, metric.getIDs().size());
-		assertEquals("test", metric.getIDs().get("$schema"));
-		assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getIDs().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getIDs().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getIDs().get("data.payload.agent_url"));
+		assertEquals(4, metric.getAttributes().size());
+		assertEquals("test", metric.getAttributes().get("$schema"));
+		assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getAttributes().get("$value_attribute"));
+		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
+		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
 		
 		assertTrue(metrics.hasNext());
 		metric = metrics.next();
-		assertEquals(1509520209883l, metric.getInstant().toEpochMilli());
+		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
 		assertEquals(2111.89f, metric.getValue().getAsFloat().get(), 0f);
-		assertEquals(4, metric.getIDs().size());
-		assertEquals("test", metric.getIDs().get("$schema"));
-		assertEquals("data.payload.WMBS_INFO.thresholds.pending_slots", metric.getIDs().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getIDs().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getIDs().get("data.payload.agent_url"));
+		assertEquals(4, metric.getAttributes().size());
+		assertEquals("test", metric.getAttributes().get("$schema"));
+		assertEquals("data.payload.WMBS_INFO.thresholds.pending_slots", metric.getAttributes().get("$value_attribute"));
+		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
+		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
 
 		assertFalse(metrics.hasNext());
 	}
@@ -759,23 +759,23 @@ public class MetricSchemaTest {
 
 		assertTrue(metrics.hasNext());
 		Metric metric = metrics.next();
-		assertNotNull(metric.getInstant());
+		assertNotNull(metric.getTimestamp());
 		assertTrue(metric.getValue().getAsException().isPresent());
-		assertEquals(4, metric.getIDs().size());
-		assertEquals("test", metric.getIDs().get("$schema"));
-		assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getIDs().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getIDs().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getIDs().get("data.payload.agent_url"));
+		assertEquals(4, metric.getAttributes().size());
+		assertEquals("test", metric.getAttributes().get("$schema"));
+		assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getAttributes().get("$value_attribute"));
+		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
+		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
 		
 		assertTrue(metrics.hasNext());
 		metric = metrics.next();
-		assertNotNull(metric.getInstant());
+		assertNotNull(metric.getTimestamp());
 		assertTrue(metric.getValue().getAsException().isPresent());
-		assertEquals(4, metric.getIDs().size());
-		assertEquals("test", metric.getIDs().get("$schema"));
-		assertEquals("data.payload.WMBS_INFO.thresholds.pending_slots", metric.getIDs().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getIDs().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getIDs().get("data.payload.agent_url"));
+		assertEquals(4, metric.getAttributes().size());
+		assertEquals("test", metric.getAttributes().get("$schema"));
+		assertEquals("data.payload.WMBS_INFO.thresholds.pending_slots", metric.getAttributes().get("$value_attribute"));
+		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
+		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
 
 		assertFalse(metrics.hasNext());
 	}

@@ -26,20 +26,32 @@ import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
 import ch.cern.utils.DurationAndTruncate;
 import ch.cern.utils.TimeUtils;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
+@EqualsAndHashCode(callSuper=false)
+@ToString
 public class ValueHistory implements Serializable {
 
     private static final long serialVersionUID = 9141577304066319408L;
     
     private static final long MAX_SIZE_DEFAULT = 100000;
 
+    @Getter @Setter
     private List<DatedValue> values;
     
+    @Getter @Setter
     private DurationAndTruncate period = new DurationAndTruncate(Duration.ofMinutes(30));
 
+    @Getter @Setter
     private long max_size;
 
+    @Getter @Setter
     private ChronoUnit granularity;
+    
+    @Getter @Setter
     private Aggregation aggregation;
 
     public ValueHistory(Duration expire){
@@ -55,10 +67,6 @@ public class ValueHistory implements Serializable {
         this.period = expire;
         this.granularity = granularity;
         this.aggregation = aggregation;
-    }
-    
-    public void setPeriod(DurationAndTruncate period) {
-        this.period = period;
     }
 
     public void add(Instant time, float value) {
@@ -81,7 +89,7 @@ public class ValueHistory implements Serializable {
             return;
   
         Map<Instant, List<DatedValue>> groupedValues = values.stream()
-                                                        .collect(Collectors.groupingBy(v -> v.getInstant().truncatedTo(granularity)));
+                                                        .collect(Collectors.groupingBy(v -> v.getTime().truncatedTo(granularity)));
         
         values = new LinkedList<>();
         for (Map.Entry<Instant, List<DatedValue>> group : groupedValues.entrySet())
@@ -95,7 +103,7 @@ public class ValueHistory implements Serializable {
             return;
         
     		Instant oldest_time = period.adjust(time);
-    		values.removeIf(value -> value.getInstant().isBefore(oldest_time));
+    		values.removeIf(value -> value.getTime().isBefore(oldest_time));
     }
 
     public int size() {
@@ -109,17 +117,11 @@ public class ValueHistory implements Serializable {
         return values;
     }
 
-    @Override
-    public String toString() {
-        return "ValueHistory [values=" + values + ", period=" + period + ", max_size=" + max_size + ", granularity="
-                + granularity + ", aggregation=" + aggregation + "]";
-    }
-
     public List<Value> getHourlyValues(Instant time) {
     		LocalDateTime dateTime = TimeUtils.toLocalDateTime(time);
     	
         return values.stream()
-        		.filter(value -> isSameMinute(dateTime, TimeUtils.toLocalDateTime(value.getInstant()), false, false))
+        		.filter(value -> isSameMinute(dateTime, TimeUtils.toLocalDateTime(value.getTime()), false, false))
         		.map(value -> value.getValue())
         		.collect(Collectors.toList());
     }
@@ -128,7 +130,7 @@ public class ValueHistory implements Serializable {
 		LocalDateTime dateTime = TimeUtils.toLocalDateTime(time);
 		
         return values.stream()
-        		.filter(value -> isSameMinute(dateTime, TimeUtils.toLocalDateTime(value.getInstant()), false, true))
+        		.filter(value -> isSameMinute(dateTime, TimeUtils.toLocalDateTime(value.getTime()), false, true))
         		.map(value -> value.getValue())
         		.collect(Collectors.toList());
     }
@@ -137,7 +139,7 @@ public class ValueHistory implements Serializable {
     		LocalDateTime dateTime = TimeUtils.toLocalDateTime(time);
     		
         return values.stream()
-        		.filter(value -> isSameMinute(dateTime, TimeUtils.toLocalDateTime(value.getInstant()), true, true))
+        		.filter(value -> isSameMinute(dateTime, TimeUtils.toLocalDateTime(value.getTime()), true, true))
         		.map(value -> value.getValue())
         		.collect(Collectors.toList());
     }
@@ -185,7 +187,7 @@ public class ValueHistory implements Serializable {
             
             int i = 0;
             for (DatedValue value : datedValues) {
-                times[i] = (int) value.getInstant().getEpochSecond();
+                times[i] = (int) value.getTime().getEpochSecond();
                 values[i] = value.getValue();
                 
                 i++;
@@ -211,7 +213,7 @@ public class ValueHistory implements Serializable {
 								            		.mapToObj(i -> new DatedValue(Instant.ofEpochSecond(times[i]), values[i]))
 								            		.collect(Collectors.toList());
             
-            history.setDatedValues(datedValues);
+            history.setValues(datedValues);
         }
         
     }
@@ -220,75 +222,4 @@ public class ValueHistory implements Serializable {
         this.values = new LinkedList<>();
     }
 
-    public void setDatedValues(List<DatedValue> newValues) {
-        this.values = newValues;
-    }
-
-    public DurationAndTruncate getPeriod() {
-        return period;
-    }
-    
-    public ChronoUnit getGranularity() {
-        return granularity;
-    }
-    
-    public void setGranularity(ChronoUnit granularity) {
-        this.granularity = granularity;
-    }
-    
-    public void setAggregation(Aggregation aggregation) {
-        this.aggregation = aggregation;
-    }
-    
-    public Aggregation getAggregation() {
-        return aggregation;
-    }
-    
-    public void setMax_size(long max_size) {
-        this.max_size = max_size;
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((aggregation == null) ? 0 : aggregation.hashCode());
-        result = prime * result + ((granularity == null) ? 0 : granularity.hashCode());
-        result = prime * result + (int) (max_size ^ (max_size >>> 32));
-        result = prime * result + ((period == null) ? 0 : period.hashCode());
-        result = prime * result + ((values == null) ? 0 : values.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ValueHistory other = (ValueHistory) obj;
-        if (aggregation == null) {
-            if (other.aggregation != null)
-                return false;
-        } else if (!aggregation.getClass().equals(other.aggregation.getClass()))
-            return false;
-        if (granularity != other.granularity)
-            return false;
-        if (max_size != other.max_size)
-            return false;
-        if (period == null) {
-            if (other.period != null)
-                return false;
-        } else if (!period.equals(other.period))
-            return false;
-        if (values == null) {
-            if (other.values != null)
-                return false;
-        } else if (!values.equals(other.values))
-            return false;
-        return true;
-    }
-    
 }

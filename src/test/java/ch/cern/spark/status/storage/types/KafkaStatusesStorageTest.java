@@ -5,8 +5,10 @@ import static org.junit.Assert.assertNotSame;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -171,9 +173,9 @@ public class KafkaStatusesStorageTest {
 		storage.save(inputRDD, new Time(0));
 		
 		JavaPairRDD<DefinedMetricStatuskey, VariableStatuses> outputRDD = storage.load(context, DefinedMetricStatuskey.class, VariableStatuses.class);
-		List<Tuple2<DefinedMetricStatuskey, VariableStatuses>> outputList = outputRDD.collect();
+		Set<Tuple2<DefinedMetricStatuskey, VariableStatuses>> outputList = new HashSet<>(outputRDD.collect());
 		
-		List<Tuple2<DefinedMetricStatuskey, VariableStatuses>> expectedList = new LinkedList<>();
+		Set<Tuple2<DefinedMetricStatuskey, VariableStatuses>> expectedList = new HashSet<>();
 		varStatuses = new VariableStatuses();
 		status = new TestStatus(13);
 		varStatuses.put("var3-id1", status);

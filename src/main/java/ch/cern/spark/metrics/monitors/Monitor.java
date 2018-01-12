@@ -100,7 +100,7 @@ public class Monitor {
     }
     
     public Map<String, String> getMetricIDs(Metric metric) {
-		return metric.getIDs();
+		return metric.getAttributes();
 	}
 
 	public MetricsFilter getFilter() {

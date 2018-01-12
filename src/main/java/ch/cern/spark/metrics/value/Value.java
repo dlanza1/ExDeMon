@@ -5,11 +5,14 @@ import java.util.Optional;
 
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.results.AnalysisResult;
+import lombok.Getter;
+import lombok.Setter;
 
 public abstract class Value implements Serializable {
 
     private static final long serialVersionUID = -5082571575744839753L;
 
+    @Getter @Setter
     protected String source;
 
     public Optional<Float> getAsFloat() {
@@ -38,14 +41,6 @@ public abstract class Value implements Serializable {
 
     public Optional<AnalysisResult> getAsAnalysisResult() {
         return Optional.empty();
-    }
-
-    public void setSource(String source) {
-        this.source = source;
-    }
-
-    public String getSource() {
-        return this.source;
     }
 
     @Override

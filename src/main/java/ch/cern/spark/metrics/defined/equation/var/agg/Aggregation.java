@@ -53,4 +53,9 @@ public abstract class Aggregation extends Component {
     
     public abstract Class<? extends Value> returnType();
     
+    @Override
+    public boolean equals(Object obj) {
+        return this.getClass().equals(obj.getClass());
+    }
+    
 }

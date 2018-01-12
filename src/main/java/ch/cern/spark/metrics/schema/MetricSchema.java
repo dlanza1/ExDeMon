@@ -34,6 +34,7 @@ import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.StringValue;
 import ch.cern.spark.metrics.value.Value;
 import ch.cern.utils.Pair;
+import lombok.Getter;
 
 public class MetricSchema implements Serializable {
 
@@ -41,6 +42,7 @@ public class MetricSchema implements Serializable {
 
     private transient final static Logger LOG = Logger.getLogger(MetricSchema.class.getName());
 
+    @Getter
     private String id;
 
     public static String SOURCES_PARAM = "sources";
@@ -245,10 +247,6 @@ public class MetricSchema implements Serializable {
             return Instant.from(temporalAccesor);
         else
             return LocalTime.from(temporalAccesor).atOffset(OffsetDateTime.now().getOffset()).atDate(LocalDate.from(temporalAccesor)).toInstant();
-    }
-
-    public String getID() {
-        return id;
     }
 
     public boolean containsSource(String sourceID) {

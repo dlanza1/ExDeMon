@@ -210,7 +210,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
     }
 	
     private <K extends StatusKey, V extends StatusValue> JavaPairRDD<K, V> filterOnlyUpdatedStates(JavaPairRDD<K, V> rdd, Time time) {
-		return rdd.filter(tuple -> tuple._2 == null || tuple._2.getUpdatedTime() == time.milliseconds() || tuple._2.getUpdatedTime() == 0);
+		return rdd.filter(tuple -> tuple._2 == null || tuple._2.getStatus_update_time() == time.milliseconds() || tuple._2.getStatus_update_time() == 0);
 	}
 
 	private Map<String, Object> getKafkaProducerParams(Properties props) {

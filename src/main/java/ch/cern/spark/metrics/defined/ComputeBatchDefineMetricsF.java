@@ -41,7 +41,7 @@ public class ComputeBatchDefineMetricsF implements FlatMapFunction<Tuple2<Define
             return result.iterator();
         DefinedMetric definedMetric = definedMetricOpt.get();
         
-        Optional<Metric> metricOpt = definedMetric.generateByBatch(store, time, ids.getGroupByMetricIDs());
+        Optional<Metric> metricOpt = definedMetric.generateByBatch(store, time, ids.getMetric_attributes());
         
         metricOpt.ifPresent(result::add);
         

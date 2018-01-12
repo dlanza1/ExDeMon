@@ -12,12 +12,12 @@ public class JSONMetric {
 	private float VALUE;
 	
 	public JSONMetric(Metric metric) {
-		CLUSTER = metric.getIDs().get("CLUSTER");
-		HOSTNAME = metric.getIDs().get("HOSTNAME");
-		METRIC = metric.getIDs().get("METRIC");
-		KEY_TO_REMOVE = metric.getIDs().get("KEY_TO_REMOVE");
+		CLUSTER = metric.getAttributes().get("CLUSTER");
+		HOSTNAME = metric.getAttributes().get("HOSTNAME");
+		METRIC = metric.getAttributes().get("METRIC");
+		KEY_TO_REMOVE = metric.getAttributes().get("KEY_TO_REMOVE");
 		
-		TIMESTAMP = metric.getInstant();
+		TIMESTAMP = metric.getTimestamp();
 		
 		VALUE = metric.getValue().getAsFloat().get();
 	}

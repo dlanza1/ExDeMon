@@ -10,12 +10,15 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.metrics.schema.MetricSchema;
+import lombok.Getter;
+import lombok.Setter;
 
 @ComponentType(Type.METRIC_SOURCE)
 public abstract class MetricsSource extends Component {
 
     private static final long serialVersionUID = -6197974524956447741L;
 
+    @Getter @Setter
 	private MetricSchema schema;
 
 	@Override
@@ -30,14 +33,6 @@ public abstract class MetricsSource extends Component {
 		}else {
 			schema = null;
 		}
-	}
-	
-	protected void setSchema(MetricSchema schema) {
-		this.schema = schema;
-	}
-
-	public MetricSchema getSchema() {
-		return schema;
 	}
 
 	public abstract JavaDStream<JSONObject> createJavaDStream(JavaStreamingContext ssc);

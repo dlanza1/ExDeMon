@@ -35,7 +35,7 @@ public class WAvgAggregation extends Aggregation {
        
         Optional<Pair<Double, Double>> pairSum = values.stream().filter(value -> value.getValue().getAsFloat().isPresent())
                 .map(datedValue -> {
-                    double weight = computeWeight(time, datedValue.getInstant());
+                    double weight = computeWeight(time, datedValue.getTime());
                     
                     Value value = datedValue.getValue();
                     value = value.getAsAggregated().isPresent() ? value.getAsAggregated().get() : value;

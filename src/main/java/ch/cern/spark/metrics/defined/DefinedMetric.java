@@ -16,23 +16,28 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.Equation;
 import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
-import ch.cern.spark.metrics.defined.equation.var.Variable;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.Value;
 import ch.cern.utils.Pair;
+import lombok.Getter;
+import lombok.ToString;
 
+@ToString
 public class DefinedMetric implements Serializable{
 
 	private static final long serialVersionUID = 82179461944060520L;
 
+	@Getter
 	private String name;
 
 	private Set<String> metricsGroupBy;
 	
+	@Getter
 	private Set<String> variablesWhen;
 	
+	@Getter
 	private Equation equation;
 
 	private ConfigurationException configurationException;
@@ -160,7 +165,7 @@ public class DefinedMetric implements Serializable{
 		
 		Metric metricForStore = metric.clone();
 		if(groupByKeys != null)
-			metricForStore.getIDs().entrySet().removeIf(entry -> groupByKeys.contains(entry.getKey()));
+			metricForStore.getAttributes().entrySet().removeIf(entry -> groupByKeys.contains(entry.getKey()));
 		
 		for (MetricVariable variableToUpdate : variablesToUpdate.values())
 			variableToUpdate.updateVariableStatuses(stores, metricForStore);
@@ -170,7 +175,7 @@ public class DefinedMetric implements Serializable{
 		if(!shouldBeTrigeredByUpdate(metric))
 			return Optional.empty();
 		
-		return generate(stores, metric.getInstant(), groupByMetricIDs);
+		return generate(stores, metric.getTimestamp(), groupByMetricIDs);
 	}
 	
 	public Optional<Metric> generateByBatch(VariableStatuses stores, Instant time, Map<String, String> groupByMetricIDs) {
@@ -211,34 +216,11 @@ public class DefinedMetric implements Serializable{
 		return values.size() == metricsGroupBy.size() ? Optional.of(values) : Optional.empty();
 	}
 	
-	public String getName() {
-		return name;
-	}
-
-	public Equation getEquation() {
-		return equation;
-	}
-
-	protected Map<String, Variable> getVariables() {
-		return equation.getVariables();
-	}
-	
 	protected Map<String, MetricVariable> getMetricVariables() {
 		return equation.getVariables().entrySet().stream()
 						.filter(entry -> entry.getValue() instanceof MetricVariable)
 						.map(entry -> new Pair<String, MetricVariable>(entry.getKey(), (MetricVariable) entry.getValue()))
 						.collect(Collectors.toMap(Pair::first, Pair::second));
-	}
-	
-	protected Set<String> getVariablesWhen() {
-		return variablesWhen;
-	}
-
-	@Override
-	public String toString() {
-		return "DefinedMetric [name=" + name + ", metricsGroupBy=" + metricsGroupBy + ", variablesWhen=" + variablesWhen
-				+ ", equation=" + equation + ", configurationException=" + configurationException + ", filter=" + filter
-				+ "]";
 	}
 
 }

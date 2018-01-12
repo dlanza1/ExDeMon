@@ -33,9 +33,9 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
             
         VariableStatuses store = getStore(status);
 
-        definedMetric.updateStore(store, metric, id.getGroupByMetricIDs().keySet());
+        definedMetric.updateStore(store, metric, id.getMetric_attributes().keySet());
         
-        Optional<Metric> newMetric = definedMetric.generateByUpdate(store, metric, id.getGroupByMetricIDs());
+        Optional<Metric> newMetric = definedMetric.generateByUpdate(store, metric, id.getMetric_attributes());
         
         status.update(store);
         

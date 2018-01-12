@@ -32,10 +32,10 @@ public class MetricTest {
     public void testMetricCreator(){
         Metric metric = Metric(3, 10f, "aaa=12", "bbb=15");
         
-        assertEquals(3, metric.getInstant().getEpochSecond());
+        assertEquals(3, metric.getTimestamp().getEpochSecond());
         assertEquals(10f, metric.getValue().getAsFloat().get(), 0f);
-        assertEquals("12", metric.getIDs().get("aaa"));
-        assertEquals("15", metric.getIDs().get("bbb"));
+        assertEquals("12", metric.getAttributes().get("aaa"));
+        assertEquals("15", metric.getAttributes().get("bbb"));
     }
 
     public static Metric Metric(int timeInSec, float value, String... ids){

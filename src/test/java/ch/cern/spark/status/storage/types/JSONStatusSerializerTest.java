@@ -7,6 +7,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+import org.apache.spark.streaming.State;
+import org.apache.spark.streaming.StateImpl;
+import org.apache.spark.streaming.Time;
 import org.junit.Test;
 
 import ch.cern.properties.Properties;
@@ -44,6 +47,7 @@ public class JSONStatusSerializerTest {
         JSONStatusSerializer ser = new JSONStatusSerializer();
         
         AggregationValues status = new AggregationValues(100);
+        
         Instant instant = Instant.now();
         status.add(0, new FloatValue(1d), instant);
         status.add(1, new StringValue("a"), instant);
@@ -53,9 +57,14 @@ public class JSONStatusSerializerTest {
         status.add(5, new AggregatedValue(new FloatValue(1000)), instant);
         
         String json = new String(ser.fromValue(status));
-
         StatusValue statusDesser = ser.toValue(json.getBytes());
+        assertEquals(status, statusDesser);
         
+        State<AggregationValues> state = new StateImpl<>();
+        status.update(state, new Time(1234));
+        
+        json = new String(ser.fromValue(status));
+        statusDesser = ser.toValue(json.getBytes());
         assertEquals(status, statusDesser);
     }
 

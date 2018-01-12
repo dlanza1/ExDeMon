@@ -60,11 +60,11 @@ public class InErrorMonitor extends Monitor {
 			if(storeState.exists() && storeState.get() instanceof Status_) {
 				store = (Status_) storeState.get();
 				
-				if(store.hasExpired(metric.getInstant()))
+				if(store.hasExpired(metric.getTimestamp()))
 					result = AnalysisResult.buildWithStatus(Status.EXCEPTION, exception.getClass().getSimpleName() + ": " + exception.getMessage());
 			}else{
 				store = new Status_();
-				store.lastResult = metric.getInstant();
+				store.lastResult = metric.getTimestamp();
 				
 				result = AnalysisResult.buildWithStatus(Status.EXCEPTION, exception.getClass().getSimpleName() + ": " + exception.getMessage());
 			}
@@ -110,7 +110,7 @@ public class InErrorMonitor extends Monitor {
 	@Override
 	public Map<String, String> getMetricIDs(Metric metric) {
 		if(filter != null)
-			return metric.getIDs();
+			return metric.getAttributes();
 		else
 			return new HashMap<>();
 	}

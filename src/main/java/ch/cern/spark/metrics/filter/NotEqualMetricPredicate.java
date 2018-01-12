@@ -20,8 +20,8 @@ public class NotEqualMetricPredicate implements Predicate<Metric>, Serializable 
 
 	@Override
 	public boolean test(Metric metricInput) {
-		Predicate<Metric> notExist = metric -> !metric.getIDs().containsKey(key);
-		Predicate<Metric> notMatch = metric -> !value.matcher(metric.getIDs().get(key)).matches();
+		Predicate<Metric> notExist = metric -> !metric.getAttributes().containsKey(key);
+		Predicate<Metric> notMatch = metric -> !value.matcher(metric.getAttributes().get(key)).matches();
 
 		return notExist.or(notMatch).test(metricInput);
 	}

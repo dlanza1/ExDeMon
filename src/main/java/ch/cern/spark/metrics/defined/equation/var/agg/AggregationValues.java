@@ -11,14 +11,21 @@ import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 @ClassNameAlias("aggregated-values")
+@ToString
+@EqualsAndHashCode(callSuper=false)
 public class AggregationValues extends StatusValue {
 
     private static final long serialVersionUID = -3277697169862561894L;
     
     private Map<Integer, DatedValue> values;
 
+    @Getter @Setter
     private int max_aggregation_size;
 
     public AggregationValues(int max_aggregation_size) {
@@ -49,44 +56,7 @@ public class AggregationValues extends StatusValue {
     }
 
     public void purge(Instant oldestTime) {
-        values.entrySet().removeIf(entry -> entry.getValue().getInstant().isBefore(oldestTime));
+        values.entrySet().removeIf(entry -> entry.getValue().getTime().isBefore(oldestTime));
     }
 
-    public void setMax_aggregation_size(int max_aggregation_size) {
-        this.max_aggregation_size = max_aggregation_size;
-    }
-    
-    @Override
-    public String toString() {
-        return "AggregationValues [values=" + values + ", max_aggregation_size=" + max_aggregation_size + "]";
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + max_aggregation_size;
-        result = prime * result + ((values == null) ? 0 : values.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        AggregationValues other = (AggregationValues) obj;
-        if (max_aggregation_size != other.max_aggregation_size)
-            return false;
-        if (values == null) {
-            if (other.values != null)
-                return false;
-        } else if (!values.equals(other.values))
-            return false;
-        return true;
-    }
-    
 }

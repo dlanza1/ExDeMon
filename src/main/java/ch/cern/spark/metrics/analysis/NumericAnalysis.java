@@ -19,7 +19,7 @@ public abstract class NumericAnalysis extends Analysis {
 			return result;
 		}
 		
-		return process(metric.getInstant(), metric.getValue().getAsFloat().get());
+		return process(metric.getTimestamp(), metric.getValue().getAsFloat().get());
 	}
 
     public abstract AnalysisResult process(Instant timestamp, double value);

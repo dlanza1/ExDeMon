@@ -6,13 +6,20 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 import ch.cern.properties.ConfigurationException;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
+@ToString
+@EqualsAndHashCode(callSuper=false)
 public class DurationAndTruncate implements Serializable {
     
     private static final long serialVersionUID = -230175194730220401L;
 
+    @Getter
     private Duration duration;
     
+    @Getter
     private ChronoUnit truncate;
     
     public DurationAndTruncate(Duration duration) {
@@ -59,47 +66,6 @@ public class DurationAndTruncate implements Serializable {
         }
         
         return new DurationAndTruncate(duration, truncate);
-    }
-
-    public Duration getDuration() {
-        return duration;
-    }
-    
-    public ChronoUnit getTruncate() {
-        return truncate;
-    }
-
-    @Override
-    public String toString() {
-        return "DurationAndTruncate [duration=" + duration + ", truncate=" + truncate + "]";
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((duration == null) ? 0 : duration.hashCode());
-        result = prime * result + ((truncate == null) ? 0 : truncate.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        DurationAndTruncate other = (DurationAndTruncate) obj;
-        if (duration == null) {
-            if (other.duration != null)
-                return false;
-        } else if (!duration.equals(other.duration))
-            return false;
-        if (truncate != other.truncate)
-            return false;
-        return true;
     }
 
 }

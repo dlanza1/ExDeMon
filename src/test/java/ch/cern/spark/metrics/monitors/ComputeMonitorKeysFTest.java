@@ -78,7 +78,7 @@ public class ComputeMonitorKeysFTest {
         Tuple2<MonitorStatusKey, Metric> tuple = result.next();
         
         assertEquals(id, tuple._1.getID());
-        assertSame(metric.getIDs(), tuple._1.getMetricIDs());
+        assertSame(metric.getAttributes(), tuple._1.getMetric_attributes());
         
         assertSame(metric, tuple._2);
     }

@@ -11,13 +11,19 @@ import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.Variable;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.spark.metrics.value.Value;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
+@ToString
+@EqualsAndHashCode(callSuper=false)
 public class Equation implements ValueComputable{
 	
 	private static EquationParser parser = new EquationParser();
 
 	private ValueComputable formula;
 	
+	@Getter
 	private Map<String, Variable> variables = new HashMap<>();
 
 	public Equation(String equationString, Properties variablesProperties) throws ParseException, ConfigurationException {
@@ -27,40 +33,6 @@ public class Equation implements ValueComputable{
 	@Override
 	public Value compute(VariableStatuses stores, Instant time) {
 		return formula.compute(stores, time);
-	}
-
-	@Override
-    public String toString() {
-        return "Equation [formula=" + formula + ", variables=" + variables + "]";
-    }
-
-    @Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((formula == null) ? 0 : formula.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Equation other = (Equation) obj;
-		if (formula == null) {
-			if (other.formula != null)
-				return false;
-		} else if (!formula.equals(other.formula))
-			return false;
-		return true;
-	}
-
-	public Map<String, Variable> getVariables() {
-		return variables;
 	}
 	
 	public Map<String, MetricVariable> getMetricVariables() {

@@ -36,7 +36,7 @@ public class MetricSchemasF implements FlatMapFunction<JSONObject, Metric> {
 		metrics = sourceSchema == null ? metrics : Stream.concat(sourceSchema.call(json).stream(), metrics);
 		
 		return metrics.map(metric -> {
-								metric.getIDs().put("$source", sourceID);
+								metric.getAttributes().put("$source", sourceID);
 								return metric;
 							}).iterator();
 	}

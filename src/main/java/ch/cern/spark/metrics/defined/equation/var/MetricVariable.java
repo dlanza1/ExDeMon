@@ -30,11 +30,13 @@ import ch.cern.spark.metrics.value.Value;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.utils.DurationAndTruncate;
 import ch.cern.utils.TimeUtils;
+import lombok.Getter;
 
 public class MetricVariable extends Variable {
 	
 	private MetricsFilter filter;
 
+	@Getter
 	private Aggregation aggregation;
 	
 	protected DurationAndTruncate expire;
@@ -157,7 +159,7 @@ public class MetricVariable extends Variable {
         if(ignore != null) {
             Instant latestTime = ignore.adjust(time);
             
-            values = values.stream().filter(val -> val.getInstant().isBefore(latestTime)).collect(Collectors.toList());
+            values = values.stream().filter(val -> val.getTime().isBefore(latestTime)).collect(Collectors.toList());
         }
             
         return values;
@@ -166,7 +168,7 @@ public class MetricVariable extends Variable {
     public void updateVariableStatuses(VariableStatuses variableStatuses, Metric metric) {
         Optional<StatusValue> status = Optional.ofNullable(variableStatuses.get(name));
         
-		metric.setIDs(getAggSelectAttributes(metric.getIDs()));
+		metric.setAttributes(getAggSelectAttributes(metric.getAttributes()));
 		
 		StatusValue updatedStatus = updateStatus(status, metric);
 		
@@ -185,7 +187,7 @@ public class MetricVariable extends Variable {
 	        history.setGranularity(granularity);
 	        history.setAggregation(aggregation);
 	        history.setMax_size(max_aggregation_size);
-	        history.add(metric.getInstant(), metric.getValue());
+	        history.add(metric.getTimestamp(), metric.getValue());
 	    }else{
 	        if(!(status instanceof AggregationValues))
                 status = initStatus();
@@ -193,7 +195,7 @@ public class MetricVariable extends Variable {
 	        AggregationValues aggValues = ((AggregationValues) status);
 	        
 	        aggValues.setMax_aggregation_size(max_aggregation_size);
-	        aggValues.add(metric.getIDs().hashCode(), metric.getValue(), metric.getInstant());
+	        aggValues.add(metric.getAttributes().hashCode(), metric.getValue(), metric.getTimestamp());
 	    }
 
 	    return status;        
@@ -228,9 +230,5 @@ public class MetricVariable extends Variable {
         String aggName = aggregation.getClass().getAnnotation(RegisterComponent.class).value();        
         return aggName + "(time_filter(" + name + ", from:"+expire+", to:"+ignore+"))";
     }
-	
-    public Aggregation getAggregation() {
-        return aggregation;
-    }
-    
+
 }

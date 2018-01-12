@@ -205,7 +205,7 @@ public class StatusesManagerCLI {
         System.out.println();
         System.out.println("Detailed information:");
         System.out.println("- Key: " + new String(serializer.fromKey(key)));
-        System.out.println("- Updated value at: " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(value.getUpdatedTime()), ZoneOffset.systemDefault()));
+        System.out.println("- Updated value at: " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(value.getStatus_update_time()), ZoneOffset.systemDefault()));
         
         String valueString = new String(serializer.fromValue(value));
         if(valueString.length() > 1001)

@@ -28,7 +28,7 @@ public class MetricSchemas {
 	        Map<String, MetricSchema> metricSchemas = metricSchemaIDs.stream()
 	        		.map(id -> new MetricSchema(id).config(properties.getSubset(id)))
 	        		.filter(out -> out != null)
-	        		.collect(Collectors.toMap(MetricSchema::getID, m -> m));
+	        		.collect(Collectors.toMap(MetricSchema::getId, m -> m));
 	        
 	        LOG.info("Dynamic Metric schemas: " + metricSchemas);
 	        

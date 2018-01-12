@@ -28,7 +28,7 @@ public class UpdateNotificatorStatusesF
     protected Optional<Notification> update(NotificatorStatusKey ids, AnalysisResult result, State<StatusValue> status) throws Exception {
         Monitors.initCache(propertiesSourceProperties);
 
-        Optional<Monitor> monitorOpt = Optional.of(Monitors.getCache().get().get(ids.getMonitorID()));
+        Optional<Monitor> monitorOpt = Optional.of(Monitors.getCache().get().get(ids.getMonitor_id()));
         if (!monitorOpt.isPresent())
             return Optional.empty();
         Monitor monitor = monitorOpt.get();
@@ -42,10 +42,10 @@ public class UpdateNotificatorStatusesF
         notificator.getStatus().ifPresent(s -> status.update(s));
 
         notification.ifPresent(n -> {
-            n.setMonitorID(ids.getMonitorID());
+            n.setMonitorID(ids.getMonitor_id());
             n.setNotificatorID(ids.getNotificatorID());
-            n.setMetricIDs(ids.getMetricIDs());
-            n.setTimestamp(result.getAnalyzedMetric().getInstant());
+            n.setMetricIDs(ids.getMetric_attributes());
+            n.setTimestamp(result.getAnalyzedMetric().getTimestamp());
         });
 
         return notification;

@@ -25,6 +25,10 @@
 			<id>cloudera</id>
 			<url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
 		</repository>
+		<repository>
+	        <id>projectlombok.org</id>
+	        <url>http://projectlombok.org/mavenrepo</url>
+	    </repository>
 	</repositories>
 
 	<build>
@@ -124,6 +128,12 @@
 			<version>0.9.11</version>
 		</dependency>
 
+		<dependency>
+		   <groupId>org.projectlombok</groupId>
+		   <artifactId>lombok</artifactId>
+		   <version>1.16.18</version>
+		   <scope>compile</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>junit</groupId>
