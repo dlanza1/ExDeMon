@@ -7,6 +7,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 public class PropertiesTest {
 	
 	@Before
@@ -71,6 +74,21 @@ public class PropertiesTest {
         
         subset = prop.getSubset("prop3.prop31");
         assertEquals(4, subset.size());
+	}
+	
+	@Test
+	public void fromJSON() {
+	    String jsonString = "{\"metrics.schema.perf\":{"
+	                + "\"sources\":\"tape_logs\", "
+	                + "\"filter.attribute\":\"1234\"}"
+	            + "}";
+
+	    JsonObject jsonObject = new JsonParser().parse(jsonString).getAsJsonObject();
+        
+        Properties props = Properties.from(jsonObject);
+        
+        assertEquals("tape_logs", props.get("metrics.schema.perf.sources"));
+        assertEquals("1234", props.get("metrics.schema.perf.filter.attribute"));
 	}
 	
 }

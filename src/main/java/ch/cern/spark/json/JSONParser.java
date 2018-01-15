@@ -32,4 +32,13 @@ public class JSONParser {
         return javaObject == null ? null : new JSONObject(gson.toJson(javaObject));
     }
 
+    public static boolean isValid(String jsonInString) {
+        try {
+            gson.fromJson(jsonInString, Object.class);
+            return true;
+        } catch(com.google.gson.JsonSyntaxException ex) { 
+            return false;
+        }
+    }
+    
 }
