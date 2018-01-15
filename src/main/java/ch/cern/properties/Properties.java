@@ -50,12 +50,15 @@ public class Properties extends java.util.Properties {
     }
 
     public static Properties fromFile(String loadingPath) throws IOException {
-        FileSystem fs = FileSystem.get(new Configuration());
-        InputStreamReader is = new InputStreamReader(fs.open(new Path(loadingPath)));
-        
         Properties props = null;
         
+        FileSystem fs = FileSystem.get(new Configuration());
+        
+        InputStreamReader is = new InputStreamReader(fs.open(new Path(loadingPath)));
+        
         String possibleJSON = IOUtils.toString(is);
+        is.close();
+        
         if(JSONParser.isValid(possibleJSON)) {
             JsonObject jsonObject = new JsonParser().parse(possibleJSON).getAsJsonObject();
             
@@ -63,10 +66,12 @@ public class Properties extends java.util.Properties {
         }else {
             props = new Properties();
             
+            is = new InputStreamReader(fs.open(new Path(loadingPath)));
+            
             props.load(is);
+            
+            is.close();
         }
-
-        is.close();
 
         return props;
     }

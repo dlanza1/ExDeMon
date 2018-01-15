@@ -33,6 +33,9 @@ public class JSONParser {
     }
 
     public static boolean isValid(String jsonInString) {
+        if(jsonInString == null)
+            return false;
+        
         try {
             gson.fromJson(jsonInString, Object.class);
             return true;

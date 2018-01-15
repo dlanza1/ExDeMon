@@ -22,9 +22,11 @@ properties.source.path = {path to main configuration file}
 
 ## File properties source
 
-This source obtains all properties from a text file with format readable by java.util.Properties.
+This source obtains all properties from a file or set of files.
+
+The format of the text files must be readable by java.util.Properties or a JSON that can be converted to java.util.Properties.
 
 ```
 properties.source.type = file
-properties.source.path = <path_to_configuration_file>
+properties.source.path = <path_to_configuration_file_or_directory>
 ```
