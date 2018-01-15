@@ -33,6 +33,8 @@ public class FilePropertiesSource extends PropertiesSource {
         
         try {
             fs = FileSystem.get(new Configuration());
+            if (path.startsWith("file:/"))
+                fs = FileSystem.getLocal(new Configuration()).getRawFileSystem();
         } catch (IOException e) {
             throw new ConfigurationException(e);
         }
@@ -58,7 +60,7 @@ public class FilePropertiesSource extends PropertiesSource {
                     
                     LOG.info("Loaded " + filePath);
                 }catch(Exception e) {
-                    LOG.error(e);
+                    LOG.error(e.getMessage(), e);
                 }
             }
         }

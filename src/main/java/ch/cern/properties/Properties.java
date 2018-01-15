@@ -53,6 +53,8 @@ public class Properties extends java.util.Properties {
         Properties props = null;
         
         FileSystem fs = FileSystem.get(new Configuration());
+        if (loadingPath.startsWith("file:/"))
+            fs = FileSystem.getLocal(new Configuration()).getRawFileSystem();
         
         InputStreamReader is = new InputStreamReader(fs.open(new Path(loadingPath)));
         
