@@ -8,10 +8,15 @@ For "attribute" parameters, you can negate the condition by placing "!" as first
 
 It can specify a regular expression or an exact value for the attribute:
 ```
-filter.attribute.<attribute_key> = <[!]regex_or_exact_value>
+filter.attribute.<attribute_key> = [!]<regex_or_exact_value>
 ```
 
-You can also filter by meta-attributes:
+You can also specify multi-values (between quotes):
+```
+filter.attribute.<attribute_key> = [!]"<regex_or_exact_value>" "<regex_or_exact_value>" "<regex_or_exact_value>" ...
+```
+
+You can also filter by some meta-attributes:
 ```
 filter.attribute.$source = <metric-source-id>
 filter.attribute.$schema = <metric-schema-id>
