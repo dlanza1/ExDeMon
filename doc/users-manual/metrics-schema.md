@@ -23,7 +23,7 @@ For both cases, the configuration parameters are the following:
 ```
 metrics.schema.<schema-id>.sources = <space-separated-source-ids>
 metrics.schema.<schema-id>.timestamp.key = <attribute that represent the time>
-metrics.schema.<schema-id>.timestamp.format = <timestamp_format> (default: yyyy-MM-dd'T'HH:mm:ssZ)
+metrics.schema.<schema-id>.timestamp.format = <timestamp_format> (default: auto)
 metrics.schema.<schema-id>.attributes = <attributs separated by comma to extract from the JSON>
 metrics.schema.<schema-id>.attributes.<alias-1> = <key-to-attribute-1>
 metrics.schema.<schema-id>.attributes.<alias-2> = <key-to-attribute-2>
@@ -39,7 +39,7 @@ For configuring the schema in the source, you replace metrics.schema.schema-id b
 
 "timestamp.key" indicates the key in the JSON document that contains the timestamp for the metric. If the JSON document does not contain the timestamp value, no metric will be generated. 
 
-"timestamp.format" indicates the format of the timestamp stored in the attribute configured by "timestamp.attribute". If the format is a number that represents epoch in milliseconds, it must be set to "epoch-ms", if seconds "epoch-s". If the JSON document contains a timestamp with wrong format, metric with exception value will be generated, setting the timestamp to current time. 
+"timestamp.format" indicates the format of the timestamp stored in the attribute configured by "timestamp.attribute". If the format is a number that represents epoch in milliseconds, it must be set to "epoch-ms", if seconds "epoch-s". If the JSON document contains a timestamp with wrong format, metric with exception value will be generated, setting the timestamp to current time. By default, it automatically detects epoch-ms, epoch-s, "yyyy-MM-dd HH:mm:ssZ" and "yyyy-MM-dd'T'HH:mm:ssZ" formats.
 
 "attributes" configure the keys that will be extracted from the JSON document. You can indicate a list of keys separated by space.
 You can also configure these attributes individually assigning aliases. Assigned alias will be used to refer to the attribute in any metric filter. 

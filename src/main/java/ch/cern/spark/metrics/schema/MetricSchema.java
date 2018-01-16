@@ -55,7 +55,8 @@ public class MetricSchema implements Serializable {
     private List<Pair<String, String>> value_attributes;
 
     public static String TIMESTAMP_FORMAT_PARAM = "timestamp.format";
-    public static String TIMESTAMP_FORMAT_DEFAULT = "yyyy-MM-dd'T'HH:mm:ssZ";
+    public static String TIMESTAMP_FORMAT_DEFAULT = "auto";
+    public static List<String> TIMESTAMP_AUTO_FORMATS = Arrays.asList("yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd HH:mm:ssZ");
     private String timestamp_format_pattern;
     private transient DateTimeFormatter timestamp_format;
 
@@ -92,8 +93,9 @@ public class MetricSchema implements Serializable {
             throw new ConfigurationException(TIMESTAMP_ATTRIBUTE_PARAM + " must be configured.");
 
         timestamp_format_pattern = properties.getProperty(TIMESTAMP_FORMAT_PARAM, TIMESTAMP_FORMAT_DEFAULT);
-        if (timestamp_format_pattern != null && !timestamp_format_pattern.equals("epoch-ms")
-                && !timestamp_format_pattern.equals("epoch-s"))
+        if (!timestamp_format_pattern.equals("epoch-ms")
+                && !timestamp_format_pattern.equals("epoch-s")
+                && !timestamp_format_pattern.equals("auto"))
             try {
                 new DateTimeFormatterBuilder().appendPattern(timestamp_format_pattern).toFormatter()
                         .withZone(ZoneOffset.systemDefault());
@@ -224,6 +226,27 @@ public class MetricSchema implements Serializable {
             throw new DateTimeParseException("No data to parse", "", 0);
 
         try {
+            if (timestamp_format_pattern.equals("auto")) {
+                try {
+                    long value = Long.valueOf(date_string);
+                    
+                    if(value < Math.pow(10, 10))
+                        return Instant.ofEpochSecond(value);
+                    else
+                        return Instant.ofEpochMilli(value);
+                }catch(Exception e) {}
+                
+                for (String formatPattern : TIMESTAMP_AUTO_FORMATS) {
+                    DateTimeFormatter format = new DateTimeFormatterBuilder().appendPattern(formatPattern).toFormatter();
+                    
+                    try {
+                        return Instant.from(format.parse(date_string));
+                    }catch(Exception e) {}
+                }
+                
+                throw new DateTimeParseException("Automatic format could not parse time", "", 0);
+            }
+                
             if (timestamp_format_pattern.equals("epoch-ms"))
                 return Instant.ofEpochMilli(Long.valueOf(date_string));
 
