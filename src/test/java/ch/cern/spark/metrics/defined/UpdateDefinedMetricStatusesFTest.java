@@ -36,7 +36,7 @@ public class UpdateDefinedMetricStatusesFTest {
     @Test
     public void shouldGenerateWhenUpdatingVariable() throws Exception {
     		propertiesCache.get().setProperty("metrics.define.dmID1.metrics.groupby", "DB_NAME, METRIC_NAME");
-    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate", "count_floats");
+    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.type", "count_floats");
     		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.attributes", "ALL");
     		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.expire", "10s");
 
@@ -66,7 +66,7 @@ public class UpdateDefinedMetricStatusesFTest {
     @Test
     public void shouldAggregateAlongTime() throws Exception {
     		propertiesCache.get().setProperty("metrics.define.dmID1.metrics.groupby", "INSTANCE_NAME");
-    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate", "count_floats");
+    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.type", "count_floats");
     		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.expire", "5s");
 
         UpdateDefinedMetricStatusesF func = new UpdateDefinedMetricStatusesF(null);
@@ -97,7 +97,7 @@ public class UpdateDefinedMetricStatusesFTest {
     @Test
     public void shouldExpireValuesWhenGroupByIncludeAllAttributes() throws Exception {
     		propertiesCache.get().setProperty("metrics.define.dmID1.metrics.groupby", "INSTANCE_NAME");
-    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate", "count_floats");
+    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.type", "count_floats");
     		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.expire", "5s");
 
         UpdateDefinedMetricStatusesF func = new UpdateDefinedMetricStatusesF(null);

@@ -68,7 +68,7 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
 		
         Cache<Properties> propertiesCache = Properties.getCache();
         propertiesCache.set(new Properties());
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate", "sum");
+        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.type", "sum");
         propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.attributes", "ALL");
         propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
 	        
@@ -99,7 +99,7 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
         propertiesCache.set(new Properties());
         propertiesCache.get().setProperty("metrics.define.dm1.metrics.filter.attribute.CLUSTER", "c1");
         propertiesCache.get().setProperty("metrics.define.dm1.variables.a.filter.attribute.HOSTNAME", ".*");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate", "sum");
+        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.type", "sum");
         propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.attributes", "ALL");
         propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
 	        

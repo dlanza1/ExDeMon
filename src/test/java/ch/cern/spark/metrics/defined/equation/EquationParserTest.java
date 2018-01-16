@@ -19,7 +19,7 @@ public class EquationParserTest {
 		props.setProperty("y", "");
 		props.setProperty("var1", "");
 		props.setProperty("var2", "");
-		props.setProperty("varFloat.aggregate", "avg");
+		props.setProperty("varFloat.aggregate.type", "avg");
 		
 		try {
 			new Equation("x + y * z", props);

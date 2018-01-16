@@ -63,7 +63,7 @@ public class DefinedMetricTest {
 		
 		props = new Properties();
 		props.setProperty("value", "trim(count)");
-		props.setProperty("variables.count.aggregate", "count_strings");
+		props.setProperty("variables.count.aggregate.type", "count_strings");
 		metric = new DefinedMetric("test").config(props);
 		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
 		result = metric.generateByBatch(store, null, groupByMetricIDs);
@@ -284,7 +284,7 @@ public class DefinedMetricTest {
 		properties.setProperty("value", "running_count");
 		properties.setProperty("when", "trigger");
 		properties.setProperty("variables.running_count.filter.attribute.TYPE", "Running");
-		properties.setProperty("variables.running_count.aggregate", "count_floats");
+		properties.setProperty("variables.running_count.aggregate.type", "count_floats");
 		properties.setProperty("variables.running_count.expire", "10m");
 		properties.setProperty("variables.trigger.filter.attribute.TYPE", "Trigger");
 		definedMetric.config(properties);
@@ -326,7 +326,7 @@ public class DefinedMetricTest {
 		Properties properties = new Properties();
 		properties.setProperty("when", "batch");
 		properties.setProperty("variables.running_count.filter.attribute.TYPE", "Running");
-		properties.setProperty("variables.running_count.aggregate", "count_floats");
+		properties.setProperty("variables.running_count.aggregate.type", "count_floats");
 		properties.setProperty("variables.running_count.aggregate.attributes", "ALL");
 		properties.setProperty("variables.running_count.expire", "10m");
 		definedMetric.config(properties);
@@ -367,7 +367,7 @@ public class DefinedMetricTest {
 		
 		Properties properties = new Properties();
 		properties.setProperty("when", "batch");
-		properties.setProperty("variables.running_count.aggregate", "count_floats");
+		properties.setProperty("variables.running_count.aggregate.type", "count_floats");
 		properties.setProperty("variables.running_count.aggregate.attributes", "HOSTNAME");
 		definedMetric.config(properties);
 		
@@ -411,7 +411,7 @@ public class DefinedMetricTest {
 		
 		Properties properties = new Properties();
 		properties.setProperty("when", "batch");
-		properties.setProperty("variables.running_count.aggregate", "count_floats");
+		properties.setProperty("variables.running_count.aggregate.type", "count_floats");
 		properties.setProperty("variables.running_count.aggregate.attributes", "ALL");
 		definedMetric.config(properties);
 		
@@ -463,7 +463,7 @@ public class DefinedMetricTest {
 		
 		Properties properties = new Properties();
 		properties.setProperty("variables.readbytestotal.filter.attribute.TYPE", "Read Bytes");
-		properties.setProperty("variables.readbytestotal.aggregate", "sum");
+		properties.setProperty("variables.readbytestotal.aggregate.type", "sum");
 		properties.setProperty("variables.readbytestotal.aggregate.attributes", "ALL");
 		definedMetric.config(properties);
 		
@@ -493,7 +493,7 @@ public class DefinedMetricTest {
         DefinedMetric definedMetric = new DefinedMetric("A");
         
         Properties properties = new Properties();
-        properties.setProperty("variables.readbytestotal.aggregate", "count_floats");
+        properties.setProperty("variables.readbytestotal.aggregate.type", "count_floats");
         properties.setProperty("variables.readbytestotal.ignore", "0h,h");
         properties.setProperty("variables.readbytestotal.expire", "1h,h");
         definedMetric.config(properties);
@@ -662,7 +662,7 @@ public class DefinedMetricTest {
 		
 		Properties properties = new Properties();
 		properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
-		properties.setProperty("variables.readbytestotal.aggregate", "sum");
+		properties.setProperty("variables.readbytestotal.aggregate.type", "sum");
 		properties.setProperty("variables.readbytestotal.aggregate.attributes", "ALL");
 		properties.setProperty("variables.readbytestotal.expire", "1m");
 		definedMetric.config(properties);
@@ -701,7 +701,7 @@ public class DefinedMetricTest {
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
 		Properties properties = new Properties();
-		properties.setProperty("variables.readbytestotal.aggregate", "sum");
+		properties.setProperty("variables.readbytestotal.aggregate.type", "sum");
 		properties.setProperty("variables.readbytestotal.aggregate.attributes", "ALL");
 		definedMetric.config(properties);
 		

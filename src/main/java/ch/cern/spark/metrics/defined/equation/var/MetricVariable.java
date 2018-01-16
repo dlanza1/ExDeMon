@@ -61,12 +61,9 @@ public class MetricVariable extends Variable {
         else
             expire = DurationAndTruncate.from(properties.getProperty("expire", "10m"));
 		
-		String aggregateVal = properties.getProperty("aggregate");
+		String aggregateVal = properties.getProperty("aggregate.type");
         if(aggregateVal != null) {            
-            Properties aggProperties = new Properties();
-            aggProperties.setProperty("type", aggregateVal);
-            
-            aggregation = ComponentManager.build(Type.AGGREGATION, aggProperties);     
+            aggregation = ComponentManager.build(Type.AGGREGATION, properties.getSubset("aggregate"));     
             
             if(aggregation instanceof WAvgAggregation)
                 ((WAvgAggregation) aggregation).setExpire(expire);

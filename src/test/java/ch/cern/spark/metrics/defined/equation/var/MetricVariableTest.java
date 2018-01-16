@@ -20,7 +20,7 @@ public class MetricVariableTest  {
     public void aggregationHitMaxSizeDuringPeriod() throws ConfigurationException {
         MetricVariable var = new MetricVariable("");
         Properties properties = new Properties();
-        properties.setProperty("aggregate", "count");
+        properties.setProperty("aggregate.type", "count");
         properties.setProperty("aggregate.max-size", "1000");
         properties.setProperty("aggregate.history.granularity", "m");
         properties.setProperty("ignore", "0h,h");

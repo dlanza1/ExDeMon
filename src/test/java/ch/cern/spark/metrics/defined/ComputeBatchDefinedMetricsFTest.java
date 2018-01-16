@@ -37,7 +37,7 @@ public class ComputeBatchDefinedMetricsFTest {
 	@Test
 	public void aggregateCountUpdate() throws Exception {
 		propertiesCache.get().setProperty("metrics.define.dmID1.metrics.groupby", "DB_NAME METRIC_NAME");
-		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate", "count_floats");
+		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.type", "count_floats");
 		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.attributes", "ALL");
 		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.expire", "5m");
 		propertiesCache.get().setProperty("metrics.define.dmID1.when", "batch");
