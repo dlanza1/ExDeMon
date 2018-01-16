@@ -2,6 +2,11 @@ package ch.cern.spark.json;
 
 import java.io.Serializable;
 import java.text.ParseException;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -59,6 +64,39 @@ public class JSONObject implements Serializable {
         return object.get(elementName);
     }
     
+    public String[] getKeys(Pattern keyPattern) throws ParseException {
+        String[] keys = getAllKeys();
+        
+        return Stream.of(keys).filter(key -> keyPattern.matcher(key).matches()).collect(Collectors.toList()).toArray(new String[0]);
+    }
+    
+    public String[] getAllKeys() throws ParseException {
+        if (object == null)
+            try {
+                object = PARSER.parse(string).getAsJsonObject();
+            }catch(Exception e) {
+                throw new ParseException(e.getMessage(), 0);
+            }
+        
+        LinkedList<String> keys = new LinkedList<>();
+        
+        for(Map.Entry<String, JsonElement> element: object.entrySet())
+            if(element.getValue().isJsonPrimitive())
+                keys.add(element.getKey());
+            else if(element.getValue().isJsonObject())
+                addKeys(keys, element.getValue().getAsJsonObject(), element.getKey());
+        
+        return keys.toArray(new String[0]);
+    }
+
+    private void addKeys(LinkedList<String> keys, JsonObject object, String previousKey) {
+        for(Map.Entry<String, JsonElement> element: object.entrySet())
+            if(element.getValue().isJsonPrimitive())
+                keys.add(previousKey + "." + element.getKey());
+            else if(element.getValue().isJsonObject())
+                addKeys(keys, element.getValue().getAsJsonObject(), previousKey + "." + element.getKey());
+    }
+
     public void setProperty(String fullKey, String value) throws ParseException {
 	    	if (object == null)
 	    		try {

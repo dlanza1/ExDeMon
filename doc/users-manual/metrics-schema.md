@@ -45,6 +45,19 @@ For configuring the schema in the source, you replace metrics.schema.schema-id b
 You can also configure these attributes individually assigning aliases. Assigned alias will be used to refer to the attribute in any metric filter. 
 List of keys or aliases can be combined.
 If the JSON document does not contain the attribute, the metric will not contain such attribute.
+Key can be a regular expressions (e.g. data.*). You can combine alias and regular expressions, if alias contain a "+" and key is a regular expression with a group, "+" in the alias will be replaced with the content of the group. Example:
+
+```
+metrics.schema.<schema-id>.attributes.data-+ = data.payload.(.*)
+
+# Incoming JSON with:
+#   data.payload.first = 1
+#   data.payload.second = 2
+
+# Generates metric with attributes:
+#   data-first = 1
+#   data-second = 2
+```
 
 "value.keys" configure the keys from which metric values will be extracted from the JSON document. You can indicate a list of keys separated by space. A metric will be created for each key, all metrics generated from the same JSON document will share the same timestamp and attributes. All generated metrics will contain an extra attribute with name "$value\_attribute", its value indicates the key (or alias) from which the value has been extracted. 
 You can also configure these attributes for values individually assigning aliases. Assigned alias will be stored at "$value\_attribute", so the alias will be used in any metric filter.

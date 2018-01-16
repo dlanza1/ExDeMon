@@ -320,7 +320,7 @@ public class MetricSchemaTest {
 	}
 	
 	@Test
-	public void attributeNulIfNoJsonPrimitive() throws ParseException, ConfigurationException {
+	public void attributeNullIfNoJsonPrimitive() throws ParseException, ConfigurationException {
 		Properties props = new Properties();
 		props.setProperty(SOURCES_PARAM, "test");
 		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
@@ -386,6 +386,106 @@ public class MetricSchemaTest {
 
 		assertFalse(metrics.hasNext());
 	}
+	
+    @Test
+    public void severalAttributesWithRegex() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+        props.setProperty(VALUE_ATTRIBUTES_PARAM, "test");
+
+        props.setProperty(ATTRIBUTES_PARAM, "a.b.error-.*");
+        
+        String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
+        JSONObject jsonObject = new JSONObject(jsonString);
+
+        MetricSchema parser = new MetricSchema("test");
+        parser.config(props);
+
+        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+
+        metrics.hasNext();
+        Metric metric = metrics.next();
+        assertEquals("1", metric.getAttributes().get("a.b.error-1"));
+        assertEquals("2", metric.getAttributes().get("a.b.error-abcd"));
+
+        assertFalse(metrics.hasNext());
+    }
+    
+    @Test
+    public void severalAttributesWithRegexWithPlus() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+        props.setProperty(VALUE_ATTRIBUTES_PARAM, "test");
+
+        props.setProperty(ATTRIBUTES_PARAM, "a.b.error-[0-9]+");
+        
+        String jsonString = "{\"a\":{\"b\":{\"error-12\": 1, \"error-23\": 2}}}";
+        JSONObject jsonObject = new JSONObject(jsonString);
+
+        MetricSchema parser = new MetricSchema("test");
+        parser.config(props);
+
+        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+
+        metrics.hasNext();
+        Metric metric = metrics.next();
+        assertEquals("1", metric.getAttributes().get("a.b.error-12"));
+        assertEquals("2", metric.getAttributes().get("a.b.error-23"));
+
+        assertFalse(metrics.hasNext());
+    }
+	
+    @Test
+    public void severalAttributesWithRegexAndReplacementInAlias() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+        props.setProperty(VALUE_ATTRIBUTES_PARAM, "test");
+
+        props.setProperty(ATTRIBUTES_PARAM + ".error_+", "a.b.error-(.*)");
+        
+        String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
+        JSONObject jsonObject = new JSONObject(jsonString);
+
+        MetricSchema parser = new MetricSchema("test");
+        parser.config(props);
+
+        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+
+        metrics.hasNext();
+        Metric metric = metrics.next();
+        assertEquals("1", metric.getAttributes().get("error_1"));
+        assertEquals("2", metric.getAttributes().get("error_abcd"));
+
+        assertFalse(metrics.hasNext());
+    }
+    
+    @Test
+    public void severalAttributesWithRegexAndReplacementInAliasButNoGroup() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+        props.setProperty(VALUE_ATTRIBUTES_PARAM, "test");
+
+        props.setProperty(ATTRIBUTES_PARAM + ".error_+", "a.b.error-.*");
+        
+        String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
+        JSONObject jsonObject = new JSONObject(jsonString);
+
+        MetricSchema parser = new MetricSchema("test");
+        parser.config(props);
+
+        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+
+        metrics.hasNext();
+        Metric metric = metrics.next();
+        assertEquals("1", metric.getAttributes().get("a.b.error-1"));
+        assertEquals("2", metric.getAttributes().get("a.b.error-abcd"));
+
+        assertFalse(metrics.hasNext());
+    }
 
     @Test
     public void shouldParseTimestampToCurrentTimeIfNotConfigured() throws ParseException, ConfigurationException {
