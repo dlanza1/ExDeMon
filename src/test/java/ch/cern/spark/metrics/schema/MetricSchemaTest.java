@@ -388,6 +388,21 @@ public class MetricSchemaTest {
 	}
 
     @Test
+    public void shouldParseTimestampToCurrentTimeIfNotConfigured() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
+        MetricSchema parser = new MetricSchema("test");
+        parser.config(props);
+        
+        JSONObject jsonObject = new JSONObject("{}");
+        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        assertEquals(Instant.now().toEpochMilli(), metrics.next().getTimestamp().toEpochMilli(), 10);
+
+        assertFalse(metrics.hasNext());
+    }
+    
+    @Test
     public void shouldParseTimestampWithFormatInAuto() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
@@ -807,18 +822,6 @@ public class MetricSchemaTest {
 		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
 
 		assertFalse(metrics.hasNext());
-	}
-	
-	@Test
-	public void shouldThrowAnExcpetionIfTimestampNotConfigured() throws ParseException, ConfigurationException {
-		Properties props = new Properties();
-		props.setProperty(SOURCES_PARAM, "test");
-//		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-		props.setProperty(VALUE_ATTRIBUTES_PARAM, "value");
-
-		
-		List<Metric> result = new MetricSchema("test").config(props).call(null);
-		assertEquals(TIMESTAMP_ATTRIBUTE_PARAM + " must be configured.", result.get(0).getValue().getAsException().get());
 	}
 	
 	@Test

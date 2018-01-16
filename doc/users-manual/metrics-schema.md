@@ -22,7 +22,7 @@ For both cases, the configuration parameters are the following:
 
 ```
 metrics.schema.<schema-id>.sources = <space-separated-source-ids>
-metrics.schema.<schema-id>.timestamp.key = <attribute that represent the time>
+metrics.schema.<schema-id>.timestamp.key = <attribute that represent the time|not set>
 metrics.schema.<schema-id>.timestamp.format = <timestamp_format> (default: auto)
 metrics.schema.<schema-id>.attributes = <attributs separated by comma to extract from the JSON>
 metrics.schema.<schema-id>.attributes.<alias-1> = <key-to-attribute-1>
@@ -37,7 +37,7 @@ metrics.schema.<schema-id>.filter.<configs at Metrics filter> = <values>
 
 For configuring the schema in the source, you replace metrics.schema.schema-id by metrics.source.source-id.schema.
 
-"timestamp.key" indicates the key in the JSON document that contains the timestamp for the metric. If the JSON document does not contain the timestamp value, no metric will be generated. 
+"timestamp.key" indicates the key in the JSON document that contains the timestamp for the metric. If not configured, current time is set to the metric. If it is configured and the JSON document does not contain the timestamp value, no metric will be generated.
 
 "timestamp.format" indicates the format of the timestamp stored in the attribute configured by "timestamp.attribute". If the format is a number that represents epoch in milliseconds, it must be set to "epoch-ms", if seconds "epoch-s". If the JSON document contains a timestamp with wrong format, metric with exception value will be generated, setting the timestamp to current time. By default, it automatically detects epoch-ms, epoch-s, "yyyy-MM-dd HH:mm:ssZ" and "yyyy-MM-dd'T'HH:mm:ssZ" formats.
 

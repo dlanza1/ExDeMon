@@ -61,6 +61,7 @@ public class MetricSchema implements Serializable {
     private transient DateTimeFormatter timestamp_format;
 
     public static String TIMESTAMP_ATTRIBUTE_PARAM = "timestamp.key";
+    public static String TIMESTAMP_CURRENT_TIME = "#current-time";
     private String timestamp_attribute;
 
     public static String FILTER_PARAM = "filter";
@@ -89,8 +90,6 @@ public class MetricSchema implements Serializable {
         sources = Arrays.asList(sourcesValue.split("\\s"));
 
         timestamp_attribute = properties.getProperty(TIMESTAMP_ATTRIBUTE_PARAM);
-        if (timestamp_attribute == null)
-            throw new ConfigurationException(TIMESTAMP_ATTRIBUTE_PARAM + " must be configured.");
 
         timestamp_format_pattern = properties.getProperty(TIMESTAMP_FORMAT_PARAM, TIMESTAMP_FORMAT_DEFAULT);
         if (!timestamp_format_pattern.equals("epoch-ms")
@@ -165,14 +164,19 @@ public class MetricSchema implements Serializable {
             }
 
             Exception timestampException = null;
-            String timestamp_string = jsonObject.getProperty(timestamp_attribute);
             Instant timestamp;
-            try {
-                timestamp = toDate(timestamp_string);
-            } catch (Exception e) {
-                timestampException = new Exception("DateTimeParseException: " + e.getMessage() + " for key "
-                        + timestamp_attribute + " with value (" + timestamp_string + ")");
+            if(timestamp_attribute != null) {
+                String timestamp_string = jsonObject.getProperty(timestamp_attribute);
+                
+                try {
+                    timestamp = toDate(timestamp_string);
+                } catch (Exception e) {
+                    timestampException = new Exception("DateTimeParseException: " + e.getMessage() + " for key "
+                            + timestamp_attribute + " with value (" + timestamp_string + ")");
 
+                    timestamp = Instant.now();
+                }
+            }else {
                 timestamp = Instant.now();
             }
 
