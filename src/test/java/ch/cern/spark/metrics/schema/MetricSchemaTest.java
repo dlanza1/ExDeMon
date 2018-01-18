@@ -486,6 +486,32 @@ public class MetricSchemaTest {
 
         assertFalse(metrics.hasNext());
     }
+    
+    @Test
+    public void attributesWithFixedAttributes() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+        props.setProperty(VALUE_ATTRIBUTES_PARAM, "test");
+
+        props.setProperty(ATTRIBUTES_PARAM + ".puppet_environment", "#qa");
+        props.setProperty(ATTRIBUTES_PARAM + ".error1", "a.b.error-1");
+        
+        String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
+        JSONObject jsonObject = new JSONObject(jsonString);
+
+        MetricSchema parser = new MetricSchema("test");
+        parser.config(props);
+
+        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+
+        metrics.hasNext();
+        Metric metric = metrics.next();
+        assertEquals("qa", metric.getAttributes().get("puppet_environment"));
+        assertEquals("1", metric.getAttributes().get("error1"));
+
+        assertFalse(metrics.hasNext());
+    }
 
     @Test
     public void shouldParseTimestampToCurrentTimeIfNotConfigured() throws ParseException, ConfigurationException {

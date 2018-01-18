@@ -64,7 +64,6 @@ public class MetricSchema implements Serializable {
     private transient DateTimeFormatter timestamp_format;
 
     public static String TIMESTAMP_ATTRIBUTE_PARAM = "timestamp.key";
-    public static String TIMESTAMP_CURRENT_TIME = "#current-time";
     private String timestamp_attribute;
 
     public static String FILTER_PARAM = "filter";
@@ -143,7 +142,7 @@ public class MetricSchema implements Serializable {
 
             attributes.add(new Pair<String, String>(alias, key));
             
-            if(!isKeyARegex(key))
+            if(!isKeyARegex(key) || isFixedValue(key))
                 attributes.add(new Pair<String, String>(alias, key));
             else
                 attributesPattern.add(new Pair<String, Pattern>(alias, Pattern.compile(key)));
@@ -155,7 +154,7 @@ public class MetricSchema implements Serializable {
     }
 
     private boolean isKeyARegex(String value) {
-        return value.contains("+") || value.contains("(") || value.contains("*");
+        return value.contains("*") || value.contains("+") || value.contains("(") || value.contains("*");
     }
 
     public List<Metric> call(JSONObject jsonObject) {
@@ -173,7 +172,11 @@ public class MetricSchema implements Serializable {
                 String alias = attribute.first;
                 String key = attribute.second;
 
-                JsonElement value = jsonObject.getElement(key);
+                JsonElement value;
+                if(isFixedValue(key))
+                    value = new JsonPrimitive(key.substring(1));
+                else
+                    value = jsonObject.getElement(key);
 
                 if (value != null && value.isJsonPrimitive())
                     attributesForMetric.put(alias, value.getAsString());
@@ -260,6 +263,10 @@ public class MetricSchema implements Serializable {
             metrics.add(new Metric(Instant.now(), exception, ids));
             return metrics;
         }
+    }
+
+    private boolean isFixedValue(String key) {
+        return key.startsWith("#");
     }
 
     private Instant toDate(String date_string) throws DateTimeParseException {
