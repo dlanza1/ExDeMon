@@ -18,6 +18,8 @@ metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/space separate
 # General filter for all metrics that update the variables (optional)
 metrics.define.<defined-metric-id>.metrics.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.metrics.filter.attribute.<attribute-name> = <value>
+# Fixed value attributes to add to the generated metrics
+metrics.define.<defined-metric-id>.metrics.attribute.<attribute-name> = <value>
 # Variable that represent an incoming metric
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name> = <value->

@@ -276,6 +276,25 @@ public class DefinedMetricTest {
 	}
 	
 	@Test
+    public void fixedValueAttributes() throws ConfigurationException, CloneNotSupportedException {
+        DefinedMetric definedMetric = new DefinedMetric("A");
+        
+        Properties properties = new Properties();
+        properties.setProperty("metrics.attribute.A", "A1");
+        properties.setProperty("metrics.attribute.B", "B2");
+        properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
+        definedMetric.config(properties);
+        
+        VariableStatuses store = new VariableStatuses();;
+        
+        Metric metric = Metric(0, 10, "HOSTNAME=host1", "METRIC_NAME=Read Bytes");
+        Optional<Metric> generatedMetric = definedMetric.generateByUpdate(store, metric, new HashMap<String, String>());
+        
+        assertEquals("A1", generatedMetric.get().getAttributes().get("A"));
+        assertEquals("B2", generatedMetric.get().getAttributes().get("B"));
+    }
+	
+	@Test
 	public void computeWhenVariableThatIsNotInEqaution() throws ConfigurationException, CloneNotSupportedException {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");

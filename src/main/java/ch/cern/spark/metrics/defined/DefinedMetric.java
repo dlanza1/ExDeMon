@@ -44,6 +44,8 @@ public class DefinedMetric implements Serializable{
 	
 	private MetricsFilter filter;
 
+    private Map<String, String> fixedValueAttributes;
+
 	public DefinedMetric(String name) {
 		this.name = name;
 	}
@@ -68,6 +70,10 @@ public class DefinedMetric implements Serializable{
 			metricsGroupBy = Arrays.stream(groupByVal.split(" ")).map(String::trim).collect(Collectors.toSet());
 		
 		filter = MetricsFilter.build(properties.getSubset("metrics.filter"));
+		
+		fixedValueAttributes = properties.getSubset("metrics.attribute").entrySet().stream()
+		                            .map(entry -> new Pair<String, String>(entry.getKey().toString(), entry.getValue().toString()))
+		                            .collect(Collectors.toMap(Pair::first, Pair::second));
 		
 		Properties variablesProperties = properties.getSubset("variables");
 		Set<String> variableNames = variablesProperties.getIDs();
@@ -188,6 +194,9 @@ public class DefinedMetric implements Serializable{
 	private Optional<Metric> generate(VariableStatuses stores, Instant time, Map<String, String> groupByMetricIDs) {		
 		Map<String, String> metricIDs = new HashMap<>(groupByMetricIDs);
 		metricIDs.put("$defined_metric", name);
+		
+		for (Map.Entry<String, String> entry : fixedValueAttributes.entrySet())
+		    metricIDs.put(entry.getKey(), entry.getValue());
 		
 		if(configurationException != null) {
 			if(stores.newProcessedBatchTime(time))
