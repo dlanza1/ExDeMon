@@ -50,6 +50,8 @@ public class MetricSchema implements Serializable {
     public static String SOURCES_PARAM = "sources";
     private List<String> sources;
 
+    private HashMap<String, String> fixedAttributes;
+    
     public static String ATTRIBUTES_PARAM = "attributes";
     private List<Pair<String, String>> attributes;
     private List<Pair<String, Pattern>> attributesPattern;
@@ -69,7 +71,7 @@ public class MetricSchema implements Serializable {
     public static String FILTER_PARAM = "filter";
     private MetricsFilter filter;
 
-    private Exception configurationException;
+    private Exception configurationException;    
 
     public MetricSchema(String id) {
         this.id = id;
@@ -123,6 +125,9 @@ public class MetricSchema implements Serializable {
         if (value_attributes.isEmpty())
             throw new ConfigurationException(VALUE_ATTRIBUTES_PARAM + " must be configured.");
 
+        fixedAttributes = new HashMap<>();
+        fixedAttributes.put("$schema", id);
+        
         attributes = new LinkedList<>();
         attributesPattern = new LinkedList<>();
         String attributesValue = properties.getProperty(ATTRIBUTES_PARAM);
@@ -130,7 +135,7 @@ public class MetricSchema implements Serializable {
             String[] attributesValues = attributesValue.split("\\s");
 
             for (String attribute : attributesValues)
-                if(!isKeyARegex(attribute))
+                if(!isKeyRegex(attribute))
                     attributes.add(new Pair<String, String>(attribute, attribute));
                 else
                     attributesPattern.add(new Pair<String, Pattern>(attribute, Pattern.compile(attribute)));
@@ -140,7 +145,9 @@ public class MetricSchema implements Serializable {
             String alias = (String) pair.getKey();
             String key = (String) pair.getValue();
             
-            if(!isKeyARegex(key) || isFixedValue(key))
+            if(isFixedValue(key))
+                fixedAttributes.put(alias, key.substring(1));
+            else if(!isKeyRegex(key))
                 attributes.add(new Pair<String, String>(alias, key));
             else
                 attributesPattern.add(new Pair<String, Pattern>(alias, Pattern.compile(key)));
@@ -151,30 +158,23 @@ public class MetricSchema implements Serializable {
         return this;
     }
 
-    private boolean isKeyARegex(String value) {
+    private boolean isKeyRegex(String value) {
         return value.contains("*") || value.contains("+") || value.contains("(") || value.contains("*");
     }
 
     public List<Metric> call(JSONObject jsonObject) {
         List<Metric> metrics = new LinkedList<>();
 
-        Map<String, String> ids = new HashMap<>();
-        ids.put("$schema", id);
-
         try {
             if (configurationException != null)
                 throw configurationException;
 
-            Map<String, String> attributesForMetric = new HashMap<>(ids);
+            Map<String, String> attributesForMetric = new HashMap<>(fixedAttributes);
             for (Pair<String, String> attribute : attributes) {
                 String alias = attribute.first;
                 String key = attribute.second;
 
-                JsonElement value;
-                if(isFixedValue(key))
-                    value = new JsonPrimitive(key.substring(1));
-                else
-                    value = jsonObject.getElement(key);
+                JsonElement value = jsonObject.getElement(key);
 
                 if (value != null && value.isJsonPrimitive())
                     attributesForMetric.put(alias, value.getAsString());
@@ -258,7 +258,7 @@ public class MetricSchema implements Serializable {
 
             ExceptionValue exception = new ExceptionValue(e.getMessage());
 
-            metrics.add(new Metric(Instant.now(), exception, ids));
+            metrics.add(new Metric(Instant.now(), exception, fixedAttributes));
             return metrics;
         }
     }
