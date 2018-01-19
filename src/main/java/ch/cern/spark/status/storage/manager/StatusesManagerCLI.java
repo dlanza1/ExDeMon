@@ -13,7 +13,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,7 +97,7 @@ public class StatusesManagerCLI {
             manager.printKeys(indexedKeys);
             
             if(manager.shouldRemoveAll()) {
-                manager.removeAll(indexedKeys.values());
+                manager.remove(indexedKeys.values().toArray(new StatusKey[0]));
                 
                 System.out.println("All filtered statuses removed.");
                 return;
@@ -137,12 +136,7 @@ public class StatusesManagerCLI {
         return remove_all;
     }
 
-    private void removeAll(Collection<StatusKey> values) throws UnknownHostException, IOException, ConfigurationException {
-        for (StatusKey statusKey : values)
-            remove(statusKey);
-    }
-
-    private void remove(StatusKey key) throws UnknownHostException, IOException, ConfigurationException {
+    private void remove(StatusKey... statusKeys) throws UnknownHostException, IOException, ConfigurationException {
         String actualHostname = InetAddress.getLocalHost().getHostName();
         String configuredName = InetAddress.getByName(statuses_removal_socket_host).getHostName();
         
@@ -155,15 +149,18 @@ public class StatusesManagerCLI {
         BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
         PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
         
-        System.out.println();
-        System.out.println("Sending key for removal: ");
-        
-        String jsonString = new String(json.fromKey(key));
-        writer.println(jsonString);
-        
-        String answer = reader.readLine();
-        
-        System.out.println("Removed: " + answer);
+        for (StatusKey statusKey : statusKeys) {
+            String jsonString = new String(json.fromKey(statusKey));
+            
+            System.out.println();
+            System.out.println("Sending key for removal: " + jsonString);
+            
+            writer.println(jsonString);
+            
+            String answer = reader.readLine();
+            
+            System.out.println("Removed: " + answer);
+        }
         
         socket.close();
     }
