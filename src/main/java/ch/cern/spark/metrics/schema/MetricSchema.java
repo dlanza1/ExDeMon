@@ -139,8 +139,6 @@ public class MetricSchema implements Serializable {
         for (Map.Entry<Object, Object> pair : attributesWithAlias.entrySet()) {
             String alias = (String) pair.getKey();
             String key = (String) pair.getValue();
-
-            attributes.add(new Pair<String, String>(alias, key));
             
             if(!isKeyARegex(key) || isFixedValue(key))
                 attributes.add(new Pair<String, String>(alias, key));
