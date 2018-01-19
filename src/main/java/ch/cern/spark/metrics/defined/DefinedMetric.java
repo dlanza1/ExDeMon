@@ -194,9 +194,7 @@ public class DefinedMetric implements Serializable{
 	private Optional<Metric> generate(VariableStatuses stores, Instant time, Map<String, String> groupByMetricIDs) {		
 		Map<String, String> metricIDs = new HashMap<>(groupByMetricIDs);
 		metricIDs.put("$defined_metric", name);
-		
-		for (Map.Entry<String, String> entry : fixedValueAttributes.entrySet())
-		    metricIDs.put(entry.getKey(), entry.getValue());
+		metricIDs.putAll(fixedValueAttributes);
 		
 		if(configurationException != null) {
 			if(stores.newProcessedBatchTime(time))
