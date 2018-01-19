@@ -1,6 +1,7 @@
-# Metrics monitor
+# ExDeMon: extract, define and monitor metrics
 
 A general purpose metric monitor implemented with Apache Spark. 
+
 Metrics can come from several sources like Kafka, results and notifications can be sunk to Elastic or any other system, new metrics can be defined combining other metrics, different analysis can be applied, notifications, configuration can be updated without restarting, it can detect missing metrics, ...
 
 This tool was introduced at Spark Summit 2017 conference, you can watch the talk [here](https://www.youtube.com/watch?v=1IsMMmug5q0&feature=youtu.be&t=11m17s).
