@@ -4,3 +4,5 @@
 /.settings/
 /.cache-main
 /.cache-tests
+
+/api/venv/
