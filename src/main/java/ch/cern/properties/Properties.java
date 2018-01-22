@@ -141,10 +141,14 @@ public class Properties extends java.util.Properties {
     }
 
     public boolean getBoolean(String key) throws ConfigurationException {
+        return getBoolean(key, false);
+    }
+    
+    public boolean getBoolean(String key, boolean defaultValue) throws ConfigurationException {
         String value = getProperty(key);
 
         if (value == null)
-            return false;
+            return defaultValue;
 
         if (value.toLowerCase().equals("true"))
             return true;

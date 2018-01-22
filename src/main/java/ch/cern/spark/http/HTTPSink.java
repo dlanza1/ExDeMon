@@ -33,10 +33,9 @@ public class HTTPSink implements Serializable{
 
 	private final static Logger LOG = LogManager.getLogger(HTTPSink.class);
 
-	public static final String URL_PARAM = "url";
-
 	private static HttpClient httpClient;
 
+	public static final String URL_PARAM = "url";
 	private String url;
 	
 	public static final String RETRIES_PARAM = "retries";
@@ -55,8 +54,11 @@ public class HTTPSink implements Serializable{
     public static final String AUTH_USERNAME_PARAM = AUTH_PARAM + ".user";
     public static final String AUTH_PASSWORD_PARAM = AUTH_PARAM + ".password";
     private Header authHeader;
-	
+    
 	private Map<String, String> propertiesToAdd;
+	
+	private static final String AS_ARRAY_PARAM = "as-array";
+    private boolean as_array;
 
 	public void config(Properties properties) throws ConfigurationException {
 		url = properties.getProperty(URL_PARAM);
@@ -64,6 +66,7 @@ public class HTTPSink implements Serializable{
 		timeout_ms = (int) properties.getFloat(TIMEOUT_PARAM, 2000);
 		parallelization = (int) properties.getFloat(PARALLELIZATION_PARAM, 1);
 		batch_size = (int) properties.getFloat(BATCH_SIZE_PARAM, 100);
+		as_array = properties.getBoolean(AS_ARRAY_PARAM, true);
 		
 		propertiesToAdd = properties.getSubset("add").toStringMap();
 		
@@ -137,7 +140,24 @@ public class HTTPSink implements Serializable{
 		});
 	}
 
-	private static HttpClient getHTTPClient() {
+	private Exception sendBatch(List<String> elementsToSend) {
+	    if(as_array) {
+	        String contentToSend = buildJSONArray(elementsToSend);
+	        
+	        return send(contentToSend);
+	    }else {
+	        for (String element : elementsToSend) {
+	            Exception excep = send(element);
+	            
+	            if(excep != null)
+	                return excep;
+            }
+	    }
+	    
+	    return null;
+    }
+
+    private static HttpClient getHTTPClient() {
 		return HTTPSink.httpClient == null ? new HttpClient() : HTTPSink.httpClient;
 	}
 	
@@ -145,8 +165,8 @@ public class HTTPSink implements Serializable{
 		return HTTPSink.httpClient = httpClient;
 	}
 
-	private Exception sendBatch(List<String> elementsToSend) {
-		if(elementsToSend.size() <= 0)
+	private Exception send(String contentToSend) {
+		if(contentToSend.length() <= 0)
 			return null;
 		
 		HttpClient httpClient = getHTTPClient();
@@ -155,7 +175,7 @@ public class HTTPSink implements Serializable{
 		
 		for (int i = 0; i < retries && thrownException != null; i++) {
 			try {
-				trySendBatch(httpClient, elementsToSend);
+				trySend(httpClient, contentToSend);
 				
 				thrownException = null;
 			} catch (Exception e) {
@@ -171,8 +191,8 @@ public class HTTPSink implements Serializable{
 		return thrownException;	
 	}
 	
-	private void trySendBatch(HttpClient httpClient, List<String> elementsToSend) throws HttpException, IOException {
-        StringRequestEntity requestEntity = new StringRequestEntity(buildJSONArray(elementsToSend), "application/json", "UTF-8");
+	private void trySend(HttpClient httpClient, String contentToSend) throws HttpException, IOException {
+        StringRequestEntity requestEntity = new StringRequestEntity(contentToSend, "application/json", "UTF-8");
         PostMethod postMethod = new PostMethod(url);
         postMethod.setRequestEntity(requestEntity);
         
@@ -196,7 +216,7 @@ public class HTTPSink implements Serializable{
         if (statusCode != 201 && statusCode != 200) {
         		throw new HttpException("Unable to POST to url=" + url + " with status code=" + statusCode);
         } else {
-            LOG.info("Batch of " + elementsToSend.size() + " JSON documents sent to " + url);
+            LOG.trace("JSON: " + contentToSend + " sent to " + url);
         }
 	}
 

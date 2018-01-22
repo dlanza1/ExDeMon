@@ -50,6 +50,7 @@ notifications.sink.<sink-id>.type = http
 notifications.sink.<sink-id>.url = <url>
 notifications.sink.<sink-id>.parallelization = <number-of-parallel-clients> (default: 1)
 notifications.sink.<sink-id>.batch.size = <max-number-of-records-in-a-POST-request> (default: 100)
+notifications.sink.<sink-id>.as-array = <true|false> (default: true)
 notifications.sink.<sink-id>.retries = <max-number-of-retries> (default: 5)
 notifications.sink.<sink-id>.timeout = <max-wait-time-in-ms> (default: 2000)
 # HTTP simple authentication

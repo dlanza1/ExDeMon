@@ -133,6 +133,7 @@ Notifications produced by notificators are sunk using one or several of this com
 Several notifications sinks can be declared.
 
 Built-in notifications sink:
-- Email
+- Email.
+- Mattermost.
 - Elastic.
 - HTTP (POST).

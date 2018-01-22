@@ -42,7 +42,7 @@ public class EmailNotificationsSinkTest {
         metric_attributes.put("b", "2");
         notification.setMetric_attributes(metric_attributes);
         
-        sink.sendEmail(notification);
+        //sink.sendEmail(notification);
     }
 
 }
