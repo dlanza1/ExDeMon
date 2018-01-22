@@ -280,6 +280,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
 				producer.send(new ProducerRecord<Bytes, Bytes>(topic, key, value));
 			}
 			
+			producer.flush();
 			producer.close();
 		}
     	
