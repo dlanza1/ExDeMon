@@ -25,6 +25,8 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.json.JSONParser;
+import ch.cern.spark.metrics.notifications.Notification;
+import ch.cern.spark.metrics.notifications.sink.NotificationsSink;
 import ch.cern.utils.TimeUtils;
 
 public class HTTPSink implements Serializable{
@@ -106,8 +108,14 @@ public class HTTPSink implements Serializable{
 			for (Map.Entry<String, String> propertyToAdd : propertiesToAdd.entrySet()) {
 				String value = propertyToAdd.getValue();
 				
-				if(value.startsWith("%") && tags != null && tags.containsKey(value.substring(1)))
-					value = tags.get(value.substring(1));
+				if(value.startsWith("%"))
+				    if(tags != null)
+				        value = tags.get(value.substring(1));
+				    else
+				        value = null;
+				
+				if(value != null && object instanceof Notification)
+			        value = NotificationsSink.template(value, (Notification) object);
 				
 				json.setProperty(propertyToAdd.getKey(), value);
 			}

@@ -72,6 +72,20 @@ notifications.sink.<sink-id>.add.<key-n> = <value|%notification-tag-key>
 
 add parameters can use templates.
 
+TIP: Send notifications to Mattermost
+
+More info: https://docs.mattermost.com/developer/webhooks-incoming.html
+
+```
+notifications.sink.mattermost.type = http
+notifications.sink.mattermost.url = http://{your-mattermost-site}/hooks/xxx-generatedkey-xxx
+notifications.sink.mattermost.add.$notification = false
+notifications.sink.mattermost.add.text = %matt-text
+notifications.sink.mattermost.add.channel = %matt-channel
+notifications.sink.mattermost.add.username = %matt-username
+notifications.sink.mattermost.add.icon_url = %matt-icon_url
+```
+
 ## CERN GNI notifications sink
 
 Notifications are converted to JSON (array) and sunk to an HTTP (POST) end point.

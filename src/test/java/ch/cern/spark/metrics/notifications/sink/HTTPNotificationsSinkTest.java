@@ -73,7 +73,7 @@ public class HTTPNotificationsSinkTest extends StreamTestHelper<Notification, No
 					+ "\"sink_ids\":[\"ALL\"],"
 					+ "\"header\":{\"h1\":\"fromtag1\"},"
 					+ "\"body\":{"
-						+ "\"payload\":{\"bp1\":\"fromtag2\",\"bp2\":\"%no-tag\"},"
+						+ "\"payload\":{\"bp1\":\"fromtag2\",\"bp2\":null},"
 						+ "\"metadata\":{\"metric_id\":\"1234\"}}}]", receivedEntity.getContent());
 	}
 
