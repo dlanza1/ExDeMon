@@ -64,6 +64,7 @@ notifications.sink.<sink-id>.auth = <true|false> (default: false)
 notifications.sink.<sink-id>.auth.user = <username>
 notifications.sink.<sink-id>.auth.password = <password>
 # Add properties to JSON document
+notifications.sink.<sink-id>.add.$notification = <true|false> (default: true)
 notifications.sink.<sink-id>.add.<key-1> = <value|%notification-tag-key>
 notifications.sink.<sink-id>.add.<key-2> = <value|%notification-tag-key>
 notifications.sink.<sink-id>.add.<key-n> = <value|%notification-tag-key>

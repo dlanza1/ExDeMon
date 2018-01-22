@@ -60,6 +60,8 @@ public class HTTPSink implements Serializable{
 	private static final String AS_ARRAY_PARAM = "as-array";
     private boolean as_array;
 
+    private boolean addNotification;
+
 	public void config(Properties properties) throws ConfigurationException {
 		url = properties.getProperty(URL_PARAM);
 		retries = (int) properties.getFloat(RETRIES_PARAM, 1);
@@ -68,7 +70,10 @@ public class HTTPSink implements Serializable{
 		batch_size = (int) properties.getFloat(BATCH_SIZE_PARAM, 100);
 		as_array = properties.getBoolean(AS_ARRAY_PARAM, true);
 		
+		addNotification = properties.getBoolean("add.$notification", true);
+        
 		propertiesToAdd = properties.getSubset("add").toStringMap();
+		propertiesToAdd.remove("add.$notification");
 		
 		// Authentication configs
         boolean authentication = properties.getBoolean(AUTH_PARAM);
@@ -92,7 +97,7 @@ public class HTTPSink implements Serializable{
 		outputStream = outputStream.repartition(parallelization);
 		
 		JavaDStream<Object> jsonStream = outputStream.map(object -> {
-			JSONObject json = JSONParser.parse(object);
+			JSONObject json = addNotification ? JSONParser.parse(object) : new JSONObject("{}");
 			
 			Map<String, String> tags = null;
 			if(object instanceof Taggable)
