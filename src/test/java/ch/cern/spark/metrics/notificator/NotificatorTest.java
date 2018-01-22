@@ -153,7 +153,7 @@ public class NotificatorTest {
 		expectedSinkIds.add("aa");
 		expectedSinkIds.add("ALL");
 		expectedSinkIds.add("bb");
-		assertEquals(expectedSinkIds , notif.get().getSinkIds());
+		assertEquals(expectedSinkIds , notif.get().getSink_ids());
     }
 	
 	@Test
@@ -180,7 +180,7 @@ public class NotificatorTest {
 		
 		Set<String> expectedSinkIds = new HashSet<>();
 		expectedSinkIds.add("ALL");
-		assertEquals(expectedSinkIds, notif.get().getSinkIds());
+		assertEquals(expectedSinkIds, notif.get().getSink_ids());
     }
     
 }

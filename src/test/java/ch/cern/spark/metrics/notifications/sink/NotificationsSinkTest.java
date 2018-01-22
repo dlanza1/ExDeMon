@@ -54,10 +54,10 @@ public class NotificationsSinkTest extends StreamTestHelper<Notification, Notifi
 		List<Notification> notifications = sink.notificationsCollector;
 		
 		assertEquals(4, notifications.size());
-		assertEquals(sinks1, notifications.get(0).getSinkIds());
-		assertEquals(sinks2, notifications.get(1).getSinkIds());
-		assertEquals(sinks3, notifications.get(2).getSinkIds());
-		assertEquals(sinks4, notifications.get(3).getSinkIds());
+		assertEquals(sinks1, notifications.get(0).getSink_ids());
+		assertEquals(sinks2, notifications.get(1).getSink_ids());
+		assertEquals(sinks3, notifications.get(2).getSink_ids());
+		assertEquals(sinks4, notifications.get(3).getSink_ids());
 	}
 	
 	public static class TestNotificationsSink extends NotificationsSink{

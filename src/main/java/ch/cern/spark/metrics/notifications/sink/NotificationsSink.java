@@ -26,8 +26,8 @@ public abstract class NotificationsSink extends Component implements Sink<Notifi
 	@Override
 	public final void sink(JavaDStream<Notification> notifications) {
 		notify(notifications.filter(notif -> 
-							notif.getSinkIds().contains(id)
-							|| notif.getSinkIds().contains("ALL")));
+							notif.getSink_ids().contains(id)
+							|| notif.getSink_ids().contains("ALL")));
 	}
 
 	protected abstract void notify(JavaDStream<Notification> notifications);

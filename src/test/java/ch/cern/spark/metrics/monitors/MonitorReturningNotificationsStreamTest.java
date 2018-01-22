@@ -80,10 +80,10 @@ public class MonitorReturningNotificationsStreamTest extends StreamTestHelper<Me
         
         List<Notification> batch2 = returnedBatches.get(2);
         assertEquals(1, batch2.size());
-        assertEquals(1, batch2.get(0).getMetricIDs().size());
-        assertEquals("host1", batch2.get(0).getMetricIDs().get("HOST"));
-        assertEquals(1, batch2.get(0).getSinkIds().size());
-        assertTrue(batch2.get(0).getSinkIds().contains("ALL"));
+        assertEquals(1, batch2.get(0).getMetric_ids().size());
+        assertEquals("host1", batch2.get(0).getMetric_ids().get("HOST"));
+        assertEquals(1, batch2.get(0).getSink_ids().size());
+        assertTrue(batch2.get(0).getSink_ids().contains("ALL"));
         
         List<Notification> batch3 = returnedBatches.get(3);
         assertEquals(0, batch3.size());
@@ -93,10 +93,10 @@ public class MonitorReturningNotificationsStreamTest extends StreamTestHelper<Me
         
         List<Notification> batch5 = returnedBatches.get(5);
         assertEquals(1, batch5.size());
-        assertEquals(1, batch5.get(0).getMetricIDs().size());
-        assertEquals("host1", batch5.get(0).getMetricIDs().get("HOST"));
-        assertEquals(1, batch2.get(0).getSinkIds().size());
-        assertTrue(batch2.get(0).getSinkIds().contains("ALL"));
+        assertEquals(1, batch5.get(0).getMetric_ids().size());
+        assertEquals("host1", batch5.get(0).getMetric_ids().get("HOST"));
+        assertEquals(1, batch2.get(0).getSink_ids().size());
+        assertTrue(batch2.get(0).getSink_ids().contains("ALL"));
 	}
 	
 	@Test
@@ -143,14 +143,14 @@ public class MonitorReturningNotificationsStreamTest extends StreamTestHelper<Me
         
         List<Notification> batch2 = returnedBatches.get(2);
         assertEquals(1, batch2.size());
-        assertEquals(0, batch2.get(0).getMetricIDs().size());
+        assertEquals(0, batch2.get(0).getMetric_ids().size());
         
         List<Notification> batch3 = returnedBatches.get(3);
         assertEquals(0, batch3.size());
         
         List<Notification> batch4 = returnedBatches.get(4);
         assertEquals(1, batch4.size());
-        assertEquals(0, batch2.get(0).getMetricIDs().size());
+        assertEquals(0, batch2.get(0).getMetric_ids().size());
 	}
 
 }

@@ -42,10 +42,10 @@ public class UpdateNotificatorStatusesF
         notificator.getStatus().ifPresent(s -> status.update(s));
 
         notification.ifPresent(n -> {
-            n.setMonitorID(ids.getMonitor_id());
-            n.setNotificatorID(ids.getNotificatorID());
-            n.setMetricIDs(ids.getMetric_attributes());
-            n.setTimestamp(result.getAnalyzedMetric().getTimestamp());
+            n.setMonitor_id(ids.getMonitor_id());
+            n.setNotificator_id(ids.getNotificatorID());
+            n.setMetric_ids(ids.getMetric_attributes());
+            n.setNotification_timestamp(result.getAnalyzedMetric().getTimestamp());
         });
 
         return notification;

@@ -42,13 +42,13 @@ public abstract class Notificator extends Component implements Function<Analysis
     public Optional<Notification> apply(AnalysisResult result) {
     		Optional<Notification> notificationOpt = process(result.getStatus(), result.getAnalyzedMetric().getTimestamp());
     		
-    		notificationOpt.ifPresent(notif -> notif.setMetricIDs(result.getAnalyzedMetric().getAttributes()));
+    		notificationOpt.ifPresent(notif -> notif.setMetric_ids(result.getAnalyzedMetric().getAttributes()));
     		
     		HashMap<String, String> notificationTags = new HashMap<>(result.getTags());
     		notificationTags.putAll(tags);
     		
     		notificationOpt.ifPresent(notif -> notif.setTags(notificationTags));
-    		notificationOpt.ifPresent(notif -> notif.setSinkIds(sinkIDs));
+    		notificationOpt.ifPresent(notif -> notif.setSink_ids(sinkIDs));
     		
     		return notificationOpt;
     }

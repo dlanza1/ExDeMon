@@ -49,7 +49,7 @@ public class HTTPNotificationsSinkTest extends StreamTestHelper<Notification, No
 		Notification notification = new Notification();
 		Set<String> sinks = new HashSet<>();
 		sinks.add("ALL");
-		notification.setSinkIds(sinks);
+		notification.setSink_ids(sinks);
 		Map<String, String> tags = new HashMap<>();
 		tags.put("header_tag", "fromtag1");
 		tags.put("metric_id_tag", "1234");
@@ -70,7 +70,7 @@ public class HTTPNotificationsSinkTest extends StreamTestHelper<Notification, No
 		
 		StringRequestEntity receivedEntity = (StringRequestEntity) methodCaptor.getAllValues().get(0).getRequestEntity();
 		assertEquals("[{\"tags\":{\"metric_id_tag\":\"1234\",\"payload_tag\":\"fromtag2\",\"header_tag\":\"fromtag1\"},"
-					+ "\"sinks\":[\"ALL\"],"
+					+ "\"sink_ids\":[\"ALL\"],"
 					+ "\"header\":{\"h1\":\"fromtag1\"},"
 					+ "\"body\":{"
 						+ "\"payload\":{\"bp1\":\"fromtag2\",\"bp2\":\"%no-tag\"},"
