@@ -1,8 +1,6 @@
 package ch.cern.spark.metrics.notifications.sink.types;
 
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.mail.Authenticator;
 import javax.mail.Message;
@@ -82,14 +80,14 @@ public class EmailNotificationsSink extends NotificationsSink {
         String subject = getValue(notification.getTags(), subjectProp);
         notification.getTags().remove("email.subject");
         if(subject != null)
-            message.setSubject(applyTemplate(subject, notification));
+            message.setSubject(template(subject, notification));
         else
-            message.setSubject(applyTemplate("ExDeMon: notification from monitor <moniotr_id> (<notificator_id>)", notification));
+            message.setSubject(template("ExDeMon: notification from monitor <moniotr_id> (<notificator_id>)", notification));
         
         String text = getValue(notification.getTags(), textProp);
         notification.getTags().remove("email.text");
         if(text != null)
-            message.setText(applyTemplate(text, notification));
+            message.setText(template(text, notification));
         else {
             String textTemplate = "Monitor ID: <monitor_id>";
             textTemplate += "\n\nNotificator ID: <notificator_id>";
@@ -98,60 +96,10 @@ public class EmailNotificationsSink extends NotificationsSink {
             textTemplate += "\n\nReason: <reason>";
             textTemplate += "\n\nTags: <tags>";
             
-            message.setText(applyTemplate(textTemplate, notification));
+            message.setText(template(textTemplate, notification));
         }
             
         Transport.send(message);  
-    }
-
-    private String applyTemplate(String template, Notification notification) {
-        String text = template;
-        
-        text = text.replaceAll("<monitor_id>", notification.getMonitor_id());
-        
-        text = text.replaceAll("<notificator_id>", notification.getNotificator_id());
-        
-        String metric_attributes = "";
-        for(Map.Entry<String, String> att: notification.getMetric_attributes().entrySet())
-            metric_attributes += "\n\t" + att.getKey() + " = " + att.getValue();
-        text = text.replaceAll("<metric_attributes>", metric_attributes);
-        
-        Matcher attMatcher = Pattern.compile("\\<metric_attributes:([^>]+)\\>").matcher(text);        
-        while (attMatcher.find()) {
-            for (int j = 1; j <= attMatcher.groupCount(); j++) {
-                String key = attMatcher.group(j);
-                
-                String value = notification.getMetric_attributes().get(key);
-                
-                text = text.replaceAll("<metric_attributes:"+key+">", value != null ? value : "null");
-                
-                j++;
-            }
-        }
-        
-        text = text.replaceAll("<datetime>", notification.getNotification_timestamp().toString());
-        
-        text = text.replaceAll("<reason>", notification.getReason());
-        
-        String tags_attributes = "";
-        for(Map.Entry<String, String> tag: notification.getTags().entrySet())
-            tags_attributes += "\n\t" + tag.getKey() + " = " + tag.getValue();
-        text = text.replaceAll("<tags>", tags_attributes);
-        
-        Matcher tagsMatcher = Pattern.compile("\\<tags:([^>]+)\\>").matcher(text);        
-        while (tagsMatcher.find()) {
-            for (int j = 1; j <= tagsMatcher.groupCount(); j++) {
-                String key = tagsMatcher.group(j);
-                
-                String value = notification.getMetric_attributes().get(key);
-                
-                text = text.replaceAll("<tags:"+key+">", value != null ? value : "null");
-                
-                j++;
-            }
-        }
-
-        return text;
     }
 
     private String getValue(Map<String, String> tags, String value) {

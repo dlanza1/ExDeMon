@@ -2,6 +2,20 @@
 
 Notifications produced by [notificators](monitor-notificator.md) are sunk by this component to an external system.
 
+#### Templates
+
+In some sinks, templates can be used to format notifications.
+
+The following strings will be replaced by the notification corresponding information:
+* <monitor_id>
+* <notificator_id>
+* <metric_attributes> (will be replaced by a list)
+* <metric_attributes:key> (will be replaced by the value of the specified attribute key)
+* <datetime>
+* <reason>
+* <tags> (will be replaced by the tag list)
+* <tags:key> (will be replaced by the value of the specified tag key)
+
 ## Elastic notifications sink
 
 Notifications are converted to JSON and sunk to an Elastic index.
@@ -31,15 +45,7 @@ notifications.sink.<sink-id>.subject = <value|%notification-tag-key> (default: %
 notifications.sink.<sink-id>.text = <value|%notification-tag-key> (default: %email.text)
 ```
 
-text and subject can be templates where the following strings will be replaced by the notification corresponding information:
-* <monitor_id>
-* <notificator_id>
-* <metric_attributes> (will be replaced by a list)
-* <metric_attributes:key> (will be replaced by the value of the specified attribute key)
-* <datetime>
-* <reason>
-* <tags> (will be replaced by the tag list)
-* <tags:key> (will be replaced by the value of the specified tag key)
+text and subject can be templates.
 
 ## HTTP notifications sink
 
@@ -62,6 +68,8 @@ notifications.sink.<sink-id>.add.<key-1> = <value|%notification-tag-key>
 notifications.sink.<sink-id>.add.<key-2> = <value|%notification-tag-key>
 notifications.sink.<sink-id>.add.<key-n> = <value|%notification-tag-key>
 ```
+
+add parameters can use templates.
 
 ## CERN GNI notifications sink
 
