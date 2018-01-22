@@ -121,6 +121,12 @@
 			<artifactId>gson</artifactId>
 			<version>2.8.2</version>
 		</dependency>
+		
+		<dependency>
+		    <groupId>org.simplejavamail</groupId>
+		    <artifactId>simple-java-mail</artifactId>
+		    <version>4.4.5</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.reflections</groupId>

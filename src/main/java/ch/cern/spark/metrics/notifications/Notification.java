@@ -26,7 +26,7 @@ public class Notification implements Serializable, Taggable {
     private String notificator_id;
     
     @Getter @Setter
-    private Map<String, String> metric_ids;
+    private Map<String, String> metric_attributes;
     
     @Getter @Setter
     private String reason;
@@ -36,12 +36,12 @@ public class Notification implements Serializable, Taggable {
     @Getter @Setter
 	private Set<String> sink_ids;
 
-    public Notification(Instant timestamp, String monitorID, String notificatorID, Map<String, String> metricIDs,
+    public Notification(Instant timestamp, String monitorID, String notificatorID, Map<String, String> metric_attributes,
             String reason, Set<String> sinks) {
         this.notification_timestamp = timestamp;
         this.monitor_id = monitorID;
         this.notificator_id = notificatorID;
-        this.metric_ids = metricIDs;
+        this.metric_attributes = metric_attributes;
         this.reason = reason;
         this.sink_ids = sinks;
         
@@ -56,13 +56,13 @@ public class Notification implements Serializable, Taggable {
 	}
     
     private Map<String, String> replaceMetricAttributesInTags(Map<String, String> tags) {
-    		if(metric_ids == null)
+    		if(metric_attributes == null)
     			return tags;
     	
     		HashMap<String, String> newTags = new HashMap<>(tags);
 		newTags.entrySet().stream().filter(entry -> entry.getValue().startsWith("%")).forEach(entry -> {
 			String metricKey = entry.getValue().substring(1);
-			String metricValue = metric_ids.get(metricKey);
+			String metricValue = metric_attributes.get(metricKey);
 			
 			if(metricValue != null)
 				newTags.put(entry.getKey(), metricValue);
