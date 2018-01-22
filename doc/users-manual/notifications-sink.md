@@ -7,14 +7,14 @@ Notifications produced by [notificators](monitor-notificator.md) are sunk by thi
 In some sinks, templates can be used to format notifications.
 
 The following strings will be replaced by the notification corresponding information:
-* <monitor_id>
-* <notificator_id>
-* <metric_attributes> (will be replaced by a list)
-* <metric_attributes:key> (will be replaced by the value of the specified attribute key)
-* <datetime>
-* <reason>
-* <tags> (will be replaced by the tag list)
-* <tags:key> (will be replaced by the value of the specified tag key)
+* &lt;monitor_id&gt;
+* &lt;notificator_id&gt;
+* &lt;metric_attributes&gt; (will be replaced by a list)
+* &lt;metric_attributes:key&gt; (will be replaced by the value of the specified attribute key)
+* &lt;datetime&gt;
+* &lt;reason&gt;
+* &lt;tags&gt; (will be replaced by the tag list)
+* &lt;tags:key&gt; (will be replaced by the value of the specified tag key)
 
 ## Elastic notifications sink
 
