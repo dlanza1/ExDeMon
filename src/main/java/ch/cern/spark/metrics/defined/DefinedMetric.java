@@ -11,6 +11,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.log4j.Logger;
+
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -28,9 +30,11 @@ import lombok.ToString;
 public class DefinedMetric implements Serializable{
 
 	private static final long serialVersionUID = 82179461944060520L;
+	
+	private final static Logger LOG = Logger.getLogger(DefinedMetric.class.getName());
 
 	@Getter
-	private String name;
+	private String id;
 
 	private Set<String> metricsGroupBy;
 	
@@ -47,13 +51,15 @@ public class DefinedMetric implements Serializable{
     private Map<String, String> fixedValueAttributes;
 
 	public DefinedMetric(String name) {
-		this.name = name;
+		this.id = name;
 	}
 
 	public DefinedMetric config(Properties properties) {
 		try {
 			return tryConfig(properties);
 		} catch (ConfigurationException e) {
+		    LOG.error(id + ": " + e.getMessage(), e);
+		    
 			configurationException = e;
 			
 			variablesWhen = null; // So that, it is trigger with every batch
@@ -193,7 +199,7 @@ public class DefinedMetric implements Serializable{
 	
 	private Optional<Metric> generate(VariableStatuses stores, Instant time, Map<String, String> groupByMetricIDs) {		
 		Map<String, String> metricIDs = new HashMap<>(groupByMetricIDs);
-		metricIDs.put("$defined_metric", name);
+		metricIDs.put("$defined_metric", id);
 		metricIDs.putAll(fixedValueAttributes);
 		
 		if(configurationException != null) {

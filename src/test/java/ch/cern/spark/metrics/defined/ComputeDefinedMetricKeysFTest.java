@@ -218,7 +218,7 @@ public class ComputeDefinedMetricKeysFTest {
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		DefinedMetric definedMetric1 = new DefinedMetric("defM1").config(properties);
-		definedMetrics.put(definedMetric1.getName(), definedMetric1);
+		definedMetrics.put(definedMetric1.getId(), definedMetric1);
 		
 		properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
@@ -226,7 +226,7 @@ public class ComputeDefinedMetricKeysFTest {
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		DefinedMetric definedMetric2 = new DefinedMetric("defM2").config(properties);
-		definedMetrics.put(definedMetric2.getName(), definedMetric2);
+		definedMetrics.put(definedMetric2.getId(), definedMetric2);
 
 		definedMetricsCache.set(definedMetrics);
 		
@@ -244,7 +244,7 @@ public class ComputeDefinedMetricKeysFTest {
 		
 		Map<String, DefinedMetric> definedMetrics = new HashMap<>();
 		DefinedMetric definedMetric = new DefinedMetric("defMAll").config(properties);
-		definedMetrics.put(definedMetric.getName(), definedMetric);
+		definedMetrics.put(definedMetric.getId(), definedMetric);
 		definedMetricsCache.set(definedMetrics);
 		
 		return new ComputeDefinedMetricKeysF(null);
@@ -261,7 +261,7 @@ public class ComputeDefinedMetricKeysFTest {
 		
 		Map<String, DefinedMetric> definedMetrics = new HashMap<>();
 		DefinedMetric definedMetric = new DefinedMetric("defMNone").config(properties);
-		definedMetrics.put(definedMetric.getName(), definedMetric);
+		definedMetrics.put(definedMetric.getId(), definedMetric);
 		definedMetricsCache.set(definedMetrics);
 		
 		return new ComputeDefinedMetricKeysF(null);

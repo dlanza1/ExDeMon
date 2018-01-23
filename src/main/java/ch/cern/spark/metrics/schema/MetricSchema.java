@@ -84,6 +84,8 @@ public class MetricSchema implements Serializable {
             tryConfig(properties);
         } catch (Exception e) {
             configurationException = e;
+            
+            LOG.error(id + ": " + e.getMessage(), e);
         }
 
         return this;

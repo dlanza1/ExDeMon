@@ -147,7 +147,7 @@ public class DefinedMetricTest {
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		metric.config(properties);
 		
-		assertEquals("A", metric.getName());
+		assertEquals("A", metric.getId());
 		assertNotNull(metric.getEquation());
 		assertNotNull(metric.getEquation().getVariables().get("DBCPUUsagePerSec"));
 		assertNotNull(metric.getEquation().getVariables().get("HostCPUUsagePerSec"));
@@ -170,7 +170,7 @@ public class DefinedMetricTest {
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		metric.config(properties);
 		
-		assertEquals("A", metric.getName());
+		assertEquals("A", metric.getId());
 		assertNotNull(metric.getEquation());
 		assertNotNull(metric.getEquation().getVariables().get("DBCPUUsagePerSec"));
 		assertNotNull(metric.getEquation().getVariables().get("HostCPUUsagePerSec"));

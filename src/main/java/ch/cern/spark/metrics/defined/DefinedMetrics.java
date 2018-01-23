@@ -36,7 +36,7 @@ public class DefinedMetrics {
 	        		.map(id -> new Pair<String, Properties>(id, properties.getSubset(id)))
 	        		.map(info -> new DefinedMetric(info.first).config(info.second))
 	        		.filter(out -> out != null)
-	        		.collect(Collectors.toMap(DefinedMetric::getName, m -> m));
+	        		.collect(Collectors.toMap(DefinedMetric::getId, m -> m));
 	        
 	        LOG.info("Metrics defined: " + definedMetrics);
 	        

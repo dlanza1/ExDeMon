@@ -45,6 +45,8 @@ public class Monitor {
     		try {
 			return tryConfig(properties);
 		} catch (ConfigurationException e) {
+		    LOG.error(id + ": " + e.getMessage(), e);
+		    
 			InErrorMonitor errorMonitor = new InErrorMonitor(id, e);
 			
 			return errorMonitor.config(properties);
