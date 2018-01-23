@@ -6,6 +6,8 @@ All notificators have at least the following parameters:
 
 ```
 monitor.<monitor-id>.notificator.<notificator-id>.type = <type> (default: statuses)
+monitor.<monitor-id>.notificator.<notificator-id>.filter.attribute.<analyzed_metric_attribute_key> = <[!]regex_or_exact_value>
+monitor.<monitor-id>.notificator.<notificator-id>.filter.attribute... (as many attributes as needed)
 monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|notifications-sinks-ids> (default: ALL)
 monitor.<monitor-id>.notificator.<notificator-id>.tags.<tag-key> = <value>
 ```

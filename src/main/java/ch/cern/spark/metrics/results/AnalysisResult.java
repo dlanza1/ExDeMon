@@ -10,7 +10,9 @@ import java.util.function.Function;
 
 import ch.cern.Taggable;
 import ch.cern.spark.metrics.Metric;
+import lombok.ToString;
 
+@ToString
 public class AnalysisResult implements Serializable, Taggable {
 
     private static final long serialVersionUID = -5307381437257371176L;
@@ -83,13 +85,6 @@ public class AnalysisResult implements Serializable, Taggable {
         result.setStatus(status, reason);
         
         return result;
-    }
-    
-    @Override
-    public String toString() {
-        return "AnalysisResult [analysis_timestamp=" + analysis_timestamp + ", analyzed_metric=" + analyzed_metric
-                + ", status=" + status + ", status_reason=" + status_reason + ", monitor_params=" + analysis_params
-                + "]";
     }
 
     public Map<String, Object> getAnalysisParams() {

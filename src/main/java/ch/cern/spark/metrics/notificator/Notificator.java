@@ -15,6 +15,7 @@ import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
+import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
@@ -28,6 +29,8 @@ public abstract class Notificator extends Component implements Function<Analysis
     
     private Map<String, String> tags;
     
+    private MetricsFilter filter;
+    
     public Notificator() {
 	}
     
@@ -37,9 +40,14 @@ public abstract class Notificator extends Component implements Function<Analysis
     		sinkIDs = new HashSet<>(Arrays.asList(sinksString.split("\\s")));
     		
     		tags = properties.getSubset("tags").toStringMap();
+    		
+    		filter = MetricsFilter.build(properties.getSubset("filter"));
     }
     
     public Optional<Notification> apply(AnalysisResult result) {
+        if(!filter.test(result.getAnalyzedMetric()))
+            return Optional.empty();
+        
     		Optional<Notification> notificationOpt = process(result.getStatus(), result.getAnalyzedMetric().getTimestamp());
     		
     		notificationOpt.ifPresent(notif -> notif.setMetric_attributes(result.getAnalyzedMetric().getAttributes()));
