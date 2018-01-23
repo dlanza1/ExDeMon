@@ -18,16 +18,16 @@ import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
 import ch.cern.utils.TimeUtils;
 
+
 @RegisterComponent("constant")
 public class ConstantNotificator extends Notificator implements HasStatus {
     
     private static final long serialVersionUID = -7890231998987060652L;
 
-    
-    private String STATUSES_PARAM = "statuses";
+    private static final String STATUSES_PARAM = "statuses";
     private Set<Status> expectedStatuses;
     
-    private static String PERIOD_PARAM = "period";
+    private static final String PERIOD_PARAM = "period";
     private static Duration PERIOD_DEFAULT = Duration.ofMinutes(15);
     private Duration period = PERIOD_DEFAULT;
     

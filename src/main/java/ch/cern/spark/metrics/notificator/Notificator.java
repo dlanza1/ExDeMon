@@ -19,17 +19,19 @@ import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
+import lombok.ToString;
 
+@ToString
 @ComponentType(Type.NOTIFICATOR)
 public abstract class Notificator extends Component implements Function<AnalysisResult, Optional<Notification>>, Serializable{
 
     private static final long serialVersionUID = -5418973482734557441L;
     
-    private Set<String> sinkIDs;
+    protected Set<String> sinkIDs;
     
-    private Map<String, String> tags;
+    protected Map<String, String> tags;
     
-    private MetricsFilter filter;
+    protected MetricsFilter filter;
     
     public Notificator() {
 	}

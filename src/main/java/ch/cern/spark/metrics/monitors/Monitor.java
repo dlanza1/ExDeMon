@@ -22,7 +22,9 @@ import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
+import lombok.ToString;
 
+@ToString
 public class Monitor {
     
     private final static Logger LOG = Logger.getLogger(Monitor.class.getName());
@@ -111,11 +113,6 @@ public class Monitor {
 
 	public MetricsFilter getFilter() {
 		return filter;
-    }
-
-    @Override
-    public String toString() {
-        return "MetricMonitor [id=" + id + ", filter=" + filter + "]";
     }
 
     public String getId() {

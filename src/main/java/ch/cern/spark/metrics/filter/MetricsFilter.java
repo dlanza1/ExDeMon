@@ -14,7 +14,9 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.util.function.AndPredicate;
 import ch.cern.util.function.OrPredicate;
+import lombok.ToString;
 
+@ToString
 public class MetricsFilter implements Predicate<Metric>, Serializable{
     
     private static final long serialVersionUID = 9170996730102744051L;
@@ -114,11 +116,6 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
         }
 	    
         return hits;
-    }
-
-    @Override
-    public String toString() {
-        return "Filter [predicate=" + predicate + "]";
     }
     
 }

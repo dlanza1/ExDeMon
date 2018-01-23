@@ -16,13 +16,15 @@ import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
+import lombok.ToString;
 
+@ToString
 @RegisterComponent("statuses")
 public class StatusesNotificator extends Notificator implements HasStatus {
     
     private static final long serialVersionUID = -7890231998987060652L;
 
-    private String STATUSES_PARAM = "statuses";
+    private static final String STATUSES_PARAM = "statuses";
     private Set<Status> expectedStatuses;
     
     private static final String SILENT_PERIOD_PARAM = "silent.period";
@@ -65,7 +67,7 @@ public class StatusesNotificator extends Notificator implements HasStatus {
 
     @Override
     public Optional<Notification> process(Status status, Instant timestamp) {
-    		if(lastRaised != null && lastRaised.plus(silentPeriod).compareTo(timestamp) > 0)
+    		if(lastRaised != null && lastRaised.plus(silentPeriod).isAfter(timestamp))
     			return Optional.empty();
     		else
     			lastRaised = null;

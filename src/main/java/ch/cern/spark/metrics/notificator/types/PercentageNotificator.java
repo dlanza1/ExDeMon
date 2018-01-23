@@ -27,19 +27,19 @@ public class PercentageNotificator extends Notificator implements HasStatus {
     
     private static final long serialVersionUID = -7890231998987060652L;
     
-    private String STATUSES_PARAM = "statuses";
+    private static final String STATUSES_PARAM = "statuses";
     private Set<Status> expectedStatuses;
     
-    private static String PERIOD_PARAM = "period";
-    private static Duration PERIOD_DEFAULT = Duration.ofMinutes(15);
+    private static final String PERIOD_PARAM = "period";
+    private static final Duration PERIOD_DEFAULT = Duration.ofMinutes(15);
     private Duration period = PERIOD_DEFAULT;
     
     private static final String SILENT_PERIOD_PARAM = "silent.period";
     private Duration silentPeriod;
     private Instant lastRaised;
     
-    private String PERCENTAGE_PARAM = "percentage";
-    private String PERCENTAGE_DEFAULT = "90";
+    private static final String PERCENTAGE_PARAM = "percentage";
+    private static final String PERCENTAGE_DEFAULT = "90";
     private float percentage;
     
     private List<Pair<Instant, Boolean>> hits;
