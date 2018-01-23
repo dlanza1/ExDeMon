@@ -1,4 +1,4 @@
-package ch.cern.spark.metrics.notifications.sink;
+package ch.cern.spark.metrics.notifications.sink.types;
 
 import java.time.Instant;
 import java.util.HashMap;

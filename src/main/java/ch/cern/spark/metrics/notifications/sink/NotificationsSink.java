@@ -43,16 +43,19 @@ public abstract class NotificationsSink extends Component implements Sink<Notifi
 	    
         String text = template;
         
-        text = text.replaceAll("<monitor_id>", notification.getMonitor_id());
+        text = text.replaceAll("<monitor_id>", String.valueOf(notification.getMonitor_id()));
         
-        text = text.replaceAll("<notificator_id>", notification.getNotificator_id());
+        text = text.replaceAll("<notificator_id>", String.valueOf(notification.getNotificator_id()));
         
         Map<String, String> attributes = notification.getMetric_attributes() != null ? notification.getMetric_attributes() : new HashMap<>();
          
         String metric_attributes = "";
         for(Map.Entry<String, String> att: attributes.entrySet())
             metric_attributes += "\n\t" + att.getKey() + " = " + att.getValue();
-        text = text.replaceAll("<metric_attributes>", metric_attributes);
+        if(attributes.size() != 0)
+            text = text.replaceAll("<metric_attributes>", metric_attributes);
+        else
+            text = text.replaceAll("<metric_attributes>", "(empty)");
         
         Matcher attMatcher = Pattern.compile("\\<metric_attributes:([^>]+)\\>").matcher(text);        
         while (attMatcher.find()) {
@@ -69,14 +72,17 @@ public abstract class NotificationsSink extends Component implements Sink<Notifi
         
         text = text.replaceAll("<datetime>", String.valueOf(notification.getNotification_timestamp()));
         
-        text = text.replaceAll("<reason>", notification.getReason());
+        text = text.replaceAll("<reason>", String.valueOf(notification.getReason()));
         
         Map<String, String> tags = notification.getTags() != null ? notification.getTags() : new HashMap<>();
          
         String tags_attributes = "";
         for(Map.Entry<String, String> tag: tags.entrySet())
             tags_attributes += "\n\t" + tag.getKey() + " = " + tag.getValue();
-        text = text.replaceAll("<tags>", tags_attributes);
+        if(tags.size() != 0)
+            text = text.replaceAll("<tags>", tags_attributes);
+        else
+            text = text.replaceAll("<tags>", "(empty)");
         
         Matcher tagsMatcher = Pattern.compile("\\<tags:([^>]+)\\>").matcher(text);        
         while (tagsMatcher.find()) {

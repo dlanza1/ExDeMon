@@ -1,4 +1,4 @@
-package ch.cern.spark.metrics.notifications.sink;
+package ch.cern.spark.metrics.notifications.sink.types;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
