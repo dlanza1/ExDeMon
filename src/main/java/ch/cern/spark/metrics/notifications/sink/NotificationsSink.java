@@ -41,6 +41,9 @@ public abstract class NotificationsSink extends Component implements Sink<Notifi
 	    if(template == null)
 	        return null;
 	    
+	    if(notification == null)
+	        notification = new Notification();
+	    
         String text = template;
         
         text = text.replaceAll("<monitor_id>", String.valueOf(notification.getMonitor_id()));

@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.notifications.sink;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.time.Instant;
@@ -103,7 +104,11 @@ public class NotificationsSinkTest extends StreamTestHelper<Notification, Notifi
 
     @Test
     public void nullsInTemplate() {
+        assertNull(NotificationsSink.template(null, null));
+        
         String template = "<monitor_id> <notificator_id> <metric_attributes> <metric_attributes:a> <datetime> <reason> <tags> <tags:b>";
+        
+        assertEquals("null null (empty) null null null (empty) null", NotificationsSink.template(template, null));
 
         Notification notification = new Notification();
 
