@@ -79,6 +79,7 @@ More info: https://docs.mattermost.com/developer/webhooks-incoming.html
 ```
 notifications.sink.mattermost.type = http
 notifications.sink.mattermost.url = http://{your-mattermost-site}/hooks/xxx-generatedkey-xxx
+notifications.sink.mattermost.as-array = false
 notifications.sink.mattermost.add.$notification = false
 notifications.sink.mattermost.add.text = %matt-text
 notifications.sink.mattermost.add.channel = %matt-channel
