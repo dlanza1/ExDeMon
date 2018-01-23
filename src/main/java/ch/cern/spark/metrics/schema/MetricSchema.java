@@ -37,7 +37,9 @@ import ch.cern.spark.metrics.value.StringValue;
 import ch.cern.spark.metrics.value.Value;
 import ch.cern.utils.Pair;
 import lombok.Getter;
+import lombok.ToString;
 
+@ToString
 public class MetricSchema implements Serializable {
 
     private static final long serialVersionUID = -8885058791228553794L;
@@ -320,14 +322,6 @@ public class MetricSchema implements Serializable {
 
     public boolean containsSource(String sourceID) {
         return sources.contains(sourceID);
-    }
-
-    @Override
-    public String toString() {
-        return "MetricSchema [id=" + id + ", sources=" + sources + ", attributes=" + attributes + ", value_attributes="
-                + value_attributes + ", timestamp_format=" + timestamp_format + ", timestamp_attribute="
-                + timestamp_attribute + ", filter=" + filter + ", configurationException=" + configurationException
-                + "]";
     }
 
 }
