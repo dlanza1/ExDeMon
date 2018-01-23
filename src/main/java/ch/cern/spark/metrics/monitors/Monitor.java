@@ -59,7 +59,7 @@ public class Monitor {
         Properties analysis_props = properties.getSubset("analysis");
         if(!analysis_props.isTypeDefined())
         		analysis_props.setProperty("type", NoneAnalysis.class.getAnnotation(RegisterComponent.class).value());
-    		analysis = ComponentManager.build(Type.ANAYLSIS, properties.getSubset("analysis"));
+    		analysis = ComponentManager.build(Type.ANAYLSIS, analysis_props);
         
         Properties notificatorsProps = properties.getSubset("notificator");
         Set<String> notificatorIds = notificatorsProps.getIDs();
