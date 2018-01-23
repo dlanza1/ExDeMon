@@ -186,7 +186,7 @@ public final class Driver {
 	public JavaStreamingContext newStreamingContext(Properties properties) throws IOException, ConfigurationException {
 		
 		SparkConf sparkConf = new SparkConf();
-        sparkConf.setAppName("MetricsMonitorStreamingJob");
+        sparkConf.setAppName("ExDeMon");
         sparkConf.runLocallyIfMasterIsNotConfigured();
         sparkConf.addProperties(properties, "spark.");
         

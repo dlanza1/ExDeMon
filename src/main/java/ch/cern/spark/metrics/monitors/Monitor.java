@@ -22,6 +22,8 @@ import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @ToString
@@ -29,12 +31,15 @@ public class Monitor {
     
     private final static Logger LOG = Logger.getLogger(Monitor.class.getName());
     
+    @Getter @Setter
     protected String id;
     
+    @Getter
     private MetricsFilter filter;
 
     private Analysis analysis;
     
+    @Getter
     private Map<String, Notificator> notificators;
 
 	private Map<String, String> tags;
@@ -110,21 +115,5 @@ public class Monitor {
     public Map<String, String> getMetricIDs(Metric metric) {
 		return metric.getAttributes();
 	}
-
-	public MetricsFilter getFilter() {
-		return filter;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-    
-    public Map<String, Notificator> getNotificators(){
-    		return notificators;
-    }
 
 }
