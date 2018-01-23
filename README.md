@@ -136,4 +136,4 @@ Built-in notifications sink:
 - Email.
 - Mattermost.
 - Elastic.
-- HTTP (POST).
+- HTTP (e.g. Mattermost webhooks).
