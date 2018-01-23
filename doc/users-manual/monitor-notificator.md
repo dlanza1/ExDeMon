@@ -5,7 +5,7 @@ A notificator implement the logic to decide when to raise a notification base on
 All notificators have at least the following parameters:
 
 ```
-monitor.<monitor-id>.notificator.<notificator-id>.type = <type>
+monitor.<monitor-id>.notificator.<notificator-id>.type = <type> (default: statuses)
 monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|notifications-sinks-ids> (default: ALL)
 monitor.<monitor-id>.notificator.<notificator-id>.tags.<tag-key> = <value>
 ```

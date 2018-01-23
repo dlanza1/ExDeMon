@@ -64,6 +64,10 @@ public class Monitor {
         notificators = new HashMap<>();
         for (String notificatorId : notificatorIds) {
         		Properties props = notificatorsProps.getSubset(notificatorId);
+        		
+        		if(!props.isTypeDefined())
+        		    props.setProperty("type", "statuses");
+        		
         		notificators.put(notificatorId, ComponentManager.build(Type.NOTIFICATOR, props));
 		}
         
