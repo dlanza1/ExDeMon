@@ -28,7 +28,7 @@ public class UpdateNotificatorStatusesF
     protected Optional<Notification> update(NotificatorStatusKey ids, AnalysisResult result, State<StatusValue> status) throws Exception {
         Monitors.initCache(propertiesSourceProperties);
 
-        Optional<Monitor> monitorOpt = Optional.of(Monitors.getCache().get().get(ids.getMonitor_id()));
+        Optional<Monitor> monitorOpt = Optional.ofNullable(Monitors.getCache().get().get(ids.getMonitor_id()));
         if (!monitorOpt.isPresent())
             return Optional.empty();
         Monitor monitor = monitorOpt.get();
