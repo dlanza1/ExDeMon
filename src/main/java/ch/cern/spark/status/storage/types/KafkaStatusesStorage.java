@@ -289,7 +289,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
                     @Override
                     public void onCompletion(RecordMetadata metadata, Exception exception) {
                         if(exception != null)
-                            LOG.error("Exception when sending key = " + record, exception);
+                            LOG.error("Kafka exception when sending record", exception);
                     }
                 });
 			}

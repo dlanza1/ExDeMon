@@ -33,6 +33,8 @@ import ch.cern.utils.TimeUtils;
 import lombok.Getter;
 
 public class MetricVariable extends Variable {
+    
+    public static final long MAX_SIZE_DEFAULT = 10000;
 	
 	private MetricsFilter filter;
 
@@ -93,7 +95,7 @@ public class MetricVariable extends Variable {
 		else if(aggregateSelect != null)
 			aggregateSelectAtt = new HashSet<String>(Arrays.asList(aggregateSelect.split("\\s")));
 		
-		max_aggregation_size = Integer.parseInt(properties.getProperty("aggregate.max-size", "100000"));
+		max_aggregation_size = Integer.parseInt(properties.getProperty("aggregate.max-size", MAX_SIZE_DEFAULT+""));
 		
 		return this;
 	}

@@ -19,6 +19,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import ch.cern.spark.metrics.defined.equation.ComputationException;
+import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
 import ch.cern.spark.metrics.defined.equation.var.agg.Aggregation;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
@@ -36,8 +37,6 @@ import lombok.ToString;
 public class ValueHistory implements Serializable {
 
     private static final long serialVersionUID = 9141577304066319408L;
-    
-    private static final long MAX_SIZE_DEFAULT = 100000;
 
     @Getter @Setter
     private List<DatedValue> values;
@@ -55,7 +54,7 @@ public class ValueHistory implements Serializable {
     private Aggregation aggregation;
 
     public ValueHistory(Duration expire){
-        this(new DurationAndTruncate(expire), MAX_SIZE_DEFAULT, null, null);
+        this(new DurationAndTruncate(expire), MetricVariable.MAX_SIZE_DEFAULT, null, null);
     }
     
     public ValueHistory(DurationAndTruncate expire, long max_size, ChronoUnit granularity, Aggregation aggregation){
@@ -204,7 +203,7 @@ public class ValueHistory implements Serializable {
             DurationAndTruncate period = (DurationAndTruncate) in.readObject();
             ChronoUnit granularity = (ChronoUnit) in.readObject();
             Aggregation aggregation = (Aggregation) in.readObject();
-            history = new ValueHistory(period, MAX_SIZE_DEFAULT, granularity, aggregation);
+            history = new ValueHistory(period, MetricVariable.MAX_SIZE_DEFAULT, granularity, aggregation);
             
             int[] times = (int[]) in.readObject();
             Value[] values = (Value[]) in.readObject();
