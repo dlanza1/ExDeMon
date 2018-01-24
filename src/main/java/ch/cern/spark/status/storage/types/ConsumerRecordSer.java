@@ -6,7 +6,9 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.utils.Bytes;
 
 import ch.cern.utils.ByteArray;
+import lombok.ToString;
 
+@ToString
 public class ConsumerRecordSer implements Serializable{
 
     private static final long serialVersionUID = -8815018248610333648L;

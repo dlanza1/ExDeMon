@@ -88,6 +88,7 @@ public class StatusesNotificator extends Notificator implements HasStatus {
         return expectedStatuses.contains(status);
     }
 
+    @ToString
     @ClassNameAlias("statuses-notificator")
     public static class Status_ extends StatusValue{
 		private static final long serialVersionUID = 6942587406344699070L;

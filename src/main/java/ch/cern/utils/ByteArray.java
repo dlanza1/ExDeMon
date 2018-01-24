@@ -1,7 +1,6 @@
 package ch.cern.utils;
 
 import java.io.Serializable;
-import java.util.Arrays;
 
 import lombok.EqualsAndHashCode;
 
@@ -23,7 +22,7 @@ public class ByteArray implements Serializable {
 
 	@Override
 	public String toString() {
-		return Arrays.toString(values);
+		return new String(values);
 	}
 	
 }

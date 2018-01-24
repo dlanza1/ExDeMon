@@ -14,8 +14,10 @@ import java.util.UUID;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.BytesDeserializer;
@@ -86,9 +88,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
 	
 	@Override
 	public JavaRDD<Tuple2<StatusKey, StatusValue>> load(JavaSparkContext context) throws IOException, ConfigurationException {
-	    List<ConsumerRecordSer> list = getAllRecords();
-		
-        JavaRDD<ConsumerRecordSer> kafkaContent = context.parallelize(list);
+	    JavaRDD<ConsumerRecordSer> kafkaContent = getAllRecords(context);
 		
 		JavaRDD<Tuple2<ByteArray, ByteArray>> latestRecords = getLatestRecords(kafkaContent);
 		
@@ -108,10 +108,10 @@ public class KafkaStatusesStorage extends StatusesStorage {
         consumer.subscribe(Sets.newHashSet(topic));
     }
 
-    private List<ConsumerRecordSer> getAllRecords() {
+    private JavaRDD<ConsumerRecordSer> getAllRecords(JavaSparkContext context) {
         setUpConsumer();
         
-        List<ConsumerRecordSer> list = new LinkedList<>();
+        Map<Bytes, ConsumerRecordSer> latestRecords = new HashMap<>();
         
         long[] lastOffsets = new long[consumer.partitionsFor(topic).size()];
         
@@ -122,7 +122,13 @@ public class KafkaStatusesStorage extends StatusesStorage {
                 if(lastOffsets[r.partition()] < offset)
                     lastOffsets[r.partition()] = offset;
                 
-                list.add(new ConsumerRecordSer(r));
+                if(latestRecords.containsKey(r.key())) {
+                    if(latestRecords.get(r.key()).offset() < r.offset()) {
+                        latestRecords.put(r.key(), new ConsumerRecordSer(r));
+                    }
+                }else{
+                    latestRecords.put(r.key(), new ConsumerRecordSer(r));
+                }
             });
 
             records = consumer.poll(timeout.toMillis());
@@ -132,7 +138,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
         
         consumer.close();
         
-        return list;
+        return context.parallelize(new LinkedList<>(latestRecords.values()));
     }
     
     public void checkAllRecordsConsumed(long[] lastOffsets) {
@@ -272,12 +278,20 @@ public class KafkaStatusesStorage extends StatusesStorage {
 			KafkaProducer<Bytes, Bytes> producer = new KafkaProducer<>(props);
 			
 			while(records.hasNext()) {
-				Tuple2<K, V> record = records.next();
+				Tuple2<K, V> tuple = records.next();
 
-				Bytes key = record._1 != null ? new Bytes(serializer.fromKey(record._1)) : null;
-				Bytes value = record._2 != null ? new Bytes(serializer.fromValue(record._2)) : null;
+				Bytes key = tuple._1 != null ? new Bytes(serializer.fromKey(tuple._1)) : null;
+				Bytes value = tuple._2 != null ? new Bytes(serializer.fromValue(tuple._2)) : null;
 				
-				producer.send(new ProducerRecord<Bytes, Bytes>(topic, key, value));
+				ProducerRecord<Bytes, Bytes> record = new ProducerRecord<Bytes, Bytes>(topic, key, value);
+				
+				producer.send(record, new Callback() {
+                    @Override
+                    public void onCompletion(RecordMetadata metadata, Exception exception) {
+                        if(exception != null)
+                            LOG.error("Exception when sending key = " + record, exception);
+                    }
+                });
 			}
 			
 			producer.flush();

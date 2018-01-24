@@ -21,7 +21,9 @@ import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
 import ch.cern.utils.Pair;
 import ch.cern.utils.TimeUtils;
+import lombok.ToString;
 
+@ToString
 @RegisterComponent("percentage")
 public class PercentageNotificator extends Notificator implements HasStatus {
     
@@ -182,6 +184,7 @@ public class PercentageNotificator extends Notificator implements HasStatus {
         			|| hitTime.equals(oldestTime) || hitTime.equals(currentTime);
     }
 
+    @ToString
     @ClassNameAlias("percentage-notificator")
     public static class Status_ extends StatusValue{
 
