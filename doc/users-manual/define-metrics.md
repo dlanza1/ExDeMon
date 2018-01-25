@@ -13,7 +13,7 @@ Configuration:
 
 ```
 metrics.define.<defined-metric-id>.value = <equation containing <variable-ids>> (default: <variable-id> if only one variable has been declared)
-metrics.define.<defined-metric-id>.when = <ANY|BATCH|space separated list of metric variable-ids> (default: the first metric variable after sorting)
+metrics.define.<defined-metric-id>.when = <ANY|BATCH|space separated list of metric variable-ids> (default: ANY)
 metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/space separated attribute names> (default: not set)
 # General filter for all metrics that update the variables (optional)
 metrics.define.<defined-metric-id>.metrics.filter.expr = <predicate with () | & = !=>
@@ -135,7 +135,7 @@ Aggregation operations available and the corresponding type:
 
 #### Aggregation size
 
-The maximum number of different metrics that can be aggregated is configured by "aggregate.max-size" (default: 100000), if more, errors are produced.
+The maximum number of different metrics that can be aggregated is configured by "aggregate.max-size" (default: 10000), if more, errors are produced.
 
 If you are hitting this limit while aggregating historical values of a metric (aggregate.attributes is not set), you could mitigate this using "aggregate.history.granularity" or increasing "aggregate.max-size". Note that a very big aggregation size slows down performance and may bring storage/serialization problems.
 
@@ -145,7 +145,7 @@ For example, if the granularity is configured to hour, the maximum number of met
 
 ## When they are generated 
 
-The computation and further generation of a new metric will be trigger when the variables listed in the "when" parameter are updated. By default, a new metric is produced when the first (after sorting alphabetically by &lt;variable-id&gt;) declared variable is updated with a new value. Last value of the other variables will be used for the computation. You can set "when" to ANY, it will trigger the generation when any of the variables is updated. You can also set "when" to BATCH, so the generation will be triggered not by any variable updated but in every Spark Streaming batch.
+The computation and further generation of a new metric will be trigger when the variables listed in the "when" parameter are updated. You can set "when" to ANY, it will trigger the generation when any of the variables is updated (default). You can also set "when" to BATCH, so the generation will be triggered not by any variable updated but in every Spark Streaming batch.
 
 > TIP for a defined metric which aggregates with count to return 0. 
 > ``` 

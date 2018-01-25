@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.atomic.LongAccumulator;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -113,7 +114,13 @@ public class KafkaStatusesStorage extends StatusesStorage {
         
         Map<Bytes, ConsumerRecordSer> latestRecords = new HashMap<>();
         
-        long[] lastOffsets = new long[consumer.partitionsFor(topic).size()];
+        int num_partitions = consumer.partitionsFor(topic).size();
+        
+        long[] lastOffsets = new long[num_partitions];
+        
+        LongAccumulator[] processed_records_count = new LongAccumulator[num_partitions];
+        for (int i = 0; i < processed_records_count.length; i++)
+            processed_records_count[i] = new LongAccumulator((x,  y) -> x + y, 0L);
         
         ConsumerRecords<Bytes, Bytes> records = consumer.poll(timeout.toMillis());
         while(!records.isEmpty()) {
@@ -121,6 +128,8 @@ public class KafkaStatusesStorage extends StatusesStorage {
                 long offset = r.offset();
                 if(lastOffsets[r.partition()] < offset)
                     lastOffsets[r.partition()] = offset;
+                
+                processed_records_count[r.partition()].accumulate(1L);
                 
                 if(latestRecords.containsKey(r.key())) {
                     if(latestRecords.get(r.key()).offset() < r.offset()) {
@@ -137,6 +146,9 @@ public class KafkaStatusesStorage extends StatusesStorage {
         checkAllRecordsConsumed(lastOffsets);
         
         consumer.close();
+        
+        LOG.info(Arrays.stream(processed_records_count).mapToDouble(a -> a.longValue()).sum() + " records processed, " + latestRecords.size() + " uniques keys");
+        LOG.info(Arrays.toString(Arrays.stream(processed_records_count).mapToDouble(a -> a.longValue()).toArray()) + " (records per partition)");
         
         return context.parallelize(new LinkedList<>(latestRecords.values()));
     }

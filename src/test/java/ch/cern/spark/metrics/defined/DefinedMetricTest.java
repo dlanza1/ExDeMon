@@ -151,7 +151,7 @@ public class DefinedMetricTest {
 		assertNotNull(metric.getEquation());
 		assertNotNull(metric.getEquation().getVariables().get("DBCPUUsagePerSec"));
 		assertNotNull(metric.getEquation().getVariables().get("HostCPUUsagePerSec"));
-		assertEquals(new HashSet<String>(Arrays.asList("DBCPUUsagePerSec")), metric.getVariablesWhen());
+		assertEquals(new HashSet<String>(Arrays.asList("DBCPUUsagePerSec", "HostCPUUsagePerSec")), metric.getVariablesWhen());
 		
 		properties.setProperty("when", "DBCPUUsagePerSec HostCPUUsagePerSec");
 		metric.config(properties);
@@ -174,7 +174,7 @@ public class DefinedMetricTest {
 		assertNotNull(metric.getEquation());
 		assertNotNull(metric.getEquation().getVariables().get("DBCPUUsagePerSec"));
 		assertNotNull(metric.getEquation().getVariables().get("HostCPUUsagePerSec"));
-		assertEquals(new HashSet<String>(Arrays.asList("DBCPUUsagePerSec")), metric.getVariablesWhen());
+		assertEquals(new HashSet<String>(Arrays.asList("DBCPUUsagePerSec", "HostCPUUsagePerSec")), metric.getVariablesWhen());
 		
 		properties.setProperty("when", "DBCPUUsagePerSec HostCPUUsagePerSec");
 		metric.config(properties);

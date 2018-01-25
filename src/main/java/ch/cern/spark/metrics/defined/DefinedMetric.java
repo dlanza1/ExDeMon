@@ -97,7 +97,7 @@ public class DefinedMetric implements Serializable{
 		}
 		
 		variablesWhen = new HashSet<String>();
-		String whenValue = properties.getProperty("when");
+		String whenValue = properties.getProperty("when", "ANY");
 		if(whenValue != null && whenValue.toUpperCase().equals("ANY"))
 			variablesWhen.addAll(variableNames);
 		else if(whenValue != null && whenValue.toUpperCase().equals("BATCH"))
