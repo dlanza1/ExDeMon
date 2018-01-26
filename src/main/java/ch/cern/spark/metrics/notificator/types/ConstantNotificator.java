@@ -71,6 +71,7 @@ public class ConstantNotificator extends Notificator implements HasStatus {
         
         constantlySeenFrom = data.constantlySeenFrom;
         lastRaised = data.lastRaised;
+        times = data.times;
     }
 
     @Override
@@ -79,6 +80,7 @@ public class ConstantNotificator extends Notificator implements HasStatus {
         
         store.constantlySeenFrom = constantlySeenFrom;
         store.lastRaised = lastRaised;
+        store.times = times;
         
         return store;
     }
@@ -139,8 +141,9 @@ public class ConstantNotificator extends Notificator implements HasStatus {
     public static class Status_ extends StatusValue{
         private static final long serialVersionUID = -1907347033980904180L;
         
-        Instant constantlySeenFrom;
-        Instant lastRaised;
+        public Instant constantlySeenFrom;
+        public Instant lastRaised;
+        public int times;
     }
 
 }
