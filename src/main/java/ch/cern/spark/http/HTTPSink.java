@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -103,35 +104,10 @@ public class HTTPSink implements Serializable{
 		
 		JavaDStream<String> jsonStringStream = jsonStream.map(JSONObject::toString);
 		
-		jsonStringStream.foreachRDD(rdd -> {
-			rdd.foreachPartition(strings -> {
-				List<Exception> thrownExceptions = new LinkedList<>();
-				Exception thrownException = null;
-				
-				List<String> elementsToSend = new LinkedList<>();
-				while (strings.hasNext()) {
-					elementsToSend.add((String) strings.next());
-					
-					if(elementsToSend.size() >= batch_size) {
-						thrownException = sendBatch(elementsToSend);
-						if(thrownException != null)
-							thrownExceptions.add(thrownException);
-						
-						elementsToSend = new LinkedList<>();
-					}
-				}
-				
-				thrownException = sendBatch(elementsToSend);
-				if(thrownException != null)
-					thrownExceptions.add(thrownException);
-				
-				if(!thrownExceptions.isEmpty())
-				    LOG.error(new IOException("Same batches could not be sent. Exceptions: " + thrownExceptions));
-			});
-		});
+		jsonStringStream.foreachRDD(rdd -> rdd.foreachPartition(strings -> send(strings)));
 	}
 
-	protected JSONObject processProperties(Object object) throws ParseException {
+    protected JSONObject processProperties(Object object) throws ParseException {
         JSONObject json = addNotification ? JSONParser.parse(object) : new JSONObject("{}");
         
         Map<String, String> tags = null;
@@ -154,6 +130,31 @@ public class HTTPSink implements Serializable{
         }
         
         return json;
+    }
+    
+    protected void send(Iterator<String> strings) {
+        List<Exception> thrownExceptions = new LinkedList<>();
+        Exception thrownException = null;
+        
+        List<String> elementsToSend = new LinkedList<>();
+        while (strings.hasNext()) {
+            elementsToSend.add((String) strings.next());
+            
+            if(elementsToSend.size() >= batch_size) {
+                thrownException = sendBatch(elementsToSend);
+                if(thrownException != null)
+                    thrownExceptions.add(thrownException);
+                
+                elementsToSend = new LinkedList<>();
+            }
+        }
+        
+        thrownException = sendBatch(elementsToSend);
+        if(thrownException != null)
+            thrownExceptions.add(thrownException);
+        
+        if(!thrownExceptions.isEmpty())
+            LOG.error(new IOException("Same batches could not be sent. Exceptions: " + thrownExceptions));
     }
 
     private Exception sendBatch(List<String> elementsToSend) {
