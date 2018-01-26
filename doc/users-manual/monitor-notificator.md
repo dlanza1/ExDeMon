@@ -29,7 +29,7 @@ Minimum period between two notifications is ".silent.period".
 
 ## Constant status notificator
 
-If a metric has been in configured statuses during the configured period, it produces a notification.
+If a metric has been in configured statuses during the configured period (and maximum times if configured), it produces a notification.
 
 Possible statuses are: error, warning, ok, exception.
 
@@ -38,6 +38,7 @@ Configuration:
 monitor.<monitor-id>.notificator.<notificator-id>.type = constant
 monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses separated by space>
 monitor.<monitor-id>.notificator.<notificator-id>.period = <period like 1h, 3m or 45s> (default: 15m)
+monitor.<monitor-id>.notificator.<notificator-id>.max-times = <consicutive times>
 monitor.<monitor-id>.notificator.<notificator-id>.silent.period = <period like 1h, 3m or 45s> (default: 0)
 ```
 

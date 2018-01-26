@@ -34,6 +34,10 @@ public class ConstantNotificator extends Notificator implements HasStatus {
     
     private Instant constantlySeenFrom;
     
+    private static final String MAX_TIMES_PARAM = "max-times";
+    private Integer maxTimes = null;
+    private int times = 0;
+    
     private static final String SILENT_PERIOD_PARAM = "silent.period";
     private Duration silentPeriod;
     private Instant lastRaised;
@@ -49,6 +53,9 @@ public class ConstantNotificator extends Notificator implements HasStatus {
 					        		.collect(Collectors.toSet());
 
         period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
+        
+        String maxTimesVal = properties.getProperty(MAX_TIMES_PARAM);
+        maxTimes = maxTimesVal != null ? Integer.parseInt(maxTimesVal) : null;
         
         silentPeriod = properties.getPeriod(SILENT_PERIOD_PARAM, Duration.ofSeconds(0));
         
@@ -85,11 +92,16 @@ public class ConstantNotificator extends Notificator implements HasStatus {
     	
         boolean isExpectedStatus = isExpectedStatus(status);
         
+        if(isExpectedStatus && maxTimes != null)
+            times++;
+        
         if(isExpectedStatus && constantlySeenFrom == null)
             constantlySeenFrom = timestamp;
         
-        if(!isExpectedStatus)
+        if(!isExpectedStatus) {
             constantlySeenFrom = null;
+            times = 0;
+        }
         
         if(raise(timestamp)){
             Notification notification = new Notification();
@@ -99,6 +111,7 @@ public class ConstantNotificator extends Notificator implements HasStatus {
             
             constantlySeenFrom = null;
             lastRaised = timestamp;
+            times = 0;
             
             return Optional.of(notification);
         }else{
@@ -118,7 +131,7 @@ public class ConstantNotificator extends Notificator implements HasStatus {
     }
 
     private boolean raise(Instant timestamp) {
-        return getDiff(timestamp).compareTo(period) >= 0;
+        return getDiff(timestamp).compareTo(period) >= 0 || (maxTimes != null && times >= maxTimes);
     }
 
     @ToString
