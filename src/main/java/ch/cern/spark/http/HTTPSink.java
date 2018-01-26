@@ -3,6 +3,7 @@ package ch.cern.spark.http;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.LinkedList;
@@ -98,32 +99,9 @@ public class HTTPSink implements Serializable{
 	public void sink(JavaDStream<?> outputStream) {
 		outputStream = outputStream.repartition(parallelization);
 		
-		JavaDStream<Object> jsonStream = outputStream.map(object -> {
-			JSONObject json = addNotification ? JSONParser.parse(object) : new JSONObject("{}");
-			
-			Map<String, String> tags = null;
-			if(object instanceof Taggable)
-				tags = ((Taggable) object).getTags();
-			
-			for (Map.Entry<String, String> propertyToAdd : propertiesToAdd.entrySet()) {
-				String value = propertyToAdd.getValue();
-				
-				if(value.startsWith("%"))
-				    if(tags != null)
-				        value = tags.get(value.substring(1));
-				    else
-				        value = null;
-				
-				if(value != null && object instanceof Notification)
-			        value = NotificationsSink.template(value, (Notification) object);
-				
-				json.setProperty(propertyToAdd.getKey(), value);
-			}
-			
-			return json;
-		});
+		JavaDStream<JSONObject> jsonStream = outputStream.map(object -> processProperties(object));
 		
-		JavaDStream<String> jsonStringStream = jsonStream.map(String::valueOf);
+		JavaDStream<String> jsonStringStream = jsonStream.map(JSONObject::toString);
 		
 		jsonStringStream.foreachRDD(rdd -> {
 			rdd.foreachPartition(strings -> {
@@ -153,7 +131,32 @@ public class HTTPSink implements Serializable{
 		});
 	}
 
-	private Exception sendBatch(List<String> elementsToSend) {
+	protected JSONObject processProperties(Object object) throws ParseException {
+        JSONObject json = addNotification ? JSONParser.parse(object) : new JSONObject("{}");
+        
+        Map<String, String> tags = null;
+        if(object instanceof Taggable)
+            tags = ((Taggable) object).getTags();
+        
+        for (Map.Entry<String, String> propertyToAdd : propertiesToAdd.entrySet()) {
+            String value = propertyToAdd.getValue();
+            
+            if(value.startsWith("%"))
+                if(tags != null)
+                    value = tags.get(value.substring(1));
+                else
+                    value = null;
+            
+            if(value != null && object instanceof Notification)
+                value = NotificationsSink.template(value, (Notification) object);
+            
+            json.setProperty(propertyToAdd.getKey(), value);
+        }
+        
+        return json;
+    }
+
+    private Exception sendBatch(List<String> elementsToSend) {
 	    if(as_array) {
 	        String contentToSend = buildJSONArray(elementsToSend);
 	        

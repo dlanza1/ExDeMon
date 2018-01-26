@@ -9,9 +9,14 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
@@ -24,6 +29,8 @@ import org.mockito.ArgumentCaptor;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.StreamTestHelper;
+import ch.cern.spark.json.JSONObject;
+import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
 public class HTTPSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResult>{
@@ -67,5 +74,35 @@ public class HTTPSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResul
 					+ "\"key1\":\"key1\","
 					+ "\"key2\":{\"a1\":\"key2\"}}]", receivedEntity.getContent());
 	}
+	
+	@Test
+    public void shouldExtractValueFromTags() throws ConfigurationException, HttpException, IOException, ParseException {
+        Properties properties = new Properties();
+        properties.setProperty("add.header.h1", "%header_tag");
+        properties.setProperty("add.body.metadata.metric_id", "%metric_id_tag");
+        properties.setProperty("add.body.payload.bp1", "%payload_tag");
+        properties.setProperty("add.body.payload.bp2", "%no-tag");
+        HTTPSink sink = new HTTPSink();
+        sink.config(properties);
+        
+        Notification notification = new Notification();
+        Set<String> sinks = new HashSet<>();
+        sinks.add("ALL");
+        notification.setSink_ids(sinks);
+        Map<String, String> tags = new HashMap<>();
+        tags.put("header_tag", "fromtag1");
+        tags.put("metric_id_tag", "1234");
+        tags.put("payload_tag", "fromtag2");
+        notification.setTags(tags);
+        
+        JSONObject jsonResult = sink.processProperties(notification);
+        
+        assertEquals("{\"tags\":{\"metric_id_tag\":\"1234\",\"payload_tag\":\"fromtag2\",\"header_tag\":\"fromtag1\"},"
+                    + "\"sink_ids\":[\"ALL\"],"
+                    + "\"header\":{\"h1\":\"fromtag1\"},"
+                    + "\"body\":{"
+                        + "\"payload\":{\"bp1\":\"fromtag2\",\"bp2\":null},"
+                        + "\"metadata\":{\"metric_id\":\"1234\"}}}", jsonResult.toString());
+    }
 
 }
