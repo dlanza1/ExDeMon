@@ -3,6 +3,8 @@ package ch.cern.spark.metrics.analysis;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
+import java.time.Instant;
+
 import org.junit.Test;
 
 import ch.cern.spark.metrics.Metric;
@@ -26,7 +28,7 @@ public class AnalysisTest {
 	
 	@Test
 	public void shouldGenerateExceptionAnalysisResultFromMetricInException() {		
-		Metric metric = new Metric(null, new ExceptionValue(""), null);
+		Metric metric = new Metric(Instant.now(), new ExceptionValue(""), null);
 		AnalysisResult result = analysis.apply(metric);
 		
 		assertEquals(Status.EXCEPTION, result.getStatus());
@@ -35,9 +37,9 @@ public class AnalysisTest {
 	
 	@Test
 	public void shouldProcessMetricsWhichAreNotException() {		
-		assertEquals(Status.OK, analysis.apply(new Metric(null, new StringValue(""), null)).getStatus());
-		assertEquals(Status.OK, analysis.apply(new Metric(null, new FloatValue(0f), null)).getStatus());
-		assertEquals(Status.OK, analysis.apply(new Metric(null, new BooleanValue(true), null)).getStatus());
+		assertEquals(Status.OK, analysis.apply(new Metric(Instant.now(), new StringValue(""), null)).getStatus());
+		assertEquals(Status.OK, analysis.apply(new Metric(Instant.now(), new FloatValue(0f), null)).getStatus());
+		assertEquals(Status.OK, analysis.apply(new Metric(Instant.now(), new BooleanValue(true), null)).getStatus());
 	}
 
 }

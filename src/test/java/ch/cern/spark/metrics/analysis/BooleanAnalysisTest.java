@@ -26,9 +26,9 @@ public class BooleanAnalysisTest {
 	
 	@Test
 	public void shouldAnalyzeOnlyStringMetric() {		
-		assertEquals(Status.EXCEPTION, analysis.apply(new Metric(null, new StringValue(""), null)).getStatus());
-		assertEquals(Status.EXCEPTION, analysis.apply(new Metric(null, new FloatValue(0f), null)).getStatus());
-		assertEquals(Status.OK, analysis.apply(new Metric(null, new BooleanValue(true), null)).getStatus());
+		assertEquals(Status.EXCEPTION, analysis.apply(new Metric(Instant.now(), new StringValue(""), null)).getStatus());
+		assertEquals(Status.EXCEPTION, analysis.apply(new Metric(Instant.now(), new FloatValue(0f), null)).getStatus());
+		assertEquals(Status.OK, analysis.apply(new Metric(Instant.now(), new BooleanValue(true), null)).getStatus());
 	}
 
 }

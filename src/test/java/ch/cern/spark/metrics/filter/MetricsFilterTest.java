@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,11 +25,11 @@ public class MetricsFilterTest {
 
         Map<String, String> ids = new HashMap<>();
         ids.put("K1", "V1");
-        Metric metric = new Metric(null, 0, ids);
+        Metric metric = new Metric(Instant.now(), 0, ids);
         Assert.assertTrue(filter.test(metric));
 
         ids.put("K1", "V2");
-        metric = new Metric(null, 0, ids);
+        metric = new Metric(Instant.now(), 0, ids);
         Assert.assertFalse(filter.test(metric));
     }
 
@@ -108,12 +109,12 @@ public class MetricsFilterTest {
         Map<String, String> ids = new HashMap<>();
         ids.put("K1", "V1");
         ids.put("K2", "V2");
-        Metric metric = new Metric(null, 0, ids);
+        Metric metric = new Metric(Instant.now(), 0, ids);
         Assert.assertTrue(filter.test(metric));
 
         ids.put("K1", "V1");
         ids.put("K1", "V2");
-        metric = new Metric(null, 0, ids);
+        metric = new Metric(Instant.now(), 0, ids);
         Assert.assertFalse(filter.test(metric));
     }
 
@@ -128,19 +129,19 @@ public class MetricsFilterTest {
         ids.put("K1", "V1");
         ids.put("K2", "V2NOT");
         ids.put("K3", "V3");
-        Metric metric = new Metric(null, 0, ids);
+        Metric metric = new Metric(Instant.now(), 0, ids);
         Assert.assertTrue(filter.test(metric));
 
         ids.put("K1", "V1");
         ids.put("K2", "V2");
         ids.put("K3", "V3");
-        metric = new Metric(null, 0, ids);
+        metric = new Metric(Instant.now(), 0, ids);
         Assert.assertFalse(filter.test(metric));
 
         ids.put("K1", "V1");
         // ids.put("K2", null);
         ids.put("K3", "V3");
-        metric = new Metric(null, 0, ids);
+        metric = new Metric(Instant.now(), 0, ids);
         Assert.assertFalse(filter.test(metric));
     }
 
@@ -150,7 +151,7 @@ public class MetricsFilterTest {
         filter.addPredicate("K1", "V1");
 
         Map<String, String> ids = new HashMap<>();
-        Metric metric = new Metric(null, 0, ids);
+        Metric metric = new Metric(Instant.now(), 0, ids);
         Assert.assertFalse(filter.test(metric));
     }
 
@@ -161,7 +162,7 @@ public class MetricsFilterTest {
         Map<String, String> ids = new HashMap<>();
         ids.put("K1", "V1");
         ids.put("K1", "V2");
-        Metric metric = new Metric(null, 0, ids);
+        Metric metric = new Metric(Instant.now(), 0, ids);
         Assert.assertTrue(filter.test(metric));
     }
 
@@ -175,32 +176,32 @@ public class MetricsFilterTest {
         Map<String, String> ids = new HashMap<>();
         ids.put("K1", "V5");
         ids.put("K2", "Vfoo");
-        Metric metric = new Metric(null, 0, ids);
+        Metric metric = new Metric(Instant.now(), 0, ids);
         Assert.assertTrue(filter.test(metric));
 
         ids = new HashMap<>();
         ids.put("K1", "V5");
         ids.put("K2", "Vfoo");
         ids.put("K3", "Vfoo");
-        metric = new Metric(null, 0, ids);
+        metric = new Metric(Instant.now(), 0, ids);
         Assert.assertTrue(filter.test(metric));
 
         ids = new HashMap<>();
         ids.put("K1", "V5");
         ids.put("K2", "Vfoo");
         ids.put("K3", "Kfoo"); // cannot start with K
-        metric = new Metric(null, 0, ids);
+        metric = new Metric(Instant.now(), 0, ids);
         Assert.assertFalse(filter.test(metric));
 
         ids = new HashMap<>();
         ids.put("K1", "V2");
         ids.put("K2", "Vyes");
-        metric = new Metric(null, 0, ids);
+        metric = new Metric(Instant.now(), 0, ids);
         Assert.assertTrue(filter.test(metric));
 
         ids.put("K1", "V2");
         ids.put("K2", "Pno");
-        metric = new Metric(null, 0, ids);
+        metric = new Metric(Instant.now(), 0, ids);
         Assert.assertFalse(filter.test(metric));
 
         ids.put("K1", "Vno");

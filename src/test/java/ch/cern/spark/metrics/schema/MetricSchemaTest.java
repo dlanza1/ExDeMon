@@ -452,11 +452,11 @@ public class MetricSchemaTest {
     public void shouldParseTimestampToCurrentTimeIfNotConfigured() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
+        props.setProperty(VALUE_ATTRIBUTES_PARAM, "data");
         MetricSchema parser = new MetricSchema("test");
         parser.config(props);
         
-        JSONObject jsonObject = new JSONObject("{}");
+        JSONObject jsonObject = new JSONObject("{\"data\": 1}");
         Iterator<Metric> metrics = parser.call(jsonObject).iterator();
         assertEquals(Instant.now().toEpochMilli(), metrics.next().getTimestamp().toEpochMilli(), 10);
 
@@ -469,23 +469,23 @@ public class MetricSchemaTest {
         props.setProperty(SOURCES_PARAM, "test");
         props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
         props.setProperty(TIMESTAMP_FORMAT_PARAM, "auto");
-        props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
+        props.setProperty(VALUE_ATTRIBUTES_PARAM, "data");
         MetricSchema parser = new MetricSchema("test");
         parser.config(props);
         
-        JSONObject jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":1509520209883 }}");
+        JSONObject jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":1509520209883 }, \"data\": 1}");
         Iterator<Metric> metrics = parser.call(jsonObject).iterator();
         assertEquals(1509520209883l, metrics.next().getTimestamp().toEpochMilli());
         
-        jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":1509520209 }}");
+        jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":1509520209 }, \"data\": 1}");
         metrics = parser.call(jsonObject).iterator();
         assertEquals(1509520209000l, metrics.next().getTimestamp().toEpochMilli());
         
-        jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":\"2017-11-01T08:10:09+0100\" }}");
+        jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":\"2017-11-01T08:10:09+0100\" }, \"data\": 1}");
         metrics = parser.call(jsonObject).iterator();
         assertEquals(1509520209000l, metrics.next().getTimestamp().toEpochMilli());
         
-        jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":\"2017-11-01 08:10:09+0100\" }}");
+        jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":\"2017-11-01 08:10:09+0100\" }, \"data\": 1}");
         metrics = parser.call(jsonObject).iterator();
         assertEquals(1509520209000l, metrics.next().getTimestamp().toEpochMilli());
 

@@ -40,8 +40,7 @@ public class DefinedMetricTest {
 		
 		DefinedMetric metric = new DefinedMetric("test").config(props);
 		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
-		VariableStatuses store = new VariableStatuses();
-		Optional<Metric> result = metric.generateByBatch(store, null, groupByMetricIDs);
+		Optional<Metric> result = metric.generateByBatch(new VariableStatuses(), Instant.now(), groupByMetricIDs);
 		assertEquals("ConfigurationException: Value must be specified.", result.get().getValue().getAsException().get());
 		
 		props = new Properties();
@@ -49,7 +48,7 @@ public class DefinedMetricTest {
 		props.setProperty("variables.y.filter.attribute.AA", "metricAA");
 		metric = new DefinedMetric("test").config(props);
 		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
-		result = metric.generateByBatch(store, null, groupByMetricIDs);
+		result = metric.generateByBatch(new VariableStatuses(), Instant.now(), groupByMetricIDs);
 		assertEquals("ConfigurationException: Problem parsing value: Unknown variable: x", result.get().getValue().getAsException().get());
 		
 		props = new Properties();
@@ -58,7 +57,7 @@ public class DefinedMetricTest {
 		props.setProperty("variables.x.filter.attribute.AA", "metricAA");
 		metric = new DefinedMetric("test").config(props);
 		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
-		result = metric.generateByBatch(store, null, groupByMetricIDs);
+		result = metric.generateByBatch(new VariableStatuses(), Instant.now(), groupByMetricIDs);
 		assertEquals("ConfigurationException: Variables listed in when parameter must be declared.", result.get().getValue().getAsException().get());
 		
 		props = new Properties();
@@ -66,7 +65,7 @@ public class DefinedMetricTest {
 		props.setProperty("variables.count.aggregate.type", "count_strings");
 		metric = new DefinedMetric("test").config(props);
 		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
-		result = metric.generateByBatch(store, null, groupByMetricIDs);
+		result = metric.generateByBatch(new VariableStatuses(), Instant.now(), groupByMetricIDs);
 		assertEquals("ConfigurationException: Variable count returns type FloatValue because of its aggregation operation, "
 						+ "but in the equation there is a function that uses it as type StringValue", result.get().getValue().getAsException().get());
 		
