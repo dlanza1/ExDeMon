@@ -237,8 +237,8 @@ public class MetricSchema implements Serializable {
                 JsonElement element = jsonObject.getElement(key);
                 Value value = null;
                 if (element == null || element.isJsonNull()) {
-                    value = new ExceptionValue("No metric was generated for value key \"" + key + "\" (alias: " + alias
-                            + "): document does not contian such key or is null.");
+                    LOG.debug("No metric was generated for value key \"" + key + "\" (alias: " + alias
+                            + "): document does not contian such key or is null. JSON document: " + jsonObject);
                 } else if (element.isJsonPrimitive()) {
                     JsonPrimitive primitive = element.getAsJsonPrimitive();
 
@@ -249,8 +249,8 @@ public class MetricSchema implements Serializable {
                     else
                         value = new StringValue(primitive.getAsString());
                 } else {
-                    value = new ExceptionValue("No metric was generated for value key \"" + key + "\" (alias: " + alias
-                            + "): attribute is not a JSON primitive.");
+                    LOG.debug("No metric was generated for value key \"" + key + "\" (alias: " + alias
+                            + "): attribute is not a JSON primitive. JSON document: " + jsonObject);
                 }
 
                 metrics.add(new Metric(timestamp, value, metric_ids));

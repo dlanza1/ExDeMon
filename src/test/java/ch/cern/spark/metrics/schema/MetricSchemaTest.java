@@ -255,71 +255,6 @@ public class MetricSchemaTest {
 	}
 	
 	@Test
-	public void shouldGetExceptionValueIfMissing() throws ParseException, ConfigurationException {
-		Properties props = new Properties();
-		props.setProperty(SOURCES_PARAM, "test");
-		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-		props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
-		
-		props.setProperty(VALUE_ATTRIBUTES_PARAM + ".payload_type", "data.payload.type");
-		
-		props.setProperty(ATTRIBUTES_PARAM, "data.payload.site_name data.payload.agent_url");
-		props.setProperty(ATTRIBUTES_PARAM + ".type.meta", "metadata.type");
-		props.setProperty(ATTRIBUTES_PARAM + ".version", "metadata.version");
-		
-		MetricSchema parser = new MetricSchema("test");
-		parser.config(props);
-		
-		String jsonString = "{\"metadata\":{"
-				+ "\"timestamp_format\":\"yyyy-MM-dd\","
-				+ "\"hostname\":\"HOST1.cern.ch\","
-				+ "\"type_prefix\":\"raw\","
-				+ "\"producer\":\"wmagent\","
-				+ "\"metric_id\":\"1234\","
-				+ "\"json\":\"true\","
-				+ "\"plain_text\":\"false\","
-				+ "\"type\":\"metric\","
-				+ "\"version\":\"001\","
-				+ "\"timestamp\":1509520209883},"
-			+ "\"data\":{"
-				+ "\"payload\":{"
-					+ "\"site_name\":\"T2_UK_London_Brunel\","
-					+ "\"timestamp\":1509519908,"
-					+ "\"LocalWQ_INFO\":{},"
-					+ "\"WMBS_INFO\":{"
-						+ "\"thresholds\":{"
-							+ "\"state\":\"Normal\","
-							+ "\"running_slots\":2815,"
-							+ "\"pending_slots\":2111.89},"
-						+ "\"thresholdsGQ2LQ\":2111.0},"
-					+ "\"agent_url\":\"vocms0258.cern.ch\","
-					+ "\"typeNOT\":\"site_info\"},"
-				+ "\"metadata\":{"
-					+ "\"timestamp\":1509520208,"
-					+ "\"id\":null}}}";
-		
-		JSONObject jsonObject = new JSONObject(jsonString);
-		
-		Iterator<Metric> metrics = parser.call(jsonObject).iterator();
-		
-		metrics.hasNext();
-		Metric metric = metrics.next();
-		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
-		assertTrue(metric.getValue().getAsException().isPresent());
-		assertEquals("No metric was generated for value key \"data.payload.type\" (alias: payload_type): document does not contian such key or is null.", 
-				metric.getValue().getAsException().get());
-		assertEquals(6, metric.getAttributes().size());
-		assertEquals("test", metric.getAttributes().get("$schema"));
-		assertEquals("payload_type", metric.getAttributes().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
-		assertEquals("metric", metric.getAttributes().get("type.meta"));
-		assertEquals("001", metric.getAttributes().get("version"));
-		
-		assertFalse(metrics.hasNext());
-	}
-	
-	@Test
 	public void attributeNullIfNoJsonPrimitive() throws ParseException, ConfigurationException {
 		Properties props = new Properties();
 		props.setProperty(SOURCES_PARAM, "test");
@@ -828,64 +763,6 @@ public class MetricSchemaTest {
 		assertEquals(4, metric.getAttributes().size());
 		assertEquals("test", metric.getAttributes().get("$schema"));
 		assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getAttributes().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
-
-		assertFalse(metrics.hasNext());
-	}
-	
-	@Test
-	public void shouldGenerateExceptionMetricWhenMissingValue() throws ParseException, ConfigurationException {
-		Properties props = new Properties();
-		props.setProperty(SOURCES_PARAM, "test");
-		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-		props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
-		props.setProperty(ATTRIBUTES_PARAM, "data.payload.site_name data.payload.agent_url");
-		
-		props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.running_slots data.payload.WMBS_INFO.thresholds.pending_slots");
-		
-		MetricSchema parser = new MetricSchema("test");
-		parser.config(props);
-		
-		String jsonString = "{\"metadata\":{"
-								+ "\"timestamp\":1509520209883},"
-							+ "\"data\":{"
-								+ "\"payload\":{"
-									+ "\"site_name\":\"T2_UK_London_Brunel\","
-									+ "\"timestamp\":1509519908,"
-									+ "\"LocalWQ_INFO\":{},"
-									+ "\"WMBS_INFO\":{"
-										+ "\"thresholds\":{"
-											+ "\"state\":\"Normal\","
-//											+ "\"running_slots\":2815,"
-											+ "\"pending_slots\":2111.89},"
-										+ "\"thresholdsGQ2LQ\":2111.0},"
-									+ "\"agent_url\":\"vocms0258.cern.ch\","
-									+ "\"type\":\"site_info\"}"
-								+ "}"
-							+ "}";
-		
-		JSONObject jsonObject = new JSONObject(jsonString);
-		
-		Iterator<Metric> metrics = parser.call(jsonObject).iterator();
-		
-		assertTrue(metrics.hasNext());
-		Metric metric = metrics.next();
-		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
-		assertTrue(metric.getValue().getAsException().isPresent());
-		assertEquals(4, metric.getAttributes().size());
-		assertEquals("test", metric.getAttributes().get("$schema"));
-		assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getAttributes().get("$value_attribute"));
-		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
-		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
-		
-		assertTrue(metrics.hasNext());
-		metric = metrics.next();
-		assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
-		assertEquals(2111.89f, metric.getValue().getAsFloat().get(), 0f);
-		assertEquals(4, metric.getAttributes().size());
-		assertEquals("test", metric.getAttributes().get("$schema"));
-		assertEquals("data.payload.WMBS_INFO.thresholds.pending_slots", metric.getAttributes().get("$value_attribute"));
 		assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
 		assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
 
