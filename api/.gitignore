@@ -1,0 +1,5 @@
+.vscode
+env/
+exdemon_api.egg-info
+dist
+build
