@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Exdemon REST API server
+"""
+
+from exdemon.app import Application
+
+if __name__ == "__main__":
+    Application()
