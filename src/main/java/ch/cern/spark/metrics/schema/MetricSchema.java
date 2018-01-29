@@ -12,6 +12,7 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,28 +53,28 @@ public class MetricSchema implements Serializable {
     public static String SOURCES_PARAM = "sources";
     private List<String> sources;
 
-    private HashMap<String, String> fixedAttributes;
+    protected HashMap<String, String> fixedAttributes;
     
     public static String ATTRIBUTES_PARAM = "attributes";
-    private List<Pair<String, String>> attributes;
-    private List<Pair<String, Pattern>> attributesPattern;
+    protected List<Pair<String, String>> attributes;
+    protected List<Pair<String, Pattern>> attributesPattern;
 
     public static String VALUE_ATTRIBUTES_PARAM = "value.keys";
-    private List<Pair<String, String>> value_attributes;
+    protected List<Pair<String, String>> value_attributes;
 
     public static String TIMESTAMP_FORMAT_PARAM = "timestamp.format";
     public static String TIMESTAMP_FORMAT_DEFAULT = "auto";
     public static List<String> TIMESTAMP_AUTO_FORMATS = Arrays.asList("yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd HH:mm:ssZ");
-    private String timestamp_format_pattern;
-    private transient DateTimeFormatter timestamp_format;
+    protected String timestamp_format_pattern;
+    protected transient DateTimeFormatter timestamp_format;
 
     public static String TIMESTAMP_ATTRIBUTE_PARAM = "timestamp.key";
-    private String timestamp_attribute;
+    protected String timestamp_attribute;
 
     public static String FILTER_PARAM = "filter";
-    private MetricsFilter filter;
+    protected MetricsFilter filter;
 
-    private Exception configurationException;    
+    protected Exception configurationException;    
 
     public MetricSchema(String id) {
         this.id = id;
@@ -167,12 +168,13 @@ public class MetricSchema implements Serializable {
     }
 
     public List<Metric> call(JSONObject jsonObject) {
-        List<Metric> metrics = new LinkedList<>();
+        if (configurationException != null) {
+            ExceptionValue exception = new ExceptionValue(configurationException.getMessage());
 
+            return Arrays.asList(new Metric(Instant.now(), exception, fixedAttributes));
+        }
+        
         try {
-            if (configurationException != null)
-                throw configurationException;
-
             Map<String, String> attributesForMetric = new HashMap<>(fixedAttributes);
             for (Pair<String, String> attribute : attributes) {
                 String alias = attribute.first;
@@ -204,6 +206,9 @@ public class MetricSchema implements Serializable {
                         attributesForMetric.put(finalAlias, value.getAsString());
                 }
             }
+            
+            if(!filter.test(attributesForMetric))
+                return Collections.emptyList();
 
             Exception timestampException = null;
             Instant timestamp;
@@ -221,6 +226,8 @@ public class MetricSchema implements Serializable {
             }else {
                 timestamp = Instant.now();
             }
+            
+            List<Metric> metrics = new LinkedList<>();
 
             for (Pair<String, String> value_attribute : value_attributes) {
                 String alias = value_attribute.first;
@@ -260,11 +267,10 @@ public class MetricSchema implements Serializable {
             return metrics.stream().filter(filter).collect(Collectors.toList());
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
-
+            
             ExceptionValue exception = new ExceptionValue(e.getMessage());
 
-            metrics.add(new Metric(Instant.now(), exception, fixedAttributes));
-            return metrics;
+            return Arrays.asList(new Metric(Instant.now(), exception, fixedAttributes));
         }
     }
 

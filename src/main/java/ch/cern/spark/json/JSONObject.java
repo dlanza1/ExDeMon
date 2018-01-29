@@ -44,12 +44,7 @@ public class JSONObject implements Serializable {
         if(elementName == null)
             return null;
         
-        if (object == null)
-	    		try {
-	    			object = PARSER.parse(string).getAsJsonObject();
-	    		}catch(Exception e) {
-	    			throw new ParseException(e.getMessage(), 0);
-	    		}
+        setObject();
 
         if (elementName.contains(".")) {
             String topPropertyName = elementName.substring(0, elementName.indexOf('.'));
@@ -71,12 +66,7 @@ public class JSONObject implements Serializable {
     }
     
     public String[] getAllKeys() throws ParseException {
-        if (object == null)
-            try {
-                object = PARSER.parse(string).getAsJsonObject();
-            }catch(Exception e) {
-                throw new ParseException(e.getMessage(), 0);
-            }
+        setObject();
         
         LinkedList<String> keys = new LinkedList<>();
         
@@ -98,12 +88,7 @@ public class JSONObject implements Serializable {
     }
 
     public void setProperty(String fullKey, String value) throws ParseException {
-	    	if (object == null)
-	    		try {
-	    			object = PARSER.parse(string).getAsJsonObject();
-	    		}catch(Exception e) {
-	    			throw new ParseException(e.getMessage(), 0);
-	    		}
+	    	setObject();
 	    	
 	    String[] keys = fullKey.split("\\.");
 	    JsonObject element = object;
@@ -125,6 +110,17 @@ public class JSONObject implements Serializable {
 	    		}
 		}
 	    	this.string = this.object.toString();
+    }
+
+    private void setObject() throws ParseException {
+        if (object != null)
+            return;
+        
+        try {
+            object = PARSER.parse(string).getAsJsonObject();
+        }catch(Exception e) {
+            throw new ParseException(e.getMessage(), 0);
+        }
     }
 
     public JSONObject getJSONObject(String name) throws ParseException {

@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.schema;
 
 import static ch.cern.spark.metrics.schema.MetricSchema.ATTRIBUTES_PARAM;
+import static ch.cern.spark.metrics.schema.MetricSchema.FILTER_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.SOURCES_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.TIMESTAMP_ATTRIBUTE_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.TIMESTAMP_FORMAT_PARAM;
@@ -19,6 +20,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.Iterator;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import ch.cern.properties.ConfigurationException;
@@ -27,6 +29,41 @@ import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.metrics.Metric;
 
 public class MetricSchemaTest {
+    
+    private MetricSchema parser = new MetricSchema("test");
+    
+    @Before
+    public void setUp() {
+        parser = new MetricSchema("test");
+    }
+    
+    @Test
+    public void shouldFilter() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty(ATTRIBUTES_PARAM + ".version", "metadata.version");
+        props.setProperty(VALUE_ATTRIBUTES_PARAM, "metadata.type_prefix");
+        
+        props.setProperty(FILTER_PARAM + ".attribute.version", "001");
+        
+        parser.config(props);
+        
+        String jsonString = "{\"metadata\":{"
+                                + "\"type_prefix\":\"raw\","
+                                + "\"version\":\"001\","
+                                + "\"time\": "+Instant.now().toEpochMilli()+" }}";
+        JSONObject jsonObject = new JSONObject(jsonString);
+        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        assertTrue(metrics.hasNext());
+        
+        jsonString = "{\"metadata\":{"
+                        + "\"type_prefix\":\"raw\","
+                        + "\"version\":\"002\","
+                        + "\"time\": "+Instant.now().toEpochMilli()+" }}";
+        jsonObject = new JSONObject(jsonString);
+        metrics = parser.call(jsonObject).iterator();
+        assertFalse(metrics.hasNext());
+    }
 
 	@Test
 	public void shouldParseNumbersAsValue() throws ParseException, ConfigurationException {
@@ -42,7 +79,6 @@ public class MetricSchemaTest {
 		props.setProperty(ATTRIBUTES_PARAM + ".type.meta", "metadata.type");
 		props.setProperty(ATTRIBUTES_PARAM + ".version", "metadata.version");
 		
-		MetricSchema parser = new MetricSchema("test");
 		parser.config(props);
 		
 		String jsonString = "{\"metadata\":{"
@@ -129,7 +165,6 @@ public class MetricSchemaTest {
 		props.setProperty(ATTRIBUTES_PARAM + ".type.meta", "metadata.type");
 		props.setProperty(ATTRIBUTES_PARAM + ".version", "metadata.version");
 		
-		MetricSchema parser = new MetricSchema("test");
 		parser.config(props);
 		
 		String jsonString = "{\"metadata\":{"
@@ -204,7 +239,6 @@ public class MetricSchemaTest {
 		props.setProperty(ATTRIBUTES_PARAM + ".type.meta", "metadata.type");
 		props.setProperty(ATTRIBUTES_PARAM + ".version", "metadata.version");
 		
-		MetricSchema parser = new MetricSchema("test");
 		parser.config(props);
 		
 		String jsonString = "{\"metadata\":{"
@@ -276,7 +310,6 @@ public class MetricSchemaTest {
 								+ "}}}";
 		JSONObject jsonObject = new JSONObject(jsonString);
 		
-		MetricSchema parser = new MetricSchema("test");
 		parser.config(props);
 		
 		Iterator<Metric> metrics = parser.call(jsonObject).iterator();
@@ -298,6 +331,7 @@ public class MetricSchemaTest {
 		
 		String att_name_no_primitive = "data.payload.WMBS_INFO.thresholdsGQ2LQ";
 		props.setProperty(ATTRIBUTES_PARAM, att_name_no_primitive);
+		parser.config(props);
 		
 		String jsonString = "{\"metadata\":{"
 								+ "\"timestamp\":1509520209883"
@@ -309,9 +343,6 @@ public class MetricSchemaTest {
 										+ "\"thresholdsGQ2LQ\":2111.0}"
 								+ "}}}";
 		JSONObject jsonObject = new JSONObject(jsonString);
-		
-		MetricSchema parser = new MetricSchema("test");
-		parser.config(props);
 		
 		Iterator<Metric> metrics = parser.call(jsonObject).iterator();
 		
@@ -330,12 +361,10 @@ public class MetricSchemaTest {
         props.setProperty(VALUE_ATTRIBUTES_PARAM, "test");
 
         props.setProperty(ATTRIBUTES_PARAM, "a.b.error-.*");
+        parser.config(props);
         
         String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
         JSONObject jsonObject = new JSONObject(jsonString);
-
-        MetricSchema parser = new MetricSchema("test");
-        parser.config(props);
 
         Iterator<Metric> metrics = parser.call(jsonObject).iterator();
 
@@ -355,12 +384,10 @@ public class MetricSchemaTest {
         props.setProperty(VALUE_ATTRIBUTES_PARAM, "test");
 
         props.setProperty(ATTRIBUTES_PARAM, "a.b.error-[0-9]+");
+        parser.config(props);
         
         String jsonString = "{\"a\":{\"b\":{\"error-12\": 1, \"error-23\": 2}}}";
         JSONObject jsonObject = new JSONObject(jsonString);
-
-        MetricSchema parser = new MetricSchema("test");
-        parser.config(props);
 
         Iterator<Metric> metrics = parser.call(jsonObject).iterator();
 
@@ -376,16 +403,14 @@ public class MetricSchemaTest {
     public void severalAttributesWithRegexAndReplacementInAlias() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(VALUE_ATTRIBUTES_PARAM, "test");
+        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "t");
+        props.setProperty(VALUE_ATTRIBUTES_PARAM, "t");
 
         props.setProperty(ATTRIBUTES_PARAM + ".error_+", "a.b.error-(.*)");
+        parser.config(props);
         
         String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
         JSONObject jsonObject = new JSONObject(jsonString);
-
-        MetricSchema parser = new MetricSchema("test");
-        parser.config(props);
 
         Iterator<Metric> metrics = parser.call(jsonObject).iterator();
 
@@ -405,12 +430,10 @@ public class MetricSchemaTest {
         props.setProperty(VALUE_ATTRIBUTES_PARAM, "test");
 
         props.setProperty(ATTRIBUTES_PARAM + ".error_+", "a.b.error-.*");
+        parser.config(props);
         
         String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
         JSONObject jsonObject = new JSONObject(jsonString);
-
-        MetricSchema parser = new MetricSchema("test");
-        parser.config(props);
 
         Iterator<Metric> metrics = parser.call(jsonObject).iterator();
 
@@ -431,12 +454,10 @@ public class MetricSchemaTest {
 
         props.setProperty(ATTRIBUTES_PARAM + ".puppet_environment", "#qa");
         props.setProperty(ATTRIBUTES_PARAM + ".error1", "a.b.error-1");
+        parser.config(props);
         
         String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
         JSONObject jsonObject = new JSONObject(jsonString);
-
-        MetricSchema parser = new MetricSchema("test");
-        parser.config(props);
 
         Iterator<Metric> metrics = parser.call(jsonObject).iterator();
 
@@ -453,7 +474,6 @@ public class MetricSchemaTest {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
         props.setProperty(VALUE_ATTRIBUTES_PARAM, "data");
-        MetricSchema parser = new MetricSchema("test");
         parser.config(props);
         
         JSONObject jsonObject = new JSONObject("{\"data\": 1}");
@@ -470,7 +490,6 @@ public class MetricSchemaTest {
         props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
         props.setProperty(TIMESTAMP_FORMAT_PARAM, "auto");
         props.setProperty(VALUE_ATTRIBUTES_PARAM, "data");
-        MetricSchema parser = new MetricSchema("test");
         parser.config(props);
         
         JSONObject jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":1509520209883 }, \"data\": 1}");
@@ -499,6 +518,7 @@ public class MetricSchemaTest {
 		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
 		props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
 		props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
+		parser.config(props);
 		
 		String jsonString = "{\"metadata\":{"
 								+ "\"timestamp\":1509520209883"
@@ -510,9 +530,6 @@ public class MetricSchemaTest {
 										+ "\"thresholdsGQ2LQ\":2111.0}"
 								+ "}}}";
 		JSONObject jsonObject = new JSONObject(jsonString);
-		
-		MetricSchema parser = new MetricSchema("test");
-		parser.config(props);
 		
 		Iterator<Metric> metrics = parser.call(jsonObject).iterator();
 		
@@ -530,6 +547,7 @@ public class MetricSchemaTest {
 		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
 		props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-s");
 		props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
+		parser.config(props);
 		
 		String jsonString = "{\"metadata\":{"
 								+ "\"timestamp\":1509520209"
@@ -542,8 +560,6 @@ public class MetricSchemaTest {
 								+ "}}}";
 		JSONObject jsonObject = new JSONObject(jsonString);
 		
-		MetricSchema parser = new MetricSchema("test");
-		parser.config(props);
 		Iterator<Metric> metrics = parser.call(jsonObject).iterator();
 		
 		metrics.hasNext();
@@ -560,6 +576,7 @@ public class MetricSchemaTest {
 		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
 		props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy-MM-dd HH:mm:ssZ");
 		props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
+		parser.config(props);
 		
 		String jsonString = "{\"metadata\":{"
 								+ "\"timestamp\":\"2017-10-20 02:00:12+0000\""
@@ -572,8 +589,6 @@ public class MetricSchemaTest {
 								+ "}}}";
 		JSONObject jsonObject = new JSONObject(jsonString);
 		
-		MetricSchema parser = new MetricSchema("test");
-		parser.config(props);
 		Iterator<Metric> metrics = parser.call(jsonObject).iterator();
 		
 		metrics.hasNext();
@@ -592,7 +607,8 @@ public class MetricSchemaTest {
         props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
         props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy-MM-dd HH:mm:ss");
         props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
-
+        parser.config(props);
+        
         String jsonString = "{\"metadata\":{"
                                 + "\"timestamp\":\"2017-12-20 02:00:12\""
                           + "},\"data\":{"
@@ -604,8 +620,6 @@ public class MetricSchemaTest {
                           + "}}}";
         JSONObject jsonObject = new JSONObject(jsonString);
 
-        MetricSchema parser = new MetricSchema("test");
-        parser.config(props);
         Iterator<Metric> metrics = parser.call(jsonObject).iterator();
 
         metrics.hasNext();
@@ -627,6 +641,7 @@ public class MetricSchemaTest {
 		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
 		props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy MM dd");
 		props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
+		parser.config(props);
 		
 		String jsonString = "{\"metadata\":{"
 								+ "\"timestamp\":\"2017 12 20\""
@@ -639,8 +654,6 @@ public class MetricSchemaTest {
 								+ "}}}";
 		JSONObject jsonObject = new JSONObject(jsonString);
 		
-		MetricSchema parser = new MetricSchema("test");
-		parser.config(props);
 		Iterator<Metric> metrics = parser.call(jsonObject).iterator();
 		
 		metrics.hasNext();
@@ -661,6 +674,7 @@ public class MetricSchemaTest {
 		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
 		props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy MM dd");
 		props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
+		parser.config(props);
 		
 		String jsonString = "{\"metadata\":{"
 								+ "\"timestamp\":\"10:20:12\""
@@ -673,8 +687,6 @@ public class MetricSchemaTest {
 								+ "}}}";
 		JSONObject jsonObject = new JSONObject(jsonString);
 		
-		MetricSchema parser = new MetricSchema("test");
-		parser.config(props);
 		Iterator<Metric> metrics = parser.call(jsonObject).iterator();
 
 		assertTrue(metrics.hasNext());
@@ -691,6 +703,7 @@ public class MetricSchemaTest {
 		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
 		props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
 		props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.pending_slots");
+		parser.config(props);
 		
 		String jsonString = "{\"metadata\":{"
 								+ "\"timestamp\":\"10:20:12\""
@@ -703,8 +716,6 @@ public class MetricSchemaTest {
 								+ "}}}";
 		JSONObject jsonObject = new JSONObject(jsonString);
 		
-		MetricSchema parser = new MetricSchema("test");
-		parser.config(props);
 		Iterator<Metric> metrics = parser.call(jsonObject).iterator();
 
 		assertTrue(metrics.hasNext());
@@ -730,8 +741,6 @@ public class MetricSchemaTest {
 		props.setProperty(ATTRIBUTES_PARAM, "data.payload.site_name data.payload.agent_url");
 		props.setProperty(ATTRIBUTES_PARAM + ".type.meta", "metadata.type");
 		props.setProperty(ATTRIBUTES_PARAM + ".version", "metadata.version");
-		
-		MetricSchema parser = new MetricSchema("test");
 		parser.config(props);
 		
 		String jsonString = "{\"metadata\":{"
@@ -778,8 +787,6 @@ public class MetricSchemaTest {
 		props.setProperty(ATTRIBUTES_PARAM, "data.payload.site_name data.payload.agent_url");
 		
 		props.setProperty(VALUE_ATTRIBUTES_PARAM, "data.payload.WMBS_INFO.thresholds.running_slots data.payload.WMBS_INFO.thresholds.pending_slots");
-		
-		MetricSchema parser = new MetricSchema("test");
 		parser.config(props);
 		
 		String jsonString = "{\"metadata\":{"
@@ -835,16 +842,16 @@ public class MetricSchemaTest {
 		props.setProperty(VALUE_ATTRIBUTES_PARAM, "value");
 
 		props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
-		new MetricSchema("test").config(props);
+		parser.config(props);
 		
 		props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-s");
-		new MetricSchema("test").config(props);
+		parser.config(props);
 		
 		props.setProperty(TIMESTAMP_FORMAT_PARAM, "YYYY-MM-DD");
-		new MetricSchema("test").config(props);
+		parser.config(props);
 		
 		props.setProperty(TIMESTAMP_FORMAT_PARAM, "wrong_format");
-		List<Metric> result = new MetricSchema("test").config(props).call(null);
+		List<Metric> result = parser.config(props).call(null);
 		String resultException = result.get(0).getValue().getAsException().get();
 		assertEquals(TIMESTAMP_FORMAT_PARAM + " must be epoch-ms, epoch-s or a pattern compatible with DateTimeFormatterBuilder.", resultException);
 	}
@@ -856,7 +863,7 @@ public class MetricSchemaTest {
 		props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
 //		props.setProperty(VALUE_ATTRIBUTES_PARAM, "value");
 		
-		List<Metric> result = new MetricSchema("test").config(props).call(null);
+		List<Metric> result = parser.config(props).call(null);
 		assertEquals(VALUE_ATTRIBUTES_PARAM + " must be configured.", result.get(0).getValue().getAsException().get());
 	}
 	

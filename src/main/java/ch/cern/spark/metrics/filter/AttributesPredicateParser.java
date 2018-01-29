@@ -1,36 +1,36 @@
 package ch.cern.spark.metrics.filter;
 
 import java.text.ParseException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import ch.cern.spark.metrics.Metric;
 import ch.cern.util.function.AndPredicate;
 import ch.cern.util.function.OrPredicate;
 import ch.cern.utils.IString;
 import ch.cern.utils.StringUtils;
 
-public class MetricPredicateParser {
+public class AttributesPredicateParser {
 
 	private enum Operator {AND, OR};
 
-	public static Predicate<Metric> parse(String input) throws ParseException{
+	public static Predicate<Map<String, String>> parse(String input) throws ParseException{
 		IString iInput = new IString(StringUtils.removeSpacesOutsideQuotes(input));
 
 		return parse(iInput);
 	}
 
-	private static Predicate<Metric> parse(IString input) throws ParseException{
-		Predicate<Metric> predicate = getPredicate(input);
+	private static Predicate<Map<String, String>> parse(IString input) throws ParseException{
+		Predicate<Map<String, String>> predicate = getPredicate(input);
 		
 		Optional<Operator> op = Optional.empty();
 		while((op = getOperator(input)).isPresent()) {
 			switch (op.get()) {
 			case AND:
-				predicate = new AndPredicate<Metric>(predicate, getPredicate(input));
+				predicate = new AndPredicate<Map<String, String>>(predicate, getPredicate(input));
 				break;
 			case OR:
-				predicate = new OrPredicate<Metric>(predicate, getPredicate(input));
+				predicate = new OrPredicate<Map<String, String>>(predicate, getPredicate(input));
 				break;
 			default:
 				throw new RuntimeException("Operator does not exist");
@@ -40,7 +40,7 @@ public class MetricPredicateParser {
 		return predicate;
 	}
 
-	private static Predicate<Metric> getPredicate(IString iInput) throws ParseException {
+	private static Predicate<Map<String, String>> getPredicate(IString iInput) throws ParseException {
 		if(iInput.getChar() == '(') {
 			int closingCharIndex = indexOfClosingParenthesis(iInput);
 			
@@ -61,7 +61,7 @@ public class MetricPredicateParser {
 		return parseUniquePredicate(predicate.toString());
 	}
 	
-	private static Predicate<Metric> parseUniquePredicate(String input) throws ParseException {
+	private static Predicate<Map<String, String>> parseUniquePredicate(String input) throws ParseException {
 		String[] parts = input.split("!=");
 		if(parts.length == 2)
 			return new NotEqualMetricPredicate(parts[0], StringUtils.removeQuotes(parts[1]));

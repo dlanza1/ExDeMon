@@ -21,7 +21,7 @@ public class MetricsFilterTest {
     @Test
     public void filterOneID() throws ParseException {
         MetricsFilter filter = new MetricsFilter();
-        filter.addPredicate("K1", "V1");
+        filter.addAttributesPredicate("K1", "V1");
 
         Map<String, String> ids = new HashMap<>();
         ids.put("K1", "V1");
@@ -103,8 +103,8 @@ public class MetricsFilterTest {
     @Test
     public void filterSeveralIDs() throws ParseException {
         MetricsFilter filter = new MetricsFilter();
-        filter.addPredicate("K1", "V1");
-        filter.addPredicate("K2", "V2");
+        filter.addAttributesPredicate("K1", "V1");
+        filter.addAttributesPredicate("K2", "V2");
 
         Map<String, String> ids = new HashMap<>();
         ids.put("K1", "V1");
@@ -121,9 +121,9 @@ public class MetricsFilterTest {
     @Test
     public void negateFilter() throws ParseException {
         MetricsFilter filter = new MetricsFilter();
-        filter.addPredicate("K1", "V1");
-        filter.addPredicate("K2", "!V2");
-        filter.addPredicate("K3", "V3");
+        filter.addAttributesPredicate("K1", "V1");
+        filter.addAttributesPredicate("K2", "!V2");
+        filter.addAttributesPredicate("K3", "V3");
 
         Map<String, String> ids = new HashMap<>();
         ids.put("K1", "V1");
@@ -148,7 +148,7 @@ public class MetricsFilterTest {
     @Test
     public void filterActualValueNull() throws ParseException {
         MetricsFilter filter = new MetricsFilter();
-        filter.addPredicate("K1", "V1");
+        filter.addAttributesPredicate("K1", "V1");
 
         Map<String, String> ids = new HashMap<>();
         Metric metric = new Metric(Instant.now(), 0, ids);
@@ -169,9 +169,9 @@ public class MetricsFilterTest {
     @Test
     public void filterRegex() throws ParseException {
         MetricsFilter filter = new MetricsFilter();
-        filter.addPredicate("K1", "V[0-9]");
-        filter.addPredicate("K2", "V.*");
-        filter.addPredicate("K3", "!K.*"); // K3 cannot start with K
+        filter.addAttributesPredicate("K1", "V[0-9]");
+        filter.addAttributesPredicate("K2", "V.*");
+        filter.addAttributesPredicate("K3", "!K.*"); // K3 cannot start with K
 
         Map<String, String> ids = new HashMap<>();
         ids.put("K1", "V5");

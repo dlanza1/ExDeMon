@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -21,31 +22,31 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
     
     private static final long serialVersionUID = 9170996730102744051L;
 
-    private Predicate<Metric> predicate = null;
+    private Predicate<Map<String, String>> attributesPredicate = null;
     
     public MetricsFilter(){
     }
     
     @Override
 	public boolean test(Metric metric) {
-    		if(predicate == null)
+    		if(attributesPredicate == null)
     			return true;
     		
-		return predicate.test(metric);
+		return attributesPredicate.test(metric.getAttributes());
 	}
     
-    public void addPredicate(String key, String value) throws ParseException{
+    public void addAttributesPredicate(String key, String value) throws ParseException{
     		if(value.charAt(0) == '!')  		
-        		addPredicate(new NotEqualMetricPredicate(key, value.substring(1)));
+    		    addAttributesPredicate(new NotEqualMetricPredicate(key, value.substring(1)));
     		else
-        		addPredicate(new EqualMetricPredicate(key, value));
+    		    addAttributesPredicate(new EqualMetricPredicate(key, value));
     }
 
-    public void addPredicate(Predicate<Metric> newPredicate) {
-    		if(predicate == null)
-    			predicate = newPredicate;
+    public void addAttributesPredicate(Predicate<Map<String, String>> newPredicate) {
+    		if(attributesPredicate == null)
+    			attributesPredicate = newPredicate;
     		else
-    			predicate = new AndPredicate<Metric>(predicate, newPredicate);
+    			attributesPredicate = new AndPredicate<Map<String, String>>(attributesPredicate, newPredicate);
 	}
 
 	public static MetricsFilter build(Properties props) throws ConfigurationException {
@@ -54,7 +55,7 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
         String expression = props.getProperty("expr");
         if(expression != null)
 			try {
-				filter.addPredicate(MetricPredicateParser.parse(expression));
+				filter.addAttributesPredicate(AttributesPredicateParser.parse(expression));
 			} catch (ParseException e) {
 				throw new ConfigurationException("Error when parsing filter expression: " + e.getMessage());
 			}
@@ -69,7 +70,7 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
                 List<String> values = getValues(valueString);
                 if(values.size() == 0) {
             			try {
-            				filter.addPredicate(key, valueString);
+            				filter.addAttributesPredicate(key, valueString);
             			} catch (ParseException e) {
             				throw new ConfigurationException("Error when parsing filter (" + key + ") value expression (" + valueString + "): " + e.getMessage());
             			}
@@ -78,17 +79,17 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
                     
                     if(negate)
                         for (String value : values)
-                            filter.addPredicate(new NotEqualMetricPredicate(key, value));
+                            filter.addAttributesPredicate(new NotEqualMetricPredicate(key, value));
                     else {
-                        Predicate<Metric> orOptions = null;
+                        Predicate<Map<String, String>> orOptions = null;
                         
                         for (String value : values)
                             if(orOptions  == null)
                                 orOptions = new EqualMetricPredicate(key, value);
                             else
-                                orOptions = new OrPredicate<Metric>(orOptions, new EqualMetricPredicate(key, value));
+                                orOptions = new OrPredicate<Map<String, String>>(orOptions, new EqualMetricPredicate(key, value));
                         
-                        filter.addPredicate(orOptions);
+                        filter.addAttributesPredicate(orOptions);
                     }
                 }
             }
@@ -100,8 +101,8 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
         
         return filter;
     }
-    
-	private static List<String> getValues(String valueString) {
+
+    private static List<String> getValues(String valueString) {
 	    Pattern pattern = Pattern.compile("([\"'])(?:(?=(\\\\?))\\2.)*?\\1");
 	    
 	    LinkedList<String> hits = new LinkedList<>();
@@ -116,6 +117,13 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
         }
 	    
         return hits;
+    }
+
+    public boolean test(Map<String, String> attributes) {
+        if(attributesPredicate == null)
+            return true;
+        
+        return attributesPredicate.test(attributes);
     }
     
 }

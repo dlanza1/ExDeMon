@@ -2,13 +2,12 @@ package ch.cern.spark.metrics.filter;
 
 import java.io.Serializable;
 import java.text.ParseException;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import ch.cern.spark.metrics.Metric;
-
-public class NotEqualMetricPredicate implements Predicate<Metric>, Serializable {
+public class NotEqualMetricPredicate implements Predicate<Map<String, String>>, Serializable {
 
     private static final long serialVersionUID = -1044577733678850309L;
 
@@ -26,11 +25,11 @@ public class NotEqualMetricPredicate implements Predicate<Metric>, Serializable 
     }
 
     @Override
-    public boolean test(Metric metricInput) {
-        Predicate<Metric> notExist = metric -> !metric.getAttributes().containsKey(key);
-        Predicate<Metric> notMatch = metric -> !value.matcher(metric.getAttributes().get(key)).matches();
+    public boolean test(Map<String, String> attributes) {
+        Predicate<Map<String, String>> notExist = metric -> !attributes.containsKey(key);
+        Predicate<Map<String, String>> notMatch = metric -> !value.matcher(attributes.get(key)).matches();
 
-        return notExist.or(notMatch).test(metricInput);
+        return notExist.or(notMatch).test(attributes);
     }
 
     @Override

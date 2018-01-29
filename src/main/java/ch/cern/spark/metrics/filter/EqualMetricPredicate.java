@@ -2,13 +2,12 @@ package ch.cern.spark.metrics.filter;
 
 import java.io.Serializable;
 import java.text.ParseException;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import ch.cern.spark.metrics.Metric;
-
-public class EqualMetricPredicate implements Predicate<Metric>, Serializable {
+public class EqualMetricPredicate implements Predicate<Map<String, String>>, Serializable {
 
 	private static final long serialVersionUID = 99926521342965096L;
 	
@@ -26,11 +25,11 @@ public class EqualMetricPredicate implements Predicate<Metric>, Serializable {
 	}
 
 	@Override
-	public boolean test(Metric metricInput) {
-		Predicate<Metric> exist = metric -> metric.getAttributes().containsKey(key);
-		Predicate<Metric> match = metric -> value.matcher(metric.getAttributes().get(key)).matches();
+	public boolean test(Map<String, String> attributes) {
+		Predicate<Map<String, String>> exist = metric -> attributes.containsKey(key);
+		Predicate<Map<String, String>> match = metric -> value.matcher(attributes.get(key)).matches();
 		
-		return exist.and(match).test(metricInput);
+		return exist.and(match).test(attributes);
 	}
 	
 	@Override
