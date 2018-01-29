@@ -3,7 +3,6 @@ package ch.cern.spark.status.storage.types;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -25,7 +24,6 @@ import ch.cern.spark.metrics.value.PropertiesValue;
 import ch.cern.spark.metrics.value.StringValue;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
-import ch.cern.utils.DurationAndTruncate;
 
 public class JSONStatusSerializerTest {
     
@@ -33,7 +31,7 @@ public class JSONStatusSerializerTest {
     public void serializeValueHistory() throws IOException {
         JSONStatusSerializer ser = new JSONStatusSerializer();
         
-        ValueHistory.Status status = new ValueHistory.Status(100, new DurationAndTruncate(Duration.ofSeconds(10)), ChronoUnit.MINUTES, new CountAgregation());
+        ValueHistory.Status status = new ValueHistory.Status(100, ChronoUnit.MINUTES, new CountAgregation());
         status.history.add(Instant.now(), new FloatValue(2));
         String json = new String(ser.fromValue(status));
         

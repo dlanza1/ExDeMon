@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
@@ -25,7 +24,6 @@ import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
-import ch.cern.utils.DurationAndTruncate;
 import ch.cern.utils.TimeUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -40,9 +38,6 @@ public class ValueHistory implements Serializable {
 
     @Getter @Setter
     private List<DatedValue> values;
-    
-    @Getter @Setter
-    private DurationAndTruncate period = new DurationAndTruncate(Duration.ofMinutes(30));
 
     @Getter @Setter
     private long max_size;
@@ -53,17 +48,16 @@ public class ValueHistory implements Serializable {
     @Getter @Setter
     private Aggregation aggregation;
 
-    public ValueHistory(Duration expire){
-        this(new DurationAndTruncate(expire), MetricVariable.MAX_SIZE_DEFAULT, null, null);
+    public ValueHistory(){
+        this(MetricVariable.MAX_SIZE_DEFAULT, null, null);
     }
     
-    public ValueHistory(DurationAndTruncate expire, long max_size, ChronoUnit granularity, Aggregation aggregation){
+    public ValueHistory(long max_size, ChronoUnit granularity, Aggregation aggregation){
         this.values = new LinkedList<>();
         
         this.max_size = max_size;
         
         this.max_size = max_size;
-        this.period = expire;
         this.granularity = granularity;
         this.aggregation = aggregation;
     }
@@ -97,11 +91,7 @@ public class ValueHistory implements Serializable {
         values = values.stream().sorted().collect(Collectors.toList());
     }
 
-    public void purge(Instant time) {
-        if(period == null)
-            return;
-        
-    		Instant oldest_time = period.adjust(time);
+    public void purge(Instant oldest_time) {
     		values.removeIf(value -> value.getTime().isBefore(oldest_time));
     }
 
@@ -160,6 +150,7 @@ public class ValueHistory implements Serializable {
         return stats;
     }
     
+    @ToString
     @ClassNameAlias("value-history")
     public static class Status extends StatusValue{
         private static final long serialVersionUID = 8818532585911816073L;
@@ -167,17 +158,16 @@ public class ValueHistory implements Serializable {
         public ValueHistory history;
         
         public Status() {
-            history = new ValueHistory(Duration.ofMinutes(10));
+            history = new ValueHistory();
         }
 
-        public Status(int max_aggregation_size, DurationAndTruncate expire, ChronoUnit granularity, Aggregation aggregation) {
-            history = new ValueHistory(expire, max_aggregation_size, granularity, aggregation);
+        public Status(int max_aggregation_size, ChronoUnit granularity, Aggregation aggregation) {
+            history = new ValueHistory(max_aggregation_size, granularity, aggregation);
         }
 
         private void writeObject(ObjectOutputStream out) throws IOException{
             List<DatedValue> datedValues = history.values;
             
-            DurationAndTruncate period = history.getPeriod();
             ChronoUnit granularity = history.getGranularity();
             Aggregation agg = history.getAggregation();
             
@@ -192,7 +182,6 @@ public class ValueHistory implements Serializable {
                 i++;
             }
             
-            out.writeObject(period);
             out.writeObject(granularity);
             out.writeObject(agg);
             out.writeObject(times);
@@ -200,10 +189,9 @@ public class ValueHistory implements Serializable {
         }
         
         private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException{
-            DurationAndTruncate period = (DurationAndTruncate) in.readObject();
             ChronoUnit granularity = (ChronoUnit) in.readObject();
             Aggregation aggregation = (Aggregation) in.readObject();
-            history = new ValueHistory(period, MetricVariable.MAX_SIZE_DEFAULT, granularity, aggregation);
+            history = new ValueHistory(MetricVariable.MAX_SIZE_DEFAULT, granularity, aggregation);
             
             int[] times = (int[]) in.readObject();
             Value[] values = (Value[]) in.readObject();

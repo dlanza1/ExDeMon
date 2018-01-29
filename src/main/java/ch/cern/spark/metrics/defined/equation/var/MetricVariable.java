@@ -144,13 +144,15 @@ public class MetricVariable extends Variable {
         if(aggregateSelectAtt == null && status instanceof ValueHistory.Status) {
             ValueHistory history = ((ValueHistory.Status) status).history;
             
-            history.purge(time);
+            if(expire != null)
+                history.purge(expire.adjust(time));
             
             values = history.getDatedValues();
         }else if((aggregateSelectAtt != null || aggregateSelectALL) && status instanceof AggregationValues) {
             AggregationValues aggValues = ((AggregationValues) status);
             
-            aggValues.purge(expire.adjust(time));
+            if(expire != null)
+                aggValues.purge(expire.adjust(time));
             
             values = aggValues.getDatedValues();
         }
@@ -202,7 +204,7 @@ public class MetricVariable extends Variable {
 
     private StatusValue initStatus() {
         if(aggregateSelectAtt == null && !aggregateSelectALL)
-            return new ValueHistory.Status(max_aggregation_size, expire, granularity, aggregation);
+            return new ValueHistory.Status(max_aggregation_size, granularity, aggregation);
         else
             return new AggregationValues(max_aggregation_size);
     }

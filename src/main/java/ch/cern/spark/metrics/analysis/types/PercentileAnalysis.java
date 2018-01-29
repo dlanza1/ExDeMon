@@ -15,7 +15,6 @@ import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
-import ch.cern.utils.DurationAndTruncate;
 
 @RegisterComponent("percentile")
 public class PercentileAnalysis extends NumericAnalysis implements HasStatus{
@@ -76,7 +75,7 @@ public class PercentileAnalysis extends NumericAnalysis implements HasStatus{
         warn_ratio = properties.getFloat(WARN_RATIO_PARAM, WARN_RATIO_DEFAULT);
         
         period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
-        history = new ValueHistory(period);
+        history = new ValueHistory();
         
         properties.confirmAllPropertiesUsed();
     }
@@ -84,10 +83,9 @@ public class PercentileAnalysis extends NumericAnalysis implements HasStatus{
     @Override
     public void load(StatusValue store) {
         if(store == null){
-            history = new ValueHistory(period);
+            history = new ValueHistory();
         }else{
             history = ((ValueHistory.Status) store).history;
-            history.setPeriod(new DurationAndTruncate(period));
         }
     }
     
@@ -102,7 +100,8 @@ public class PercentileAnalysis extends NumericAnalysis implements HasStatus{
 
     @Override
     public AnalysisResult process(Instant timestamp, double value) {
-        history.purge(timestamp);
+        if(period != null)
+            history.purge(timestamp.minus(period));
         
         DescriptiveStatistics stats = history.getStatistics();
 

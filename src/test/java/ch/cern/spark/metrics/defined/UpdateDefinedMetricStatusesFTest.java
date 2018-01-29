@@ -3,7 +3,6 @@ package ch.cern.spark.metrics.defined;
 import static ch.cern.spark.metrics.MetricTest.Metric;
 import static org.junit.Assert.assertEquals;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -19,7 +18,6 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
-import ch.cern.utils.DurationAndTruncate;
 
 public class UpdateDefinedMetricStatusesFTest {
 	
@@ -76,7 +74,7 @@ public class UpdateDefinedMetricStatusesFTest {
         DefinedMetricStatuskey id = new DefinedMetricStatuskey("dmID1", groupByIDs);
         State<VariableStatuses> status = new StateImpl<>();
         VariableStatuses varStores = new VariableStatuses();
-        ValueHistory.Status varStore = new ValueHistory.Status(100, new DurationAndTruncate(Duration.ofMinutes(1)), null, null);
+        ValueHistory.Status varStore = new ValueHistory.Status(100, null, null);
 		varStores.put("value", varStore);
 		status.update(varStores);
         Metric metric = null;

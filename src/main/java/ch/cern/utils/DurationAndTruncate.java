@@ -23,7 +23,7 @@ public class DurationAndTruncate implements Serializable {
     private ChronoUnit truncate;
     
     public DurationAndTruncate(Duration duration) {
-        this(duration, ChronoUnit.MILLIS);
+        this(duration, ChronoUnit.NANOS);
     }
     
     public DurationAndTruncate(Duration duration, ChronoUnit truncate) {

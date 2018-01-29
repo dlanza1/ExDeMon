@@ -32,15 +32,14 @@ import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.StringValue;
 import ch.cern.spark.metrics.value.Value;
-import ch.cern.utils.DurationAndTruncate;
 import ch.cern.utils.TimeUtils;
 
 public class ValueHistoryTest {
-    
+
     @Test
     public void floatValueSerializationSize() throws IOException, ParseException{
         ValueHistory.Status store = new Status();
-        store.history = new ValueHistory(Duration.ofSeconds(60));
+        store.history = new ValueHistory();
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = new ObjectOutputStream(bos);   
@@ -65,7 +64,7 @@ public class ValueHistoryTest {
     @Test
     public void stringValueSerializationSize() throws IOException, ParseException{
         ValueHistory.Status store = new Status();
-        store.history = new ValueHistory(Duration.ofSeconds(60));
+        store.history = new ValueHistory();
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = new ObjectOutputStream(bos);   
@@ -90,7 +89,7 @@ public class ValueHistoryTest {
     @Test
     public void booleanValueSerializationSize() throws IOException, ParseException{
         ValueHistory.Status store = new Status();
-        store.history = new ValueHistory(Duration.ofSeconds(60));
+        store.history = new ValueHistory();
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = new ObjectOutputStream(bos);   
@@ -115,7 +114,7 @@ public class ValueHistoryTest {
     @Test
     public void exceptionValueSerializationSize() throws IOException, ParseException{
         ValueHistory.Status store = new Status();
-        store.history = new ValueHistory(Duration.ofSeconds(60));
+        store.history = new ValueHistory();
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = new ObjectOutputStream(bos);   
@@ -140,7 +139,7 @@ public class ValueHistoryTest {
     @Test
     public void saveAndLoad() throws IOException, ParseException, ClassNotFoundException, ComputationException{
         Status store = new Status();
-        store.history = new ValueHistory(Duration.ofSeconds(60));
+        store.history = new ValueHistory();
         int numberOfRecords = 10;
         for (int i = 0; i < numberOfRecords; i++) 
             store.history.add(Instant.ofEpochSecond(Instant.now().getEpochSecond()), (float) Math.random());
@@ -158,13 +157,12 @@ public class ValueHistoryTest {
         ois.close();
         
         assertNotSame(store.history.getDatedValues(), restoredStore.history.getDatedValues());
-        assertEquals(store.history.getPeriod(), restoredStore.history.getPeriod());
         assertEquals(store.history.getDatedValues(), restoredStore.history.getDatedValues());
     }
     
     @Test
     public void shouldGenerateExceptionWhenMaxSizeIsReached() throws ComputationException {
-        ValueHistory values = new ValueHistory(new DurationAndTruncate(Duration.ofSeconds(30)), 3, null, null);
+        ValueHistory values = new ValueHistory(3, null, null);
         
         Instant now = Instant.now();
         
@@ -188,10 +186,10 @@ public class ValueHistoryTest {
     public void granularityShouldProvideSameResults() throws ComputationException {
         Aggregation aggregation = new SumAggregation();
         
-        ValueHistory values = new ValueHistory(new DurationAndTruncate(Duration.ofMinutes(30)), 10000, null, null);
+        ValueHistory values = new ValueHistory(10000, null, null);
         
         ChronoUnit granularity = ChronoUnit.MINUTES;
-        ValueHistory granularValues = new ValueHistory(new DurationAndTruncate(Duration.ofMinutes(30)), 100, granularity, aggregation);
+        ValueHistory granularValues = new ValueHistory(100, granularity, aggregation);
         
         Instant time = Instant.parse("2007-12-03T10:15:00.00Z");
         float num = (float) Math.random();
@@ -234,10 +232,10 @@ public class ValueHistoryTest {
     public void granularityWithDifferentInputOutputTypeInAggregation() throws ComputationException {
         Aggregation aggregation = new CountAgregation();
         
-        ValueHistory values = new ValueHistory(new DurationAndTruncate(Duration.ofMinutes(30)), 100, null, null);
+        ValueHistory values = new ValueHistory(100, null, null);
         
         ChronoUnit granularity = ChronoUnit.MINUTES;
-        ValueHistory granularValues = new ValueHistory(new DurationAndTruncate(Duration.ofMinutes(30)), 10, granularity, aggregation);
+        ValueHistory granularValues = new ValueHistory(10, granularity, aggregation);
         
         Instant time = Instant.parse("2007-12-03T10:15:00.00Z");
         StringValue input = new StringValue("a");
@@ -271,7 +269,7 @@ public class ValueHistoryTest {
     
     @Test
     public void shouldRecoverAfterMaxSizeIsReached() throws ComputationException {
-        ValueHistory values = new ValueHistory(new DurationAndTruncate(Duration.ofSeconds(6)), 3, null, null);
+        ValueHistory values = new ValueHistory(3, null, null);
         
         Instant now = Instant.now();
         
@@ -290,7 +288,7 @@ public class ValueHistoryTest {
             fail();
         }catch(Exception e) {}
         
-        values.purge(now.plus(Duration.ofSeconds(7)));
+        values.purge(now.plus(Duration.ofSeconds(1)));
         
         values.getDatedValues();
         
@@ -303,7 +301,7 @@ public class ValueHistoryTest {
     
     @Test
     public void expiration() throws Exception{
-        ValueHistory history = new ValueHistory(Duration.ofSeconds(60));
+        ValueHistory history = new ValueHistory();
         
         history.add(TimeUtils.toInstant("2017-04-01 11:18:12"), 9f);
         history.add(TimeUtils.toInstant("2017-04-01 11:18:56"), 10f);
@@ -312,7 +310,7 @@ public class ValueHistoryTest {
         history.add(TimeUtils.toInstant("2017-04-01 11:20:01"), 13f);
         history.add(TimeUtils.toInstant("2017-04-01 11:20:10"), 14f);
         
-        history.purge(TimeUtils.toInstant("2017-04-01 11:20:22"));
+        history.purge(TimeUtils.toInstant("2017-04-01 11:19:30"));
         
         List<Value> returnedValues = history.getDatedValues().stream().map(value -> value.getValue()).collect(Collectors.toList());
         
@@ -323,7 +321,7 @@ public class ValueHistoryTest {
 
     @Test
     public void getHourlyValues() throws Exception{
-        ValueHistory history = new ValueHistory(Duration.ofSeconds(50));
+        ValueHistory history = new ValueHistory();
         
         history.add(TimeUtils.toInstant("2017-04-01 09:20:12"), 9f);
         history.add(TimeUtils.toInstant("2017-04-01 10:20:56"), 10f);
@@ -341,7 +339,7 @@ public class ValueHistoryTest {
     
     @Test
     public void getDaylyValues() throws Exception{
-        ValueHistory history = new ValueHistory(Duration.ofSeconds(50));
+        ValueHistory history = new ValueHistory();
         
         history.add(TimeUtils.toInstant("2016-03-07 10:20:12"), 9f);
         history.add(TimeUtils.toInstant("2017-04-07 10:20:56"), 10f);
@@ -359,7 +357,7 @@ public class ValueHistoryTest {
     
     @Test
     public void getWeeklyValues() throws Exception{
-        ValueHistory history = new ValueHistory(Duration.ofSeconds(50));
+        ValueHistory history = new ValueHistory();
         
         history.add(TimeUtils.toInstant("2016-03-05 10:20:12"), 9f);
         history.add(TimeUtils.toInstant("2017-04-03 10:20:56"), 10f);
