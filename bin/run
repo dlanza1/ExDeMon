@@ -24,13 +24,13 @@ CONFIG_PATH=/tmp/config.properties
 $HOME/bin/update_config
 
 export JAVA_HOME=/root/jdk1.8.0_112/
-export SPARK_HOME=/root/spark-2.1.0-bin-hadoop2.7/
+export SPARK_HOME=/root/spark-2.2.1-bin-without-hadoop/
 
 export HADOOP_CONF_DIR=$HOME/conf/
 export SPARK_CONF_DIR=$HOME/conf/
 
-[ -f $HOME/elasticsearch-hadoop-5.2.2.jar ] || \
-    wget http://central.maven.org/maven2/org/elasticsearch/elasticsearch-hadoop/5.2.2/elasticsearch-hadoop-5.2.2.jar -O $HOME/elasticsearch-hadoop-5.2.2.jar
+[ -f $HOME/elasticsearch-hadoop-6.1.2.jar ] || \
+    wget http://central.maven.org/maven2/org/elasticsearch/elasticsearch-hadoop/6.1.2/elasticsearch-hadoop-6.1.2.jar -O $HOME/elasticsearch-hadoop-6.1.2.jar
 
 # Stop if runnning
 kill `ps -ax | grep "ch.cern.spark.metrics.Driver" | grep -v grep | awk '{$1=$1};1' | cut -d' ' -f 1`
@@ -45,8 +45,8 @@ $SPARK_HOME/bin/spark-submit \
 	--num-executors 3 \
 	--executor-cores 1 \
 	--class ch.cern.spark.metrics.Driver \
-	--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.1.0 \
-	--jars $HOME/elasticsearch-hadoop-5.2.2.jar \
+	--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.2.1 \
+	--jars $HOME/elasticsearch-hadoop-6.1.2.jar \
 	--repositories https://repository.cloudera.com/artifactory/cloudera-repos/ \
 	$HOME/target/metrics-monitor-*.jar \
 	$CONFIG_PATH

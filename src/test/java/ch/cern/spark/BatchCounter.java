@@ -10,6 +10,7 @@ import org.apache.spark.streaming.scheduler.StreamingListenerOutputOperationStar
 import org.apache.spark.streaming.scheduler.StreamingListenerReceiverError;
 import org.apache.spark.streaming.scheduler.StreamingListenerReceiverStarted;
 import org.apache.spark.streaming.scheduler.StreamingListenerReceiverStopped;
+import org.apache.spark.streaming.scheduler.StreamingListenerStreamingStarted;
 
 /**
  * An object that counts the number of started / completed batches. This is
@@ -88,5 +89,11 @@ public class BatchCounter implements StreamingListener{
 		// TODO Auto-generated method stub
 		
 	}
+
+    @Override
+    public void onStreamingStarted(StreamingListenerStreamingStarted arg0) {
+        // TODO Auto-generated method stub
+        
+    }
 	
 }
