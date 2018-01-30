@@ -262,7 +262,7 @@ public class StatusesManagerCLI {
             statuses = statuses.filter(new ClassNameStatusKeyFilter(filter_by_fqcn));
         
         if(expired_period != null)
-            statuses = statuses.filter(new ExpireStatusKeyFilter(expired_period));
+            statuses = statuses.filter(new ExpireStatusValueFilter(expired_period));
         
         return statuses.mapToPair(tuple -> tuple);
     }

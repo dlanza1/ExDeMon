@@ -11,13 +11,18 @@ import java.util.UUID;
 
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.notifications.Notification;
+import lombok.Getter;
+import lombok.ToString;
 
+@ToString
 public class GNINotification implements Serializable{
 	
 	private static final long serialVersionUID = 3907608853402802054L;
 
+	@Getter
 	private Map<String, String> header;
 	
+	@Getter
 	private Map<String, HashMap<String, Object>> body;
 
 	private static Set<String> int_keys = new HashSet<>(Arrays.asList("timestamp", "metric_id", "validity", "snow_assignment_level"));

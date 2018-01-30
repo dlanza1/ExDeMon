@@ -29,7 +29,7 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
 	}
 
 	@Test
-	public void shouldUpdateDefinedMetrics() throws Exception {
+	public void definedMetricsCacheShouldExpire() throws Exception {
 		DefinedMetrics.initCache(null);
 		
 		Cache<Map<String, DefinedMetric>> definedMetricsCache = DefinedMetrics.getCache();
