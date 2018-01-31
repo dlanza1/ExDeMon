@@ -5,7 +5,7 @@
 Exdemon REST API server
 """
 
-from exdemon.app import Application
+from exdemon.application import Application
 
 if __name__ == "__main__":
     Application()
