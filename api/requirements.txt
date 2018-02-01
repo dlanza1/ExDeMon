@@ -1,4 +1,4 @@
 flask
 psycopg2
-SQLAlchemy
+flask_sqlalchemy
 configparser

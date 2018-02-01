@@ -1,52 +1,48 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from sqlalchemy import Column, Integer, String, Boolean
-import sqlalchemy
-from sqlalchemy.dialects.postgresql import JSON, JSONB
-from sqlalchemy.ext.declarative import declarative_base
+from flask_sqlalchemy import SQLAlchemy
+from exdemon.application import app
 
-from exdemon.config import config
+db = SQLAlchemy(app)
 
-Base = declarative_base()
-
-class Schema(Base):
+class Schema(db.Model):
     __tablename__ = 'schema'
 
-    id = Column('id', Integer, primary_key=True, autoincrement=True)
-    name = Column('name', String(32), nullable=False)
-    project = Column('project', String(32), nullable=False)
-    environment = Column('environment', String(32), nullable=False)
-    data = Column('data', JSON, nullable=False)
-    enabled = Column('enabled', Boolean, nullable=False)
+    id = db.Column('id', db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column('name', db.String(32), nullable=False)
+    project = db.Column('project', db.String(32), nullable=False)
+    environment = db.Column('environment', db.String(32), nullable=False)
+    data = db.Column('data', db.JSON, nullable=False)
+    enabled = db.Column('enabled', db.Boolean, nullable=False)
 
     def __repr__(self):
         return "<Schema(id='%s', name='%s', project='%s', environment='%s', 'data='%s')>" % (
                         self.id, self.name, self.project, self.environment, self.data)
 
-class Metric(Base):
+class Metric(db.Model):
     __tablename__ = 'metric'
 
-    id = Column('id', Integer, primary_key=True, autoincrement=True)
-    name = Column('name', String(32), nullable=False)
-    project = Column('project', String(32), nullable=False)
-    environment = Column('environment', String(32), nullable=False)
-    data = Column('data', JSON, nullable=False)
-    enabled = Column('enabled', Boolean, nullable=False)
+    id = db.Column('id', db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column('name', db.String(32), nullable=False)
+    project = db.Column('project', db.String(32), nullable=False)
+    environment = db.Column('environment', db.String(32), nullable=False)
+    data = db.Column('data', db.JSON, nullable=False)
+    enabled = db.Column('enabled', db.Boolean, nullable=False)
 
     def __repr__(self):
         return "<Metric(id='%s', name='%s', project='%s', environment='%s', 'data='%s')>" % (
                         self.id, self.name, self.project, self.environment, self.data)
 
-class Monitor(Base):
+class Monitor(db.Model):
     __tablename__ = 'monitor'
 
-    id = Column('id', Integer, primary_key=True, autoincrement=True)
-    name = Column('name', String(32), nullable=False)
-    project = Column('project', String(32), nullable=False)
-    environment = Column('environment', String(32), nullable=False)
-    data = Column('data', JSON, nullable=False)
-    enabled = Column('enabled', Boolean, nullable=False)
+    id = db.Column('id', db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column('name', db.String(32), nullable=False)
+    project = db.Column('project', db.String(32), nullable=False)
+    environment = db.Column('environment', db.String(32), nullable=False)
+    data = db.Column('data', db.JSON, nullable=False)
+    enabled = db.Column('enabled', db.Boolean, nullable=False)
 
     def __repr__(self):
         return "<Monitor(id='%s', name='%s', project='%s', environment='%s', 'data='%s')>" % (
@@ -54,8 +50,5 @@ class Monitor(Base):
 
 if __name__ == "__main__":
     # Create the database schema
-    connection_string = config.get('database', 'connection')
-    db = sqlalchemy.create_engine(connection_string)  
-    engine = db.connect()  
-    Base.metadata.create_all(engine)
+    db.create_all()
 

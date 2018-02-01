@@ -22,7 +22,7 @@ setup(name='exdemon-api',
       install_requires=[
           'flask',
           'configparser',
-          'sqlalchemy',
+          'flask_sqlalchemy',
           'psycopg2',
           ],
      )

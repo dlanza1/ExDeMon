@@ -3,16 +3,14 @@ from flask import Flask, request, abort
 from flask import abort
 from flask.views import MethodView
 import json
-import sqlalchemy
 
-#from exdemon.app import app
+from exdemon.application import app
 from exdemon.constants import *
-from exdemon.database import Metric
+from exdemon.database import Metric, db
 
 class MetricEndpoint(MethodView):
-
     def get(self):
-        #app.logger.info('Error metric')
+        app.logger.info('Error metric')
         return "get"
         abort(NOT_IMPLEMENTED)
     def post(self):
