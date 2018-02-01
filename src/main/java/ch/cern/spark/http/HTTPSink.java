@@ -80,7 +80,7 @@ public class HTTPSink implements Serializable{
 		addNotification = properties.getBoolean("add.$notification", true);
         
 		propertiesToAdd = properties.getSubset("add").toStringMap();
-		propertiesToAdd.remove("add.$notification");
+		propertiesToAdd.remove("$notification");
 		
 		// Authentication configs
         boolean authentication = properties.getBoolean(AUTH_PARAM);
@@ -232,10 +232,10 @@ public class HTTPSink implements Serializable{
 		if(postMethod.isAborted())
 			throw new HttpException("Request has timmed out after " + TimeUtils.toString(Duration.ofMillis(timeout_ms)));
 		
-        if (statusCode != 201 && statusCode != 200) {
-        		throw new HttpException("Unable to POST to url=" + request.getUrl() + " with status code=" + statusCode);
-        } else {
+        if (statusCode == 201 || statusCode == 200) {
             LOG.trace("JSON: " + request.getJson() + " sent to " + request.getUrl());
+        } else {
+            throw new HttpException("Unable to POST to url=" + request.getUrl() + " with status code=" + statusCode);
         }
 	}
 
