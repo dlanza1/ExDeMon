@@ -28,7 +28,6 @@ import org.mockito.ArgumentCaptor;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.results.AnalysisResult;
@@ -42,16 +41,16 @@ public class HTTPSinkTest {
 		
 		HTTPSink.setHTTPClient(httpClient);
         
-        Instant instant = Instant.now();
-		AnalysisResult analysisResult = new AnalysisResult();
-		analysisResult.setAnalysisTimestamp(instant);
-        
-        Properties properties = new Properties();
+		Properties properties = new Properties();
         properties.setProperty("url", "http://localhost:1234");
         HTTPSink sink = new HTTPSink();
         sink.config(properties);
         
-        sink.send(Arrays.asList(JSONParser.parse(analysisResult).toString()).iterator());
+        Instant instant = Instant.now();
+		AnalysisResult analysisResult = new AnalysisResult();
+		analysisResult.setAnalysisTimestamp(instant);
+
+        sink.send(Arrays.asList(new JsonPOSTRequest("", JSONParser.parse(analysisResult))).iterator());
 		
 		ArgumentCaptor<PostMethod> methodCaptor = ArgumentCaptor.forClass(PostMethod.class);
 		verify(httpClient, times(1)).executeMethod(methodCaptor.capture());
@@ -68,6 +67,7 @@ public class HTTPSinkTest {
 	@Test
     public void shouldExtractValueFromTags() throws ConfigurationException, HttpException, IOException, ParseException {
         Properties properties = new Properties();
+        properties.setProperty("url", "https://abcd.cern.ch/<tags:url-suffix>");
         properties.setProperty("add.header.h1", "%header_tag");
         properties.setProperty("add.body.metadata.metric_id", "%metric_id_tag");
         properties.setProperty("add.body.payload.bp1", "%payload_tag");
@@ -80,19 +80,26 @@ public class HTTPSinkTest {
         sinks.add("ALL");
         notification.setSink_ids(sinks);
         Map<String, String> tags = new HashMap<>();
+        tags.put("url-suffix", "/job/id/23/");
         tags.put("header_tag", "fromtag1");
         tags.put("metric_id_tag", "1234");
         tags.put("payload_tag", "fromtag2");
         notification.setTags(tags);
         
-        JSONObject jsonResult = sink.processProperties(notification);
+        JsonPOSTRequest jsonResult = sink.toJsonPOSTRequest(notification);
         
-        assertEquals("{\"tags\":{\"metric_id_tag\":\"1234\",\"payload_tag\":\"fromtag2\",\"header_tag\":\"fromtag1\"},"
+        assertEquals("https://abcd.cern.ch//job/id/23/", jsonResult.getUrl());
+        
+        assertEquals("{\"tags\":{"
+                        + "\"url-suffix\":\"/job/id/23/\","
+                        + "\"metric_id_tag\":\"1234\","
+                        + "\"payload_tag\":\"fromtag2\","
+                        + "\"header_tag\":\"fromtag1\"},"
                     + "\"sink_ids\":[\"ALL\"],"
                     + "\"header\":{\"h1\":\"fromtag1\"},"
                     + "\"body\":{"
                         + "\"payload\":{\"bp1\":\"fromtag2\",\"bp2\":null},"
-                        + "\"metadata\":{\"metric_id\":\"1234\"}}}", jsonResult.toString());
+                        + "\"metadata\":{\"metric_id\":\"1234\"}}}", jsonResult.getJson().toString());
     }
 
 }

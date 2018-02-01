@@ -53,7 +53,7 @@ Notifications are converted to JSON (array) and sunk to an HTTP (POST) end point
 
 ```
 notifications.sink.<sink-id>.type = http
-notifications.sink.<sink-id>.url = <url>
+notifications.sink.<sink-id>.url = <template>
 notifications.sink.<sink-id>.parallelization = <number-of-parallel-clients> (default: 1)
 notifications.sink.<sink-id>.batch.size = <max-number-of-records-in-a-POST-request> (default: 100)
 notifications.sink.<sink-id>.as-array = <true|false> (default: true)
@@ -70,9 +70,9 @@ notifications.sink.<sink-id>.add.<key-2> = <value|%notification-tag-key>
 notifications.sink.<sink-id>.add.<key-n> = <value|%notification-tag-key>
 ```
 
-add parameters can use templates.
+add parameters and url can use templates.
 
-TIP: Send notifications to Mattermost
+TIP: Send notifications to [Mattermost](https://api.mattermost.com/)
 
 More info: https://docs.mattermost.com/developer/webhooks-incoming.html
 
@@ -84,7 +84,21 @@ notifications.sink.mattermost.add.$notification = false
 notifications.sink.mattermost.add.text = %matt-text
 notifications.sink.mattermost.add.channel = %matt-channel
 notifications.sink.mattermost.add.username = %matt-username
-notifications.sink.mattermost.add.icon_url = %matt-icon_url
+notifications.sink.mattermost.add.icon_url = https://raw.githubusercontent.com/cerndb/ExDeMon/master/graphics/icons/filled-<tags:icon>-icon.png
+```
+
+TIP: Run jobs in [Rundesk](http://rundeck.org/)
+
+More info: https://docs.mattermost.com/developer/webhooks-incoming.html
+
+```
+notifications.sink.rundeck.type = http
+notifications.sink.rundeck.url = https://{your-mattermost-site}/api/20/
+notifications.sink.rundeck.url-suffix = /job/<tags:rundeck-jobid>/run
+notifications.sink.rundeck.as-array = false
+notifications.sink.rundeck.add.$notification = false
+notifications.sink.rundeck.add.options.PARAM1 = %rundeck-PARAM1
+notifications.sink.rundeck.add.options.PARAM2 = %rundeck-PARAM2
 ```
 
 ## CERN GNI notifications sink

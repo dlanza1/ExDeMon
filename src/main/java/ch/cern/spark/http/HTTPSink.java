@@ -12,12 +12,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Collectors;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.spark.streaming.api.java.JavaDStream;
@@ -68,6 +68,9 @@ public class HTTPSink implements Serializable{
 
 	public void config(Properties properties) throws ConfigurationException {
 		url = properties.getProperty(URL_PARAM);
+		if(url == null)
+		    throw new ConfigurationException("URL must be specified");
+		
 		retries = (int) properties.getFloat(RETRIES_PARAM, 1);
 		timeout_ms = (int) properties.getFloat(TIMEOUT_PARAM, 2000);
 		parallelization = (int) properties.getFloat(PARALLELIZATION_PARAM, 1);
@@ -100,19 +103,23 @@ public class HTTPSink implements Serializable{
 	public void sink(JavaDStream<?> outputStream) {
 		outputStream = outputStream.repartition(parallelization);
 		
-		JavaDStream<JSONObject> jsonStream = outputStream.map(object -> processProperties(object));
+		JavaDStream<JsonPOSTRequest> requestsStream = outputStream.map(object -> toJsonPOSTRequest(object));
 		
-		JavaDStream<String> jsonStringStream = jsonStream.map(JSONObject::toString);
-		
-		jsonStringStream.foreachRDD(rdd -> rdd.foreachPartition(strings -> send(strings)));
+		requestsStream.foreachRDD(rdd -> rdd.foreachPartition(strings -> send(strings)));
 	}
 
-    protected JSONObject processProperties(Object object) throws ParseException {
-        JSONObject json = addNotification ? JSONParser.parse(object) : new JSONObject("{}");
-        
+    protected JsonPOSTRequest toJsonPOSTRequest(Object object) throws ParseException {
         Map<String, String> tags = null;
         if(object instanceof Taggable)
             tags = ((Taggable) object).getTags();
+        
+        String url = this.url;
+        if(object instanceof Notification)
+            url = NotificationsSink.template(url, (Notification) object);
+        
+        JSONObject json = addNotification ? JSONParser.parse(object) : new JSONObject("{}");
+        
+        JsonPOSTRequest request = new JsonPOSTRequest(url, json);
         
         for (Map.Entry<String, String> propertyToAdd : propertiesToAdd.entrySet()) {
             String value = propertyToAdd.getValue();
@@ -126,30 +133,30 @@ public class HTTPSink implements Serializable{
             if(value != null && object instanceof Notification)
                 value = NotificationsSink.template(value, (Notification) object);
             
-            json.setProperty(propertyToAdd.getKey(), value);
+            request.addProperty(propertyToAdd.getKey(), value);
         }
         
-        return json;
+        return request;
     }
     
-    protected void send(Iterator<String> strings) {
+    protected void send(Iterator<JsonPOSTRequest> requests) {
         List<Exception> thrownExceptions = new LinkedList<>();
         Exception thrownException = null;
         
-        List<String> elementsToSend = new LinkedList<>();
-        while (strings.hasNext()) {
-            elementsToSend.add((String) strings.next());
+        List<JsonPOSTRequest> requestsToSend = new LinkedList<>();
+        while (requests.hasNext()) {
+            requestsToSend.add(requests.next());
             
-            if(elementsToSend.size() >= batch_size) {
-                thrownException = sendBatch(elementsToSend);
+            if(requestsToSend.size() >= batch_size) {
+                thrownException = sendBatch(requestsToSend);
                 if(thrownException != null)
                     thrownExceptions.add(thrownException);
                 
-                elementsToSend = new LinkedList<>();
+                requestsToSend = new LinkedList<>();
             }
         }
         
-        thrownException = sendBatch(elementsToSend);
+        thrownException = sendBatch(requestsToSend);
         if(thrownException != null)
             thrownExceptions.add(thrownException);
         
@@ -157,19 +164,16 @@ public class HTTPSink implements Serializable{
             LOG.error(new IOException("Same batches could not be sent. Exceptions: " + thrownExceptions));
     }
 
-    private Exception sendBatch(List<String> elementsToSend) {
-	    if(as_array) {
-	        String contentToSend = buildJSONArray(elementsToSend);
-	        
-	        return send(contentToSend);
-	    }else {
-	        for (String element : elementsToSend) {
-	            Exception excep = send(element);
-	            
-	            if(excep != null)
-	                return excep;
-            }
-	    }
+    private Exception sendBatch(List<JsonPOSTRequest> requests) {
+	    if(as_array)
+	        requests = buildJSONArrays(requests);
+
+        for (JsonPOSTRequest request : requests) {
+            Exception excep = send(request);
+            
+            if(excep != null)
+                return excep;
+        }
 	    
 	    return null;
     }
@@ -182,17 +186,14 @@ public class HTTPSink implements Serializable{
 		return HTTPSink.httpClient = httpClient;
 	}
 
-	private Exception send(String contentToSend) {
-		if(contentToSend.length() <= 0)
-			return null;
-		
+	private Exception send(JsonPOSTRequest request) {		
 		HttpClient httpClient = getHTTPClient();
 		
 		Exception thrownException = new Exception();
 		
 		for (int i = 0; i < retries && thrownException != null; i++) {
 			try {
-				trySend(httpClient, contentToSend);
+				trySend(httpClient, request);
 				
 				thrownException = null;
 			} catch (Exception e) {
@@ -208,10 +209,8 @@ public class HTTPSink implements Serializable{
 		return thrownException;	
 	}
 	
-	private void trySend(HttpClient httpClient, String contentToSend) throws HttpException, IOException {
-        StringRequestEntity requestEntity = new StringRequestEntity(contentToSend, "application/json", "UTF-8");
-        PostMethod postMethod = new PostMethod(url);
-        postMethod.setRequestEntity(requestEntity);
+	private void trySend(HttpClient httpClient, JsonPOSTRequest request) throws HttpException, IOException {
+        PostMethod postMethod = request.toPostMethod();
         
         if(authHeader != null)
             postMethod.setRequestHeader(authHeader);
@@ -231,14 +230,20 @@ public class HTTPSink implements Serializable{
 			throw new HttpException("Request has timmed out after " + TimeUtils.toString(Duration.ofMillis(timeout_ms)));
 		
         if (statusCode != 201 && statusCode != 200) {
-        		throw new HttpException("Unable to POST to url=" + url + " with status code=" + statusCode);
+        		throw new HttpException("Unable to POST to url=" + request.getUrl() + " with status code=" + statusCode);
         } else {
-            LOG.trace("JSON: " + contentToSend + " sent to " + url);
+            LOG.trace("JSON: " + request.getJson() + " sent to " + request.getUrl());
         }
 	}
 
-	private String buildJSONArray(List<String> elements) {
-		return elements.toString();
+	private List<JsonPOSTRequest> buildJSONArrays(List<JsonPOSTRequest> elements) {
+	    Map<String, List<JsonPOSTRequest>> groupedByUrl = elements.stream().collect(Collectors.groupingBy(JsonPOSTRequest::getUrl));
+	    
+	    return groupedByUrl.entrySet().stream().map(entry -> {
+            	        String jsonString = entry.getValue().stream().map(req -> req.getJson().toString()).collect(Collectors.toList()).toString();
+            	        
+            	        return new JsonPOSTRequest(entry.getKey(), new JSONObject(jsonString));
+            	    }).collect(Collectors.toList());
 	}
 
 }
