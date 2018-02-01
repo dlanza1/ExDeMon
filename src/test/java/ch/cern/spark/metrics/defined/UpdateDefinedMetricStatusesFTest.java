@@ -9,36 +9,26 @@ import java.util.Optional;
 
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateImpl;
-import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.Cache;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 
 public class UpdateDefinedMetricStatusesFTest {
-	
-	private Cache<Properties> propertiesCache = Properties.getCache();
-
-	@Before
-	public void reset() throws ConfigurationException {
-		Properties.initCache(null);
-		propertiesCache = Properties.getCache();
-		propertiesCache.reset();
-		DefinedMetrics.getCache().reset();
-	}
 
     @Test
     public void shouldGenerateWhenUpdatingVariable() throws Exception {
-    		propertiesCache.get().setProperty("metrics.define.dmID1.metrics.groupby", "DB_NAME, METRIC_NAME");
-    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.type", "count_floats");
-    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.attributes", "ALL");
-    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.expire", "10s");
-
-        UpdateDefinedMetricStatusesF func = new UpdateDefinedMetricStatusesF(null);
+        Properties dmProps = new Properties();
+        dmProps.setProperty("metrics.groupby", "DB_NAME, METRIC_NAME");
+        dmProps.setProperty("variables.value.aggregate.type", "count_floats");
+        dmProps.setProperty("variables.value.aggregate.attributes", "ALL");
+        dmProps.setProperty("variables.value.expire", "10s");
+        DefinedMetric dm = new DefinedMetric("dmID1");
+        dm.config(dmProps);
+        
+        UpdateDefinedMetricStatusesF func = new UpdateDefinedMetricStatusesFWithDefinedMetric(dm);
 
         DefinedMetricStatuskey id = new DefinedMetricStatuskey("dmID1", new HashMap<>());
         State<VariableStatuses> status = new StateImpl<>();
@@ -63,11 +53,14 @@ public class UpdateDefinedMetricStatusesFTest {
     
     @Test
     public void shouldAggregateAlongTime() throws Exception {
-    		propertiesCache.get().setProperty("metrics.define.dmID1.metrics.groupby", "INSTANCE_NAME");
-    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.type", "count_floats");
-    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.expire", "5s");
-
-        UpdateDefinedMetricStatusesF func = new UpdateDefinedMetricStatusesF(null);
+        Properties dmProps = new Properties();
+    		dmProps.setProperty("metrics.groupby", "INSTANCE_NAME");
+    		dmProps.setProperty("variables.value.aggregate.type", "count_floats");
+    		dmProps.setProperty("variables.value.expire", "5s");
+        DefinedMetric dm = new DefinedMetric("dmID1");
+        dm.config(dmProps);
+        
+        UpdateDefinedMetricStatusesF func = new UpdateDefinedMetricStatusesFWithDefinedMetric(dm);
 
         Map<String, String> groupByIDs = new HashMap<>();
         groupByIDs.put("INSTANCE_NAME", "DB1_1");
@@ -94,11 +87,14 @@ public class UpdateDefinedMetricStatusesFTest {
 
     @Test
     public void shouldExpireValuesWhenGroupByIncludeAllAttributes() throws Exception {
-    		propertiesCache.get().setProperty("metrics.define.dmID1.metrics.groupby", "INSTANCE_NAME");
-    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.type", "count_floats");
-    		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.expire", "5s");
-
-        UpdateDefinedMetricStatusesF func = new UpdateDefinedMetricStatusesF(null);
+        Properties dmProps = new Properties();
+        dmProps.setProperty("metrics.groupby", "INSTANCE_NAME");
+        dmProps.setProperty("variables.value.aggregate.type", "count_floats");
+        dmProps.setProperty("variables.value.expire", "5s");
+    		DefinedMetric dm = new DefinedMetric("dmID1");
+        dm.config(dmProps);
+        
+        UpdateDefinedMetricStatusesF func = new UpdateDefinedMetricStatusesFWithDefinedMetric(dm);
 
         Map<String, String> groupByIDs = new HashMap<>();
         groupByIDs.put("INSTANCE_NAME", "DB1_1");
@@ -127,6 +123,24 @@ public class UpdateDefinedMetricStatusesFTest {
         metric = Metric(8, 0f, "INSTANCE_NAME=DB1_1");
         result = func.update(id, metric, status);
         assertEquals(3, result.get().getValue().getAsFloat().get(), 0.001f);
+    }
+    
+    public static class UpdateDefinedMetricStatusesFWithDefinedMetric extends UpdateDefinedMetricStatusesF {
+
+        private static final long serialVersionUID = 1L;
+        private Optional<DefinedMetric> df;
+        
+        public UpdateDefinedMetricStatusesFWithDefinedMetric(DefinedMetric definedMetric) {
+            super(null);
+            
+            this.df = Optional.ofNullable(definedMetric);
+        }
+        
+        @Override
+        protected Optional<DefinedMetric> getDefinedMetric(String id) throws Exception {
+            return df;
+        }
+        
     }
     
 }

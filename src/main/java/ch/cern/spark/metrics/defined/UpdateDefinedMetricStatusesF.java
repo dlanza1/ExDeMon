@@ -1,5 +1,6 @@
 package ch.cern.spark.metrics.defined;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.spark.streaming.State;
@@ -22,9 +23,7 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
     @Override
     protected Optional<Metric> update(DefinedMetricStatuskey id, Metric metric, State<VariableStatuses> status) 
             throws Exception {
-        DefinedMetrics.initCache(propertiesSourceProps);
-        
-        Optional<DefinedMetric> definedMetricOpt = Optional.ofNullable(DefinedMetrics.getCache().get().get(id.getID()));
+        Optional<DefinedMetric> definedMetricOpt = getDefinedMetric(id.getID());
         if(!definedMetricOpt.isPresent()) {
             status.remove();
             return Optional.empty();
@@ -42,7 +41,15 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
         return newMetric;
     }
 
-	private VariableStatuses getStore(State<VariableStatuses> status) {
+	protected Optional<DefinedMetric> getDefinedMetric(String id) throws Exception {
+	    DefinedMetrics.initCache(propertiesSourceProps);
+	    
+        Map<String, DefinedMetric> definedMetrics = DefinedMetrics.getCache().get();
+        
+        return Optional.ofNullable(definedMetrics.get(id));
+    }
+
+    private VariableStatuses getStore(State<VariableStatuses> status) {
 		return status.exists() ? status.get() : new VariableStatuses();
 	}
 

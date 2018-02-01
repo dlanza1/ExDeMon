@@ -231,8 +231,7 @@ public class Properties extends java.util.Properties {
             if (propertiesSourceProps == null)
                 return new Properties();
 
-            Optional<PropertiesSource> propertiesSource = ComponentManager.buildOptional(Type.PROPERTIES_SOURCE,
-                    propertiesSourceProps);
+            Optional<PropertiesSource> propertiesSource = ComponentManager.buildOptional(Type.PROPERTIES_SOURCE, propertiesSourceProps);
 
             if (propertiesSource.isPresent()) {
                 Properties properties = propertiesSource.get().load();
