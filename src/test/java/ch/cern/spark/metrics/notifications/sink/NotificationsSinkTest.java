@@ -19,6 +19,7 @@ import org.junit.Test;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.spark.metrics.notifications.Notification;
+import ch.cern.spark.metrics.notifications.Template;
 
 public class NotificationsSinkTest {
 
@@ -53,7 +54,7 @@ public class NotificationsSinkTest {
         
         String result = null;
         try {
-            result = NotificationsSink.template(template, notification);
+            result = Template.apply(template, notification);
         } catch (Exception e) {
             fail();
         }
@@ -72,17 +73,17 @@ public class NotificationsSinkTest {
 
     @Test
     public void nullsInTemplate() {
-        assertNull(NotificationsSink.template(null, null));
+        assertNull(Template.apply(null, null));
         
         String template = "<monitor_id> <notificator_id> <metric_attributes> <metric_attributes:a> <datetime> <reason> <tags> <tags:b>";
         
-        assertEquals("null null (empty) null null null (empty) null", NotificationsSink.template(template, null));
+        assertEquals("null null (empty) null null null (empty) null", Template.apply(template, null));
 
         Notification notification = new Notification();
 
         String result = null;
         try {
-            result = NotificationsSink.template(template, notification);
+            result = Template.apply(template, notification);
         } catch (Exception e) {
             fail();
         }

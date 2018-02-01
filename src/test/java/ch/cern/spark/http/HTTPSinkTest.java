@@ -64,14 +64,14 @@ public class HTTPSinkTest {
     					+ "\"tags\":{}}]", receivedEntity.getContent());
 	}
 	
-	@Test
+    @Test
     public void shouldExtractValueFromTags() throws ConfigurationException, HttpException, IOException, ParseException {
         Properties properties = new Properties();
         properties.setProperty("url", "https://abcd.cern.ch/<tags:url-suffix>");
-        properties.setProperty("add.header.h1", "%header_tag");
-        properties.setProperty("add.body.metadata.metric_id", "%metric_id_tag");
-        properties.setProperty("add.body.payload.bp1", "%payload_tag");
-        properties.setProperty("add.body.payload.bp2", "%no-tag");
+        properties.setProperty("add.header.h1", "<tags:header_tag>");
+        properties.setProperty("add.body.metadata.metric_id", "<tags:metric_id_tag>");
+        properties.setProperty("add.body.payload.bp1", "<tags:payload_tag>");
+        properties.setProperty("add.body.payload.bp2", "<tags:no-tag>");
         HTTPSink sink = new HTTPSink();
         sink.config(properties);
         

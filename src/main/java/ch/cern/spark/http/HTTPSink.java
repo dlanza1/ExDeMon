@@ -28,7 +28,7 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.notifications.Notification;
-import ch.cern.spark.metrics.notifications.sink.NotificationsSink;
+import ch.cern.spark.metrics.notifications.Template;
 import ch.cern.utils.TimeUtils;
 
 public class HTTPSink implements Serializable{
@@ -109,17 +109,17 @@ public class HTTPSink implements Serializable{
 	}
 
     protected JsonPOSTRequest toJsonPOSTRequest(Object object) throws ParseException {
-        Map<String, String> tags = null;
-        if(object instanceof Taggable)
-            tags = ((Taggable) object).getTags();
-        
         String url = this.url;
         if(object instanceof Notification)
-            url = NotificationsSink.template(url, (Notification) object);
+            url = Template.apply(url, (Notification) object);
         
         JSONObject json = addNotification ? JSONParser.parse(object) : new JSONObject("{}");
         
         JsonPOSTRequest request = new JsonPOSTRequest(url, json);
+        
+        Map<String, String> tags = null;
+        if(object instanceof Taggable)
+            tags = ((Taggable) object).getTags();
         
         for (Map.Entry<String, String> propertyToAdd : propertiesToAdd.entrySet()) {
             String value = propertyToAdd.getValue();
@@ -131,8 +131,11 @@ public class HTTPSink implements Serializable{
                     value = null;
             
             if(value != null && object instanceof Notification)
-                value = NotificationsSink.template(value, (Notification) object);
+                value = Template.apply(value, (Notification) object);
             
+            if(value != null && value.equals("null"))
+                value = null;
+                
             request.addProperty(propertyToAdd.getKey(), value);
         }
         
