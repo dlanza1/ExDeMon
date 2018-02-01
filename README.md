@@ -1,6 +1,6 @@
 # ExDeMon: extract, define and monitor metrics
 
-A general purpose metric monitor implemented with Apache Spark. [![Build Status](https://travis-ci.org/cerndb/exdemon.svg?branch=master)](https://travis-ci.org/cerndb/exdemon)
+A general purpose metric monitor implemented with Apache Spark. [![Build Status](https://travis-ci.org/cerndb/ExDeMon.svg?branch=master)](https://travis-ci.org/cerndb/exdemon)
 
 Metrics can come from several sources like Kafka, results and notifications can be sunk to Elastic or any other system, new metrics can be defined combining other metrics, different analysis can be applied, notifications, configuration can be updated without restarting, it can detect missing metrics, ...
 
