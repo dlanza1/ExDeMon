@@ -26,9 +26,7 @@ public class UpdateNotificatorStatusesF
 
     @Override
     protected Optional<Notification> update(NotificatorStatusKey ids, AnalysisResult result, State<StatusValue> status) throws Exception {
-        Monitors.initCache(propertiesSourceProperties);
-
-        Optional<Monitor> monitorOpt = Optional.ofNullable(Monitors.getCache().get().get(ids.getMonitor_id()));
+        Optional<Monitor> monitorOpt = getMonitor(ids.getMonitor_id());
         if (!monitorOpt.isPresent())
             return Optional.empty();
         Monitor monitor = monitorOpt.get();
@@ -49,6 +47,12 @@ public class UpdateNotificatorStatusesF
         });
 
         return notification;
+    }
+
+    protected Optional<Monitor> getMonitor(String monitor_id) throws Exception {
+        Monitors.initCache(propertiesSourceProperties);
+        
+        return Optional.ofNullable(Monitors.getCache().get().get(monitor_id));
     }
 
 }

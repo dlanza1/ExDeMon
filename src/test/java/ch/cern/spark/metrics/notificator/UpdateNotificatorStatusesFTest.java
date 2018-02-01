@@ -8,39 +8,29 @@ import java.util.Optional;
 
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateImpl;
-import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.Cache;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.monitors.Monitors;
+import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.StatusValue;
 
 public class UpdateNotificatorStatusesFTest {
-	
-	private Cache<Properties> propertiesCache;
-	
-	@Before
-	public void reset() throws ConfigurationException {
-		Properties.initCache(null);
-		propertiesCache = Properties.getCache();
-		propertiesCache.reset();
-		Monitors.getCache().reset();
-	}
 
     @Test
     public void raiseAlwaysSameStatus() throws Exception{
-    		propertiesCache.get().setProperty("monitor.monID.analysis.type", "true");
-    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.type", "constant");
-    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
-    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.period", "10s");
-        
-        UpdateNotificatorStatusesF func = new UpdateNotificatorStatusesF(null);
+        Properties monProps = new Properties();
+    		monProps.setProperty("analysis.type", "true");
+    		monProps.setProperty("notificator.notID.type", "constant");
+    		monProps.setProperty("notificator.notID.statuses", "error");
+    		monProps.setProperty("notificator.notID.period", "10s");
+    		Monitor monitor = new Monitor("monID");
+    		monitor.config(monProps);
+    		
+        UpdateNotificatorStatusesF func = new UpdateNotificatorStatusesFWithMonitor(monitor);
         
         Optional<Notification> notification = null;
                 
@@ -61,12 +51,15 @@ public class UpdateNotificatorStatusesFTest {
     
     @Test
     public void notRaiseAfterRaising() throws Exception{
-    		propertiesCache.get().setProperty("monitor.monID.analysis.type", "true");
-    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.type", "constant");
-    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
-    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.period", "10s");
-    		
-        UpdateNotificatorStatusesF func = new UpdateNotificatorStatusesF(null);
+    		Properties monProps = new Properties();
+        monProps.setProperty("analysis.type", "true");
+    		monProps.setProperty("notificator.notID.type", "constant");
+    		monProps.setProperty("notificator.notID.statuses", "error");
+    		monProps.setProperty("notificator.notID.period", "10s");
+    		Monitor monitor = new Monitor("monID");
+        monitor.config(monProps);
+            
+        UpdateNotificatorStatusesF func = new UpdateNotificatorStatusesFWithMonitor(monitor);
         
         Optional<Notification> notification = null;
                 
@@ -91,12 +84,15 @@ public class UpdateNotificatorStatusesFTest {
     
     @Test
     public void raiseChangingStatus() throws Exception{
-    		propertiesCache.get().setProperty("monitor.monID.analysis.type", "true");
-    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.type", "constant");
-    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.statuses", "error");
-    		propertiesCache.get().setProperty("monitor.monID.notificator.notID.period", "10s");
-        
-        UpdateNotificatorStatusesF func = new UpdateNotificatorStatusesF(null);
+    		Properties monProps = new Properties();
+    		monProps.setProperty("analysis.type", "true");
+    		monProps.setProperty("notificator.notID.type", "constant");
+    		monProps.setProperty("notificator.notID.statuses", "error");
+    		monProps.setProperty("notificator.notID.period", "10s");
+    		Monitor monitor = new Monitor("monID");
+        monitor.config(monProps);
+            
+        UpdateNotificatorStatusesF func = new UpdateNotificatorStatusesFWithMonitor(monitor);
         
         Optional<Notification> notification = null;
                 
@@ -129,6 +125,24 @@ public class UpdateNotificatorStatusesFTest {
         result.setAnalyzedMetric(new Metric(Instant.ofEpochSecond(42), 0f, null));
         notification = func.update(ids, result, storeState);
         assertTrue(notification.isPresent());
+    }
+    
+    public static class UpdateNotificatorStatusesFWithMonitor extends UpdateNotificatorStatusesF{
+        private static final long serialVersionUID = 1L;
+        
+        private Monitor monitor;
+        
+        public UpdateNotificatorStatusesFWithMonitor(Monitor monitor) {
+            super(null);
+            
+            this.monitor = monitor;
+        }
+        
+        @Override
+        protected Optional<Monitor> getMonitor(String monitor_id) throws Exception {
+            return Optional.ofNullable(monitor);
+        }
+
     }
     
 }
