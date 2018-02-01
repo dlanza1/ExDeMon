@@ -12,7 +12,6 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.MimeMessage;
 
 import org.junit.Test;
-import org.simplejavamail.converter.internal.mimemessage.MimeMessageParser;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -77,9 +76,6 @@ public class EmailNotificationsSinkTest {
         
         MimeMessage message = sink.toMimeMessage(notification);
         
-        MimeMessageParser parser = new MimeMessageParser(message);
-        parser.parse();
-        
         assertEquals("Monitor ID: MONITOR_ID\n" + 
                         "\n" + 
                         "Notificator ID: NOTIFICATOR_ID\n" + 
@@ -95,7 +91,7 @@ public class EmailNotificationsSinkTest {
                         "Tags: \n" + 
                         "\temail.to = daniel.lanza@cern.ch\n" + 
                         "\tcluster = cluster1", 
-                parser.getPlainContent());
+                        message.getContent());
     }
 
 }
