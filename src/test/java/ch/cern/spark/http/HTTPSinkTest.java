@@ -1,6 +1,7 @@
 package ch.cern.spark.http;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -30,6 +31,7 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.notifications.Notification;
+import ch.cern.spark.metrics.notifications.NotificationTest;
 import ch.cern.spark.metrics.results.AnalysisResult;
 
 public class HTTPSinkTest {
@@ -75,7 +77,7 @@ public class HTTPSinkTest {
         HTTPSink sink = new HTTPSink();
         sink.config(properties);
         
-        Notification notification = new Notification();
+        Notification notification = NotificationTest.DUMMY;
         Set<String> sinks = new HashSet<>();
         sinks.add("ALL");
         notification.setSink_ids(sinks);
@@ -90,16 +92,15 @@ public class HTTPSinkTest {
         
         assertEquals("https://abcd.cern.ch//job/id/23/", jsonResult.getUrl());
         
-        assertEquals("{\"tags\":{"
-                        + "\"url-suffix\":\"/job/id/23/\","
-                        + "\"metric_id_tag\":\"1234\","
-                        + "\"payload_tag\":\"fromtag2\","
-                        + "\"header_tag\":\"fromtag1\"},"
-                    + "\"sink_ids\":[\"ALL\"],"
-                    + "\"header\":{\"h1\":\"fromtag1\"},"
-                    + "\"body\":{"
-                        + "\"payload\":{\"bp1\":\"fromtag2\",\"bp2\":null},"
-                        + "\"metadata\":{\"metric_id\":\"1234\"}}}", jsonResult.getJson().toString());
+        assertEquals("/job/id/23/", jsonResult.getJson().getProperty("tags.url-suffix"));
+        assertEquals("1234", jsonResult.getJson().getProperty("tags.metric_id_tag"));
+        assertEquals("fromtag1", jsonResult.getJson().getProperty("tags.header_tag"));
+        assertEquals("fromtag2", jsonResult.getJson().getProperty("tags.payload_tag"));
+        assertEquals("fromtag1", jsonResult.getJson().getProperty("header.h1"));
+        
+        assertEquals("fromtag2", jsonResult.getJson().getProperty("body.payload.bp1"));
+        assertNull(jsonResult.getJson().getProperty("body.payload.bp2"));
+        assertEquals("1234", jsonResult.getJson().getProperty("body.metadata.metric_id"));
     }
 
 }

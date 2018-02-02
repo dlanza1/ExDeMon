@@ -97,7 +97,7 @@ public class Properties extends java.util.Properties {
         List<String> keysWithPrefix = getKeysThatStartWith(topLevelKey);
 
         for (String keyWithPrefix : keysWithPrefix) {
-            String keyWithoutPrefix = keyWithPrefix.replace(topLevelKey, "");
+            String keyWithoutPrefix = keyWithPrefix.substring(topLevelKey.length());
 
             properties.setProperty(keyWithoutPrefix, getProperty(keyWithPrefix));
         }

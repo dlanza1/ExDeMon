@@ -5,14 +5,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import lombok.NonNull;
+
 public class Template {
     
-    public static String apply(String template, Notification notification) {
+    public static String apply(String template, @NonNull Notification notification) {
         if(template == null)
             return null;
-        
-        if(notification == null)
-            notification = new Notification();
         
         String text = template;
         

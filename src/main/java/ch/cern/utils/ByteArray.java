@@ -22,7 +22,7 @@ public class ByteArray implements Serializable {
 
 	@Override
 	public String toString() {
-		return new String(values);
+		return values != null ? new String(values) : "null";
 	}
 	
 }

@@ -16,6 +16,7 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notificator.ComputeNotificatorKeysF;
+import ch.cern.spark.metrics.notificator.NotificatorStatus;
 import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
 import ch.cern.spark.metrics.notificator.UpdateNotificatorStatusesF;
 import ch.cern.spark.metrics.results.AnalysisResult;
@@ -79,9 +80,9 @@ public class Monitors {
 	    
 	    JavaPairDStream<NotificatorStatusKey, AnalysisResult> idAndAnalysis = results.flatMapToPair(new ComputeNotificatorKeysF(propertiesSourceProps));
 	    
-	    return Status.<NotificatorStatusKey, AnalysisResult, StatusValue, Notification>map(
+	    return Status.<NotificatorStatusKey, AnalysisResult, NotificatorStatus, Notification>map(
 	                    NotificatorStatusKey.class, 
-                        StatusValue.class, 
+	                    NotificatorStatus.class, 
                         idAndAnalysis, 
                         new UpdateNotificatorStatusesF(propertiesSourceProps),
                         Optional.ofNullable(statusesToRemove)).values();

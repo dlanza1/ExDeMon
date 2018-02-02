@@ -9,8 +9,20 @@ monitor.<monitor-id>.notificator.<notificator-id>.type = <type> (default: status
 monitor.<monitor-id>.notificator.<notificator-id>.filter.attribute.<analyzed_metric_attribute_key> = <[!]regex_or_exact_value>
 monitor.<monitor-id>.notificator.<notificator-id>.filter.attribute... (as many attributes as needed)
 monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|notifications-sinks-ids> (default: ALL)
+monitor.<monitor-id>.notificator.<notificator-id>.silent.period = <period like 1h, 3m or 45s> (default: 0)
+monitor.<monitor-id>.notificator.<notificator-id>.silent.notificator.type = <type> (default: not set)
+monitor.<monitor-id>.notificator.<notificator-id>.silent.notificator....
 monitor.<monitor-id>.notificator.<notificator-id>.tags.<tag-key> = <value>
 ```
+
+#### Silent period
+
+Once a notification is raised, a period of no notifications is applied that last "silent.period".
+
+During this period you can optionally configure a "silent" notificator with "silent.notificator". 
+This notificator acts during the silent period and could be used to notify when a previous notification has been resolved. 
+
+When the "silent" notificator raises a notification, silent period terminates (earlier than configured at silent.period). 
 
 ## Statuses notificator
 
@@ -22,7 +34,6 @@ Configuration:
 ```
 monitor.<monitor-id>.notificator.<notificator-id>.type = statuses
 monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses separated by space>
-monitor.<monitor-id>.notificator.<notificator-id>.silent.period = <period like 1h, 3m or 45s> (default: 0)
 ```
 
 Minimum period between two notifications is ".silent.period".
@@ -39,7 +50,6 @@ monitor.<monitor-id>.notificator.<notificator-id>.type = constant
 monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses separated by space>
 monitor.<monitor-id>.notificator.<notificator-id>.period = <period like 1h, 3m or 45s> (default: 15m)
 monitor.<monitor-id>.notificator.<notificator-id>.max-times = <consicutive times>
-monitor.<monitor-id>.notificator.<notificator-id>.silent.period = <period like 1h, 3m or 45s> (default: 0)
 ```
 
 Minimum period between two notifications is ".period" plus ".silent.period".
@@ -59,7 +69,6 @@ monitor.<monitor-id>.notificator.<notificator-id>.type = percentage
 monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|notifications-sinks-ids> (default: ALL)
 monitor.<monitor-id>.notificator.<notificator-id>.statuses = <concerned statuses separated by space>
 monitor.<monitor-id>.notificator.<notificator-id>.period = <period like 1h, 3m or 45s> (default: 15m)
-monitor.<monitor-id>.notificator.<notificator-id>.silent.period = <period like 1h, 3m or 45s> (default: 0)
 monitor.<monitor-id>.notificator.<notificator-id>.percentage = <0-100> (default: 90)
 ```
 

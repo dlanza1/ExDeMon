@@ -81,11 +81,10 @@ public class ConstantNotificatorTest {
     }
 
     @Test
-    public void raiseAfterRaiseWithSilent() throws Exception {
+    public void raiseAfterRaise() throws Exception {
         ConstantNotificator notificator = new ConstantNotificator();
         Properties properties = new Properties();
         properties.setProperty("period", "10m");
-        properties.setProperty("silent.period", "3m");
         properties.setProperty("statuses", "ERROR");
         notificator.config(properties);
 

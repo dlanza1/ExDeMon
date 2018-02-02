@@ -19,7 +19,9 @@ import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
+import lombok.ToString;
 
+@ToString
 public class InErrorMonitor extends Monitor {
 
 	private Exception exception;
@@ -94,6 +96,7 @@ public class InErrorMonitor extends Monitor {
 		Map<String, Notificator> notificators = new HashMap<>();
 		
 		ConstantNotificator notificator = new ConstantNotificator();
+		notificator.setId("monitor-in-error");
 		Properties properties = new Properties();
 		properties.put("statuses", "EXCEPTION");
 		properties.put("period", "10m");

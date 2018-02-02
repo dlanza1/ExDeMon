@@ -77,7 +77,7 @@ public class Monitor {
         		if(!props.isTypeDefined())
         		    props.setProperty("type", "statuses");
         		
-        		notificators.put(notificatorId, ComponentManager.build(Type.NOTIFICATOR, props));
+        		notificators.put(notificatorId, ComponentManager.build(Type.NOTIFICATOR, notificatorId, props));
 		}
         
         tags = properties.getSubset("tags").toStringMap();

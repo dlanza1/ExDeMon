@@ -18,6 +18,7 @@ import com.google.gson.JsonParser;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.notifications.Notification;
+import ch.cern.spark.metrics.notifications.NotificationTest;
 
 public class GNINotificationTest {
 	
@@ -29,7 +30,7 @@ public class GNINotificationTest {
 		properties.setProperty("body.metadata.metric_id", "12");
 		properties.setProperty("body.metadata.snow_assignment_level", "13");
         
-		GNINotification gniNotification = GNINotification.from(properties, new Notification());
+		GNINotification gniNotification = GNINotification.from(properties, NotificationTest.DUMMY);
 		
 		assertEquals(12, gniNotification.getBody().get("metadata").get("metric_id"));
 		assertEquals(13, gniNotification.getBody().get("metadata").get("snow_assignment_level"));
@@ -43,7 +44,7 @@ public class GNINotificationTest {
 		properties.setProperty("body.payload.bp1", "%payload_tag");
 		properties.setProperty("body.payload.bp2", "%no-tag");
         
-		Notification notification = new Notification();
+		Notification notification = NotificationTest.DUMMY;
 		Set<String> sinks = new HashSet<>();
 		sinks.add("ALL");
 		notification.setSink_ids(sinks);

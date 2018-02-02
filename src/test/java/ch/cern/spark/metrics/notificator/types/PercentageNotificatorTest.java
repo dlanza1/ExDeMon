@@ -46,11 +46,10 @@ public class PercentageNotificatorTest {
     }
     
 	@Test
-    public void raiseAfterRaiseWithSilent() throws Exception{
+    public void raiseAfterRaise() throws Exception{
 		PercentageNotificator notificator = new PercentageNotificator();
         Properties properties = new Properties();
         properties.setProperty("period", "10m");
-        properties.setProperty("silent.period", "5m");
         properties.setProperty("statuses", "ERROR");
         notificator.config(properties);
         

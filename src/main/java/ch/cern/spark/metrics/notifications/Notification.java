@@ -8,6 +8,7 @@ import java.util.Set;
 
 import ch.cern.Taggable;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -16,46 +17,49 @@ public class Notification implements Serializable, Taggable {
     
     private static final long serialVersionUID = 6730655599755849423L;
     
-    @Getter @Setter
+    @Getter @Setter @NonNull
     private Instant notification_timestamp;
     
-    @Getter @Setter
+    @Getter @Setter @NonNull
     private String monitor_id;
     
-    @Getter @Setter
+    @Getter @Setter @NonNull
     private String notificator_id;
     
-    @Getter @Setter
+    @Getter @Setter @NonNull
     private Map<String, String> metric_attributes;
     
-    @Getter @Setter
+    @Getter @Setter @NonNull
     private String reason;
 
+    @NonNull
 	private Map<String, String> tags;
 
-    @Getter @Setter
+    @Getter @Setter @NonNull
 	private Set<String> sink_ids;
 
-    public Notification(Instant timestamp, String monitorID, String notificatorID, Map<String, String> metric_attributes,
-            String reason, Set<String> sinks) {
+    public Notification(
+            @NonNull Instant timestamp, 
+            @NonNull String monitorID, 
+            @NonNull String notificatorID, 
+            @NonNull Map<String, String> metric_attributes,
+            @NonNull String reason, 
+            @NonNull Set<String> sinks,
+            @NonNull Map<String, String> tags) {
         this.notification_timestamp = timestamp;
         this.monitor_id = monitorID;
         this.notificator_id = notificatorID;
         this.metric_attributes = metric_attributes;
         this.reason = reason;
         this.sink_ids = sinks;
-        
-        tags = replaceMetricAttributesInTags(tags);
+        this.tags = replaceMetricAttributesInTags(tags);
     }
-
-    public Notification() {
-    }
-
-	public void setTags(Map<String, String> tags) {
-		this.tags = replaceMetricAttributesInTags(tags);
-	}
     
-    private Map<String, String> replaceMetricAttributesInTags(Map<String, String> tags) {
+    public void setTags(Map<String, String> tags) {
+        this.tags = replaceMetricAttributesInTags(tags);
+    }
+    
+    private Map<String, String> replaceMetricAttributesInTags(@NonNull Map<String, String> tags) {
     		if(metric_attributes == null)
     			return tags;
     	

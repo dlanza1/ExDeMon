@@ -30,7 +30,7 @@ public class TemplateTest {
         sink.config(properties);
         sink.setSession();
         
-        Notification notification = new Notification();
+        Notification notification = NotificationTest.DUMMY;
         Map<String, String> tags = new HashMap<>();
         tags.put("email.to", "daniel.lanza@cern.ch");
         tags.put("email.text", "Hello <tags:email.to>!");

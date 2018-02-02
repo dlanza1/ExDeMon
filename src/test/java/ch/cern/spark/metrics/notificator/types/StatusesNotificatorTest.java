@@ -3,9 +3,6 @@ package ch.cern.spark.metrics.notificator.types;
 import static ch.cern.test.Utils.assertNotPresent;
 import static ch.cern.test.Utils.assertPresent;
 
-import java.time.Duration;
-import java.time.Instant;
-
 import org.junit.Test;
 
 import ch.cern.properties.Properties;
@@ -32,26 +29,6 @@ public class StatusesNotificatorTest {
         assertPresent(   notificator.process(Status.ERROR,   TimeUtils.toInstant("2017-09-19 13:03:00")));
         assertPresent(   notificator.process(Status.ERROR,   TimeUtils.toInstant("2017-09-19 13:13:00")));
         assertPresent(   notificator.process(Status.ERROR,   TimeUtils.toInstant("2017-09-19 13:14:00")));
-    }
-	
-	@Test
-    public void raiseAfterRaiseWithSilent() throws Exception{
-		StatusesNotificator notificator = new StatusesNotificator();
-        Properties properties = new Properties();
-        properties.setProperty("silent.period", "3m");
-        properties.setProperty("statuses", "ERROR");
-        notificator.config(properties);
-        
-        Instant now = Instant.now();
-        
-        assertPresent(   notificator.process(Status.ERROR, now));
-
-        assertPresent(   notificator.process(Status.ERROR, now.plus(Duration.ofMinutes(9))));
-        assertNotPresent(notificator.process(Status.ERROR, now.plus(Duration.ofMinutes(10))));
-        assertPresent(   notificator.process(Status.ERROR, now.plus(Duration.ofMinutes(13))));
-        
-        assertPresent(   notificator.process(Status.ERROR, now.plus(Duration.ofMinutes(22))));
-        assertNotPresent(notificator.process(Status.ERROR, now.plus(Duration.ofMinutes(23))));
     }
 
 	@Test

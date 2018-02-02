@@ -16,6 +16,7 @@ import org.junit.Test;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.notifications.Notification;
+import ch.cern.spark.metrics.notifications.NotificationTest;
 
 public class EmailNotificationsSinkTest {
     
@@ -31,7 +32,7 @@ public class EmailNotificationsSinkTest {
         sink.config(properties);
         sink.setSession();
         
-        Notification notification = new Notification();
+        Notification notification = NotificationTest.DUMMY;
         Map<String, String> tags = new HashMap<>();
         tags.put("email.to", "daniel.lanza@cern.ch");
         tags.put("cluster", "cluster1");
@@ -60,7 +61,7 @@ public class EmailNotificationsSinkTest {
         sink.config(properties);
         sink.setSession();
         
-        Notification notification = new Notification();
+        Notification notification = NotificationTest.DUMMY;
         Map<String, String> tags = new HashMap<>();
         tags.put("email.to", "daniel.lanza@cern.ch");
         tags.put("cluster", "cluster1");

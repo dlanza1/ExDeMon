@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.HasStatus;
@@ -35,10 +34,6 @@ public class PercentageNotificator extends Notificator implements HasStatus {
     private static final String PERIOD_PARAM = "period";
     private static final Duration PERIOD_DEFAULT = Duration.ofMinutes(15);
     private Duration period = PERIOD_DEFAULT;
-    
-    private static final String SILENT_PERIOD_PARAM = "silent.period";
-    private Duration silentPeriod;
-    private Instant lastRaised;
     
     private static final String PERCENTAGE_PARAM = "percentage";
     private static final String PERCENTAGE_DEFAULT = "90";
@@ -62,8 +57,6 @@ public class PercentageNotificator extends Notificator implements HasStatus {
         
         period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
         
-        silentPeriod = properties.getPeriod(SILENT_PERIOD_PARAM, Duration.ofSeconds(0));
-        
         String percentage_s = properties.getProperty(PERCENTAGE_PARAM, PERCENTAGE_DEFAULT);
         percentage = Float.valueOf(percentage_s);
         
@@ -78,7 +71,6 @@ public class PercentageNotificator extends Notificator implements HasStatus {
         Status_ data = (Status_) store;
         
         hits = data.hits;
-        lastRaised = data.lastRaised;
     }
 
     @Override
@@ -86,18 +78,12 @@ public class PercentageNotificator extends Notificator implements HasStatus {
         Status_ store = new Status_();
         
         store.hits = hits;
-        store.lastRaised = lastRaised;
         
         return store;
     }
 
     @Override
-    public Optional<Notification> process(Status status, Instant timestamp) {
-		if(lastRaised != null && lastRaised.plus(silentPeriod).compareTo(timestamp) > 0)
-			return Optional.empty();
-		else
-			lastRaised = null;
-		
+    public Optional<String> process(Status status, Instant timestamp) {
         removeExpiredHits(timestamp);
         
         hits.add(new Pair<Instant, Boolean>(timestamp, isExpectedStatus(status)));
@@ -107,14 +93,10 @@ public class PercentageNotificator extends Notificator implements HasStatus {
             return Optional.empty();
         
         if(raise(timestamp)){
-            Notification notification = new Notification();
-            notification.setReason("Metric has been " + percentage + "% of the last "
-                    + TimeUtils.toString(period) + " in state " + expectedStatuses + ".");
-            
             hits = new LinkedList<>();
-            lastRaised = timestamp;
             
-            return Optional.of(notification);
+            return Optional.of("Metric has been " + percentage + "% of the last "
+                                    + TimeUtils.toString(period) + " in state " + expectedStatuses + ".");
         }else{
             return Optional.empty();
         }
@@ -190,8 +172,6 @@ public class PercentageNotificator extends Notificator implements HasStatus {
 
 		private static final long serialVersionUID = -1907347033980904180L;
         
-		Instant lastRaised;
-		
         List<Pair<Instant, Boolean>> hits;
     }
 

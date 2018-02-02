@@ -50,8 +50,8 @@ public class DefinedMetric implements Serializable{
 
     private Map<String, String> fixedValueAttributes;
 
-	public DefinedMetric(String name) {
-		this.id = name;
+	public DefinedMetric(String id) {
+		this.id = id;
 	}
 
 	public DefinedMetric config(Properties properties) {

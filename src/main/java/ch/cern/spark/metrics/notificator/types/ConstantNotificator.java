@@ -10,7 +10,6 @@ import java.util.stream.Stream;
 import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.HasStatus;
@@ -37,10 +36,6 @@ public class ConstantNotificator extends Notificator implements HasStatus {
     private static final String MAX_TIMES_PARAM = "max-times";
     private Integer maxTimes = null;
     private int times = 0;
-    
-    private static final String SILENT_PERIOD_PARAM = "silent.period";
-    private Duration silentPeriod;
-    private Instant lastRaised;
 
     @Override
     public void config(Properties properties) throws ConfigurationException {
@@ -57,8 +52,6 @@ public class ConstantNotificator extends Notificator implements HasStatus {
         String maxTimesVal = properties.getProperty(MAX_TIMES_PARAM);
         maxTimes = maxTimesVal != null ? Integer.parseInt(maxTimesVal) : null;
         
-        silentPeriod = properties.getPeriod(SILENT_PERIOD_PARAM, Duration.ofSeconds(0));
-        
         properties.confirmAllPropertiesUsed();
     }
     
@@ -70,7 +63,6 @@ public class ConstantNotificator extends Notificator implements HasStatus {
         Status_ data = (Status_) store;
         
         constantlySeenFrom = data.constantlySeenFrom;
-        lastRaised = data.lastRaised;
         times = data.times;
     }
 
@@ -79,19 +71,13 @@ public class ConstantNotificator extends Notificator implements HasStatus {
         Status_ store = new Status_();
         
         store.constantlySeenFrom = constantlySeenFrom;
-        store.lastRaised = lastRaised;
         store.times = times;
         
         return store;
     }
 
     @Override
-    public Optional<Notification> process(Status status, Instant timestamp) {
-    		if(lastRaised != null && lastRaised.plus(silentPeriod).compareTo(timestamp) > 0)
-    			return Optional.empty();
-    		else
-    			lastRaised = null;
-    	
+    public Optional<String> process(Status status, Instant timestamp) {
         boolean isExpectedStatus = isExpectedStatus(status);
         
         if(isExpectedStatus && maxTimes != null)
@@ -106,16 +92,12 @@ public class ConstantNotificator extends Notificator implements HasStatus {
         }
         
         if(raise(timestamp)){
-            Notification notification = new Notification();
-            notification.setReason("Metric has been in state " 
-                    + expectedStatuses + " for " + TimeUtils.toString(getDiff(timestamp))
-                    + ".");
-            
             constantlySeenFrom = null;
-            lastRaised = timestamp;
             times = 0;
             
-            return Optional.of(notification);
+            return Optional.of("Metric has been in state " 
+                                        + expectedStatuses + " for " + TimeUtils.toString(getDiff(timestamp))
+                                        + ".");
         }else{
             return Optional.empty();
         }
@@ -142,8 +124,7 @@ public class ConstantNotificator extends Notificator implements HasStatus {
         private static final long serialVersionUID = -1907347033980904180L;
         
         public Instant constantlySeenFrom;
-        public Instant lastRaised;
         public int times;
     }
-
+    
 }

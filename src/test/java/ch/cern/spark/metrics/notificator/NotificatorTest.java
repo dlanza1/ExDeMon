@@ -27,6 +27,7 @@ public class NotificatorTest {
 	@Test
     public void tagsShouldBePropagated() throws Exception{
         ConstantNotificator notificator = new ConstantNotificator();
+        notificator.setId("notId");
         Properties properties = new Properties();
         properties.setProperty("period", "10m");
         properties.setProperty("statuses", "ERROR");
@@ -55,6 +56,7 @@ public class NotificatorTest {
 	@Test
     public void analysisTagsShouldBeOverrideByNotificatorTags() throws Exception{
         ConstantNotificator notificator = new ConstantNotificator();
+        notificator.setId("notId");
         Properties properties = new Properties();
         properties.setProperty("period", "10m");
         properties.setProperty("statuses", "ERROR");
@@ -91,6 +93,7 @@ public class NotificatorTest {
 	@Test
     public void tagsShouldExtractMetricAttributes() throws Exception{
         ConstantNotificator notificator = new ConstantNotificator();
+        notificator.setId("notId");
         Properties properties = new Properties();
         properties.setProperty("period", "10m");
         properties.setProperty("statuses", "ERROR");
@@ -129,6 +132,7 @@ public class NotificatorTest {
 	@Test
     public void sinksiDsShouldBeProcessed() throws Exception{
         ConstantNotificator notificator = new ConstantNotificator();
+        notificator.setId("notId");
         Properties properties = new Properties();
         properties.setProperty("sinks", "aa ALL aa bb");
         properties.setProperty("period", "1m");
@@ -159,6 +163,7 @@ public class NotificatorTest {
 	@Test
     public void shouldApplyDefaultSinksiDs() throws Exception{
         ConstantNotificator notificator = new ConstantNotificator();
+        notificator.setId("notId");
         Properties properties = new Properties();
         properties.setProperty("period", "1m");
         properties.setProperty("statuses", "ERROR");

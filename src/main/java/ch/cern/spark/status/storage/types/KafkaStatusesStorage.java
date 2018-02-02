@@ -32,6 +32,7 @@ import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.Time;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 
 import ch.cern.components.RegisterComponent;
@@ -53,8 +54,8 @@ public class KafkaStatusesStorage extends StatusesStorage {
 	
 	private transient final static Logger LOG = Logger.getLogger(KafkaStatusesStorage.class.getName());
 	
-	private Map<String, Object> kafkaProducer = null;
-	private Map<String, Object> kafkaConsumer;
+	private Map<String, Object> kafkaProducerParams = null;
+	private Map<String, Object> kafkaConsumerParams;
 
 	private String topic;
 	
@@ -65,8 +66,8 @@ public class KafkaStatusesStorage extends StatusesStorage {
     private Duration timeout;
 	
 	public void config(Properties properties) throws ConfigurationException {
-		kafkaProducer = getKafkaProducerParams(properties);
-		kafkaConsumer = getKafkaConsumerParams(properties);
+		kafkaProducerParams = getKafkaProducerParams(properties);
+		kafkaConsumerParams = getKafkaConsumerParams(properties);
         
 		topic = properties.getProperty("topic");
 		
@@ -89,8 +90,9 @@ public class KafkaStatusesStorage extends StatusesStorage {
 	
 	@Override
 	public JavaRDD<Tuple2<StatusKey, StatusValue>> load(JavaSparkContext context) throws IOException, ConfigurationException {
-	    JavaRDD<ConsumerRecordSer> kafkaContent = getAllRecords(context);
-		
+
+	    JavaRDD<ConsumerRecordSer> kafkaContent = context.parallelize(getAllRecords());
+	    
 		JavaRDD<Tuple2<ByteArray, ByteArray>> latestRecords = getLatestRecords(kafkaContent);
 		
 		JavaRDD<Tuple2<StatusKey, StatusValue>> parsed = parseRecords(latestRecords);
@@ -103,25 +105,25 @@ public class KafkaStatusesStorage extends StatusesStorage {
 	}
 
     private void setUpConsumer() {
-        kafkaConsumer.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
+        kafkaConsumerParams.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
         
-        consumer = new KafkaConsumer<Bytes, Bytes>(kafkaConsumer);
+        consumer = new KafkaConsumer<Bytes, Bytes>(kafkaConsumerParams);
         consumer.subscribe(Sets.newHashSet(topic));
     }
 
-    private JavaRDD<ConsumerRecordSer> getAllRecords(JavaSparkContext context) {
+    private List<ConsumerRecordSer> getAllRecords() {
         setUpConsumer();
         
         Map<Bytes, ConsumerRecordSer> latestRecords = new HashMap<>();
         
-        int num_partitions = consumer.partitionsFor(topic).size();
+        int num_partitions = getNumberOfPartitions();
         
         long[] lastOffsets = new long[num_partitions];
         
         LongAccumulator[] processed_records_count = new LongAccumulator[num_partitions];
         for (int i = 0; i < processed_records_count.length; i++)
             processed_records_count[i] = new LongAccumulator((x,  y) -> x + y, 0L);
-        
+
         ConsumerRecords<Bytes, Bytes> records = consumer.poll(timeout.toMillis());
         while(!records.isEmpty()) {
             records.forEach(r -> {
@@ -150,9 +152,13 @@ public class KafkaStatusesStorage extends StatusesStorage {
         LOG.info(Arrays.stream(processed_records_count).mapToDouble(a -> a.longValue()).sum() + " records processed, " + latestRecords.size() + " uniques keys");
         LOG.info(Arrays.toString(Arrays.stream(processed_records_count).mapToDouble(a -> a.longValue()).toArray()) + " (records per partition)");
         
-        return context.parallelize(new LinkedList<>(latestRecords.values()));
+        return new LinkedList<>(latestRecords.values());
     }
     
+    private int getNumberOfPartitions() {
+        return consumer.partitionsFor(topic).size();
+    }
+
     public void checkAllRecordsConsumed(long[] lastOffsets) {
         List<TopicPartition> partitions = new LinkedList<>();
         for (PartitionInfo partitionInfo : consumer.partitionsFor(topic))
@@ -185,26 +191,29 @@ public class KafkaStatusesStorage extends StatusesStorage {
 									return new Tuple2<ByteArray, Tuple2<Long, ByteArray>>(consumedRecord.key(), value);
 								})
 								.groupByKey()
-								.map(pair -> {
-									ByteArray key = pair._1;
-									
-									Iterator<Tuple2<Long, ByteArray>> values = pair._2.iterator();
-									
-									Tuple2<Long, ByteArray> latestValue = values.next();
-									
-									while(values.hasNext()) {
-										Tuple2<Long, ByteArray> value = values.next();
-										
-										if(value._1 > latestValue._1)
-											latestValue = value;
-									}
-									
-									return new Tuple2<ByteArray, ByteArray>(key, latestValue._2);
-								})
+								.map(pair -> getLastRecord(pair))
 								.filter(pair -> pair._2 != null);
 	}
 	
-	private JavaRDD<Tuple2<StatusKey, StatusValue>> parseRecords(JavaRDD<Tuple2<ByteArray, ByteArray>> latestRecords) {
+    @VisibleForTesting
+	protected static Tuple2<ByteArray, ByteArray> getLastRecord(Tuple2<ByteArray, Iterable<Tuple2<Long, ByteArray>>> pair) {
+        ByteArray key = pair._1;
+        
+        Iterator<Tuple2<Long, ByteArray>> values = pair._2.iterator();
+        
+        Tuple2<Long, ByteArray> latestValue = values.next();
+        
+        while(values.hasNext()) {
+            Tuple2<Long, ByteArray> value = values.next();
+            
+            if(value._1 > latestValue._1)
+                latestValue = value;
+        }
+        
+        return new Tuple2<ByteArray, ByteArray>(key, latestValue._2);
+    }
+
+    private JavaRDD<Tuple2<StatusKey, StatusValue>> parseRecords(JavaRDD<Tuple2<ByteArray, ByteArray>> latestRecords) {
 		return latestRecords.map(binaryRecord -> new Tuple2<>(
 														serializer.toKey(binaryRecord._1.get()),
 														serializer.toValue(binaryRecord._2.get()))
@@ -215,21 +224,23 @@ public class KafkaStatusesStorage extends StatusesStorage {
 	public <K extends StatusKey, V extends StatusValue> void save(JavaPairRDD<K, V> rdd, Time time)
 			throws IllegalArgumentException, IOException, ConfigurationException {
 		
-		rdd = filterOnlyUpdatedStates(rdd, time);
+		rdd = rdd.filter(tuple -> isUpdatedState(tuple, time));
 		
-		rdd.foreachPartition(new KafkaProducerFunc<K, V>(kafkaProducer, serializer, topic));
+		rdd.foreachPartition(new KafkaProducerFunc<K, V>(kafkaProducerParams, serializer, topic));
 	}
 	
+    private <K extends StatusKey, V extends StatusValue> boolean isUpdatedState(Tuple2<K, V> tuple, Time time) {
+        return tuple._2 == null 
+                || tuple._2.getStatus_update_time() == time.milliseconds() 
+                || tuple._2.getStatus_update_time() == 0l;
+    }
+
     @Override
     public <K extends StatusKey> void remove(JavaRDD<K> rdd) {
         JavaRDD<Tuple2<K, StatusValue>> keyWithNulls = rdd.map(key -> new Tuple2<K, StatusValue>(key, null));
         
-        keyWithNulls.foreachPartition(new KafkaProducerFunc<K, StatusValue>(kafkaProducer, serializer, topic));
+        keyWithNulls.foreachPartition(new KafkaProducerFunc<K, StatusValue>(kafkaProducerParams, serializer, topic));
     }
-	
-    private <K extends StatusKey, V extends StatusValue> JavaPairRDD<K, V> filterOnlyUpdatedStates(JavaPairRDD<K, V> rdd, Time time) {
-		return rdd.filter(tuple -> tuple._2 == null || tuple._2.getStatus_update_time() == time.milliseconds() || tuple._2.getStatus_update_time() == 0);
-	}
 
 	private Map<String, Object> getKafkaProducerParams(Properties props) {
         Map<String, Object> kafkaParams = new HashMap<String, Object>();

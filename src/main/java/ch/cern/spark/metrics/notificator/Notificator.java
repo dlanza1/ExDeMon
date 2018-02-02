@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.notificator;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,6 +13,7 @@ import java.util.function.Function;
 
 import ch.cern.components.Component;
 import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentManager;
 import ch.cern.components.ComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -19,6 +21,7 @@ import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
+import lombok.Getter;
 import lombok.ToString;
 
 @ToString
@@ -33,6 +36,16 @@ public abstract class Notificator extends Component implements Function<Analysis
     
     protected MetricsFilter filter;
     
+    private static final String SILENT_PARAM = "silent";
+    private static final String SILENT_PERIOD_PARAM = SILENT_PARAM + ".period";
+    private static final String SILENT_NOTIFICATOR_PARAM = SILENT_PARAM + ".notificator";
+    
+    @Getter
+    private Duration silentPeriod;
+    
+    @Getter
+    protected Notificator silentPeriodNotificator;
+    
     public Notificator() {
 	}
     
@@ -44,25 +57,36 @@ public abstract class Notificator extends Component implements Function<Analysis
     		tags = properties.getSubset("tags").toStringMap();
     		
     		filter = MetricsFilter.build(properties.getSubset("filter"));
+    		
+    		silentPeriod = properties.getPeriod(SILENT_PERIOD_PARAM, Duration.ofSeconds(0));
+    		
+    		Properties silentPeriodNotificatorProps = properties.getSubset(SILENT_NOTIFICATOR_PARAM);
+    		if(silentPeriodNotificatorProps.isTypeDefined())
+    		    silentPeriodNotificator = ComponentManager.build(Type.NOTIFICATOR, "silent-period", silentPeriodNotificatorProps);
     }
     
     public Optional<Notification> apply(AnalysisResult result) {
         if(!filter.test(result.getAnalyzedMetric()))
             return Optional.empty();
         
-    		Optional<Notification> notificationOpt = process(result.getStatus(), result.getAnalyzedMetric().getTimestamp());
+    		Optional<String> reasonOpt = process(result.getStatus(), result.getAnalyzedMetric().getTimestamp());
     		
-    		notificationOpt.ifPresent(notif -> notif.setMetric_attributes(result.getAnalyzedMetric().getAttributes()));
+    		if(!reasonOpt.isPresent())
+    		    return Optional.empty();
     		
     		HashMap<String, String> notificationTags = new HashMap<>(result.getTags());
-    		notificationTags.putAll(tags);
+        notificationTags.putAll(tags);
     		
-    		notificationOpt.ifPresent(notif -> notif.setTags(notificationTags));
-    		notificationOpt.ifPresent(notif -> notif.setSink_ids(sinkIDs));
-    		
-    		return notificationOpt;
+    		return Optional.of(new Notification(
+                		                result.getAnalyzedMetric().getTimestamp(),
+                		                "",
+                		                getId(),
+                		                result.getAnalyzedMetric().getAttributes(),
+                		                reasonOpt.get(),
+                		                sinkIDs,
+                		                notificationTags));
     }
 
-    public abstract Optional<Notification> process(Status status, Instant timestamp);
+    public abstract Optional<String> process(Status status, Instant timestamp);
 
 }
