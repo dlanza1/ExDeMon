@@ -2,19 +2,30 @@
 from flask import Flask, request, abort
 from flask import abort
 from flask.views import MethodView
-import json
+from flask import jsonify
 
 from exdemon.application import app
 from exdemon.constants import *
-from exdemon.database import Metric, db
+from exdemon.database import Metric, MetricSchema, db
 
 class MetricEndpoint(MethodView):
     def get(self):
-        app.logger.info('Error metric')
-        return "get"
-        abort(NOT_IMPLEMENTED)
+        try:
+            metric = Metric.query.all()
+            metric_schema = MetricSchema(many=True)
+            output = metric_schema.dump(metric).data
+            return jsonify({"metrics": output})
+        except:
+            abort(INTERNAL_ERROR)
     def post(self):
-        return "post"
+        if request.json:
+            metric = Metric(request.json['name'], request.json['project'], request.json['environment'], json.dumps(request.json['data']), True)
+        else:
+            abort(BAD_REQUEST)
+
+        db.session.add(metric)
+        db.session.commit()
+        return 'ok', 201
     def delete(self):
         abort(NOT_IMPLEMENTED)
     def put(self):

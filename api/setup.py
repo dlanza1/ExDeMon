@@ -8,7 +8,7 @@ Exdemon REST API
 from setuptools import setup, find_packages
 
 setup(name='exdemon-api',
-      version='0.1',
+      version='0.1.1',
       description='Exdemon REST API',
       author='CERN',
       author_email='j.cordero@cern.ch',
@@ -24,5 +24,6 @@ setup(name='exdemon-api',
           'configparser',
           'flask_sqlalchemy',
           'psycopg2',
+		  'marshmallow-sqlalchemy',
           ],
      )
