@@ -92,12 +92,21 @@ public class ConstantNotificator extends Notificator implements HasStatus {
         }
         
         if(raise(timestamp)){
+            Optional<String> result;
+            
+            if((maxTimes != null && times >= maxTimes))
+                result = Optional.of("Metric has been in state " 
+                                        + expectedStatuses + " for " + times
+                                        + " times consecutively.");
+            else
+                result = Optional.of("Metric has been in state " 
+                                        + expectedStatuses + " for " + TimeUtils.toString(getDiff(timestamp))
+                                        + ".");
+            
             constantlySeenFrom = null;
             times = 0;
             
-            return Optional.of("Metric has been in state " 
-                                        + expectedStatuses + " for " + TimeUtils.toString(getDiff(timestamp))
-                                        + ".");
+            return result;
         }else{
             return Optional.empty();
         }
