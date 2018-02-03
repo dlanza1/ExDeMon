@@ -235,7 +235,7 @@ public class HTTPSink implements Serializable{
         if (statusCode == 201 || statusCode == 200) {
             LOG.trace("JSON: " + request.getJson() + " sent to " + request.getUrl());
         } else {
-            throw new HttpException("Unable to POST to url=" + request.getUrl() + " with status code=" + statusCode);
+            throw new HttpException("Unable to POST to url=" + request.getUrl() + " with status code=" + statusCode + ". JSON: " + request.getJson());
         }
 	}
 
