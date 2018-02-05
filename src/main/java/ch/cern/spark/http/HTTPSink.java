@@ -30,6 +30,7 @@ import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notifications.Template;
 import ch.cern.utils.TimeUtils;
+import lombok.Setter;
 
 public class HTTPSink implements Serializable{
 	
@@ -65,6 +66,9 @@ public class HTTPSink implements Serializable{
     private boolean as_array;
 
     private boolean addNotification;
+
+    @Setter
+    private boolean logging = true;
 
 	public void config(Properties properties) throws ConfigurationException {
 		url = properties.getProperty(URL_PARAM);
@@ -108,12 +112,18 @@ public class HTTPSink implements Serializable{
 		requestsStream.foreachRDD(rdd -> rdd.foreachPartition(strings -> send(strings)));
 	}
 
-    protected JsonPOSTRequest toJsonPOSTRequest(Object object) throws ParseException {
+    public JsonPOSTRequest toJsonPOSTRequest(Object object) throws ParseException {
         String url = this.url;
-        if(object instanceof Notification)
-            url = Template.apply(url, (Notification) object);
+        JSONObject json = null;
         
-        JSONObject json = addNotification ? JSONParser.parse(object) : new JSONObject("{}");
+        if(object instanceof Notification) {
+            url = Template.apply(url, (Notification) object);
+            json = addNotification ? JSONParser.parse(object) : new JSONObject("{}");
+        }else if(object instanceof String) {
+            json = new JSONObject((String) object);
+        }else {
+            json = JSONParser.parse(object);
+        }
         
         JsonPOSTRequest request = new JsonPOSTRequest(url, json);
         
@@ -167,7 +177,7 @@ public class HTTPSink implements Serializable{
             LOG.error(new IOException("Same batches could not be sent. Exceptions: " + thrownExceptions));
     }
 
-    private Exception sendBatch(List<JsonPOSTRequest> requests) {
+    public Exception sendBatch(List<JsonPOSTRequest> requests) {
 	    if(as_array)
 	        requests = buildJSONArrays(requests);
 
@@ -189,7 +199,7 @@ public class HTTPSink implements Serializable{
 		return HTTPSink.httpClient = httpClient;
 	}
 
-	private Exception send(JsonPOSTRequest request) {		
+	public Exception send(JsonPOSTRequest request) {		
 		HttpClient httpClient = getHTTPClient();
 		
 		Exception thrownException = new Exception();
@@ -200,7 +210,8 @@ public class HTTPSink implements Serializable{
 				
 				thrownException = null;
 			} catch (Exception e) {
-				LOG.error(e.getMessage(), e);
+			    if(logging)
+				    LOG.error(e.getMessage(), e);
 				
 				thrownException = e;
 				
