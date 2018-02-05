@@ -7,14 +7,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.apache.spark.streaming.State;
 
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentManager;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.filter.MetricsFilter;
-import ch.cern.spark.metrics.notificator.Notificator;
-import ch.cern.spark.metrics.notificator.types.ConstantNotificator;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.StatusValue;
@@ -23,6 +24,8 @@ import lombok.ToString;
 
 @ToString
 public class InErrorMonitor extends Monitor {
+    
+    private final static Logger LOG = Logger.getLogger(InErrorMonitor.class.getName());
 
 	private Exception exception;
 	
@@ -40,12 +43,28 @@ public class InErrorMonitor extends Monitor {
 	public Monitor config(Properties properties) {
 		try {
 			filter = MetricsFilter.build(properties.getSubset("filter"));
-		} catch (ConfigurationException e) {}
+		} catch (ConfigurationException e) {
+		    LOG.error(e);
+		}
 		
 		tags = new HashMap<>();
         Properties tagsProps = properties.getSubset("tags");
         Set<String> tagKeys = tagsProps.getIDs();
         tagKeys.forEach(key -> tags.put(key, tagsProps.getProperty(key)));
+        
+        Properties errorProps = properties.getSubset("notificator.$error");
+        if(errorProps.size() == 0) {
+            errorProps.setProperty("type", "constant");
+            errorProps.setProperty("period", "10m");
+            errorProps.setProperty("sinks", "ALL");
+        }
+        errorProps.setProperty("statuses", "EXCEPTION");
+        try {
+            notificators = new HashMap<>();
+            notificators.put("$error", ComponentManager.build(Type.NOTIFICATOR, "$error", errorProps));
+        } catch (ConfigurationException e) {
+            LOG.error(e);
+        }
 		
 		return this;
 	}
@@ -89,25 +108,6 @@ public class InErrorMonitor extends Monitor {
 			return filter;
 		else
 			return new MetricsFilter();
-	}
-	
-	@Override
-	public Map<String, Notificator> getNotificators() {
-		Map<String, Notificator> notificators = new HashMap<>();
-		
-		ConstantNotificator notificator = new ConstantNotificator();
-		notificator.setId("monitor-in-error");
-		Properties properties = new Properties();
-		properties.put("statuses", "EXCEPTION");
-		properties.put("period", "10m");
-		try {
-			notificator.config(properties);
-		} catch (ConfigurationException e) {
-			throw new RuntimeException("Notificator with wrong config");
-		}
-		notificators.put("monitor-in-error", notificator);
-		
-		return notificators;
 	}
 	
 	@Override

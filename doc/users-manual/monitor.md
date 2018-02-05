@@ -25,12 +25,24 @@ monitor.<monitor-id>.notificator.<notificator-id-1>.tags.<tag-key-2> = <value-2>
 monitor.<monitor-id>.notificator.<notificator-id-1>.tags.<tag-key-n> = <value-n>
 monitor.<monitor-id>.notificator.<notificator-id-1>.<other_confs> = <value>
 monitor.<monitor-id>.notificator.<notificator-id-n>... (as many notificators as needed)
+monitor.<monitor-id>.notificator.$error.type = <notificator-type> (default: constant)
+monitor.<monitor-id>.notificator.$error.sinks = <sinks> (default: ALL)
+monitor.<monitor-id>.notificator.$error.statuses = EXCEPTION
+monitor.<monitor-id>.notificator.$error.period = <period> (default: 10m)
 monitor.<monitor-id>.tags.<tag-key-1> = <value-1>
 monitor.<monitor-id>.tags.<tag-key-2> = <value-2>
 monitor.<monitor-id>.tags.<tag-key-n> = <value-n>
 ```
 
 Configuration of monitors can be updated while running.
+
+## $error notificator
+
+If a monitor has a configuration error, notifications are sent using $error notificator. Its configuration can be changed with monitor.<monitor-id>.notificator.$error parameters.
+
+Notice that if you specify any configuration parameter for $error, other default values are not longer set, so full notificator configuration should be provided. 
+
+Monitor will constantly produce metrics of type exception, so statuses will be always set to EXCEPTION.
 
 ## Tags
 

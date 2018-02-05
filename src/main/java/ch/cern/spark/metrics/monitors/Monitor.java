@@ -40,7 +40,7 @@ public class Monitor {
     private Analysis analysis;
     
     @Getter
-    private Map<String, Notificator> notificators;
+    protected Map<String, Notificator> notificators;
 
 	private Map<String, String> tags;
     
