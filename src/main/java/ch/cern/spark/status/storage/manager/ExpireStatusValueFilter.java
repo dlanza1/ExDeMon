@@ -21,7 +21,7 @@ public class ExpireStatusValueFilter implements Function<Tuple2<StatusKey, Statu
 
     @Override
     public Boolean call(Tuple2<StatusKey, StatusValue> tuple) throws Exception {
-        return tuple._2.getStatus_update_time() < oldest.toEpochMilli();
+        return tuple._2 == null || tuple._2.getStatus_update_time() < oldest.toEpochMilli();
     }
 
 }

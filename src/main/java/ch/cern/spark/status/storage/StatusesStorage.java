@@ -33,8 +33,8 @@ public abstract class StatusesStorage extends Component {
         JavaRDD<Tuple2<StatusKey, StatusValue>> statuses = load(context);
 
         JavaPairRDD<K, V> filtered = statuses
-                                    .filter(status -> (keyClass == null || ClassUtils.isAssignable(status._1.getClass(), keyClass))
-                                                    && (valueClass == null || ClassUtils.isAssignable(status._2.getClass(), valueClass)))
+                                    .filter(status -> (keyClass == null || (status._1 != null && ClassUtils.isAssignable(status._1.getClass(), keyClass)))
+                                                    && (valueClass == null || (status._2 != null && ClassUtils.isAssignable(status._2.getClass(), valueClass))))
                                     .mapToPair(status -> new Tuple2<K, V>((K) status._1, (V) status._2));
 
         return filtered;

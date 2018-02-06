@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,7 @@ public class StatusesManagerCLI {
         
     private String filter_by_id;
     private String filter_by_fqcn;
+    private long filter_value_size;
     
     private JSONStatusSerializer json = new JSONStatusSerializer();
     
@@ -63,6 +65,7 @@ public class StatusesManagerCLI {
     private Duration expired_period;
     
     private boolean remove_all;
+    private boolean remove_kafka;
     
     private static Scanner STDIN = new Scanner(System.in);
     
@@ -137,6 +140,12 @@ public class StatusesManagerCLI {
     }
 
     private void remove(StatusKey... statusKeys) throws UnknownHostException, IOException, ConfigurationException {
+        if(remove_kafka) {
+            storage.remove(context.parallelize(Arrays.asList(statusKeys)));
+            
+            return;
+        }
+            
         String actualHostname = InetAddress.getLocalHost().getHostName();
         String configuredName = InetAddress.getByName(statuses_removal_socket_host).getHostName();
         
@@ -261,6 +270,9 @@ public class StatusesManagerCLI {
         if(filter_by_fqcn != null)
             statuses = statuses.filter(new ClassNameStatusKeyFilter(filter_by_fqcn));
         
+        if(filter_value_size != Long.MAX_VALUE)
+            statuses = statuses.filter(new ValueSizeFilter(filter_value_size, serializer));
+        
         if(expired_period != null)
             statuses = statuses.filter(new ExpireStatusValueFilter(expired_period));
         
@@ -276,6 +288,8 @@ public class StatusesManagerCLI {
         
         options.addOption(new Option("id", "id", true, "filter by status key id"));
         options.addOption(new Option("n", "fqcn", true, "filter by FQCN or alias"));
+        options.addOption(new Option("e", "expired", true, "filter by expired values, expiration period like 1m, 3h, 5d"));
+        options.addOption(new Option("vs", "value-size", true, "filter by minimum value size in bytes"));
         
         options.addOption(new Option("p", "print", true, "print mode: java or json"));
         
@@ -283,7 +297,7 @@ public class StatusesManagerCLI {
         
         options.addOption(new Option("r", "remove", false, "remove all statuses filtered"));
         
-        options.addOption(new Option("e", "expired", true, "filter by expired values, expiration period like 1m, 3h, 5d"));
+        options.addOption(new Option("rk", "remove-kafka", false, "remove from Kafka"));
         
         CommandLineParser parser = new BasicParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -313,6 +327,11 @@ public class StatusesManagerCLI {
         
         filter_by_id = cmd.getOptionValue("id");
         filter_by_fqcn = cmd.getOptionValue("fqcn");
+        String filter_value_sizeString = cmd.getOptionValue("value-size");
+        if(filter_value_sizeString != null)
+            filter_value_size = Long.parseLong(filter_value_sizeString);
+        else
+            filter_value_size = Long.MAX_VALUE;
         
         if(cmd.getOptionValue("print") == null)
             serializer = null;
@@ -326,6 +345,8 @@ public class StatusesManagerCLI {
         saving_path = cmd.getOptionValue("save");
         
         remove_all = cmd.hasOption("remove");
+        
+        remove_kafka = cmd.hasOption("remove-kafka");
         
         String expiredString = cmd.getOptionValue("expired");
         if(expiredString != null)

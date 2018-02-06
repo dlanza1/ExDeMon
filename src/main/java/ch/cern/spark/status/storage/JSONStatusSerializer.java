@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.reflections.Reflections;
 
@@ -116,6 +118,12 @@ public class JSONStatusSerializer implements StatusSerializer {
             new Reflections("ch.cern").getTypesAnnotatedWith(ClassNameAlias.class).stream().forEach(
                     type -> aliases.put(type.getAnnotation(ClassNameAlias.class).value(), type));
         }
+        
+        private static Set<String> deprecatedAliases = new HashSet<>();
+        {
+            deprecatedAliases.add("statuses-notificator");
+            deprecatedAliases.add("metric-variable");
+        }
 
         @Override
         public T deserialize(JsonElement json, Type type, JsonDeserializationContext context)
@@ -126,8 +134,12 @@ public class JSONStatusSerializer implements StatusSerializer {
 
             JsonElement aliasElement = jsonObject.get(KEY_ALIAS_TYPE);
             if (aliasElement != null) {
-                if (!aliases.containsKey(aliasElement.getAsString()))
-                    throw new JsonParseException("Document contains an alias that is not registered.");
+                if (!aliases.containsKey(aliasElement.getAsString())) {
+                    if(deprecatedAliases.contains(aliasElement.getAsString()))
+                        return null;
+                    else
+                        throw new JsonParseException("Document contains an alias ("+aliasElement+") that is not registered. Registered: " + aliases);
+                }
 
                 klass = aliases.get(aliasElement.getAsString());
                 jsonObject.remove(KEY_ALIAS_TYPE);

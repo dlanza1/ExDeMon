@@ -30,7 +30,6 @@ import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notifications.Template;
 import ch.cern.utils.TimeUtils;
-import lombok.Setter;
 
 public class HTTPSink implements Serializable{
 	
@@ -66,9 +65,6 @@ public class HTTPSink implements Serializable{
     private boolean as_array;
 
     private boolean addNotification;
-
-    @Setter
-    private boolean logging = true;
 
 	public void config(Properties properties) throws ConfigurationException {
 		url = properties.getProperty(URL_PARAM);
@@ -210,8 +206,7 @@ public class HTTPSink implements Serializable{
 				
 				thrownException = null;
 			} catch (Exception e) {
-			    if(logging)
-				    LOG.error(e.getMessage(), e);
+				LOG.error(e.getMessage(), e);
 				
 				thrownException = e;
 				
