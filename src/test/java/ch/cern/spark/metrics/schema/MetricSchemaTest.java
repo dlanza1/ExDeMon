@@ -481,7 +481,7 @@ public class MetricSchemaTest {
         Metric metric = metrics.next();
         assertNotNull(metric.getTimestamp());
         assertTrue(metric.getValue().getAsException().isPresent());
-        assertEquals(2, metric.getAttributes().size());
+        assertEquals(3, metric.getAttributes().size());
         assertEquals("test", metric.getAttributes().get("$schema"));
         assertEquals("data.payload.WMBS_INFO.thresholds.pending_slots", metric.getAttributes().get("$value"));
 
@@ -517,7 +517,7 @@ public class MetricSchemaTest {
         Metric metric = metrics.next();
         assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
         assertEquals(2815f, metric.getValue().getAsFloat().get(), 0f);
-        assertEquals(4, metric.getAttributes().size());
+        assertEquals(5, metric.getAttributes().size());
         assertEquals("test", metric.getAttributes().get("$schema"));
         assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getAttributes().get("$value"));
         assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
@@ -556,7 +556,7 @@ public class MetricSchemaTest {
         Metric metric = metrics.next();
         assertNotNull(metric.getTimestamp());
         assertTrue(metric.getValue().getAsException().isPresent());
-        assertEquals(4, metric.getAttributes().size());
+        assertEquals(5, metric.getAttributes().size());
         assertEquals("test", metric.getAttributes().get("$schema"));
         assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getAttributes().get("$value"));
         assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
@@ -566,7 +566,7 @@ public class MetricSchemaTest {
         metric = metrics.next();
         assertNotNull(metric.getTimestamp());
         assertTrue(metric.getValue().getAsException().isPresent());
-        assertEquals(4, metric.getAttributes().size());
+        assertEquals(5, metric.getAttributes().size());
         assertEquals("test", metric.getAttributes().get("$schema"));
         assertEquals("data.payload.WMBS_INFO.thresholds.pending_slots", metric.getAttributes().get("$value"));
         assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
