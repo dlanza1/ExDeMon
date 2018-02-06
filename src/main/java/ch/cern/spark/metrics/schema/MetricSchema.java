@@ -167,6 +167,8 @@ public class MetricSchema implements Serializable {
         }
 
         filter = MetricsFilter.build(properties.getSubset(FILTER_PARAM));
+        
+        properties.confirmAllPropertiesUsed();
 
         return this;
     }
