@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -24,17 +26,13 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.filter.MetricsFilter;
-import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.ExceptionValue;
-import ch.cern.spark.metrics.value.FloatValue;
-import ch.cern.spark.metrics.value.StringValue;
 import ch.cern.spark.metrics.value.Value;
 import ch.cern.utils.Pair;
 import lombok.Getter;
@@ -59,8 +57,8 @@ public class MetricSchema implements Serializable {
     protected List<Pair<String, String>> attributes;
     protected List<Pair<String, Pattern>> attributesPattern;
 
-    public static String VALUE_ATTRIBUTES_PARAM = "value.keys";
-    protected List<Pair<String, String>> value_attributes;
+    public static String VALUES_PARAM = "value";
+    protected List<ValueDescriptor> values;
 
     public static String TIMESTAMP_FORMAT_PARAM = "timestamp.format";
     public static String TIMESTAMP_FORMAT_DEFAULT = "auto";
@@ -112,23 +110,33 @@ public class MetricSchema implements Serializable {
                         + " must be epoch-ms, epoch-s or a pattern compatible with DateTimeFormatterBuilder.");
             }
 
-        value_attributes = new LinkedList<>();
-        String value_attributes_value = properties.getProperty(VALUE_ATTRIBUTES_PARAM);
-        if (value_attributes_value != null) {
-            String[] attributesValues = value_attributes_value.split("\\s");
-
-            for (String attribute : attributesValues)
-                value_attributes.add(new Pair<String, String>(attribute, attribute));
-        }
-        Properties valueAttributesWithAlias = properties.getSubset(VALUE_ATTRIBUTES_PARAM);
-        for (Map.Entry<Object, Object> pair : valueAttributesWithAlias.entrySet()) {
+        values = new LinkedList<>();
+        Properties valuesProps = properties.getSubset(VALUES_PARAM);
+        
+        //TODO FOR RETROCOMPATIBILITY
+        for (Map.Entry<Object, Object> pair : valuesProps.getSubset("keys").entrySet()) {
             String alias = (String) pair.getKey();
             String key = (String) pair.getValue();
+            
+            ValueDescriptor descriptor = new ValueDescriptor(alias);
+            Properties props = new Properties();
+            props.setProperty(ValueDescriptor.KEY_PARAM, key);
+            descriptor.config(props);
 
-            value_attributes.add(new Pair<String, String>(alias, key));
+            values.add(descriptor);
         }
-        if (value_attributes.isEmpty())
-            throw new ConfigurationException(VALUE_ATTRIBUTES_PARAM + " must be configured.");
+        valuesProps.entrySet().removeIf(entry -> ((String) entry.getKey()).startsWith("keys"));
+        // FOR RETROCOMPATIBILITY END
+        
+        Set<String> valueIDs = valuesProps.getIDs();
+        for (String valueId : valueIDs) {
+            ValueDescriptor descriptor = new ValueDescriptor(valueId);
+            descriptor.config(valuesProps.getSubset(valueId));
+            
+            values.add(descriptor);
+        }
+        if (values.isEmpty())
+            throw new ConfigurationException(VALUES_PARAM + " must be configured.");
 
         fixedAttributes = new HashMap<>();
         fixedAttributes.put("$schema", id);
@@ -229,39 +237,24 @@ public class MetricSchema implements Serializable {
             
             List<Metric> metrics = new LinkedList<>();
 
-            for (Pair<String, String> value_attribute : value_attributes) {
-                String alias = value_attribute.first;
-                String key = value_attribute.second;
+            for (ValueDescriptor valueDescriptor : values) {
+                String id = valueDescriptor.getId();
 
                 Map<String, String> metric_ids = new HashMap<>(attributesForMetric);
-                metric_ids.put("$value_attribute", alias);
+                metric_ids.put("$value", id);
+             
+                //TODO FOR RETROCOMPATIBILITY
+                metric_ids.put("$value_attribute", id); 
 
                 if (timestampException != null) {
                     metrics.add(new Metric(timestamp, new ExceptionValue(timestampException.getMessage()), metric_ids));
                     continue;
                 }
-
-                JsonElement element = jsonObject.getElement(key);
-                if (element == null || element.isJsonNull()) {
-                    LOG.debug("No metric was generated for value key \"" + key + "\" (alias: " + alias
-                            + "): document does not contian such key or is null. JSON document: " + jsonObject);
-                } else if (element.isJsonPrimitive()) {
-                    JsonPrimitive primitive = element.getAsJsonPrimitive();
-
-                    Value value = null;
-                    
-                    if (primitive.isNumber())
-                        value = new FloatValue(primitive.getAsFloat());
-                    else if (primitive.isBoolean())
-                        value = new BooleanValue(primitive.getAsBoolean());
-                    else
-                        value = new StringValue(primitive.getAsString());
-                    
-                    metrics.add(new Metric(timestamp, value, metric_ids));
-                } else {
-                    LOG.debug("No metric was generated for value key \"" + key + "\" (alias: " + alias
-                            + "): attribute is not a JSON primitive. JSON document: " + jsonObject);
-                }
+                
+                Optional<Value> value = valueDescriptor.extract(jsonObject);
+                
+                if(value.isPresent())
+                    metrics.add(new Metric(timestamp, value.get(), metric_ids));
             }
 
             return metrics.stream().filter(filter).collect(Collectors.toList());
