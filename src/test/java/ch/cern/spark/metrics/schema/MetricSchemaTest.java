@@ -296,6 +296,10 @@ public class MetricSchemaTest {
         jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":\"2017-11-01 08:10:09+0100\" }, \"data\": 1}");
         metrics = parser.call(jsonObject).iterator();
         assertEquals(1509520209000l, metrics.next().getTimestamp().toEpochMilli());
+        
+        jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":\"2018-02-06T16:06:42.426Z\" }, \"data\": 1}");
+        metrics = parser.call(jsonObject).iterator();
+        assertEquals(1517929602426l, metrics.next().getTimestamp().toEpochMilli());
 
         assertFalse(metrics.hasNext());
     }

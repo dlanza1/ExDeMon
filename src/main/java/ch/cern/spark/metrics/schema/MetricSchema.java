@@ -62,7 +62,7 @@ public class MetricSchema implements Serializable {
 
     public static String TIMESTAMP_FORMAT_PARAM = "timestamp.format";
     public static String TIMESTAMP_FORMAT_DEFAULT = "auto";
-    public static List<String> TIMESTAMP_AUTO_FORMATS = Arrays.asList("yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd HH:mm:ssZ");
+    public transient DateTimeFormatter format_auto;
     protected String timestamp_format_pattern;
     protected transient DateTimeFormatter timestamp_format;
 
@@ -274,6 +274,9 @@ public class MetricSchema implements Serializable {
     }
 
     private Instant toDate(String date_string) throws DateTimeParseException {
+        if(format_auto == null)
+            format_auto = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd'T'HH:mm:ss[.SSS][Z]").toFormatter();
+        
         if (date_string == null || date_string.length() == 0)
             throw new DateTimeParseException("No data to parse", "", 0);
 
@@ -287,14 +290,15 @@ public class MetricSchema implements Serializable {
                     else
                         return Instant.ofEpochMilli(value);
                 }catch(Exception e) {}
-                
-                for (String formatPattern : TIMESTAMP_AUTO_FORMATS) {
-                    DateTimeFormatter format = new DateTimeFormatterBuilder().appendPattern(formatPattern).toFormatter();
+
+                try {
+                    TemporalAccessor temporalAccesor = format_auto.parse(date_string.replace(" ", "T").replace("Z", ""));
                     
-                    try {
-                        return Instant.from(format.parse(date_string));
-                    }catch(Exception e) {}
-                }
+                    if (temporalAccesor.isSupported(ChronoField.INSTANT_SECONDS))
+                        return Instant.from(temporalAccesor);
+                    else
+                        return LocalTime.from(temporalAccesor).atOffset(OffsetDateTime.now().getOffset()).atDate(LocalDate.from(temporalAccesor)).toInstant();
+                }catch(Exception e) {}
                 
                 throw new DateTimeParseException("Automatic format could not parse time", "", 0);
             }
