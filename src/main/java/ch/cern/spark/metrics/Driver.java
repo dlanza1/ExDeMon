@@ -2,6 +2,7 @@ package ch.cern.spark.metrics;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -20,10 +21,16 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.properties.source.PropertiesSource;
 import ch.cern.spark.SparkConf;
+import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
 import ch.cern.spark.metrics.defined.DefinedMetrics;
+import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
+import ch.cern.spark.metrics.defined.equation.var.agg.AggregationValues;
+import ch.cern.spark.metrics.monitors.MonitorStatusKey;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notifications.sink.NotificationsSink;
+import ch.cern.spark.metrics.notificator.NotificatorStatus;
+import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
 import ch.cern.spark.metrics.schema.MetricSchemas;
@@ -186,6 +193,18 @@ public final class Driver {
         sparkConf.setAppName("ExDeMon");
         sparkConf.runLocallyIfMasterIsNotConfigured();
         sparkConf.addProperties(properties, "spark.");
+        
+        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+        
+        sparkConf.registerKryoClasses(Arrays.asList(
+                                DefinedMetricStatuskey.class,
+                                MonitorStatusKey.class,
+                                NotificatorStatusKey.class,
+                                NotificatorStatus.class,
+                                ValueHistory.class,
+                                VariableStatuses.class,
+                                AggregationValues.class
+                            ).toArray(new Class[0]));
         
         String checkpointDir = properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT);
         
