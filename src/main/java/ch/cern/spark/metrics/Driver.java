@@ -108,15 +108,12 @@ public final class Driver {
     		Optional<JavaDStream<StatusKey>> statusesToRemove = getStatusesToRemoveStream();
     		
 		metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps, statusesToRemove));
-		metrics.cache();
 		
 		JavaDStream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps, statusesToRemove);
-		results.cache();
 
 		analysisResultsSink.ifPresent(sink -> sink.sink(results));
 		
 		JavaDStream<Notification> notifications = Monitors.notify(results, propertiesSourceProps, statusesToRemove);
-		notifications.cache();
 		
     		notificationsSinks.stream().forEach(sink -> sink.sink(notifications));
 		
