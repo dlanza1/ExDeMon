@@ -11,7 +11,7 @@ import com.google.gson.JsonPrimitive;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.json.JSONObject;
+import ch.cern.spark.json.JSON;
 import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.StringValue;
@@ -23,6 +23,8 @@ import lombok.ToString;
 public class ValueDescriptor implements Serializable{
 
     private static final long serialVersionUID = -1567807965329553585L;
+    
+    private static final Pattern NUMERIC_PATTERN = Pattern.compile("-?\\d+(\\.\\d+)?");
 
     @Getter
     private String id;
@@ -65,7 +67,7 @@ public class ValueDescriptor implements Serializable{
         props.confirmAllPropertiesUsed();
     }
 
-    public Optional<Value> extract(JSONObject jsonObject) throws ParseException {
+    public Optional<Value> extract(JSON jsonObject) throws ParseException {
         JsonElement element = jsonObject.getElement(key);
         
         if (element == null || element.isJsonNull())
@@ -111,7 +113,7 @@ public class ValueDescriptor implements Serializable{
             return new StringValue(valueString);
         case NUMERIC:
             try {
-                return new FloatValue(Double.valueOf(valueString));
+                return new FloatValue(Float.parseFloat(valueString));
             }catch(Exception e) {}
         case BOOLEAN:
             if(valueString.toLowerCase().equals("true"))
@@ -121,16 +123,15 @@ public class ValueDescriptor implements Serializable{
             else
                 return null;
         case AUTO:
-            try {
-                return new FloatValue(Double.valueOf(valueString));
-            }catch(Exception e) {
-                if(valueString.toLowerCase().equals("true"))
-                    return new BooleanValue(true);
-                else if(valueString.toLowerCase().equals("false"))
-                    return new BooleanValue(false);
-                else
-                    return new StringValue(valueString);
-            }
+            // For performance it is check if it is a number before parsing instead of trying to parse and get the exception
+            if(NUMERIC_PATTERN.matcher(valueString).find())
+                return new FloatValue(Float.parseFloat(valueString));
+            else if(valueString.toLowerCase().equals("true"))
+                return new BooleanValue(true);
+            else if(valueString.toLowerCase().equals("false"))
+                return new BooleanValue(false);
+            else
+                return new StringValue(valueString);
         }
         
         throw new RuntimeException("an option of the enum was not covered");

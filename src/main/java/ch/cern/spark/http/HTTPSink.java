@@ -25,7 +25,7 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import ch.cern.Taggable;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.json.JSONObject;
+import ch.cern.spark.json.JSON;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notifications.Template;
@@ -110,13 +110,13 @@ public class HTTPSink implements Serializable{
 
     public JsonPOSTRequest toJsonPOSTRequest(Object object) throws ParseException {
         String url = this.url;
-        JSONObject json = null;
+        JSON json = null;
         
         if(object instanceof Notification) {
             url = Template.apply(url, (Notification) object);
-            json = addNotification ? JSONParser.parse(object) : new JSONObject("{}");
+            json = addNotification ? JSONParser.parse(object) : new JSON("{}");
         }else if(object instanceof String) {
-            json = new JSONObject((String) object);
+            json = new JSON((String) object);
         }else {
             json = JSONParser.parse(object);
         }
@@ -251,7 +251,7 @@ public class HTTPSink implements Serializable{
 	    return groupedByUrl.entrySet().stream().map(entry -> {
             	        String jsonString = entry.getValue().stream().map(req -> req.getJson().toString()).collect(Collectors.toList()).toString();
             	        
-            	        return new JsonPOSTRequest(entry.getKey(), new JSONObject(jsonString));
+            	        return new JsonPOSTRequest(entry.getKey(), new JSON(jsonString));
             	    }).collect(Collectors.toList());
 	}
 

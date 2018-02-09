@@ -12,23 +12,18 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class JSONObject implements Serializable {
-
-    private static transient final long serialVersionUID = 416506194813266351L;
+public class JSON {
 
     private static transient JsonParser PARSER = new JsonParser();
 
-    private String string;
+    private JsonElement object;
 
-    private transient JsonObject object;
-
-    public JSONObject(JsonObject jsonObject) {
+    public JSON(JsonObject jsonObject) {
         this.object = jsonObject;
-        this.string = this.object.toString();
     }
 
-    public JSONObject(String string) {
-        this.string = string;
+    public JSON(String jsonString) {
+        this.object = PARSER.parse(jsonString);
     }
 
     public String getProperty(String propertyName) throws ParseException {
@@ -41,14 +36,15 @@ public class JSONObject implements Serializable {
     }
 
     public JsonElement getElement(String elementName) throws ParseException {
-        if(elementName == null)
+        if(!object.isJsonObject())
             return null;
         
-        setObject();
+        if(elementName == null)
+            return null;
 
         if (elementName.contains(".")) {
             String topPropertyName = elementName.substring(0, elementName.indexOf('.'));
-            JSONObject topObject = getJSONObject(topPropertyName);
+            JSON topObject = getJSONObject(topPropertyName);
 
             if (topObject == null)
                 return null;
@@ -56,7 +52,7 @@ public class JSONObject implements Serializable {
                 return topObject.getElement(elementName.substring(elementName.indexOf('.') + 1));
         }
 
-        return object.get(elementName);
+        return object.getAsJsonObject().get(elementName);
     }
     
     public String[] getKeys(Pattern keyPattern) throws ParseException {
@@ -66,11 +62,12 @@ public class JSONObject implements Serializable {
     }
     
     public String[] getAllKeys() throws ParseException {
-        setObject();
-        
         LinkedList<String> keys = new LinkedList<>();
         
-        for(Map.Entry<String, JsonElement> element: object.entrySet())
+        if(!object.isJsonObject())
+            return keys.toArray(new String[0]);
+        
+        for(Map.Entry<String, JsonElement> element: object.getAsJsonObject().entrySet())
             if(element.getValue().isJsonPrimitive())
                 keys.add(element.getKey());
             else if(element.getValue().isJsonObject())
@@ -88,10 +85,11 @@ public class JSONObject implements Serializable {
     }
 
     public void setProperty(String fullKey, String value) throws ParseException {
-	    	setObject();
-	    	
+        if(!object.isJsonObject())
+            throw new ParseException("It is not a JSON object, it œis not possible to add " + fullKey + " to JSON: " + object.toString(), 0);
+        
 	    String[] keys = fullKey.split("\\.");
-	    JsonObject element = object;
+	    JsonObject element = object.getAsJsonObject();
 	    for (int i = 0; i < keys.length; i++) {
 	    		String key = keys[i];
 	    		
@@ -109,29 +107,17 @@ public class JSONObject implements Serializable {
 	    				throw new ParseException("It is not possible to add " + fullKey + " to JSON: " + object.toString(), 0);
 	    		}
 		}
-	    	this.string = this.object.toString();
     }
 
-    private void setObject() throws ParseException {
-        if (object != null)
-            return;
-        
-        try {
-            object = PARSER.parse(string).getAsJsonObject();
-        }catch(Exception e) {
-            throw new ParseException(e.getMessage(), 0);
-        }
-    }
-
-    public JSONObject getJSONObject(String name) throws ParseException {
+    public JSON getJSONObject(String name) throws ParseException {
         JsonElement element = getElement(name); 
         
-        return element == null ? null : new JSONObject(element.getAsJsonObject());
+        return element == null ? null : new JSON(element.getAsJsonObject());
     }
 
     @Override
     public String toString() {
-        return string;
+        return object.toString();
     }
 
     public static class Parser implements Serializable {
@@ -141,10 +127,10 @@ public class JSONObject implements Serializable {
         public Parser() {
         }
 
-        public JSONObject parse(byte[] bytes) {
+        public JSON parse(byte[] bytes) {
             JsonObject jsonFromEvent = PARSER.parse(new String(bytes)).getAsJsonObject();
 
-            return new JSONObject(jsonFromEvent);
+            return new JSON(jsonFromEvent);
         }
 
     }

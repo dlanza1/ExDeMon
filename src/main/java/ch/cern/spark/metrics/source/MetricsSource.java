@@ -8,7 +8,6 @@ import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.metrics.schema.MetricSchema;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,6 +34,12 @@ public abstract class MetricsSource extends Component {
 		}
 	}
 
-	public abstract JavaDStream<JSONObject> createJavaDStream(JavaStreamingContext ssc);
+	/**
+	 * Obtain metrics from external services as JSON strings.
+	 * 
+	 * @param ssc Spark context
+	 * @return valid JSON object string.
+	 */
+	public abstract JavaDStream<String> createJavaDStream(JavaStreamingContext ssc);
     
 }

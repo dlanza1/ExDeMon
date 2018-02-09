@@ -6,7 +6,7 @@ import java.text.ParseException;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 
-import ch.cern.spark.json.JSONObject;
+import ch.cern.spark.json.JSON;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -19,9 +19,9 @@ public class JsonPOSTRequest {
     private String url;
 
     @Getter
-    private JSONObject json;
+    private JSON json;
     
-    public JsonPOSTRequest(String url, JSONObject json) {
+    public JsonPOSTRequest(String url, JSON json) {
         this.url = url;
         this.json = json;
     }

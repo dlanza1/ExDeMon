@@ -22,8 +22,6 @@ import org.apache.spark.streaming.kafka010.OffsetRange;
 import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.json.JSONObject;
-import ch.cern.spark.json.JSONObjectDeserializer;
 import ch.cern.spark.metrics.source.MetricsSource;
 
 @RegisterComponent("kafka")
@@ -45,11 +43,11 @@ public class KafkaMetricsSource extends MetricsSource {
     }
     
     @Override
-	public JavaDStream<JSONObject> createJavaDStream(JavaStreamingContext ssc) {
-    		JavaInputDStream<ConsumerRecord<String, JSONObject>> inputStream = KafkaUtils.createDirectStream(
+	public JavaDStream<String> createJavaDStream(JavaStreamingContext ssc) {
+    		JavaInputDStream<ConsumerRecord<String, String>> inputStream = KafkaUtils.createDirectStream(
                 ssc,
                 LocationStrategies.PreferConsistent(),
-                ConsumerStrategies.<String, JSONObject>Subscribe(kafkaTopics, kafkaParams));
+                ConsumerStrategies.<String, String>Subscribe(kafkaTopics, kafkaParams));
         
         inputStream.foreachRDD(rdd -> {
         			OffsetRange[] offsetRanges = ((HasOffsetRanges) rdd.rdd()).offsetRanges();
@@ -64,7 +62,7 @@ public class KafkaMetricsSource extends MetricsSource {
         Map<String, Object> kafkaParams = new HashMap<String, Object>();
         
         kafkaParams.put("key.deserializer", StringDeserializer.class);
-        kafkaParams.put("value.deserializer", JSONObjectDeserializer.class);
+        kafkaParams.put("value.deserializer", StringDeserializer.class);
         
         Properties kafkaPropertiesFromConf = props.getSubset("consumer");
         for (Entry<Object, Object> kafkaPropertyFromConf : kafkaPropertiesFromConf.entrySet()) {

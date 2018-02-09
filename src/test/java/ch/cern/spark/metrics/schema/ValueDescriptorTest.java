@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.json.JSONObject;
+import ch.cern.spark.json.JSON;
 import ch.cern.spark.metrics.value.Value;
 
 public class ValueDescriptorTest {
@@ -25,15 +25,15 @@ public class ValueDescriptorTest {
         props.setProperty("type", "string");
         descriptor.config(props);
 
-        Optional<Value> value = descriptor.extract(new JSONObject("{\"key\": \"12\"}"));
+        Optional<Value> value = descriptor.extract(new JSON("{\"key\": \"12\"}"));
         assertTrue(value.isPresent());
         assertEquals("12", value.get().getAsString().get());
 
-        value = descriptor.extract(new JSONObject("{\"key\": 12}"));
+        value = descriptor.extract(new JSON("{\"key\": 12}"));
         assertTrue(value.isPresent());
         assertEquals("12", value.get().getAsString().get());
         
-        value = descriptor.extract(new JSONObject("{\"key\": true}"));
+        value = descriptor.extract(new JSON("{\"key\": true}"));
         assertTrue(value.isPresent());
         assertEquals("true", value.get().getAsString().get());
     }
@@ -45,19 +45,19 @@ public class ValueDescriptorTest {
         props.setProperty("type", "numeric");
         descriptor.config(props);
 
-        Optional<Value> value = descriptor.extract(new JSONObject("{\"key\": 12}"));        
+        Optional<Value> value = descriptor.extract(new JSON("{\"key\": 12}"));        
         assertTrue(value.isPresent());
         assertEquals(12f, value.get().getAsFloat().get(), 0f);
         
-        value = descriptor.extract(new JSONObject("{\"key\": \"12\"}"));        
+        value = descriptor.extract(new JSON("{\"key\": \"12\"}"));        
         assertTrue(value.isPresent());
         assertEquals(12f, value.get().getAsFloat().get(), 0f);
         
-        value = descriptor.extract(new JSONObject("{\"key\": \"0012\"}"));        
+        value = descriptor.extract(new JSON("{\"key\": \"0012\"}"));        
         assertTrue(value.isPresent());
         assertEquals(12f, value.get().getAsFloat().get(), 0f);
         
-        value = descriptor.extract(new JSONObject("{\"key\": \"abc\"}"));        
+        value = descriptor.extract(new JSON("{\"key\": \"abc\"}"));        
         assertFalse(value.isPresent());
     }
     
@@ -68,23 +68,23 @@ public class ValueDescriptorTest {
         props.setProperty("type", "boolean");
         descriptor.config(props);
 
-        Optional<Value> value = descriptor.extract(new JSONObject("{\"key\": true}"));
+        Optional<Value> value = descriptor.extract(new JSON("{\"key\": true}"));
         assertTrue(value.isPresent());
         assertTrue(value.get().getAsBoolean().get());
 
-        value = descriptor.extract(new JSONObject("{\"key\": false}"));
+        value = descriptor.extract(new JSON("{\"key\": false}"));
         assertTrue(value.isPresent());
         assertFalse(value.get().getAsBoolean().get());
         
-        value = descriptor.extract(new JSONObject("{\"key\": \"true\"}"));
+        value = descriptor.extract(new JSON("{\"key\": \"true\"}"));
         assertTrue(value.isPresent());
         assertTrue(value.get().getAsBoolean().get());
 
-        value = descriptor.extract(new JSONObject("{\"key\": \"false\"}"));
+        value = descriptor.extract(new JSON("{\"key\": \"false\"}"));
         assertTrue(value.isPresent());
         assertFalse(value.get().getAsBoolean().get());
         
-        value = descriptor.extract(new JSONObject("{\"key\": \"abs\"}"));
+        value = descriptor.extract(new JSON("{\"key\": \"abs\"}"));
         assertFalse(value.isPresent());
     }
     
@@ -96,7 +96,7 @@ public class ValueDescriptorTest {
 
         String jsonString = "{\"key\": \"12\"}";
 
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
         Optional<Value> value = descriptor.extract(jsonObject);
         
@@ -112,7 +112,7 @@ public class ValueDescriptorTest {
 
         String jsonString = "{\"key\": 12}";
 
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
         Optional<Value> value = descriptor.extract(jsonObject);
         
@@ -126,14 +126,14 @@ public class ValueDescriptorTest {
         props.setProperty("key", "key");
         descriptor.config(props);
 
-        JSONObject jsonObject = new JSONObject("{\"key\": true}");
+        JSON jsonObject = new JSON("{\"key\": true}");
 
         Optional<Value> value = descriptor.extract(jsonObject);
         
         assertTrue(value.isPresent());
         assertTrue(value.get().getAsBoolean().get());
         
-        jsonObject = new JSONObject("{\"key\": false}");
+        jsonObject = new JSON("{\"key\": false}");
 
         value = descriptor.extract(jsonObject);
         
@@ -148,11 +148,11 @@ public class ValueDescriptorTest {
         props.setProperty("regex", "abc(.*)");
         descriptor.config(props);
 
-        Optional<Value> value = descriptor.extract(new JSONObject("{\"key\": \"abcdef\"}"));        
+        Optional<Value> value = descriptor.extract(new JSON("{\"key\": \"abcdef\"}"));        
         assertTrue(value.isPresent());
         assertEquals("def", value.get().getAsString().get());
         
-        value = descriptor.extract(new JSONObject("{\"key\": \"aBcdef\"}"));        
+        value = descriptor.extract(new JSON("{\"key\": \"aBcdef\"}"));        
         assertFalse(value.isPresent());
     }
     
@@ -163,7 +163,7 @@ public class ValueDescriptorTest {
         props.setProperty("regex", "abc(.*)");
         descriptor.config(props);
 
-        Optional<Value> value = descriptor.extract(new JSONObject("{\"key\": \"abc1234\"}"));        
+        Optional<Value> value = descriptor.extract(new JSON("{\"key\": \"abc1234\"}"));        
         assertTrue(value.isPresent());
         assertEquals(1234f, value.get().getAsFloat().get(), 0f);
     }
@@ -175,7 +175,7 @@ public class ValueDescriptorTest {
         props.setProperty("regex", "abc(.*)");
         descriptor.config(props);
 
-        Optional<Value> value = descriptor.extract(new JSONObject("{\"key\": \"abctrue\"}"));        
+        Optional<Value> value = descriptor.extract(new JSON("{\"key\": \"abctrue\"}"));        
         assertTrue(value.isPresent());
         assertTrue(value.get().getAsBoolean().get());
     }
@@ -188,15 +188,15 @@ public class ValueDescriptorTest {
         props.setProperty("regex", "abc(.*)");
         descriptor.config(props);
 
-        Optional<Value> value = descriptor.extract(new JSONObject("{\"key\": \"abcdef\"}"));        
+        Optional<Value> value = descriptor.extract(new JSON("{\"key\": \"abcdef\"}"));        
         assertTrue(value.isPresent());
         assertEquals("def", value.get().getAsString().get());
         
-        value = descriptor.extract(new JSONObject("{\"key\": \"abctrue\"}"));        
+        value = descriptor.extract(new JSON("{\"key\": \"abctrue\"}"));        
         assertTrue(value.isPresent());
         assertEquals("true", value.get().getAsString().get());
         
-        value = descriptor.extract(new JSONObject("{\"key\": \"aBcdef\"}"));        
+        value = descriptor.extract(new JSON("{\"key\": \"aBcdef\"}"));        
         assertFalse(value.isPresent());
     }
     
@@ -208,7 +208,7 @@ public class ValueDescriptorTest {
         props.setProperty("regex", "abc(.*)");
         descriptor.config(props);
 
-        Optional<Value> value = descriptor.extract(new JSONObject("{\"key\": \"abc1234\"}"));        
+        Optional<Value> value = descriptor.extract(new JSON("{\"key\": \"abc1234\"}"));        
         assertTrue(value.isPresent());
         assertEquals(1234f, value.get().getAsFloat().get(), 0f);
     }
@@ -221,7 +221,7 @@ public class ValueDescriptorTest {
         props.setProperty("regex", "abc(.*)");
         descriptor.config(props);
 
-        Optional<Value> value = descriptor.extract(new JSONObject("{\"key\": \"abctrue\"}"));        
+        Optional<Value> value = descriptor.extract(new JSON("{\"key\": \"abctrue\"}"));        
         assertTrue(value.isPresent());
         assertTrue(value.get().getAsBoolean().get());
     }

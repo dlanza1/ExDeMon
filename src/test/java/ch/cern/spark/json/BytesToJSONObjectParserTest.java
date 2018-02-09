@@ -12,7 +12,7 @@ public class BytesToJSONObjectParserTest {
             @SuppressWarnings("resource")
             JSONObjectDeserializer jsonObjectDeserializer = new JSONObjectDeserializer();
             
-            JSONObject listenerEvent = jsonObjectDeserializer.deserialize(null, json.getBytes());
+            JSON listenerEvent = jsonObjectDeserializer.deserialize(null, json.getBytes());
             
             Assert.assertNotNull(listenerEvent.getProperty("metadata.service_name"));
             Assert.assertEquals("timtest_s.cern.ch", listenerEvent.getProperty("metadata.service_name"));

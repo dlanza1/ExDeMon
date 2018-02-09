@@ -11,7 +11,7 @@ public class JSONObjectsExtractorTest {
         String json = "{\"data\":{\"service_name\":\"timtest_s.cern.ch\",\"return_code\":0}}";
     
         try {
-            JSONObject listenerEvent = new JSONObjectsExtractor("data").call(new JSONObject.Parser().parse(json.getBytes()));
+            JSON listenerEvent = new JSONObjectsExtractor("data").call(new JSON.Parser().parse(json.getBytes()));
             
             Assert.assertNotNull(listenerEvent.getProperty("service_name"));
             Assert.assertEquals("timtest_s.cern.ch", listenerEvent.getProperty("service_name"));

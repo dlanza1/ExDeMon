@@ -36,7 +36,7 @@ public class JSONParserTest{
         tags.put("group", "IT_DB");
 		analysisResult.setTags(tags);
         
-        JSONObject jsonObject = JSONParser.parse(analysisResult);
+        JSON jsonObject = JSONParser.parse(analysisResult);
         
         Assert.assertEquals("val_id1", jsonObject.getProperty("analyzed_metric.attributes.id1"));
         Assert.assertEquals("val_id2", jsonObject.getProperty("analyzed_metric.attributes.id2"));
@@ -55,7 +55,7 @@ public class JSONParserTest{
         
         AnalysisResult analysisResult = new AnalysisResult();
         
-        JSONObject jsonObject = JSONParser.parse(analysisResult);
+        JSON jsonObject = JSONParser.parse(analysisResult);
         
         Assert.assertNull(jsonObject.getProperty("actual_value"));
     }
@@ -63,7 +63,7 @@ public class JSONParserTest{
     @Test
     public void parseNull() throws Exception{
         
-        JSONObject jsonObject = JSONParser.parse(null);
+        JSON jsonObject = JSONParser.parse(null);
         
         Assert.assertNull(jsonObject);
     }

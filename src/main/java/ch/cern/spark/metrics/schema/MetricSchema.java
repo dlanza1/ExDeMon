@@ -29,7 +29,7 @@ import com.google.gson.JsonElement;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.json.JSONObject;
+import ch.cern.spark.json.JSON;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.value.ExceptionValue;
@@ -177,12 +177,14 @@ public class MetricSchema implements Serializable {
         return value.contains("*") || value.contains("+") || value.contains("(") || value.contains("*");
     }
 
-    public List<Metric> call(JSONObject jsonObject) {
+    public List<Metric> call(String jsonString) {
         if (configurationException != null) {
             ExceptionValue exception = new ExceptionValue(configurationException.getMessage());
 
             return Arrays.asList(new Metric(Instant.now(), exception, fixedAttributes));
         }
+        
+        JSON jsonObject = new JSON(jsonString);
         
         try {
             Map<String, String> attributesForMetric = new HashMap<>(fixedAttributes);

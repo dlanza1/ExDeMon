@@ -28,8 +28,8 @@ public class JSONParser {
     			})
     		.create();
 
-    public static<T> JSONObject parse(T javaObject) {    	
-        return javaObject == null ? null : new JSONObject(gson.toJson(javaObject));
+    public static<T> JSON parse(T javaObject) {    	
+        return javaObject == null ? null : new JSON(gson.toJson(javaObject));
     }
 
     public static boolean isValid(String jsonInString) {

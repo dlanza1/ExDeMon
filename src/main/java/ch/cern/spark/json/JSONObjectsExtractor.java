@@ -3,7 +3,7 @@ package ch.cern.spark.json;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.streaming.api.java.JavaDStream;
 
-public class JSONObjectsExtractor implements Function<JSONObject, JSONObject> {
+public class JSONObjectsExtractor implements Function<JSON, JSON> {
 
     private static final long serialVersionUID = -3335036457184289847L;
 
@@ -13,11 +13,11 @@ public class JSONObjectsExtractor implements Function<JSONObject, JSONObject> {
         this.elementToExtract = element;
     }
 
-    public static JavaDStream<JSONObject> apply(JavaDStream<JSONObject> inputStream, String element) {        
+    public static JavaDStream<JSON> apply(JavaDStream<JSON> inputStream, String element) {        
         return inputStream.map(new JSONObjectsExtractor(element));
     }
 
-    public JSONObject call(JSONObject inputObject) throws Exception {
+    public JSON call(JSON inputObject) throws Exception {
         return inputObject.getJSONObject(elementToExtract);
     }
 

@@ -10,7 +10,6 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import ch.cern.Cache;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.metrics.Metric;
 
 public class MetricSchemas {
@@ -46,7 +45,7 @@ public class MetricSchemas {
 		getCache().setExpiration(Properties.getCache().getExpirationPeriod());
 	}
 
-	public static JavaDStream<Metric> generate(JavaDStream<JSONObject> jsons, Properties propertiesSourceProps, String sourceId, MetricSchema sourceSchema) {
+	public static JavaDStream<Metric> generate(JavaDStream<String> jsons, Properties propertiesSourceProps, String sourceId, MetricSchema sourceSchema) {
 		return jsons.flatMap(new MetricSchemasF(propertiesSourceProps, sourceId, sourceSchema));
 	}
 

@@ -33,7 +33,7 @@ public class JSONObjectParserTest {
 				+ "\"return_code\":0}";
 		
 		try {
-			JSONObject listenerEvent = new JSONObject.Parser().parse(json.getBytes());
+			JSON listenerEvent = new JSON.Parser().parse(json.getBytes());
 			
 			Assert.assertNotNull(listenerEvent.getProperty("type"));
 			Assert.assertEquals("establish", listenerEvent.getProperty("type"));
@@ -89,7 +89,7 @@ public class JSONObjectParserTest {
 				+ "\"text\":\"02-NOV-2016 09:12:06 * unknown * other_type * 15\"}";
 		
 		try {
-			JSONObject listenerEvent = new JSONObject.Parser().parse(json.getBytes());
+			JSON listenerEvent = new JSON.Parser().parse(json.getBytes());
 			
 			Assert.assertNull(listenerEvent.getProperty("type"));
 		} catch (Exception e) {

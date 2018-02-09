@@ -6,10 +6,9 @@ import java.util.stream.Stream;
 import org.apache.spark.api.java.function.FlatMapFunction;
 
 import ch.cern.properties.Properties;
-import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.metrics.Metric;
 
-public class MetricSchemasF implements FlatMapFunction<JSONObject, Metric> {
+public class MetricSchemasF implements FlatMapFunction<String, Metric> {
 
 	private static final long serialVersionUID = 116123198242814348L;
 	
@@ -26,14 +25,14 @@ public class MetricSchemasF implements FlatMapFunction<JSONObject, Metric> {
 	}
 
 	@Override
-	public Iterator<Metric> call(JSONObject json) throws Exception {
+	public Iterator<Metric> call(String jsonString) throws Exception {
 		MetricSchemas.initCache(propertiesSourceProps);
 		
 		Stream<Metric> metrics = MetricSchemas.getCache().get().values().stream()
 												.filter(schema -> schema.containsSource(sourceID))
-												.flatMap(schema -> schema.call(json).stream());
+												.flatMap(schema -> schema.call(jsonString).stream());
 		
-		metrics = sourceSchema == null ? metrics : Stream.concat(sourceSchema.call(json).stream(), metrics);
+		metrics = sourceSchema == null ? metrics : Stream.concat(sourceSchema.call(jsonString).stream(), metrics);
 		
 		return metrics.map(metric -> {
 								metric.getAttributes().put("$source", sourceID);

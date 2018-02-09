@@ -12,21 +12,25 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.management.ManagementFactory;
 import java.text.ParseException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.LongAccumulator;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.json.JSONObject;
+import ch.cern.spark.json.JSON;
 import ch.cern.spark.metrics.Metric;
+import ch.cern.utils.TimeUtils;
 
 public class MetricSchemaTest {
 
@@ -37,6 +41,33 @@ public class MetricSchemaTest {
         parser = new MetricSchema("test");
     }
 
+//    @Test
+    public void performance() throws InterruptedException {
+        if(!ManagementFactory.getThreadMXBean().isThreadCpuTimeSupported())
+            return;
+        
+        LongAccumulator threadCpuTime = new LongAccumulator((a, b) -> a + b, 0);
+        
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    for (int i = 0; i < 10000000; i++)
+                        shouldGenerateSeveralMetricsWithSeveralValues();
+                } catch (Exception e) {}
+                
+                threadCpuTime.accumulate(ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId()));
+                
+                super.run();
+            }
+        };
+        thread.start();
+        thread.join();
+        
+        System.out.println("Took " + TimeUtils.toString(Duration.ofNanos(threadCpuTime.get())) + " ns");
+        
+    }
+    
     @Test
     public void shouldFilter() throws ParseException, ConfigurationException {
         Properties props = new Properties();
@@ -50,14 +81,14 @@ public class MetricSchemaTest {
 
         String jsonString = "{\"metadata\":{" + "\"type_prefix\":\"raw\"," + "\"version\":\"001\"," + "\"time\": "
                 + Instant.now().toEpochMilli() + " }}";
-        JSONObject jsonObject = new JSONObject(jsonString);
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        JSON jsonObject = new JSON(jsonString);
+        Iterator<Metric> metrics = parser.call(jsonObject.toString().toString()).iterator();
         assertTrue(metrics.hasNext());
 
         jsonString = "{\"metadata\":{" + "\"type_prefix\":\"raw\"," + "\"version\":\"002\"," + "\"time\": "
                 + Instant.now().toEpochMilli() + " }}";
-        jsonObject = new JSONObject(jsonString);
-        metrics = parser.call(jsonObject).iterator();
+        jsonObject = new JSON(jsonString);
+        metrics = parser.call(jsonObject.toString()).iterator();
         assertFalse(metrics.hasNext());
     }
     
@@ -74,10 +105,10 @@ public class MetricSchemaTest {
 
         String jsonString = "{\"metadata\":{" 
                                 + "\"type_prefix\":\"raw\"," 
-                                + "\"version\":\"001\"," 
+                                + "\"version\":1," 
                                 + "\"time\": " + Instant.now().toEpochMilli() + " }}";
-        JSONObject jsonObject = new JSONObject(jsonString);
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        JSON jsonObject = new JSON(jsonString);
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
         assertTrue(metrics.hasNext());
         Metric metric = metrics.next();
         assertEquals("a", metric.getValue().getAsString().get());
@@ -101,11 +132,11 @@ public class MetricSchemaTest {
         String jsonString = "{\"metadata\":{" + "\"timestamp\":1509520209883" + "},\"data\":{" + "\"payload\":{"
                 + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
                 + "}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
         parser.config(props);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         metrics.hasNext();
         Metric metric = metrics.next();
@@ -130,9 +161,9 @@ public class MetricSchemaTest {
         String jsonString = "{\"metadata\":{" + "\"timestamp\":1509520209883" + "},\"data\":{" + "\"payload\":{"
                 + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
                 + "}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         metrics.hasNext();
         Metric metric = metrics.next();
@@ -152,9 +183,9 @@ public class MetricSchemaTest {
         parser.config(props);
 
         String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         metrics.hasNext();
         Metric metric = metrics.next();
@@ -175,9 +206,9 @@ public class MetricSchemaTest {
         parser.config(props);
 
         String jsonString = "{\"a\":{\"b\":{\"error-12\": 1, \"error-23\": 2}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         metrics.hasNext();
         Metric metric = metrics.next();
@@ -198,9 +229,9 @@ public class MetricSchemaTest {
         parser.config(props);
 
         String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         metrics.hasNext();
         Metric metric = metrics.next();
@@ -222,9 +253,9 @@ public class MetricSchemaTest {
         parser.config(props);
 
         String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         metrics.hasNext();
         Metric metric = metrics.next();
@@ -246,9 +277,9 @@ public class MetricSchemaTest {
         parser.config(props);
 
         String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         metrics.hasNext();
         Metric metric = metrics.next();
@@ -265,8 +296,8 @@ public class MetricSchemaTest {
         props.setProperty("value.keys.data", "data");
         parser.config(props);
 
-        JSONObject jsonObject = new JSONObject("{\"data\": 1}");
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        JSON jsonObject = new JSON("{\"data\": 1}");
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
         assertEquals(Instant.now().toEpochMilli(), metrics.next().getTimestamp().toEpochMilli(), 10);
 
         assertFalse(metrics.hasNext());
@@ -281,20 +312,20 @@ public class MetricSchemaTest {
         props.setProperty("value.keys.data", "data");
         parser.config(props);
 
-        JSONObject jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":1509520209883 }, \"data\": 1}");
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        JSON jsonObject = new JSON("{\"metadata\":{\"timestamp\":1509520209883 }, \"data\": 1}");
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
         assertEquals(1509520209883l, metrics.next().getTimestamp().toEpochMilli());
 
-        jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":1509520209 }, \"data\": 1}");
-        metrics = parser.call(jsonObject).iterator();
+        jsonObject = new JSON("{\"metadata\":{\"timestamp\":1509520209 }, \"data\": 1}");
+        metrics = parser.call(jsonObject.toString()).iterator();
         assertEquals(1509520209000l, metrics.next().getTimestamp().toEpochMilli());
 
-        jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":\"2017-11-01T08:10:09+0100\" }, \"data\": 1}");
-        metrics = parser.call(jsonObject).iterator();
+        jsonObject = new JSON("{\"metadata\":{\"timestamp\":\"2017-11-01T08:10:09+0100\" }, \"data\": 1}");
+        metrics = parser.call(jsonObject.toString()).iterator();
         assertEquals(1509520209000l, metrics.next().getTimestamp().toEpochMilli());
 
-        jsonObject = new JSONObject("{\"metadata\":{\"timestamp\":\"2017-11-01 08:10:09+0100\" }, \"data\": 1}");
-        metrics = parser.call(jsonObject).iterator();
+        jsonObject = new JSON("{\"metadata\":{\"timestamp\":\"2017-11-01 08:10:09+0100\" }, \"data\": 1}");
+        metrics = parser.call(jsonObject.toString()).iterator();
         assertEquals(1509520209000l, metrics.next().getTimestamp().toEpochMilli());
 
         assertFalse(metrics.hasNext());
@@ -313,9 +344,9 @@ public class MetricSchemaTest {
         String jsonString = "{\"metadata\":{" + "\"timestamp\":1509520209883" + "},\"data\":{" + "\"payload\":{"
                 + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
                 + "}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         metrics.hasNext();
         Metric metric = metrics.next();
@@ -337,9 +368,9 @@ public class MetricSchemaTest {
         String jsonString = "{\"metadata\":{" + "\"timestamp\":1509520209" + "},\"data\":{" + "\"payload\":{"
                 + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
                 + "}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         metrics.hasNext();
         Metric metric = metrics.next();
@@ -361,9 +392,9 @@ public class MetricSchemaTest {
         String jsonString = "{\"metadata\":{" + "\"timestamp\":\"2017-10-20 02:00:12+0000\"" + "},\"data\":{"
                 + "\"payload\":{" + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89},"
                 + "\"thresholdsGQ2LQ\":2111.0}" + "}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         metrics.hasNext();
         Metric metric = metrics.next();
@@ -388,9 +419,9 @@ public class MetricSchemaTest {
         String jsonString = "{\"metadata\":{" + "\"timestamp\":\"2017-12-20 02:00:12\"" + "},\"data\":{"
                 + "\"payload\":{" + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89},"
                 + "\"thresholdsGQ2LQ\":2111.0}" + "}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         metrics.hasNext();
         Metric metric = metrics.next();
@@ -418,9 +449,9 @@ public class MetricSchemaTest {
         String jsonString = "{\"metadata\":{" + "\"timestamp\":\"2017 12 20\"" + "},\"data\":{" + "\"payload\":{"
                 + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
                 + "}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         metrics.hasNext();
         Metric metric = metrics.next();
@@ -448,9 +479,9 @@ public class MetricSchemaTest {
         String jsonString = "{\"metadata\":{" + "\"timestamp\":\"10:20:12\"" + "},\"data\":{" + "\"payload\":{"
                 + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
                 + "}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         assertTrue(metrics.hasNext());
         Metric metric = metrics.next();
@@ -473,9 +504,9 @@ public class MetricSchemaTest {
         String jsonString = "{\"metadata\":{" + "\"timestamp\":\"10:20:12\"" + "},\"data\":{" + "\"payload\":{"
                 + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
                 + "}}}";
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         assertTrue(metrics.hasNext());
         Metric metric = metrics.next();
@@ -509,9 +540,9 @@ public class MetricSchemaTest {
                 + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0},"
                 + "\"agent_url\":\"vocms0258.cern.ch\"," + "\"type\":\"site_info\"}" + "}" + "}";
 
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         metrics.hasNext();
         Metric metric = metrics.next();
@@ -548,9 +579,9 @@ public class MetricSchemaTest {
                 + "\"thresholdsGQ2LQ\":2111.0}," + "\"agent_url\":\"vocms0258.cern.ch\"," + "\"type\":\"site_info\"}"
                 + "}" + "}";
 
-        JSONObject jsonObject = new JSONObject(jsonString);
+        JSON jsonObject = new JSON(jsonString);
 
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
 
         assertTrue(metrics.hasNext());
         Metric metric = metrics.next();
