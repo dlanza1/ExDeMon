@@ -72,5 +72,6 @@ class MonitorSchema(ma.ModelSchema):
 
 if __name__ == "__main__":
     # Create the database schema
+    db.drop_all()
     db.create_all()
 
