@@ -19,6 +19,10 @@ class Schema(db.Model):
     data = db.Column('data', db.JSON, nullable=False)
     enabled = db.Column('enabled', db.Boolean, nullable=False)
 
+    __table_args__ = (
+        db.UniqueConstraint("name", "project", "environment"),
+    )
+
     def __repr__(self):
         return "<Schema(id='%s', name='%s', project='%s', environment='%s', 'data='%s')>" % (
                         self.id, self.name, self.project, self.environment, self.data)
@@ -32,6 +36,10 @@ class Metric(db.Model):
     environment = db.Column('environment', db.String(32), nullable=False)
     data = db.Column('data', db.JSON, nullable=False)
     enabled = db.Column('enabled', db.Boolean, nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint("name", "project", "environment"),
+    )
 
     def __init__(self, name, project, environment, data, enabled):
         self.name = name,
@@ -53,6 +61,10 @@ class Monitor(db.Model):
     environment = db.Column('environment', db.String(32), nullable=False)
     data = db.Column('data', db.JSON, nullable=False)
     enabled = db.Column('enabled', db.Boolean, nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint("name", "project", "environment"),
+    )
 
     def __repr__(self):
         return "<Monitor(id='%s', name='%s', project='%s', environment='%s', 'data='%s')>" % (

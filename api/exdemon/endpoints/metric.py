@@ -33,7 +33,9 @@ class MetricEndpoint(MethodView):
     def post(self, id):
         if request.json:
             r = request.json
-            db.engine.execute(text("INSERT INTO metric (name, project, environment, data, enabled) VALUES (:name, :project, :environment, :data, True);"), 
+            db.engine.execute(text("""INSERT INTO metric (name, project, environment, data, enabled) VALUES (:name, :project, :environment, :data, True)
+                                      ON CONFLICT (name, project, environment) DO UPDATE 
+                                      SET data = excluded.data, enabled = excluded.enabled;"""), 
                                     {'name': r['name'], 'project': r['project'], 'environment': r['environment'], 'data': json.dumps(r['data'])})
 
             metric_schema = MetricSchema()
