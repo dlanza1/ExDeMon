@@ -10,6 +10,8 @@ import java.util.function.Function;
 
 import ch.cern.Taggable;
 import ch.cern.spark.metrics.Metric;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @ToString
@@ -18,12 +20,16 @@ public class AnalysisResult implements Serializable, Taggable {
     private static final long serialVersionUID = -5307381437257371176L;
 
     public enum Status {OK, WARNING, ERROR, EXCEPTION};
-    public Status status;
-    public String status_reason;
+    @Getter
+    private Status status;
+    @Getter
+    private String status_reason;
     
-    public Instant analysis_timestamp;
+    @Setter
+    private Instant analysis_timestamp;
     
-    public Metric analyzed_metric;
+    @Getter
+    private Metric analyzed_metric;
     
     private Map<String, Object> analysis_params;
     
@@ -51,32 +57,12 @@ public class AnalysisResult implements Serializable, Taggable {
         this.status_reason = reason;
     }
 
-    public Status getStatus() {
-        return status;
-    }
-
     public void addAnalysisParam(String key, Object value) {
         analysis_params.put(key, value);
     }
 
     public boolean hasStatus() {
         return status != null;
-    }
-    
-    public Instant getAnalysisTimestamp(){
-        return analysis_timestamp;
-    }
-    
-    public void setAnalysisTimestamp(Instant time){
-        analysis_timestamp = time;
-    }
-    
-    public Metric getAnalyzedMetric(){
-        return analyzed_metric;
-    }
-    
-    public String getStatusReason() {
-        return status_reason;
     }
     
     public static AnalysisResult buildWithStatus(Status status, String reason){

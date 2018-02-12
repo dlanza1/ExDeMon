@@ -66,10 +66,10 @@ public abstract class Notificator extends Component implements Function<Analysis
     }
     
     public Optional<Notification> apply(AnalysisResult result) {
-        if(!filter.test(result.getAnalyzedMetric()))
+        if(!filter.test(result.getAnalyzed_metric()))
             return Optional.empty();
         
-    		Optional<String> reasonOpt = process(result.getStatus(), result.getAnalyzedMetric().getTimestamp());
+    		Optional<String> reasonOpt = process(result.getStatus(), result.getAnalyzed_metric().getTimestamp());
     		
     		if(!reasonOpt.isPresent())
     		    return Optional.empty();
@@ -78,13 +78,14 @@ public abstract class Notificator extends Component implements Function<Analysis
         notificationTags.putAll(tags);
     		
     		return Optional.of(new Notification(
-                		                result.getAnalyzedMetric().getTimestamp(),
+                		                result.getAnalyzed_metric().getTimestamp(),
                 		                "",
                 		                getId(),
-                		                result.getAnalyzedMetric().getAttributes(),
+                		                result.getAnalyzed_metric().getAttributes(),
                 		                reasonOpt.get(),
                 		                sinkIDs,
-                		                notificationTags));
+                		                notificationTags,
+                		                result));
     }
 
     public abstract Optional<String> process(Status status, Instant timestamp);

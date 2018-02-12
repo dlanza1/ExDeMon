@@ -50,7 +50,7 @@ public class HTTPSinkTest {
         
         Instant instant = Instant.now();
 		AnalysisResult analysisResult = new AnalysisResult();
-		analysisResult.setAnalysisTimestamp(instant);
+		analysisResult.setAnalysis_timestamp(instant);
 
         sink.send(Arrays.asList(new JsonPOSTRequest("", JSONParser.parse(analysisResult))).iterator());
 		

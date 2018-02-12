@@ -13,6 +13,7 @@ The following strings will be replaced by the notification corresponding informa
 * &lt;metric_attributes:key&gt; (will be replaced by the value of the specified attribute key)
 * &lt;datetime&gt;
 * &lt;reason&gt;
+* &lt;triggering_value&gt;
 * &lt;tags&gt; (will be replaced by the tag list)
 * &lt;tags:key&gt; (will be replaced by the value of the specified tag key)
 

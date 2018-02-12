@@ -164,7 +164,7 @@ public class MonitorReturningAnalysisResultsStreamTest extends StreamTestHelper<
 	private void assertException(String exceptionStartsWith, AnalysisResult analysisResult) {
         assertEquals(Status.EXCEPTION, analysisResult.getStatus());
         
-        assertTrue(analysisResult.getStatusReason().startsWith(exceptionStartsWith));
+        assertTrue(analysisResult.getStatus_reason().startsWith(exceptionStartsWith));
 	}
 
 }

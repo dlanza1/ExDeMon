@@ -91,46 +91,7 @@ public class NotificatorTest {
     }
 	
 	@Test
-    public void tagsShouldExtractMetricAttributes() throws Exception{
-        ConstantNotificator notificator = new ConstantNotificator();
-        notificator.setId("notId");
-        Properties properties = new Properties();
-        properties.setProperty("period", "10m");
-        properties.setProperty("statuses", "ERROR");
-        properties.setProperty("tags.email", "%email");
-        properties.setProperty("tags.new-tag.at-notificator", "%no-in-metric");
-        notificator.config(properties);
-        
-        Instant now = Instant.now();
-        
-        AnalysisResult result = new AnalysisResult();
-        Map<String, String> tags = new HashMap<>();
-        tags.put("email", "1234@cern.ch");
-        tags.put("group", "IT_DB");
-        result.setTags(tags);
-		result.setStatus(Status.ERROR, "");
-		Metric metric = new Metric(now, 0f, new HashMap<>());
-		result.setAnalyzedMetric(metric);
-		
-		assertFalse(notificator.apply(result).isPresent());
-		
-		Map<String, String> metricIds = new HashMap<>();
-		metricIds.put("email", "email_at-metric@cern.ch");
-		metric = new Metric(now.plus(Duration.ofMinutes(20)), 0f, metricIds );
-		result.setAnalyzedMetric(metric);
-		Optional<Notification> notification = notificator.apply(result);
-		
-        Map<String, String> expectedTags = new HashMap<>();
-        expectedTags.put("email", "email_at-metric@cern.ch");
-        expectedTags.put("group", "IT_DB");
-        expectedTags.put("new-tag.at-notificator", "%no-in-metric");
-        
-		assertTrue(notification.isPresent());
-		assertEquals(expectedTags, notification.get().getTags());
-    }
-	
-	@Test
-    public void sinksiDsShouldBeProcessed() throws Exception{
+    public void sinksIDsShouldBeProcessed() throws Exception{
         ConstantNotificator notificator = new ConstantNotificator();
         notificator.setId("notId");
         Properties properties = new Properties();

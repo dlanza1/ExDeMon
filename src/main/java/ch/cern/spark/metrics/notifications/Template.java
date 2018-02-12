@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ch.cern.spark.metrics.results.AnalysisResult;
 import lombok.NonNull;
 
 public class Template {
@@ -69,6 +70,11 @@ public class Template {
             }
         }
 
+        AnalysisResult triggeringResult = notification.getTriggeringResult();
+        
+        triggeringResult.getAnalyzed_metric().getValue();
+        text = text.replaceAll("<triggering_value>", String.valueOf(notification.getReason()));
+        
         return text;
     }
 

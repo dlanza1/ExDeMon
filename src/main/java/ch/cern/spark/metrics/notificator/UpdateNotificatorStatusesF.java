@@ -40,7 +40,7 @@ public class UpdateNotificatorStatusesF
         
         Optional<Notification> notification = Optional.empty();
         
-        if(!isSilentPeriod(status, notificator.getSilentPeriod(), result.getAnalyzedMetric().getTimestamp())) {
+        if(!isSilentPeriod(status, notificator.getSilentPeriod(), result.getAnalyzed_metric().getTimestamp())) {
             if (notificator.hasStatus())
                 ((HasStatus) notificator).load(status.getActiveStatus());
 
@@ -80,7 +80,7 @@ public class UpdateNotificatorStatusesF
             n.setMonitor_id(ids.getMonitor_id());
             n.setNotificator_id(ids.getNotificatorID());
             n.setMetric_attributes(ids.getMetric_attributes());
-            n.setNotification_timestamp(result.getAnalyzedMetric().getTimestamp());
+            n.setNotification_timestamp(result.getAnalyzed_metric().getTimestamp());
         });
 
         return notification;

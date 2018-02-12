@@ -32,7 +32,7 @@ public class AnalysisTest {
 		AnalysisResult result = analysis.apply(metric);
 		
 		assertEquals(Status.EXCEPTION, result.getStatus());
-		assertSame(metric, result.getAnalyzedMetric());
+		assertSame(metric, result.getAnalyzed_metric());
 	}
 	
 	@Test

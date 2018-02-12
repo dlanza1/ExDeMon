@@ -35,7 +35,7 @@ public class ComputeNotificatorKeysF implements PairFlatMapFunction<AnalysisResu
         		return new LinkedList<Tuple2<NotificatorStatusKey, AnalysisResult>>().iterator();
         Monitor monitor = monitorOpt.get();
         
-        Map<String, String> metricIDs = monitor.getMetricIDs(analysis.getAnalyzedMetric());
+        Map<String, String> metricIDs = monitor.getMetricIDs(analysis.getAnalyzed_metric());
         
         Set<String> notificatorIDs = monitor.getNotificators().keySet();
         
