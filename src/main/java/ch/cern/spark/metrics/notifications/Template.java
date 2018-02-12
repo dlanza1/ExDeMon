@@ -37,7 +37,7 @@ public class Template {
                 
                 String value = attributes.get(key);
                 
-                text = text.replaceAll("<metric_attributes:"+key+">", value != null ? value : "null");
+                text = text.replaceAll("<metric_attributes:"+key+">", String.valueOf(value));
                 
                 j++;
             }
@@ -64,7 +64,7 @@ public class Template {
                 
                 String value = apply(tags.get(key), notification);
                 
-                text = text.replaceAll("<tags:"+key+">", value != null ? value : "null");
+                text = text.replaceAll("<tags:"+key+">", String.valueOf(value));
                 
                 j++;
             }
@@ -74,6 +74,20 @@ public class Template {
         
         triggeringResult.getAnalyzed_metric().getValue();
         text = text.replaceAll("<triggering_value>", String.valueOf(notification.getReason()));
+        
+        Map<String, Object> analysisParams = triggeringResult.getAnalysisParams();
+        Matcher analysisParamMatcher = Pattern.compile("\\<analysis_param:([^>]+)\\>").matcher(text);        
+        while (analysisParamMatcher.find()) {
+            for (int j = 1; j <= analysisParamMatcher.groupCount(); j++) {
+                String key = analysisParamMatcher.group(j);
+                
+                String value = String.valueOf(analysisParams.get(key));
+                
+                text = text.replaceAll("<analysis_param:"+key+">", value);
+                
+                j++;
+            }
+        }
         
         return text;
     }

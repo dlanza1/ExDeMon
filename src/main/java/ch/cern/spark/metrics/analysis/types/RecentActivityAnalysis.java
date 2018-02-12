@@ -93,13 +93,16 @@ public class RecentActivityAnalysis extends NumericAnalysis implements HasStatus
         
         AnalysisResult result = new AnalysisResult();
         
-        double median = stats.getMean();
+        double mean = stats.getMean();
         double variance = stats.getStandardDeviation();
         
-        processErrorUpperbound(result, value, median, variance); 
-        processWarningUpperbound(result, value, median, variance);
-        processErrorLowerbound(result, value, median, variance);
-        processWarningLowerbound(result, value, median, variance);
+        result.addAnalysisParam("mean", mean);
+        result.addAnalysisParam("variance", variance);
+        
+        processErrorUpperbound(result, value, mean, variance); 
+        processWarningUpperbound(result, value, mean, variance);
+        processErrorLowerbound(result, value, mean, variance);
+        processWarningLowerbound(result, value, mean, variance);
         
         if(!result.hasStatus())
             result.setStatus(AnalysisResult.Status.OK, "Metric between thresholds");

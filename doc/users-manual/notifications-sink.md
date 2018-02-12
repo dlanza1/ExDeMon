@@ -16,6 +16,7 @@ The following strings will be replaced by the notification corresponding informa
 * &lt;triggering_value&gt;
 * &lt;tags&gt; (will be replaced by the tag list)
 * &lt;tags:key&gt; (will be replaced by the value of the specified tag key)
+* &lt;analysis_param:key&gt; (will be replaced by the value of the specified analysis parameter key)
 
 ## Elastic notifications sink
 
