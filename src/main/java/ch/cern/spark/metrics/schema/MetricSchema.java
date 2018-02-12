@@ -277,7 +277,7 @@ public class MetricSchema implements Serializable {
 
     private Instant toDate(String date_string) throws DateTimeParseException {
         if(format_auto == null)
-            format_auto = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd'T'HH:mm:ss[.SSS][Z]").toFormatter();
+            format_auto = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd['T'][ ]HH:mm:ss[.SSS][Z]").toFormatter();
         
         if (date_string == null || date_string.length() == 0)
             throw new DateTimeParseException("No data to parse", "", 0);
@@ -292,9 +292,14 @@ public class MetricSchema implements Serializable {
                     else
                         return Instant.ofEpochMilli(value);
                 }catch(Exception e) {}
+                
+                try {
+                    if(date_string.contains("T") && date_string.endsWith("Z"))
+                        return Instant.parse(date_string);
+                }catch(Exception e) {}
 
                 try {
-                    TemporalAccessor temporalAccesor = format_auto.parse(date_string.replace(" ", "T").replace("Z", ""));
+                    TemporalAccessor temporalAccesor = format_auto.parse(date_string);
                     
                     if (temporalAccesor.isSupported(ChronoField.INSTANT_SECONDS))
                         return Instant.from(temporalAccesor);
