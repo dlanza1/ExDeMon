@@ -3,9 +3,14 @@ package ch.cern;
 import java.time.Duration;
 import java.time.Instant;
 
+import org.apache.log4j.Logger;
+
 public abstract class Cache<T> {
 	
+    private transient final static Logger LOG = Logger.getLogger(Cache.class.getName());
+    
 	private transient T object = null;
+	private transient T previousObject;
 	
 	private Duration expirationPeriod = null;
 	
@@ -14,11 +19,23 @@ public abstract class Cache<T> {
 	public synchronized T get() throws Exception {
 		Instant currentTime = Instant.now();
 		
-	    if(object != null && hasExpired(currentTime))
+	    if(object != null && hasExpired(currentTime)) {
+	        previousObject = object;
 	    		object = null;
+	    }
 	    
 		if(object == null)
-			object = loadCache(currentTime);
+		    try {
+		        object = loadCache(currentTime);
+		    }catch(Exception e) {
+		        if(inErrorGetPrevious()) {
+		            LOG.error("Error when loading cache. Loading previous object...", e);
+		            
+		            return previousObject;
+		        }else {
+		            throw e;
+		        }
+		    }
 		
 		return object;
 	}
@@ -57,6 +74,14 @@ public abstract class Cache<T> {
 	}
     
     protected abstract T load() throws Exception;
+    
+    protected boolean inErrorGetPrevious() {
+        return false;
+    }
+    
+    public T getPreviousObject() {
+        return previousObject;
+    }
 
 	public Duration getExpirationPeriod() {
 		return expirationPeriod;

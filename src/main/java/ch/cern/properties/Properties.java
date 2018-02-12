@@ -239,9 +239,16 @@ public class Properties extends java.util.Properties {
                 LOG.info("Properties loaded from source.");
 
                 return properties;
+            }else {
+                LOG.info("Properties source not configured.");
+                
+                return propertiesSourceProps;
             }
-
-            return new Properties();
+        }
+        
+        @Override
+        protected boolean inErrorGetPrevious() {
+            return true;
         }
 
     }
