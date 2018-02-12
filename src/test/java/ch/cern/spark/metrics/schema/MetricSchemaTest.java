@@ -53,7 +53,7 @@ public class MetricSchemaTest {
             public void run() {
                 try {
                     for (int i = 0; i < 10000000; i++)
-                        shouldGenerateSeveralMetricsWithSeveralValues();
+                        severalAttributesWithRegexAndReplacementInAlias();
                 } catch (Exception e) {}
                 
                 threadCpuTime.accumulate(ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId()));
@@ -222,8 +222,7 @@ public class MetricSchemaTest {
     public void severalAttributesWithRegexAndReplacementInAlias() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "t");
-        props.setProperty("value.keys.t", "t");
+        props.setProperty("value.a.key", "a.b.error-1");
 
         props.setProperty(ATTRIBUTES_PARAM + ".error_+", "a.b.error-(.*)");
         parser.config(props);
