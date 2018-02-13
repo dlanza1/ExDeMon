@@ -56,12 +56,16 @@ Error and warning thresholds are computed using average and variance from previo
 - Lower warning threshold is computed as: mean - variance * warn.ratio
 - Lower error threshold is computed as: mean - variance * error.ratio
 
+Metrics which value is greater than (mean + variance * learning.upperbound.ratio) or less than (mean + variance * learning.lowerbound.ratio) will not be learnt.
+
 Configuration:
 ```
 monitor.<monitor-id>.analysis.type = recent
 monitor.<monitor-id>.analysis.period = <period like 1h, 3m or 45s> (default: 5m)
 monitor.<monitor-id>.analysis.error.ratio = <float> (dafault: 1.8)
 monitor.<monitor-id>.analysis.warn.ratio = <float> (dafault: 1.5)
+monitor.<monitor-id>.analysis.learning.upperbound.ratio = <float> (dafault: 1.8)
+monitor.<monitor-id>.analysis.learning.lowerbound.ratio = <float> (dafault: 1.8)
 # Each threshold can be activated by:
 monitor.<monitor-id>.analysis.error.upperbound = <true|false> (default: false)
 monitor.<monitor-id>.analysis.warn.upperbound  = <true|false> (default: false)

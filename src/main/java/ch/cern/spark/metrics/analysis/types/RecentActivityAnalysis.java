@@ -16,169 +16,189 @@ import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
 
 @RegisterComponent("recent")
-public class RecentActivityAnalysis extends NumericAnalysis implements HasStatus{
-    
+public class RecentActivityAnalysis extends NumericAnalysis implements HasStatus {
+
     private static final long serialVersionUID = 5419076430764447352L;
-    
+
     public static final String PERIOD_PARAM = "period";
     public static final Duration PERIOD_DEFAULT = Duration.ofMinutes(5);
     private Duration period;
-    
+
     public static String ERROR_UPPERBOUND_PARAM = "error.upperbound";
     private boolean error_upperbound = false;
-    
+
     public static String WARNING_UPPERBOUND_PARAM = "warn.upperbound";
     private boolean warning_upperbound = false;
-    
+
     public static String WARNING_LOWERBOUND_PARAM = "warn.lowerbound";
     private boolean warning_lowerbound = false;
-    
+
     public static String ERROR_LOWERBOUND_PARAM = "error.lowerbound";
     private boolean error_lowerbound = false;
-    
+
     private ValueHistory history;
 
     public static String ERROR_RATIO_PARAM = "error.ratio";
     public static float ERROR_RATIO_DEFAULT = 1.8f;
     private float error_ratio;
-    
+
     public static String WARN_RATIO_PARAM = "warn.ratio";
     public static float WARN_RATIO_DEFAULT = 1.5f;
     private float warn_ratio;
 
+    public static String LEARNING_UPPERBOUND_RATIO_PARAM = "learning.upperbound.ratio";
+    private float learning_upperbound_ratio;
+
+    public static String LEARNING_LOWERBOUND_RATIO_PARAM = "learning.lowerbound.ratio";
+    private float learning_lowerbound_ratio;
+
     @Override
     public void config(Properties properties) throws ConfigurationException {
         super.config(properties);
-        
+
         error_upperbound = properties.getBoolean(ERROR_UPPERBOUND_PARAM);
         warning_upperbound = properties.getBoolean(WARNING_UPPERBOUND_PARAM);
         warning_lowerbound = properties.getBoolean(WARNING_LOWERBOUND_PARAM);
         error_lowerbound = properties.getBoolean(ERROR_LOWERBOUND_PARAM);
-        
+
         error_ratio = properties.getFloat(ERROR_RATIO_PARAM, ERROR_RATIO_DEFAULT);
         warn_ratio = properties.getFloat(WARN_RATIO_PARAM, WARN_RATIO_DEFAULT);
-        
+
+        learning_upperbound_ratio = properties.getFloat(LEARNING_UPPERBOUND_RATIO_PARAM, ERROR_RATIO_DEFAULT);
+        learning_lowerbound_ratio = properties.getFloat(LEARNING_LOWERBOUND_RATIO_PARAM, ERROR_RATIO_DEFAULT);
+
         period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
         history = new ValueHistory();
-        
+
         properties.confirmAllPropertiesUsed();
     }
-    
+
     @Override
     public void load(StatusValue store) {
-        if(store == null){
+        if (store == null) {
             history = new ValueHistory();
-        }else{
+        } else {
             history = ((ValueHistory.Status) store).history;
         }
     }
-    
+
     @Override
     public StatusValue save() {
         ValueHistory.Status store = new ValueHistory.Status();
-        
+
         store.history = history;
-        
+
         return store;
     }
 
     @Override
     public AnalysisResult process(Instant timestamp, double value) {
-        if(period != null)
+        if (period != null)
             history.purge(timestamp.minus(period));
-        
+
         DescriptiveStatistics stats = history.getStatistics();
 
-        history.add(timestamp, new FloatValue(value));
-        
-        AnalysisResult result = new AnalysisResult();
-        
         double mean = stats.getMean();
         double variance = stats.getStandardDeviation();
-        
+
+        AnalysisResult result = new AnalysisResult();
+
+        if (history.size() < 10 || shouldBeLearnt(result, value, mean, variance))
+            history.add(timestamp, new FloatValue(value));
+
         result.addAnalysisParam("mean", mean);
         result.addAnalysisParam("variance", variance);
-        
-        processErrorUpperbound(result, value, mean, variance); 
+
+        processErrorUpperbound(result, value, mean, variance);
         processWarningUpperbound(result, value, mean, variance);
         processErrorLowerbound(result, value, mean, variance);
         processWarningLowerbound(result, value, mean, variance);
-        
-        if(!result.hasStatus())
+
+        if (!result.hasStatus())
             result.setStatus(AnalysisResult.Status.OK, "Metric between thresholds");
-        
+
         return result;
     }
-    
+
+    private boolean shouldBeLearnt(AnalysisResult resultvalue, double value, double mean, double variance) {
+        double learning_upperbound = mean + variance * learning_upperbound_ratio;
+        resultvalue.addAnalysisParam("learning_upperbound", learning_upperbound);
+        
+        double learning_lowerbound = mean - variance * learning_lowerbound_ratio;
+        resultvalue.addAnalysisParam("learning_lowerbound", learning_lowerbound);
+        
+        return learning_upperbound > value && value > learning_lowerbound;
+    }
+
     private void processErrorLowerbound(AnalysisResult result, double value, double average, double variance) {
-        if(!error_lowerbound)
+        if (!error_lowerbound)
             return;
-        
-        double error_lowerbound_value = average - variance * error_ratio ;
+
+        double error_lowerbound_value = average - variance * error_ratio;
         result.addAnalysisParam("error_lowerbound", error_lowerbound_value);
-        
-        if(result.hasStatus())
+
+        if (result.hasStatus())
             return;
-        
-        if(value < error_lowerbound_value){
-            result.setStatus(AnalysisResult.Status.ERROR, 
-                    "Value (" + value + ") is less than "
-                            + "average value from history minus variance * " + ERROR_RATIO_PARAM
-                            + " (" + average + " - (" + variance + " * " + error_ratio  + ") = " + error_lowerbound_value + ")");
+
+        if (value < error_lowerbound_value) {
+            result.setStatus(AnalysisResult.Status.ERROR,
+                    "Value (" + value + ") is less than " + "average value from history minus variance * "
+                            + ERROR_RATIO_PARAM + " (" + average + " - (" + variance + " * " + error_ratio + ") = "
+                            + error_lowerbound_value + ")");
         }
     }
 
     private void processWarningLowerbound(AnalysisResult result, double value, double average, double variance) {
-        if(!warning_lowerbound)
+        if (!warning_lowerbound)
             return;
-        
+
         double warning_lowerbound_value = average - variance * warn_ratio;
         result.addAnalysisParam("warning_lowerbound", warning_lowerbound_value);
-        
-        if(result.hasStatus())
+
+        if (result.hasStatus())
             return;
-        
-        if(value < warning_lowerbound_value){
-            result.setStatus(AnalysisResult.Status.WARNING, 
-                    "Value (" + value + ") is less than "
-                            + "average value from history minus std deviation " + WARN_RATIO_PARAM
-                            + " (" + average + " - (" + variance + " * " + warn_ratio  + ") = " + warning_lowerbound_value + ")");
+
+        if (value < warning_lowerbound_value) {
+            result.setStatus(AnalysisResult.Status.WARNING,
+                    "Value (" + value + ") is less than " + "average value from history minus std deviation "
+                            + WARN_RATIO_PARAM + " (" + average + " - (" + variance + " * " + warn_ratio + ") = "
+                            + warning_lowerbound_value + ")");
         }
     }
 
     private void processWarningUpperbound(AnalysisResult result, double value, double average, double variance) {
-        if(!warning_upperbound)
+        if (!warning_upperbound)
             return;
-        
+
         double warning_upperbound_value = average + variance * warn_ratio;
         result.addAnalysisParam("warning_upperbound", warning_upperbound_value);
-        
-        if(result.hasStatus())
+
+        if (result.hasStatus())
             return;
-        
-        if(value > warning_upperbound_value){
-            result.setStatus(AnalysisResult.Status.WARNING, 
-                    "Value (" + value + ") is higher than "
-                            + "average value from history plus variance * " + WARN_RATIO_PARAM
-                            + " (" + average + " + (" + variance + " * " + warn_ratio  + ") = " + warning_upperbound_value + ")");
+
+        if (value > warning_upperbound_value) {
+            result.setStatus(AnalysisResult.Status.WARNING,
+                    "Value (" + value + ") is higher than " + "average value from history plus variance * "
+                            + WARN_RATIO_PARAM + " (" + average + " + (" + variance + " * " + warn_ratio + ") = "
+                            + warning_upperbound_value + ")");
         }
     }
 
     private void processErrorUpperbound(AnalysisResult result, double value, double average, double variance) {
-        if(!error_upperbound)
+        if (!error_upperbound)
             return;
-        
+
         double error_upperbound_value = average + variance * error_ratio;
         result.addAnalysisParam("error_upperbound", error_upperbound_value);
-        
-        if(result.hasStatus())
+
+        if (result.hasStatus())
             return;
-        
-        if(value > error_upperbound_value){
-            result.setStatus(AnalysisResult.Status.ERROR, 
-                    "Value (" + value + ") is higher than "
-                            + "average value from history plus variance * " + ERROR_RATIO_PARAM
-                            + " (" + average + " + (" + variance + " * " + error_ratio  + ") = " + error_upperbound_value + ")");
+
+        if (value > error_upperbound_value) {
+            result.setStatus(AnalysisResult.Status.ERROR,
+                    "Value (" + value + ") is higher than " + "average value from history plus variance * "
+                            + ERROR_RATIO_PARAM + " (" + average + " + (" + variance + " * " + error_ratio + ") = "
+                            + error_upperbound_value + ")");
         }
     }
 

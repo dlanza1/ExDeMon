@@ -49,6 +49,45 @@ public class RecentActivityAnalysisTest {
     }
     
     @Test
+    public void notLearning() throws Exception{
+        RecentActivityAnalysis analysis = new RecentActivityAnalysis();
+        
+        Properties properties = new Properties();
+        properties.put(RecentActivityAnalysis.PERIOD_PARAM, "30s");
+        properties.put(RecentActivityAnalysis.WARN_RATIO_PARAM, "2");
+        properties.put(RecentActivityAnalysis.ERROR_RATIO_PARAM, "3");
+        properties.put(RecentActivityAnalysis.ERROR_UPPERBOUND_PARAM, Boolean.TRUE.toString());
+        properties.put(RecentActivityAnalysis.WARNING_UPPERBOUND_PARAM, Boolean.TRUE.toString());
+        properties.put(RecentActivityAnalysis.WARNING_LOWERBOUND_PARAM, Boolean.TRUE.toString());
+        properties.put(RecentActivityAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
+        analysis.config(properties);
+        
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(3), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(4), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(5), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(6), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(7), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(8), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(9), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(10), 40f).getStatus());
+        // Average  35
+        // Variance 5.3
+        
+        //Not learnt
+        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(11), 1000f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(12), -1000f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(13), 1000f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(14), -1000f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(15), 1000f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(16), -1000f).getStatus());
+        
+        // WARNING UP = 35 + 2 * 5.3 = 45.6
+        Assert.assertEquals(AnalysisResult.Status.WARNING,  analysis.process(Instant.ofEpochSecond(17), 46f).getStatus());
+    }
+    
+    @Test
     public void analysisWarningUP() throws Exception{
         RecentActivityAnalysis analysis = new RecentActivityAnalysis();
         
