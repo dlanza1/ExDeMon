@@ -8,7 +8,7 @@ def load():
     """
     try:
         # Load configuration from file
-        config = ConfigParser.ConfigParser()
+        config = ConfigParser.ConfigParser(defaults={'host': '127.0.0.1', 'port': '5000'})
         number_read_files = config.read('/etc/exdemon/api.cfg')
 
         # check the config file exist and can be read

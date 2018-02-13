@@ -1,5 +1,7 @@
 [api]
 debug=true
+host=localhost
+port=5000
 
 [database]
 host=localhost
