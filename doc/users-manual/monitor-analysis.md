@@ -49,7 +49,9 @@ An example of the result of this analysis can be seen in the following image.
 
 Filter metrics with float values.
 
-Error and warning thresholds are computed using average and variance from previos period.
+Error and warning thresholds are computed using average and variance from previous period. Period is indicated with "pareiod" parameter.
+
+Optionally, a learning ratio can be configured with "learning.ratio" parameter. In that case "period" will be ignored and average and variance will be learnt by using this ratio.  
 
 - Upper error threshold is computed as: mean + variance * error.ratio
 - Upper warning threshold is computed as: mean + variance * warn.ratio
@@ -62,6 +64,7 @@ Configuration:
 ```
 monitor.<monitor-id>.analysis.type = recent
 monitor.<monitor-id>.analysis.period = <period like 1h, 3m or 45s> (default: 5m)
+monitor.<monitor-id>.analysis.learning.ratio = <float> (dafault: not-set)
 monitor.<monitor-id>.analysis.error.ratio = <float> (dafault: 1.8)
 monitor.<monitor-id>.analysis.warn.ratio = <float> (dafault: 1.5)
 monitor.<monitor-id>.analysis.learning.upperbound.ratio = <float> (dafault: 1.8)

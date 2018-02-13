@@ -68,7 +68,7 @@ public class AnalysisFuncTest {
 		properties.setProperty("variables.ana_props.error.upperbound", "true");
 		definedMetric.config(properties);
 
-		assertResult(true, 	Metric(0, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
+		assertResult(false, 	Metric(0, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
 		assertResult(true, 	Metric(1, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
 		assertResult(true,	Metric(2, 9f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
 		assertResult(true,	Metric(3, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));

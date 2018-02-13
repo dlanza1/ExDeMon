@@ -62,7 +62,7 @@ public class RecentActivityAnalysisTest {
         properties.put(RecentActivityAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
         analysis.config(properties);
         
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(3), 30f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(4), 40f).getStatus());
@@ -88,6 +88,49 @@ public class RecentActivityAnalysisTest {
     }
     
     @Test
+    public void learningRatio() throws Exception{
+        RecentActivityAnalysis analysis = new RecentActivityAnalysis();
+        
+        Properties properties = new Properties();
+        properties.put(RecentActivityAnalysis.LEARNING_RATIO_PARAM, "0.1");
+        properties.put(RecentActivityAnalysis.WARN_RATIO_PARAM, "2");
+        properties.put(RecentActivityAnalysis.ERROR_RATIO_PARAM, "3");
+        properties.put(RecentActivityAnalysis.ERROR_UPPERBOUND_PARAM, Boolean.TRUE.toString());
+        properties.put(RecentActivityAnalysis.WARNING_UPPERBOUND_PARAM, Boolean.TRUE.toString());
+        properties.put(RecentActivityAnalysis.WARNING_LOWERBOUND_PARAM, Boolean.TRUE.toString());
+        properties.put(RecentActivityAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
+        analysis.config(properties);
+        
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.now(), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.now(), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.now(), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.now(), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.now(), 30f).getStatus());
+    }
+    
+    @Test
+    public void learningRatioStartWith0Variance() throws Exception{
+        RecentActivityAnalysis analysis = new RecentActivityAnalysis();
+        
+        Properties properties = new Properties();
+        properties.put(RecentActivityAnalysis.LEARNING_RATIO_PARAM, "0.1");
+        properties.put(RecentActivityAnalysis.WARN_RATIO_PARAM, "2");
+        properties.put(RecentActivityAnalysis.ERROR_RATIO_PARAM, "3");
+        properties.put(RecentActivityAnalysis.ERROR_UPPERBOUND_PARAM, Boolean.TRUE.toString());
+        properties.put(RecentActivityAnalysis.WARNING_UPPERBOUND_PARAM, Boolean.TRUE.toString());
+        properties.put(RecentActivityAnalysis.WARNING_LOWERBOUND_PARAM, Boolean.TRUE.toString());
+        properties.put(RecentActivityAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
+        analysis.config(properties);
+        
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.now(), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.now(), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.now(), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.now(), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.now(), 40f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.now(), 40f).getStatus());
+    }
+    
+    @Test
     public void analysisWarningUP() throws Exception{
         RecentActivityAnalysis analysis = new RecentActivityAnalysis();
         
@@ -101,7 +144,7 @@ public class RecentActivityAnalysisTest {
         properties.put(RecentActivityAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
         analysis.config(properties);
         
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(3), 30f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(4), 40f).getStatus());
@@ -130,7 +173,7 @@ public class RecentActivityAnalysisTest {
         properties.put(RecentActivityAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
         analysis.config(properties);
         
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(3), 30f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(4), 40f).getStatus());
@@ -159,7 +202,7 @@ public class RecentActivityAnalysisTest {
         properties.put(RecentActivityAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
         analysis.config(properties);
         
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(3), 30f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(4), 40f).getStatus());
@@ -188,7 +231,7 @@ public class RecentActivityAnalysisTest {
         properties.put(RecentActivityAnalysis.ERROR_LOWERBOUND_PARAM, Boolean.TRUE.toString());
         analysis.config(properties);
         
-        Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
+        Assert.assertEquals(AnalysisResult.Status.EXCEPTION,analysis.process(Instant.ofEpochSecond(1), 30f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.ERROR,    analysis.process(Instant.ofEpochSecond(2), 40f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(3), 30f).getStatus());
         Assert.assertEquals(AnalysisResult.Status.OK,       analysis.process(Instant.ofEpochSecond(4), 40f).getStatus());

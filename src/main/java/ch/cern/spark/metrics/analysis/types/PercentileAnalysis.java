@@ -15,7 +15,10 @@ import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
+import lombok.Getter;
+import lombok.ToString;
 
+@ToString
 @RegisterComponent("percentile")
 public class PercentileAnalysis extends NumericAnalysis implements HasStatus{
     
@@ -23,36 +26,45 @@ public class PercentileAnalysis extends NumericAnalysis implements HasStatus{
     
     public static final String PERIOD_PARAM = "period";
     public static final Duration PERIOD_DEFAULT = Duration.ofMinutes(5);
+    @Getter
     private Duration period;
     
     public static String ERROR_UPPERBOUND_PARAM = "error.upperbound";
+    @Getter
     private boolean error_upperbound = false;
     
     public static String WARNING_UPPERBOUND_PARAM = "warn.upperbound";
+    @Getter
     private boolean warning_upperbound = false;
     
     public static String WARNING_LOWERBOUND_PARAM = "warn.lowerbound";
+    @Getter
     private boolean warning_lowerbound = false;
     
     public static String ERROR_LOWERBOUND_PARAM = "error.lowerbound";
+    @Getter
     private boolean error_lowerbound = false;
     
     private ValueHistory history;
 
     public static String ERROR_PERCENTILE_PARAM = "error.percentile";
     public static float ERROR_PERCENTILE_DEFAULT = 99;
+    @Getter
     private float error_percentile;
     
     public static String WARN_PERCENTILE_PARAM = "warn.percentile";
     public static float WARN_PERCENTILE_DEFAULT = 98;
+    @Getter
     private float warn_percentile;
     
     public static String ERROR_RATIO_PARAM = "error.ratio";
     public static float ERROR_RATIO_DEFAULT = 0.3f;
+    @Getter
     private float error_ratio;
     
     public static String WARN_RATIO_PARAM = "warn.ratio";
     public static float WARN_RATIO_DEFAULT = 0.2f;
+    @Getter
     private float warn_ratio;
 
     @Override
@@ -211,46 +223,6 @@ public class PercentileAnalysis extends NumericAnalysis implements HasStatus{
                             + " + difference with median (" + diff + ")"
                             + " * error.ratio (" + error_ratio + ") " + " (=" + threshold + ")");
         }
-    }
-
-    public Duration getPeriod() {
-        return period;
-    }
-
-    public boolean isError_upperbound() {
-        return error_upperbound;
-    }
-
-    public boolean isWarning_upperbound() {
-        return warning_upperbound;
-    }
-
-    public boolean isWarning_lowerbound() {
-        return warning_lowerbound;
-    }
-
-    public boolean isError_lowerbound() {
-        return error_lowerbound;
-    }
-
-    public ValueHistory getHistory() {
-        return history;
-    }
-
-    public float getError_percentile() {
-        return error_percentile;
-    }
-
-    public float getWarn_percentile() {
-        return warn_percentile;
-    }
-
-    public float getError_ratio() {
-        return error_ratio;
-    }
-
-    public float getWarn_ratio() {
-        return warn_ratio;
     }
 
 }
