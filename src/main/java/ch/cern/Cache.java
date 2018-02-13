@@ -2,6 +2,7 @@ package ch.cern;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 
 import org.apache.log4j.Logger;
 
@@ -79,8 +80,8 @@ public abstract class Cache<T> {
         return false;
     }
     
-    public T getPreviousObject() {
-        return previousObject;
+    public Optional<T> getPreviousObject() {
+        return Optional.ofNullable(previousObject);
     }
 
 	public Duration getExpirationPeriod() {
