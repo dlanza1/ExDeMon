@@ -136,7 +136,7 @@ public final class Driver {
 
     public JavaDStream<Metric> getMetricStream(Properties propertiesSourceProps) {
 		return metricSources.stream()
-				.map(source -> MetricSchemas.generate(source.createJavaDStream(ssc), propertiesSourceProps, source.getId(), source.getSchema()))
+				.map(source -> MetricSchemas.generate(source.stream(ssc), propertiesSourceProps, source.getId()))
 				.reduce((str, stro) -> str.union(stro)).get();
 	}
 

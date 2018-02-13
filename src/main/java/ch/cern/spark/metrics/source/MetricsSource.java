@@ -8,38 +8,33 @@ import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.schema.MetricSchema;
-import lombok.Getter;
-import lombok.Setter;
 
 @ComponentType(Type.METRIC_SOURCE)
 public abstract class MetricsSource extends Component {
 
     private static final long serialVersionUID = -6197974524956447741L;
-
-    @Getter @Setter
-	private MetricSchema schema;
+    
+    private int partitions;
 
 	@Override
 	public void config(Properties properties) throws ConfigurationException {
 		properties.isTypeDefined();
 		
-		Properties schemaProps = properties.getSubset("schema");
-		if(schemaProps.size() > 0) {
-			schemaProps.setProperty("sources", getId());
-			
-			this.schema = new MetricSchema(getId()).tryConfig(schemaProps);
-		}else {
-			schema = null;
-		}
+		partitions = (int) properties.getLong("partitions", -1);
+	}
+	
+	public JavaDStream<String> stream(JavaStreamingContext ssc){
+	    JavaDStream<String> stream = createJavaDStream(ssc);
+	    
+	    return partitions > 0 ? stream.repartition(partitions) : stream;
 	}
 
 	/**
 	 * Obtain metrics from external services as JSON strings.
 	 * 
 	 * @param ssc Spark context
-	 * @return valid JSON object string.
+	 * @return DStream of valid JSON object strings.
 	 */
-	public abstract JavaDStream<String> createJavaDStream(JavaStreamingContext ssc);
+	protected abstract JavaDStream<String> createJavaDStream(JavaStreamingContext ssc);
     
 }

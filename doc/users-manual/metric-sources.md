@@ -1,11 +1,11 @@
 # Metric sources
 
-Metric sources produces JSON documents which represent metrics. These JSON documents are later interpreted by metric schemas.
+Metric sources produces JSON documents. These JSON documents are later interpreted by metric schemas to be parsed to metrics.
 
-Optionally, a metrics schema can be configured in the source. This metric schema cannot be updated once the application is running.
+Optionally, generated stream can be repartitioned with "partitions" parameter. By default, no repartitioning is done.
 
 ```
-metrics.source.<metric-source-id-n>.schema.<configs at JSON to Metric schema> = <values>
+metrics.source.<metric-source-id-n>.partitions = <number-of-partitions>
 ```
 
 ## Kafka metric source
@@ -21,5 +21,4 @@ metrics.source.<source-id>.consumer.bootstrap.servers = <bootstrap_servers separ
 metrics.source.<source-id>.consumer.group.id = <consumer_group_id>
 # All these parameters (source.consumer.) will by passed to the consumer
 metrics.source.<source-id>.consumer.<any_other_key> = <any_other_value>
-metrics.source.<source-id>.schema.<configs at metric schema definition section> = <values>
 ```

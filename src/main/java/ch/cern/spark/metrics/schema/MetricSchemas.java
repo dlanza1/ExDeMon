@@ -45,8 +45,8 @@ public class MetricSchemas {
 		getCache().setExpiration(Properties.getCache().getExpirationPeriod());
 	}
 
-	public static JavaDStream<Metric> generate(JavaDStream<String> jsons, Properties propertiesSourceProps, String sourceId, MetricSchema sourceSchema) {
-		return jsons.flatMap(new MetricSchemasF(propertiesSourceProps, sourceId, sourceSchema));
+	public static JavaDStream<Metric> generate(JavaDStream<String> jsons, Properties propertiesSourceProps, String sourceId) {
+		return jsons.flatMap(new MetricSchemasF(propertiesSourceProps, sourceId));
 	}
 
 }

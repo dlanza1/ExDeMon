@@ -16,12 +16,9 @@ public class MetricSchemasF implements FlatMapFunction<String, Metric> {
 	
 	private Properties propertiesSourceProps;
 
-	private MetricSchema sourceSchema;
-
-	public MetricSchemasF(Properties propertiesSourceProps, String sourceId, MetricSchema sourceSchema) {
+	public MetricSchemasF(Properties propertiesSourceProps, String sourceId) {
 		this.sourceID = sourceId;
 		this.propertiesSourceProps = propertiesSourceProps;
-		this.sourceSchema = sourceSchema;
 	}
 
 	@Override
@@ -31,8 +28,6 @@ public class MetricSchemasF implements FlatMapFunction<String, Metric> {
 		Stream<Metric> metrics = MetricSchemas.getCache().get().values().stream()
 												.filter(schema -> schema.containsSource(sourceID))
 												.flatMap(schema -> schema.call(jsonString).stream());
-		
-		metrics = sourceSchema == null ? metrics : Stream.concat(sourceSchema.call(jsonString).stream(), metrics);
 		
 		return metrics.map(metric -> {
 								metric.getAttributes().put("$source", sourceID);
