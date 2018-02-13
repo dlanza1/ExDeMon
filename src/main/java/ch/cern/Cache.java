@@ -28,7 +28,7 @@ public abstract class Cache<T> {
 		    try {
 		        object = loadCache(currentTime);
 		    }catch(Exception e) {
-		        if(inErrorGetPrevious()) {
+		        if(inErrorGetPrevious() && previousObject != null) {
 		            LOG.error("Error when loading cache. Loading previous object...", e);
 		            
 		            return previousObject;
