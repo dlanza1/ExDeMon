@@ -32,9 +32,6 @@ public class DriverTest {
 		props.setProperty("spark.driver.allowMultipleContexts", "true");
     		props.setProperty("metrics.source.kafka.type", "kafka");
     		props.setProperty("metrics.source.kafka.topics", "topic");
-    		props.setProperty("metrics.source.kafka.schema.attributes", "att1 att2");
-    		props.setProperty("metrics.source.kafka.schema.value.keys.value", "value");
-    		props.setProperty("metrics.source.kafka.schema.timestamp.key", "timestamp");
         
         try{
         		Driver driver = new Driver(props);
@@ -53,9 +50,6 @@ public class DriverTest {
     		props.setProperty("spark.driver.allowMultipleContexts", "true");
     		props.setProperty("metrics.source.kafka.type", "kafka");
     		props.setProperty("metrics.source.kafka.topics", "topic");
-    		props.setProperty("metrics.source.kafka.schema.attributes", "att1 att2");
-    		props.setProperty("metrics.source.kafka.schema.value.keys.value", "value");
-    		props.setProperty("metrics.source.kafka.schema.timestamp.key", "timestamp");
     		props.setProperty("results.sink.type", "elastic");
         
         Driver driver = new Driver(props);
@@ -69,9 +63,6 @@ public class DriverTest {
     		props.setProperty("spark.driver.allowMultipleContexts", "true");
     		props.setProperty("metrics.source.kafka.type", "kafka");
     		props.setProperty("metrics.source.kafka.topics", "topic");
-    		props.setProperty("metrics.source.kafka.schema.attributes", "att1 att2");
-    		props.setProperty("metrics.source.kafka.schema.value.keys.value", "value");
-    		props.setProperty("metrics.source.kafka.schema.timestamp.key", "timestamp");
     		props.setProperty("notifications.sink.elastic.type", "elastic");
         
         Driver driver = new Driver(props);
