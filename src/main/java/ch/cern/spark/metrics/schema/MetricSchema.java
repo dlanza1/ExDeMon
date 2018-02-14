@@ -336,7 +336,7 @@ public class MetricSchema implements Serializable {
     }
 
     public boolean containsSource(String sourceID) {
-        return sources.contains(sourceID);
+        return sources != null && sources.contains(sourceID);
     }
 
 }
