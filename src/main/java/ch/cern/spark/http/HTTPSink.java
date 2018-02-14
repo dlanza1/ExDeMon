@@ -200,13 +200,14 @@ public class HTTPSink implements Serializable{
 		
 		Exception thrownException = new Exception();
 		
-		for (int i = 0; i < retries && thrownException != null; i++) {
+		int retry = 0;
+		for (; retry < retries && thrownException != null; retry++) {
 			try {
 				trySend(httpClient, request);
 				
 				thrownException = null;
 			} catch (Exception e) {
-				LOG.error(e.getMessage(), e);
+				LOG.error("Error sending request (retry " + retry + "): " + request, e);
 				
 				thrownException = e;
 				
@@ -214,6 +215,9 @@ public class HTTPSink implements Serializable{
 				httpClient = getHTTPClient();
 			}	
 		}
+		
+		if(retry > 1)
+		    LOG.info("Request sent successfully after " + (retry) + "retries");
 		
 		return thrownException;	
 	}
