@@ -6,6 +6,7 @@ import java.util.HashSet;
 
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.results.AnalysisResult;
+import ch.cern.spark.metrics.results.AnalysisResult.Status;
 
 public class NotificationTest {
     
@@ -21,6 +22,7 @@ public class NotificationTest {
                         new HashMap<>(),
                         new AnalysisResult());
         DUMMY.getTriggeringResult().setAnalyzedMetric(new Metric(Instant.now(), 1234f, new HashMap<>()));
+        DUMMY.getTriggeringResult().setStatus(Status.OK, "dummy");
     }
 
 }

@@ -72,8 +72,9 @@ public class Template {
 
         AnalysisResult triggeringResult = notification.getTriggeringResult();
         
-        triggeringResult.getAnalyzed_metric().getValue();
-        text = text.replaceAll("<triggering_value>", String.valueOf(notification.getReason()));
+        text = text.replaceAll("<triggering_value>", String.valueOf(triggeringResult.getAnalyzed_metric().getValue()));
+        
+        text = text.replaceAll("<analysis_status>", String.valueOf(triggeringResult.getStatus().toString().toLowerCase()));
         
         Map<String, Object> analysisParams = triggeringResult.getAnalysisParams();
         Matcher analysisParamMatcher = Pattern.compile("\\<analysis_param:([^>]+)\\>").matcher(text);        
