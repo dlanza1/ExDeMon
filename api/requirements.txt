@@ -1,5 +1,6 @@
 flask
 psycopg2
-flask_sqlalchemy
+flask-sqlalchemy
 configparser
+flask-marshmallow
 marshmallow-sqlalchemy
