@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -103,9 +104,17 @@ public class HTTPSink implements Serializable{
 	public void sink(JavaDStream<?> outputStream) {
 		outputStream = outputStream.repartition(parallelization);
 		
-		JavaDStream<JsonPOSTRequest> requestsStream = outputStream.map(object -> toJsonPOSTRequest(object));
+		JavaDStream<JsonPOSTRequest> requestsStream = outputStream.flatMap(object -> {
+		        try {
+		            return Collections.singleton(toJsonPOSTRequest(object)).iterator();
+		        }catch(Exception e) {
+		            LOG.error("Error when parsing object to request. Object=" + String.valueOf(object), e);
+		            
+		            return Collections.emptyIterator();
+		        }
+		    });
 		
-		requestsStream.foreachRDD(rdd -> rdd.foreachPartition(strings -> send(strings)));
+		requestsStream.foreachRDD(rdd -> rdd.foreachPartition(requests -> send(requests)));
 	}
 
     public JsonPOSTRequest toJsonPOSTRequest(Object object) throws ParseException {
