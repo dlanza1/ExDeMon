@@ -2,6 +2,11 @@ package ch.cern.utils;
 
 import java.io.Serializable;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+@ToString
+@EqualsAndHashCode(callSuper=false)
 public class Pair<K, V> implements Serializable{
 
     private static final long serialVersionUID = 4231657422199019843L;
@@ -15,11 +20,6 @@ public class Pair<K, V> implements Serializable{
         this.second = second;
     }
 
-    @Override
-    public String toString() {
-        return "Pair [first=" + first + ", second=" + second + "]";
-    }
-    
     public K first() {
     		return first;
     }

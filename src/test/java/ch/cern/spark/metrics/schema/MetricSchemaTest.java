@@ -34,11 +34,11 @@ import ch.cern.utils.TimeUtils;
 
 public class MetricSchemaTest {
 
-    private MetricSchema parser = new MetricSchema("test");
+    private MetricSchema parser;
 
     @Before
     public void setUp() {
-        parser = new MetricSchema("test");
+        parser = new MetricSchema("test" + (int)(Math.random() * 10000));
     }
 
 //    @Test
@@ -467,6 +467,35 @@ public class MetricSchemaTest {
 
         assertFalse(metrics.hasNext());
     }
+    
+    @Test
+    public void shouldNotGenerateSameExceptions() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy MM dd");
+        props.setProperty("value.keys.data.payload.WMBS_INFO.thresholds.pending_slots",
+                "data.payload.WMBS_INFO.thresholds.pending_slots");
+        parser.config(props);
+
+        String jsonString = "{\"metadata\":{" + "\"timestamp\":\"10:20:12\"" + "},\"data\":{" + "\"payload\":{"
+                + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
+                + "}}}";
+        JSON jsonObject = new JSON(jsonString);
+
+        Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
+
+        assertTrue(metrics.hasNext());
+        Metric metric = metrics.next();
+        assertTrue(metric.getValue().getAsException().isPresent());
+        assertFalse(metrics.hasNext());
+        
+        metrics = parser.call(jsonObject.toString()).iterator();
+        assertFalse(metrics.hasNext());
+        
+        metrics = parser.call(jsonObject.toString()).iterator();
+        assertFalse(metrics.hasNext());
+    }
 
     @Test
     public void shouldGenerateExceptionMetricIfTimestampHasWrongFormatInDateFormat()
@@ -516,7 +545,7 @@ public class MetricSchemaTest {
         assertNotNull(metric.getTimestamp());
         assertTrue(metric.getValue().getAsException().isPresent());
         assertEquals(3, metric.getAttributes().size());
-        assertEquals("test", metric.getAttributes().get("$schema"));
+        assertTrue("test", metric.getAttributes().get("$schema").startsWith("test"));
         assertEquals("data.payload.WMBS_INFO.thresholds.pending_slots", metric.getAttributes().get("$value"));
 
         assertFalse(metrics.hasNext());
@@ -552,7 +581,7 @@ public class MetricSchemaTest {
         assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
         assertEquals(2815f, metric.getValue().getAsFloat().get(), 0f);
         assertEquals(5, metric.getAttributes().size());
-        assertEquals("test", metric.getAttributes().get("$schema"));
+        assertTrue("test", metric.getAttributes().get("$schema").startsWith("test"));
         assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getAttributes().get("$value"));
         assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
         assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
@@ -591,7 +620,7 @@ public class MetricSchemaTest {
         assertNotNull(metric.getTimestamp());
         assertTrue(metric.getValue().getAsException().isPresent());
         assertEquals(5, metric.getAttributes().size());
-        assertEquals("test", metric.getAttributes().get("$schema"));
+        assertTrue("test", metric.getAttributes().get("$schema").startsWith("test"));
         assertEquals("data.payload.WMBS_INFO.thresholds.running_slots", metric.getAttributes().get("$value"));
         assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
         assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
@@ -601,7 +630,7 @@ public class MetricSchemaTest {
         assertNotNull(metric.getTimestamp());
         assertTrue(metric.getValue().getAsException().isPresent());
         assertEquals(5, metric.getAttributes().size());
-        assertEquals("test", metric.getAttributes().get("$schema"));
+        assertTrue("test", metric.getAttributes().get("$schema").startsWith("test"));
         assertEquals("data.payload.WMBS_INFO.thresholds.pending_slots", metric.getAttributes().get("$value"));
         assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
         assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));

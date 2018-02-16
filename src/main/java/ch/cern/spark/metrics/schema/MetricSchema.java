@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.schema;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -34,6 +35,7 @@ import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.Value;
+import ch.cern.utils.ExceptionsCache;
 import ch.cern.utils.Pair;
 import lombok.Getter;
 import lombok.ToString;
@@ -72,6 +74,7 @@ public class MetricSchema implements Serializable {
     public static String FILTER_PARAM = "filter";
     protected MetricsFilter filter;
 
+    private static transient ExceptionsCache exceptionsCache = new ExceptionsCache(Duration.ofMinutes(1));
     protected Exception configurationException;    
 
     public MetricSchema(String id) {
@@ -179,9 +182,12 @@ public class MetricSchema implements Serializable {
 
     public List<Metric> call(String jsonString) {
         if (configurationException != null) {
-            ExceptionValue exception = new ExceptionValue(configurationException.getMessage());
+            Optional<ExceptionValue> exceptionValueOpt = raiseException(null, configurationException);
 
-            return Arrays.asList(new Metric(Instant.now(), exception, fixedAttributes));
+            if(exceptionValueOpt.isPresent())
+                return Collections.singletonList(new Metric(Instant.now(), exceptionValueOpt.get(), fixedAttributes));
+            else
+                return Collections.emptyList();
         }
         
         JSON jsonObject = new JSON(jsonString);
@@ -251,7 +257,10 @@ public class MetricSchema implements Serializable {
                 metric_ids.put("$value_attribute", id); 
 
                 if (timestampException != null) {
-                    metrics.add(new Metric(timestamp, new ExceptionValue(timestampException.getMessage()), metric_ids));
+                    Optional<ExceptionValue> exceptionValueOpt = raiseException(id, timestampException);
+                    if(exceptionValueOpt.isPresent())
+                        metrics.add(new Metric(timestamp, exceptionValueOpt.get(), metric_ids));
+                    
                     continue;
                 }
                 
@@ -263,12 +272,25 @@ public class MetricSchema implements Serializable {
 
             return metrics.stream().filter(filter).collect(Collectors.toList());
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-            
-            ExceptionValue exception = new ExceptionValue(e.getMessage());
+            Optional<ExceptionValue> exceptionValueOpt = raiseException(null, e);
 
-            return Arrays.asList(new Metric(Instant.now(), exception, fixedAttributes));
+            if(exceptionValueOpt.isPresent())
+                return Collections.singletonList(new Metric(Instant.now(), exceptionValueOpt.get(), fixedAttributes));
+            else
+                return Collections.emptyList();
         }
+    }
+
+    private Optional<ExceptionValue> raiseException(String value, Exception exception) {
+        if(!exceptionsCache.wasRecentlyRaised(id + value, exception)) {
+            LOG.error(exception.getMessage(), exception);
+            
+            exceptionsCache.raised(id + value, exception);
+            
+            return Optional.of(new ExceptionValue(exception.getMessage()));
+        }
+        
+        return Optional.empty();
     }
 
     private boolean isFixedValue(String key) {
