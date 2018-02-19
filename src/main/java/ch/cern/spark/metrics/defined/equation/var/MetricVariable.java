@@ -196,7 +196,20 @@ public class MetricVariable extends Variable {
 	        AggregationValues aggValues = ((AggregationValues) status);
 	        
 	        aggValues.setMax_aggregation_size(max_aggregation_size);
-	        aggValues.add(metric.getAttributes().hashCode(), metric.getValue(), metric.getTimestamp());
+	        
+	        int hash = 0;
+	        
+	        if(aggregateSelectALL)
+	            hash = metric.getAttributes().hashCode();
+	        
+	        if(aggregateSelectAtt != null)
+	            hash = metric.getAttributes().entrySet().stream()
+                                                    .filter(e -> aggregateSelectAtt.contains(e.getKey()))
+                                                    .collect(Collectors.toList())
+                                                    .hashCode();
+	        
+	        if(aggregateSelectALL || (hash != 1 && hash != 0))
+	            aggValues.add(hash, metric.getValue(), metric.getTimestamp());
 	    }
 
 	    return status;        
