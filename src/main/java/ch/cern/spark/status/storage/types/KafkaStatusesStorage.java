@@ -226,7 +226,9 @@ public class KafkaStatusesStorage extends StatusesStorage {
 		
 		rdd = rdd.filter(tuple -> isUpdatedState(tuple, time));
 		
-		rdd.foreachPartition(new KafkaProducerFunc<K, V>(kafkaProducerParams, serializer, topic));
+		rdd = rdd.repartition(10);
+		
+		rdd.foreachPartitionAsync(new KafkaProducerFunc<K, V>(kafkaProducerParams, serializer, topic));
 	}
 	
     private <K extends StatusKey, V extends StatusValue> boolean isUpdatedState(Tuple2<K, V> tuple, Time time) {
@@ -239,7 +241,9 @@ public class KafkaStatusesStorage extends StatusesStorage {
     public <K extends StatusKey> void remove(JavaRDD<K> rdd) {
         JavaRDD<Tuple2<K, StatusValue>> keyWithNulls = rdd.map(key -> new Tuple2<K, StatusValue>(key, null));
         
-        keyWithNulls.foreachPartition(new KafkaProducerFunc<K, StatusValue>(kafkaProducerParams, serializer, topic));
+        keyWithNulls = keyWithNulls.repartition(10);
+        
+        keyWithNulls.foreachPartitionAsync(new KafkaProducerFunc<K, StatusValue>(kafkaProducerParams, serializer, topic));
     }
 
 	private Map<String, Object> getKafkaProducerParams(Properties props) {

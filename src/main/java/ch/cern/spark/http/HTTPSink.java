@@ -114,7 +114,7 @@ public class HTTPSink implements Serializable{
 		        }
 		    });
 		
-		requestsStream.foreachRDD(rdd -> rdd.foreachPartition(requests -> send(requests)));
+		requestsStream.foreachRDD(rdd -> rdd.foreachPartitionAsync(requests -> send(requests)));
 	}
 
     public JsonPOSTRequest toJsonPOSTRequest(Object object) throws ParseException {
