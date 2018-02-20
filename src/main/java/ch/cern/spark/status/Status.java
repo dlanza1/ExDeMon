@@ -52,9 +52,13 @@ public class Status {
         
 		//Map values and remove states
         StateSpec<K, ActionOrValue<V>, S, RemoveAndValue<K, R>> statusSpec = StateSpec.function(updateStatusFunction).initialState(initialStates.rdd());
+        statusSpec.numPartitions(10);
+        
         Option<Duration> timeout = getStatusExpirationPeriod(context);
         if(timeout.isDefined())
             statusSpec = statusSpec.timeout(timeout.get());
+        
+        actionsOrValues.checkpoint(Duration.apply(120 * 1000));
         
         JavaMapWithStateDStream<K, ActionOrValue<V>, S, RemoveAndValue<K, R>> statusStream = actionsOrValues.mapWithState(statusSpec);
         

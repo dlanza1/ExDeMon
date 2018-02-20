@@ -226,8 +226,6 @@ public class KafkaStatusesStorage extends StatusesStorage {
 		
 		rdd = rdd.filter(tuple -> isUpdatedState(tuple, time));
 		
-		rdd = rdd.repartition(10);
-		
 		rdd.foreachPartitionAsync(new KafkaProducerFunc<K, V>(kafkaProducerParams, serializer, topic));
 	}
 	
@@ -240,8 +238,6 @@ public class KafkaStatusesStorage extends StatusesStorage {
     @Override
     public <K extends StatusKey> void remove(JavaRDD<K> rdd) {
         JavaRDD<Tuple2<K, StatusValue>> keyWithNulls = rdd.map(key -> new Tuple2<K, StatusValue>(key, null));
-        
-        keyWithNulls = keyWithNulls.repartition(10);
         
         keyWithNulls.foreachPartitionAsync(new KafkaProducerFunc<K, StatusValue>(kafkaProducerParams, serializer, topic));
     }
