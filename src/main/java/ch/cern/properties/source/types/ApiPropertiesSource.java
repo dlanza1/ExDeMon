@@ -32,19 +32,21 @@ public class ApiPropertiesSource extends PropertiesSource {
 
     @Override
     public Properties load() throws Exception {
-        Properties props = new Properties();
-
         try {
+            Properties props = new Properties();
+            
             LOG.info("Reading from API...");
             loadSchemas(props);
             loadMetrics(props);
             loadMonitors(props);
             LOG.info("Loaded");
+            
+            return props;
         } catch(Exception e) {
             LOG.error(e.getMessage(), e);
+            
+            throw e;
         }
-        
-        return props;
     }
     
     protected JsonObject loadFromUrl(String url) throws Exception {
