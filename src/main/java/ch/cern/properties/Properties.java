@@ -77,6 +77,17 @@ public class Properties extends java.util.Properties {
 
         return props;
     }
+    
+    public static Properties fromJson(String possibleJSON) {
+        Properties props = null;
+        
+        if(JSONParser.isValid(possibleJSON)) {
+            JsonObject jsonObject = new JsonParser().parse(possibleJSON).getAsJsonObject();
+            props = from(jsonObject);
+        }
+        
+        return props;
+    }
 
     public List<String> getKeysThatStartWith(String prefix) {
         return keySet().stream().map(String::valueOf).filter(s -> s.startsWith(prefix)).collect(Collectors.toList());
@@ -285,6 +296,14 @@ public class Properties extends java.util.Properties {
                 properties.addProperties(item.getKey(), from(item.getValue().getAsJsonObject()));
         
         return properties;
+    }
+    
+    public void addFrom(JsonObject json) {
+        for (Map.Entry<String, JsonElement> item : json.entrySet())
+            if(item.getValue().isJsonPrimitive())
+                this.setProperty(item.getKey(), item.getValue().getAsJsonPrimitive().getAsString());
+            else if(item.getValue().isJsonObject())
+                this.addProperties(item.getKey(), from(item.getValue().getAsJsonObject()));
     }
 
 }
