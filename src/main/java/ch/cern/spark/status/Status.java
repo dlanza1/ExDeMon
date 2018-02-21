@@ -58,8 +58,6 @@ public class Status {
         if(timeout.isDefined())
             statusSpec = statusSpec.timeout(timeout.get());
         
-        actionsOrValues.checkpoint(Duration.apply(120 * 1000));
-        
         JavaMapWithStateDStream<K, ActionOrValue<V>, S, RemoveAndValue<K, R>> statusStream = actionsOrValues.mapWithState(statusSpec);
         
         //Keys that has been removed while mapping with states

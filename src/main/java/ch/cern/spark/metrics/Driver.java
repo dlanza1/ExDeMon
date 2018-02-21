@@ -123,7 +123,10 @@ public final class Driver {
 		JavaDStream<Notification> notifications = Monitors.notify(results, propertiesSourceProps, statusesToRemove);
 		
     		notificationsSinks.stream().forEach(sink -> sink.sink(notifications));
-		
+    		
+    		//Make batch synchronous in case all output operations are async
+    		notifications.foreachRDD(rdd -> {});
+
 		return ssc;
 	}
 
