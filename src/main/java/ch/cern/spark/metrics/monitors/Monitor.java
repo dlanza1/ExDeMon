@@ -51,7 +51,7 @@ public class Monitor {
     public Monitor config(Properties properties) {
     		try {
 			return tryConfig(properties);
-		} catch (ConfigurationException e) {
+		} catch (Exception e) {
 		    LOG.error(id + ": " + e.getMessage(), e);
 		    
 			InErrorMonitor errorMonitor = new InErrorMonitor(id, e);

@@ -33,7 +33,7 @@ public class InErrorMonitor extends Monitor {
 
 	private Map<String, String> tags;
 	
-	public InErrorMonitor(String id, ConfigurationException e) {
+	public InErrorMonitor(String id, Exception e) {
 		super(id);
 		
 		exception = e;
