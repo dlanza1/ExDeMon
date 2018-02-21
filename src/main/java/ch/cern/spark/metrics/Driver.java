@@ -125,7 +125,7 @@ public final class Driver {
     		notificationsSinks.stream().forEach(sink -> sink.sink(notifications));
     		
     		//Make batch synchronous in case all output operations are async
-    		notifications.foreachRDD(rdd -> {});
+    		notifications.foreachRDD(rdd -> rdd.foreachPartition(it -> it.hasNext()));
 
 		return ssc;
 	}
