@@ -144,9 +144,7 @@ public class NotificatorTest {
 		result.setAnalyzedMetric(metric);
 		notif = notificator.apply(result);
 		
-		Set<String> expectedSinkIds = new HashSet<>();
-		expectedSinkIds.add("ALL");
-		assertEquals(expectedSinkIds, notif.get().getSink_ids());
+		assertTrue(notif.get().getSink_ids().isEmpty());
     }
     
 }

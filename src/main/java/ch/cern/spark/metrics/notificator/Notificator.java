@@ -51,8 +51,11 @@ public abstract class Notificator extends Component implements Function<Analysis
     
     @Override
     public void config(Properties properties) throws ConfigurationException {
-    		String sinksString = properties.getProperty("sinks", "ALL");
-    		sinkIDs = new HashSet<>(Arrays.asList(sinksString.split("\\s")));
+    		String sinksString = properties.getProperty("sinks");
+    		if(sinksString != null)
+    		    sinkIDs = new HashSet<>(Arrays.asList(sinksString.split("\\s")));
+    		else
+    		    sinkIDs = new HashSet<>();
     		
     		tags = properties.getSubset("tags").toStringMap();
     		

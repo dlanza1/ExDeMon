@@ -8,7 +8,7 @@ All notificators have at least the following parameters:
 monitor.<monitor-id>.notificator.<notificator-id>.type = <type> (default: statuses)
 monitor.<monitor-id>.notificator.<notificator-id>.filter.attribute.<analyzed_metric_attribute_key> = <[!]regex_or_exact_value>
 monitor.<monitor-id>.notificator.<notificator-id>.filter.attribute... (as many attributes as needed)
-monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|notifications-sinks-ids> (default: ALL)
+monitor.<monitor-id>.notificator.<notificator-id>.sinks = <ALL|notifications-sinks-ids> (default: none)
 monitor.<monitor-id>.notificator.<notificator-id>.silent.period = <period like 1h, 3m or 45s> (default: 0)
 monitor.<monitor-id>.notificator.<notificator-id>.silent.notificator.type = <type> (default: not set)
 monitor.<monitor-id>.notificator.<notificator-id>.silent.notificator....
