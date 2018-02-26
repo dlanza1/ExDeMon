@@ -17,7 +17,9 @@ public class HTTPActuator extends Actuator {
 	private HTTPSink sink = new HTTPSink();
 
 	@Override
-	public void tryConfig(Properties properties) throws ConfigurationException {
+	public void config(Properties properties) throws ConfigurationException {
+		super.config(properties);
+		
 		properties.setPropertyIfAbsent(HTTPSink.RETRIES_PARAM, "5");
 		sink.config(properties);
 	}

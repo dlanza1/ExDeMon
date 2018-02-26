@@ -24,7 +24,9 @@ public class ElasticActuator extends Actuator {
     private Map<String, String> elasticConfig;
 
     @Override
-    public void tryConfig(Properties properties) throws ConfigurationException {
+    public void config(Properties properties) throws ConfigurationException {
+        super.config(properties);
+        
         indexName = properties.getProperty("index");
         
         elasticConfig = getElasticConfig(properties);
