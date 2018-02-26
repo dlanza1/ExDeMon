@@ -10,7 +10,7 @@ Any component can override the config() method. Properties parameter will contai
 
 ### State for stateful components
 
-Defined metrics, analysis and notificators may need to keep some historical data. If so, the component can implement the interface ch.cern.spark.status.HasState.
+Defined metrics, analysis and triggers may need to keep some historical data. If so, the component can implement the interface ch.cern.spark.status.HasState.
 
 The save() method must return an object which implemeants the interface StateValue and contains only the data that needs to be stored.
 
@@ -47,16 +47,16 @@ This component produce results for each of the incoming metrics. These results c
 
 Externally developed analysis results sinks must extend ch.cern.spark.metrics.results.sink.AnalysisResultsSink.
 
-### Notificator
+### Triggers
 
-This component determines when to raise a notifications based on analysis results.
+This component determines when to raise an action based on analysis results.
 
-Externally developed notificators must extend ch.cern.spark.metrics.notificator.Notificator.
+Externally developed triggers must extend ch.cern.spark.metrics.trigger.Trigger.
 
 If same data need to be kept, this component can have a [Status](#store-for-stateful-components).
 
-### Notifications sink
+### Actuators
 
-Notifications produced by notificators are sink using this component. Notifications can be sinked to an external storage, sent by email, used to trigger actions, etc. 
+Actions produced by triggers are processed using this component. Actions can be sinked to an external storage, sent by email, used to run jobs, etc. 
 
 Externally developed analysis results sinks must extend ch.cern.spark.metrics.results.sink.AnalysisResultsSink.

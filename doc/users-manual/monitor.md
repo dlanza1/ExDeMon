@@ -1,11 +1,11 @@
 # Monitors
 
-Monitor is the abstraction used in this application to determine what [metrics](metrics.md) should be monitored, how and when to raise notifications.
+Monitor is the abstraction used in this application to determine what [metrics](metrics.md) should be monitored, how and when to trigger actions.
 
 Each monitor have:
 * Optionally, a [filter](metrics-filter.md) to determine what metrics should be monitor. If not filter is applied, all metrics will be processed.
 * An [analysis](monitor-analysis.md) to determine the status of each metric. Default analysis always results in status OK.
-* Zero or more [notificators](monitor-notificator.md), they determine when to raise notifications.
+* Zero or more [triggers](monitor-triggers.md), they determine when to raise actions.
 
 The configuration parameters can be seen below.
 
@@ -17,18 +17,18 @@ monitor.<monitor-id>.filter.attribute... (as many attributes as needed)
 ## analysis
 monitor.<monitor-id>.analysis.type = <analysis_type> (default: none analysis)
 monitor.<monitor-id>.analysis.<other_confs> = <value>
-## notificators (optional)
-monitor.<monitor-id>.notificator.<notificator-id-1>.type = <notificator-type>
-monitor.<monitor-id>.notificator.<notificator-id-1>.sinks = <ALL|space separated notificatios sink ids> (default: ALL)
-monitor.<monitor-id>.notificator.<notificator-id-1>.tags.<tag-key-1> = <value-1>
-monitor.<monitor-id>.notificator.<notificator-id-1>.tags.<tag-key-2> = <value-2>
-monitor.<monitor-id>.notificator.<notificator-id-1>.tags.<tag-key-n> = <value-n>
-monitor.<monitor-id>.notificator.<notificator-id-1>.<other_confs> = <value>
-monitor.<monitor-id>.notificator.<notificator-id-n>... (as many notificators as needed)
-monitor.<monitor-id>.notificator.$error.type = <notificator-type> (default: constant)
-monitor.<monitor-id>.notificator.$error.sinks = <sinks> (default: ALL)
-monitor.<monitor-id>.notificator.$error.statuses = EXCEPTION
-monitor.<monitor-id>.notificator.$error.period = <period> (default: 10m)
+## triggers (optional)
+monitor.<monitor-id>.triggers.<trigger-id-1>.type = <trigger-type>
+monitor.<monitor-id>.triggers.<trigger-id-1>.actuators = <ALL|space separated actuators ids> (default: ALL)
+monitor.<monitor-id>.triggers.<trigger-id-1>.tags.<tag-key-1> = <value-1>
+monitor.<monitor-id>.triggers.<trigger-id-1>.tags.<tag-key-2> = <value-2>
+monitor.<monitor-id>.triggers.<trigger-id-1>.tags.<tag-key-n> = <value-n>
+monitor.<monitor-id>.triggers.<trigger-id-1>.<other_confs> = <value>
+monitor.<monitor-id>.triggers.<trigger-id-n>... (as many triggers as needed)
+monitor.<monitor-id>.triggers.$error.type = <trigger-type> (default: constant)
+monitor.<monitor-id>.triggers.$error.sinks = <sinks> (default: ALL)
+monitor.<monitor-id>.triggers.$error.statuses = EXCEPTION
+monitor.<monitor-id>.triggers.$error.period = <period> (default: 10m)
 monitor.<monitor-id>.tags.<tag-key-1> = <value-1>
 monitor.<monitor-id>.tags.<tag-key-2> = <value-2>
 monitor.<monitor-id>.tags.<tag-key-n> = <value-n>
@@ -36,17 +36,17 @@ monitor.<monitor-id>.tags.<tag-key-n> = <value-n>
 
 Configuration of monitors can be updated while running.
 
-## $error notificator
+## $error trigger
 
-If a monitor has a configuration error, notifications are sent using $error notificator. Its configuration can be changed with monitor.<monitor-id>.notificator.$error parameters.
+If a monitor has a configuration error, actions are triggered using $error trigger. Its configuration can be changed with monitor.<monitor-id>.triggers.$error parameters.
 
-Notice that if you specify any configuration parameter for $error, other default values are not longer set, so full notificator configuration should be provided. 
+Notice that if you specify any configuration parameter for $error, other default values are not longer set, so full trigger configuration should be provided. 
 
 Monitor will constantly produce metrics of type exception, so statuses will be always set to EXCEPTION.
 
 ## Tags
 
-Each monitor or notificator can have different tags that are included in the analysis results and notifications that the monitor produces.
+Each monitor or trigger can have different tags that are included in the analysis results and actions that the monitor produces.
 
 They could be used to later discriminate the data, to aggregate, to target notifications (email, group, system), configure sinks, ...
 
@@ -58,13 +58,13 @@ monitor.<monitor-id>.tags.<tag-key-2> = <value-2>
 monitor.<monitor-id>.tags.<tag-key-n> = <value-n>
 ```
 
-Tags at monitor level are override by notificator tags. Merged tags from monitor and notificator are included in notifications.
+Tags at monitor level are override by trigger tags. Merged tags from monitor and trigger are included in actions.
 
 ```
-monitor.<monitor-id>.notificator.<notificator-id>.tags.<tag-key> = <value>
+monitor.<monitor-id>.triggers.<trigger-id>.tags.<tag-key> = <value>
 ```
 
-Tags used for configuring sinks are removed from the notifications.
+Tags used for configuring actuators are removed from the actions.
 
 The value of any tag can be extracted from an attribute of the analyzed metric. For that you should follow the syntax:
 

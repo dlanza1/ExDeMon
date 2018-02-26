@@ -30,9 +30,9 @@ import org.mockito.ArgumentCaptor;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSONParser;
-import ch.cern.spark.metrics.notifications.Notification;
-import ch.cern.spark.metrics.notifications.NotificationTest;
 import ch.cern.spark.metrics.results.AnalysisResult;
+import ch.cern.spark.metrics.trigger.action.Action;
+import ch.cern.spark.metrics.trigger.action.ActionTest;
 
 public class HTTPSinkTest {
 
@@ -77,18 +77,18 @@ public class HTTPSinkTest {
         HTTPSink sink = new HTTPSink();
         sink.config(properties);
         
-        Notification notification = NotificationTest.DUMMY;
+        Action action = ActionTest.DUMMY;
         Set<String> sinks = new HashSet<>();
         sinks.add("ALL");
-        notification.setSink_ids(sinks);
+        action.setActuatorIDs(sinks);
         Map<String, String> tags = new HashMap<>();
         tags.put("url-suffix", "/job/id/23/");
         tags.put("header_tag", "fromtag1");
         tags.put("metric_id_tag", "1234");
         tags.put("payload_tag", "fromtag2");
-        notification.setTags(tags);
+        action.setTags(tags);
         
-        JsonPOSTRequest jsonResult = sink.toJsonPOSTRequest(notification);
+        JsonPOSTRequest jsonResult = sink.toJsonPOSTRequest(action);
         
         assertEquals("https://abcd.cern.ch//job/id/23/", jsonResult.getUrl());
         

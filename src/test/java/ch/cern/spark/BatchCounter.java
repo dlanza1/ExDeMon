@@ -56,44 +56,30 @@ public class BatchCounter implements StreamingListener{
 
 	@Override
 	public void onBatchSubmitted(StreamingListenerBatchSubmitted arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void onOutputOperationCompleted(StreamingListenerOutputOperationCompleted arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void onOutputOperationStarted(StreamingListenerOutputOperationStarted arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void onReceiverError(StreamingListenerReceiverError arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void onReceiverStarted(StreamingListenerReceiverStarted arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void onReceiverStopped(StreamingListenerReceiverStopped arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 
     @Override
-    public void onStreamingStarted(StreamingListenerStreamingStarted arg0) {
-        // TODO Auto-generated method stub
-        
+    public void onStreamingStarted(StreamingListenerStreamingStarted arg0) {   
     }
 	
 }

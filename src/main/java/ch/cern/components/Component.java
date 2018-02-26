@@ -18,8 +18,8 @@ public abstract class Component implements Serializable {
     						AGGREGATION,
     						ANAYLSIS, 
     						ANALYSIS_RESULTS_SINK, 
-    						NOTIFICATOR, 
-    						NOTIFICATIONS_SINK};
+    						TRIGGER, 
+    						ACTUATOR};
     						
     	private String id;
     	

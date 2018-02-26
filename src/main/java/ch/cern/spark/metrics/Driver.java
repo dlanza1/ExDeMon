@@ -27,14 +27,14 @@ import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.spark.metrics.defined.equation.var.agg.AggregationValues;
 import ch.cern.spark.metrics.monitors.MonitorStatusKey;
 import ch.cern.spark.metrics.monitors.Monitors;
-import ch.cern.spark.metrics.notifications.Notification;
-import ch.cern.spark.metrics.notifications.sink.NotificationsSink;
-import ch.cern.spark.metrics.notificator.NotificatorStatus;
-import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
 import ch.cern.spark.metrics.schema.MetricSchemas;
 import ch.cern.spark.metrics.source.MetricsSource;
+import ch.cern.spark.metrics.trigger.TriggerStatus;
+import ch.cern.spark.metrics.trigger.TriggerStatusKey;
+import ch.cern.spark.metrics.trigger.action.Action;
+import ch.cern.spark.metrics.trigger.action.actuator.Actuator;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusesKeyReceiver;
 import ch.cern.spark.status.storage.StatusesStorage;
@@ -50,7 +50,7 @@ public final class Driver {
     
 	private List<MetricsSource> metricSources;
 	private Optional<AnalysisResultsSink> analysisResultsSink;
-	private List<NotificationsSink> notificationsSinks;
+	private List<Actuator> actuators;
 
 	public static String STATUSES_REMOVAL_SOCKET_PARAM = "statuses.removal.socket";
 	private String statuses_removal_socket_host;
@@ -71,9 +71,9 @@ public final class Driver {
 
         metricSources = getMetricSources(properties);
 		analysisResultsSink = getAnalysisResultsSink(properties);
-		notificationsSinks = getNotificationsSinks(properties);
+		actuators = getActuators(properties);
 		
-		if(!analysisResultsSink.isPresent() && notificationsSinks.size() == 0)
+		if(!analysisResultsSink.isPresent() && actuators.size() == 0)
             throw new ConfigurationException("At least one sink must be configured");
 	}
 
@@ -120,12 +120,12 @@ public final class Driver {
 
 		analysisResultsSink.ifPresent(sink -> sink.sink(results));
 		
-		JavaDStream<Notification> notifications = Monitors.notify(results, propertiesSourceProps, statusesToRemove);
+		JavaDStream<Action> actions = Monitors.applyTriggers(results, propertiesSourceProps, statusesToRemove);
 		
-    		notificationsSinks.stream().forEach(sink -> sink.sink(notifications));
+    		actuators.stream().forEach(sink -> sink.sink(actions));
     		
     		//Make batch synchronous in case all output operations are async
-    		notifications.foreachRDD(rdd -> rdd.foreachPartition(it -> it.hasNext()));
+    		actions.foreachRDD(rdd -> rdd.foreachPartition(it -> it.hasNext()));
 
 		return ssc;
 	}
@@ -171,23 +171,28 @@ public final class Driver {
 		return metricSources;
 	}
 	
-	private List<NotificationsSink> getNotificationsSinks(Properties properties) throws Exception {
-		List<NotificationsSink> notificationsSinks = new LinkedList<>();
+	private List<Actuator> getActuators(Properties properties) throws Exception {
+		List<Actuator> actuators = new LinkedList<>();
 		
-    		Properties sinkProperties = properties.getSubset("notifications.sink");
+		Properties actuatorsProperties = properties.getSubset("actuators");
 		
-    		Set<String> ids = sinkProperties.getIDs();
+		//TODO backward compatibility
+    		Properties sinkPropertiesOld = properties.getSubset("notifications.sink");
+    		actuatorsProperties.putAll(sinkPropertiesOld);
+    		//TODO backward compatibility
+		
+    		Set<String> ids = actuatorsProperties.getIDs();
     		
     		for (String id : ids) {
-    			Properties props = sinkProperties.getSubset(id);
+    			Properties props = actuatorsProperties.getSubset(id);
 			
-    			NotificationsSink sink = ComponentManager.build(Type.NOTIFICATIONS_SINK, props);
+    			Actuator sink = ComponentManager.build(Type.ACTUATOR, props);
     			sink.setId(id);
     			
-    			notificationsSinks.add(sink);
+    			actuators.add(sink);
 		}
 		
-		return notificationsSinks;
+		return actuators;
 	}
 	
 	public JavaStreamingContext newStreamingContext(Properties properties) throws IOException, ConfigurationException {
@@ -202,8 +207,8 @@ public final class Driver {
         sparkConf.registerKryoClasses(Arrays.asList(
                                 DefinedMetricStatuskey.class,
                                 MonitorStatusKey.class,
-                                NotificatorStatusKey.class,
-                                NotificatorStatus.class,
+                                TriggerStatusKey.class,
+                                TriggerStatus.class,
                                 ValueHistory.class,
                                 VariableStatuses.class,
                                 AggregationValues.class

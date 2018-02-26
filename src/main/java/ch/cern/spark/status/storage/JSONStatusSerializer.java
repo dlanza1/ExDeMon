@@ -22,6 +22,10 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 import ch.cern.spark.metrics.defined.equation.var.agg.Aggregation;
+import ch.cern.spark.metrics.trigger.TriggerStatus;
+import ch.cern.spark.metrics.trigger.TriggerStatusKey;
+import ch.cern.spark.metrics.trigger.types.ConstantTrigger;
+import ch.cern.spark.metrics.trigger.types.PercentageTrigger;
 import ch.cern.spark.metrics.value.AggregatedValue;
 import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.ExceptionValue;
@@ -119,6 +123,14 @@ public class JSONStatusSerializer implements StatusSerializer {
                     type -> aliases.put(type.getAnnotation(ClassNameAlias.class).value(), type));
         }
         
+        private static Map<String, Class<?>> nameChangedAliases = new HashMap<>();
+        {
+            nameChangedAliases.put("notificator-key", TriggerStatusKey.class);
+            nameChangedAliases.put("notificator-status", TriggerStatus.class);
+            nameChangedAliases.put("constant-notificator", ConstantTrigger.Status_.class);
+            nameChangedAliases.put("percentage-trigger", PercentageTrigger.Status_.class);
+        }
+        
         private static Set<String> deprecatedAliases = new HashSet<>();
         {
             deprecatedAliases.add("statuses-notificator");
@@ -134,7 +146,7 @@ public class JSONStatusSerializer implements StatusSerializer {
 
             JsonElement aliasElement = jsonObject.get(KEY_ALIAS_TYPE);
             if (aliasElement != null) {
-                if (!aliases.containsKey(aliasElement.getAsString())) {
+                if (!aliases.containsKey(aliasElement.getAsString()) && !nameChangedAliases.containsKey(aliasElement.getAsString())) {
                     if(deprecatedAliases.contains(aliasElement.getAsString()))
                         return null;
                     else
@@ -142,6 +154,9 @@ public class JSONStatusSerializer implements StatusSerializer {
                 }
 
                 klass = aliases.get(aliasElement.getAsString());
+                if(klass == null)
+                    klass = nameChangedAliases.get(aliasElement.getAsString());
+                
                 jsonObject.remove(KEY_ALIAS_TYPE);
             }
 

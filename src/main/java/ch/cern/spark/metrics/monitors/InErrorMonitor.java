@@ -52,16 +52,16 @@ public class InErrorMonitor extends Monitor {
         Set<String> tagKeys = tagsProps.getIDs();
         tagKeys.forEach(key -> tags.put(key, tagsProps.getProperty(key)));
         
-        Properties errorProps = properties.getSubset("notificator.$error");
+        Properties errorProps = properties.getSubset("trigger.$error");
         if(errorProps.size() == 0) {
             errorProps.setProperty("type", "constant");
             errorProps.setProperty("period", "10m");
-            errorProps.setProperty("sinks", "ALL");
+            errorProps.setProperty("actuators", "ALL");
         }
         errorProps.setProperty("statuses", "EXCEPTION");
         try {
-            notificators = new HashMap<>();
-            notificators.put("$error", ComponentManager.build(Type.NOTIFICATOR, "$error", errorProps));
+            triggers = new HashMap<>();
+            triggers.put("$error", ComponentManager.build(Type.TRIGGER, "$error", errorProps));
         } catch (ConfigurationException e) {
             LOG.error(e);
         }
@@ -118,7 +118,7 @@ public class InErrorMonitor extends Monitor {
 			return new HashMap<>();
 	}
 	
-	@ClassNameAlias("in-error-notificator")
+	@ClassNameAlias("in-error-trigger")
 	private static class Status_ extends StatusValue {
 
 		private static final long serialVersionUID = -6991497562392525744L;

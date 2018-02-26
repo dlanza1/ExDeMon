@@ -355,7 +355,7 @@ We compute the difference of two variables when the variable report_count is upd
 real_count variable count the number of lines that were processed the previous hour.
 report_count variable represents a metric that arrives once an hour, its value indicates the lines produced in the previous hour.
 
-The results of the different is the missing lines. Later we can place a monitor to check if it is greater than 0 and then raise a notification.
+The results of the different is the missing lines. Later we can place a monitor to check if it is greater than 0 and then trigger an action.
 
 ``` 
 metrics.define.tapeserverd-missing.value = report_count - real_count

@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.notifications.Notification;
+import ch.cern.spark.metrics.trigger.action.Action;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -59,10 +59,10 @@ public class GNINotification implements Serializable{
 		body.get("payload").put(key, value);
 	}
 
-	public static GNINotification from(Properties properties, Notification notification) {
+	public static GNINotification from(Properties properties, Action action) {
 		GNINotification gniNotification = new GNINotification();
 		
-		properties = replaceValuesWithTags(properties, notification.getTags());
+		properties = replaceValuesWithTags(properties, action.getTags());
 		
 		properties.getSubset("header").entrySet().stream().forEach(entry ->{
 			gniNotification.putInHeader((String) entry.getKey(), (String) entry.getValue());

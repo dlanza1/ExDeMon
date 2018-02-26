@@ -171,7 +171,7 @@ public class ApiPropertiesSourceTest {
                                 "            \"hostname\": \".*\\\\.cern\\\\.ch\"\n" +
                                 "          }\n" +
                                 "        },\n" +
-                                "        \"notificator\": {\n" +
+                                "        \"triggers\": {\n" +
                                 "          \"error-constant\": {\n" +
                                 "            \"period\": \"1h\",\n" +
                                 "            \"sinks\": \"cern-gni\",\n" +
@@ -182,7 +182,7 @@ public class ApiPropertiesSourceTest {
                                 "            \"filter.attribute.$environment\": \"production\",\n" +
                                 "            \"period\": \"1h\",\n" +
                                 "            \"silent\": {\n" +
-                                "              \"notificator\": {\n" +
+                                "              \"trigger\": {\n" +
                                 "                \"sinks\": \"cern-gni\",\n" +
                                 "                \"statuses\": \"OK\",\n" +
                                 "                \"type\": \"statuses\"\n" +
@@ -220,7 +220,7 @@ public class ApiPropertiesSourceTest {
                                 "            \"$owner\": \"tape\"\n" +
                                 "          }\n" +
                                 "        },\n" +
-                                "        \"notificator\": {\n" +
+                                "        \"triggers\": {\n" +
                                 "          \"errors\": {\n" +
                                 "            \"filter.attribute.$environment\": \"production\",\n" +
                                 "            \"period\": \"3h\",\n" +
@@ -278,6 +278,6 @@ public class ApiPropertiesSourceTest {
         assertEquals("#qa", props.get("metrics.schema.tape_qa_tapeserverd-count.attributes.$environment"));
         
         assertEquals("0", props.get("monitor.tape_qa_perf-missing.analysis.error.lowerbound"));
-        assertEquals("production", props.get("monitor.tape_qa_tapeserverd-missing.notificator.errors.filter.attribute.$environment"));
+        assertEquals("production", props.get("monitor.tape_qa_tapeserverd-missing.triggers.errors.filter.attribute.$environment"));
     }
 }

@@ -2,7 +2,7 @@
 
 Using this component, results coming from metrics analysis are send to an external system.
 
-It can be usefol to understand why a notification is raised or the use the results of aggregations for other purposes.
+It can be useful to understand why an action is trigger, or use the results of aggregations for other purposes.
 
 ## Elastic Analysis results sink
 

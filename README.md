@@ -2,14 +2,14 @@
 
 A general purpose metric monitor implemented with Apache Spark. [![Build Status](https://travis-ci.org/cerndb/ExDeMon.svg?branch=master)](https://travis-ci.org/cerndb/ExDeMon)
 
-Metrics can come from several sources like Kafka, results and notifications can be sunk to Elastic or any other system, new metrics can be defined combining other metrics, different analysis can be applied, notifications, configuration can be updated without restarting, it can detect missing metrics, ...
+Metrics can come from several sources like Kafka, results and actions can be sunk to Elastic or any other system, new metrics can be defined combining other metrics, different analysis can be applied, notifications, configuration can be updated without restarting, it can detect missing metrics, ...
 
 This tool was introduced at Spark Summit 2017 conference, you can watch the talk [here](https://www.youtube.com/watch?v=1IsMMmug5q0&feature=youtu.be&t=11m17s).
 
 [User's manual](doc/users-manual/users-manual.md)
 
 An example of a monitored metric can be observed in the following image. As it can be observed, thresholds around the value are calculated and statuses are generated if analyzed value exceed these limits. 
-Notifications can be raised if certain statuses like error or warning are maintained during some time.    
+Action can be triggered if certain statuses like error or warning are maintained during some time.    
 
 ![Example of monitored metric](/doc/img/example-monitored-metric.png)
 
@@ -18,18 +18,18 @@ Notifications can be raised if certain statuses like error or warning are mainta
 - Stand-alone or distributed (scalable) execution, all possible platforms that Spark is compatible with.
 - Metrics value can be float, string or boolean.
 - New metrics can be defined. Mathematical operations can be applied. Value of new metrics can be computed by aggregating different incoming metrics. 
-- Several monitors can be declared, each monitor can have a metric filter, a metric analysis and notificators. 
+- Several monitors can be declared, each monitor can have a metric filter, a metric analysis and triggers. 
 - Several metric sources can be declared. Incoming data can have different schemas that can be configured to produce metrics.
 - One analysis result sink is shared by all monitors.
-- Several notifications sinks, to be able to notify several systems.
-- Components: properties source, metrics source, analysis, analysis results sink, notificator and notification sink. They can be easily replaced. 
-- Some built-in components: Kafka source, different analysis, Elastic sink, notificators, ...
+- Several actuators, to be able to perform different actions.
+- Components: properties source, metrics source, analysis, analysis results sink, trigger and actuators. They can be easily replaced. 
+- Some built-in components: Kafka source, different analysis, Elastic sink, e-mail, ...
 - Metrics can arrive at different frequencies.
 - Monitors and defined metrics configuration can be updated while running. Configuration could come from an external source (Apache Zookeeper, HTTP request, data base, ...).
 - Detection of missing metrics.
 
 An image that describes some of the previous concepts and shows the data flow in the streaming job can be seen here.  
-![Data flow](/doc/img/data-flow.png)
+![Data flow](/doc/img/dataflow.png)
 
 ## Define new metrics
 
@@ -66,9 +66,9 @@ Metrics are consumed by several sources and sent to all monitors.
 
 Many monitors can be declared. Each monitor has a filter to determine to which metrics it should be applied.
 Filtered metrics are analyzed to determine the current status of the metric.
-Several notificators can be configured to raise notifications.
+Several triggers can be configured to raise actions.
 
-Results from analysis and notifications can be sunk to external storages.
+Results from analysis can be sunk to external storages and actions are processed by actuators.
 
 ## Components
 
@@ -115,24 +115,22 @@ Built-in analysis results sink:
 - Elastic.
 - HTTP (POST).
 
-### Notificator
+### Trigger
 
-A notificator determine when to raise a notifications based on analysis results.
+A trigger determine when to raise an action based on analysis results.
 
-Several notificators can be configured in a monitor.
+Several triggers can be configured in a monitor.
 
-Built-in notificators:
-- Statuses: raise a notification as soon as it receives a metric with onw of the configured statuses.
+Built-in triggers:
+- Statuses: raise an action as soon as it receives a metric with onw of the configured statuses.
 - Constant status: if a metric has been in configured statuses during a certain period.
 - Percentage status: if a metric has been in configured statuses during a percentage of a certain period.
 
-### Notifications sinks
+### Actuators
 
-Notifications produced by notificators are sunk using one or several of this component. Notifications can be sunk to an external storage, sent by email, used to trigger actions, etc.
+Actions triggered by monitors are processed by one or several actuators. Actuators can save actions into an external storage, send e-mails, run jobs, etc.
 
-Several notifications sinks can be declared.
-
-Built-in notifications sink:
+Built-in actuators:
 - Email.
 - Mattermost.
 - Elastic.

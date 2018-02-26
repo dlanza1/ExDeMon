@@ -63,7 +63,7 @@ public class DriverTest {
     		props.setProperty("spark.driver.allowMultipleContexts", "true");
     		props.setProperty("metrics.source.kafka.type", "kafka");
     		props.setProperty("metrics.source.kafka.topics", "topic");
-    		props.setProperty("notifications.sink.elastic.type", "elastic");
+    		props.setProperty("actuators.elastic.type", "elastic");
         
         Driver driver = new Driver(props);
         

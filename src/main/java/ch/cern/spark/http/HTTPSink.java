@@ -28,8 +28,8 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSON;
 import ch.cern.spark.json.JSONParser;
-import ch.cern.spark.metrics.notifications.Notification;
-import ch.cern.spark.metrics.notifications.Template;
+import ch.cern.spark.metrics.trigger.action.Action;
+import ch.cern.spark.metrics.trigger.action.Template;
 import ch.cern.utils.TimeUtils;
 
 public class HTTPSink implements Serializable{
@@ -65,7 +65,7 @@ public class HTTPSink implements Serializable{
 	private static final String AS_ARRAY_PARAM = "as-array";
     private boolean as_array;
 
-    private boolean addNotification;
+    private boolean addAction;
 
 	public void config(Properties properties) throws ConfigurationException {
 		url = properties.getProperty(URL_PARAM);
@@ -78,10 +78,18 @@ public class HTTPSink implements Serializable{
 		batch_size = (int) properties.getFloat(BATCH_SIZE_PARAM, 100);
 		as_array = properties.getBoolean(AS_ARRAY_PARAM, true);
 		
-		addNotification = properties.getBoolean("add.$notification", true);
-        
+		addAction = properties.getBoolean("add.$action", true);
+		
+		//TODO backward compatibility
+		addAction = addAction | properties.getBoolean("add.$notification", true);
+		//TODO backward compatibility
+		
 		propertiesToAdd = properties.getSubset("add").toStringMap();
+		propertiesToAdd.remove("$action");
+		
+		//TODO backward compatibility
 		propertiesToAdd.remove("$notification");
+		//TODO backward compatibility
 		
 		// Authentication configs
         boolean authentication = properties.getBoolean(AUTH_PARAM);
@@ -121,9 +129,9 @@ public class HTTPSink implements Serializable{
         String url = this.url;
         JSON json = null;
         
-        if(object instanceof Notification) {
-            url = Template.apply(url, (Notification) object);
-            json = addNotification ? JSONParser.parse(object) : new JSON("{}");
+        if(object instanceof Action) {
+            url = Template.apply(url, (Action) object);
+            json = addAction ? JSONParser.parse(object) : new JSON("{}");
         }else if(object instanceof String) {
             json = new JSON((String) object);
         }else {
@@ -145,8 +153,8 @@ public class HTTPSink implements Serializable{
                 else
                     value = null;
             
-            if(value != null && object instanceof Notification)
-                value = Template.apply(value, (Notification) object);
+            if(value != null && object instanceof Action)
+                value = Template.apply(value, (Action) object);
             
             if(value != null && value.equals("null"))
                 value = null;

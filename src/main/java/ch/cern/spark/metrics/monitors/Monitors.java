@@ -14,12 +14,12 @@ import ch.cern.Cache;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.notifications.Notification;
-import ch.cern.spark.metrics.notificator.ComputeNotificatorKeysF;
-import ch.cern.spark.metrics.notificator.NotificatorStatus;
-import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
-import ch.cern.spark.metrics.notificator.UpdateNotificatorStatusesF;
 import ch.cern.spark.metrics.results.AnalysisResult;
+import ch.cern.spark.metrics.trigger.TriggerStatus;
+import ch.cern.spark.metrics.trigger.TriggerStatusKey;
+import ch.cern.spark.metrics.trigger.ComputeTriggerKeysF;
+import ch.cern.spark.metrics.trigger.UpdateTriggerStatusesF;
+import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.status.Status;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
@@ -71,20 +71,20 @@ public class Monitors {
 	                    Optional.ofNullable(statusesToRemove)).values();
 	}
 
-	public static JavaDStream<Notification> notify(JavaDStream<AnalysisResult> results, Properties propertiesSourceProps, Optional<JavaDStream<StatusKey>> allStatusesToRemove) throws IOException, ClassNotFoundException, ConfigurationException {
-	    JavaDStream<NotificatorStatusKey> statusesToRemove = null;
+	public static JavaDStream<Action> applyTriggers(JavaDStream<AnalysisResult> results, Properties propertiesSourceProps, Optional<JavaDStream<StatusKey>> allStatusesToRemove) throws IOException, ClassNotFoundException, ConfigurationException {
+	    JavaDStream<TriggerStatusKey> statusesToRemove = null;
 	    if(allStatusesToRemove.isPresent())
 	        statusesToRemove = allStatusesToRemove.get()
-	                                    .filter(key -> key instanceof NotificatorStatusKey)
-	                                    .map(key -> (NotificatorStatusKey) key);
+	                                    .filter(key -> key instanceof TriggerStatusKey)
+	                                    .map(key -> (TriggerStatusKey) key);
 	    
-	    JavaPairDStream<NotificatorStatusKey, AnalysisResult> idAndAnalysis = results.flatMapToPair(new ComputeNotificatorKeysF(propertiesSourceProps));
+	    JavaPairDStream<TriggerStatusKey, AnalysisResult> idAndAnalysis = results.flatMapToPair(new ComputeTriggerKeysF(propertiesSourceProps));
 	    
-	    return Status.<NotificatorStatusKey, AnalysisResult, NotificatorStatus, Notification>map(
-	                    NotificatorStatusKey.class, 
-	                    NotificatorStatus.class, 
+	    return Status.<TriggerStatusKey, AnalysisResult, TriggerStatus, Action>map(
+	                    TriggerStatusKey.class, 
+	                    TriggerStatus.class, 
                         idAndAnalysis, 
-                        new UpdateNotificatorStatusesF(propertiesSourceProps),
+                        new UpdateTriggerStatusesF(propertiesSourceProps),
                         Optional.ofNullable(statusesToRemove)).values();
 	}
 	

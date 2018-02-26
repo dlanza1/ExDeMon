@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
 import ch.cern.spark.metrics.monitors.MonitorStatusKey;
-import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
+import ch.cern.spark.metrics.trigger.TriggerStatusKey;
 import ch.cern.spark.status.TestStatus;
 import scala.Tuple2;
 
@@ -25,8 +25,8 @@ public class ClassNameStatusKeyFilterTest {
         assertFalse(filter.call(new Tuple2<>(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1))));
         assertFalse(filter.call(new Tuple2<>(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1))));
         assertFalse(filter.call(new Tuple2<>(new MonitorStatusKey("m2", new HashMap<>()), new TestStatus(1))));
-        assertFalse(filter.call(new Tuple2<>(new NotificatorStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1))));
-        assertFalse(filter.call(new Tuple2<>(new NotificatorStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1))));
+        assertFalse(filter.call(new Tuple2<>(new TriggerStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1))));
+        assertFalse(filter.call(new Tuple2<>(new TriggerStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1))));
     }
     
     @Test
@@ -39,8 +39,8 @@ public class ClassNameStatusKeyFilterTest {
         assertFalse(filter.call(new Tuple2<>(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1))));
         assertFalse(filter.call(new Tuple2<>(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1))));
         assertFalse(filter.call(new Tuple2<>(new MonitorStatusKey("m2", new HashMap<>()), new TestStatus(1))));
-        assertFalse(filter.call(new Tuple2<>(new NotificatorStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1))));
-        assertFalse(filter.call(new Tuple2<>(new NotificatorStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1))));
+        assertFalse(filter.call(new Tuple2<>(new TriggerStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1))));
+        assertFalse(filter.call(new Tuple2<>(new TriggerStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1))));
     }
 
 }

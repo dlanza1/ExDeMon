@@ -17,9 +17,9 @@ import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.analysis.Analysis;
 import ch.cern.spark.metrics.analysis.types.NoneAnalysis;
 import ch.cern.spark.metrics.filter.MetricsFilter;
-import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
+import ch.cern.spark.metrics.trigger.Trigger;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
 import lombok.Getter;
@@ -40,7 +40,7 @@ public class Monitor {
     private Analysis analysis;
     
     @Getter
-    protected Map<String, Notificator> notificators;
+    protected Map<String, Trigger> triggers;
 
 	private Map<String, String> tags;
     
@@ -68,16 +68,22 @@ public class Monitor {
         		analysis_props.setProperty("type", NoneAnalysis.class.getAnnotation(RegisterComponent.class).value());
     		analysis = ComponentManager.build(Type.ANAYLSIS, analysis_props);
         
-        Properties notificatorsProps = properties.getSubset("notificator");
-        Set<String> notificatorIds = notificatorsProps.getIDs();
-        notificators = new HashMap<>();
-        for (String notificatorId : notificatorIds) {
-        		Properties props = notificatorsProps.getSubset(notificatorId);
+    		Properties triggersProps = properties.getSubset("triggers");
+    		
+        //TODO backward compatibility
+    		Properties notificatorsPropsOld = properties.getSubset("notificator");
+    		triggersProps.putAll(notificatorsPropsOld);
+        //TODO backward compatibility
+        
+        Set<String> triggerIds = triggersProps.getIDs();
+        triggers = new HashMap<>();
+        for (String triggerId : triggerIds) {
+        		Properties props = triggersProps.getSubset(triggerId);
         		
         		if(!props.isTypeDefined())
         		    props.setProperty("type", "statuses");
         		
-        		notificators.put(notificatorId, ComponentManager.build(Type.NOTIFICATOR, notificatorId, props));
+        		triggers.put(triggerId, ComponentManager.build(Type.TRIGGER, triggerId, props));
 		}
         
         tags = properties.getSubset("tags").toStringMap();

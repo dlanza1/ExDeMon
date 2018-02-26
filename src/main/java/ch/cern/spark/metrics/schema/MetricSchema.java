@@ -116,7 +116,7 @@ public class MetricSchema implements Serializable {
         values = new LinkedList<>();
         Properties valuesProps = properties.getSubset(VALUES_PARAM);
         
-        //TODO FOR RETROCOMPATIBILITY
+        //TODO backward compatibility
         for (Map.Entry<Object, Object> pair : valuesProps.getSubset("keys").entrySet()) {
             String alias = (String) pair.getKey();
             String key = (String) pair.getValue();
@@ -129,7 +129,7 @@ public class MetricSchema implements Serializable {
             values.add(descriptor);
         }
         valuesProps.entrySet().removeIf(entry -> ((String) entry.getKey()).startsWith("keys"));
-        // FOR RETROCOMPATIBILITY END
+        //TODO backward compatibility
         
         Set<String> valueIDs = valuesProps.getIDs();
         for (String valueId : valueIDs) {
@@ -252,9 +252,6 @@ public class MetricSchema implements Serializable {
 
                 Map<String, String> metric_ids = new HashMap<>(attributesForMetric);
                 metric_ids.put("$value", id);
-             
-                //TODO FOR RETROCOMPATIBILITY
-                metric_ids.put("$value_attribute", id); 
 
                 if (timestampException != null) {
                     Optional<ExceptionValue> exceptionValueOpt = raiseException(id, timestampException);

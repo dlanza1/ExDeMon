@@ -61,8 +61,8 @@ usage: spark-statuses-manager
 --conf should be the path to the configuration file of the application
 
 For filtering statuses you can use:
-* --fqcn: defined-metric-key, monitor-key or notificator-key
-* --id: defined metric or monitor id, for notificators: monitor-id:notificator-id
+* --fqcn: defined-metric-key, monitor-key or trigger-key
+* --id: defined metric or monitor id, for triggers: monitor-trigger-id
 
 For removing statuses, statuses.removal.socket must be configured and this command line must be run where this property is pointing.
 
