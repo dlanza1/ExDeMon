@@ -65,10 +65,10 @@ public class RecentActivityAnalysis extends NumericAnalysis implements HasStatus
     private Float learning_ratio;
 
     public static String LEARNING_UPPERBOUND_RATIO_PARAM = "learning.upperbound.ratio";
-    private float learning_upperbound_ratio;
+    private Float learning_upperbound_ratio;
 
     public static String LEARNING_LOWERBOUND_RATIO_PARAM = "learning.lowerbound.ratio";
-    private float learning_lowerbound_ratio;
+    private Float learning_lowerbound_ratio;
 
     private long count = 0;
 
@@ -86,8 +86,8 @@ public class RecentActivityAnalysis extends NumericAnalysis implements HasStatus
         error_ratio = properties.getFloat(ERROR_RATIO_PARAM, ERROR_RATIO_DEFAULT);
         warn_ratio = properties.getFloat(WARN_RATIO_PARAM, WARN_RATIO_DEFAULT);
 
-        learning_upperbound_ratio = properties.getFloat(LEARNING_UPPERBOUND_RATIO_PARAM, ERROR_RATIO_DEFAULT);
-        learning_lowerbound_ratio = properties.getFloat(LEARNING_LOWERBOUND_RATIO_PARAM, ERROR_RATIO_DEFAULT);
+        learning_upperbound_ratio = properties.getFloat(LEARNING_UPPERBOUND_RATIO_PARAM);
+        learning_lowerbound_ratio = properties.getFloat(LEARNING_LOWERBOUND_RATIO_PARAM);
 
         period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
         history = new ValueHistory();
@@ -190,13 +190,22 @@ public class RecentActivityAnalysis extends NumericAnalysis implements HasStatus
     }
 
     private boolean isBetweenLearningRatio(AnalysisResult resultvalue, double value) {
-        double learning_upperbound = mean + variance * learning_upperbound_ratio;
-        resultvalue.addAnalysisParam("learning_upperbound", learning_upperbound);
+        Double learning_upperbound = null;
+        if(learning_upperbound_ratio != null) {
+            learning_upperbound = mean + variance * learning_upperbound_ratio;
+            resultvalue.addAnalysisParam("learning_upperbound", learning_upperbound);
+        }
         
-        double learning_lowerbound = mean - variance * learning_lowerbound_ratio;
-        resultvalue.addAnalysisParam("learning_lowerbound", learning_lowerbound);
+        Double learning_lowerbound = null;
+        if(learning_lowerbound_ratio != null) {
+            learning_lowerbound = mean - variance * learning_lowerbound_ratio;
+            resultvalue.addAnalysisParam("learning_lowerbound", learning_lowerbound);
+        }
         
-        return variance == 0 || learning_upperbound > value && value > learning_lowerbound;
+        return variance == 0 || 
+                (learning_upperbound == null || learning_upperbound > value) 
+                && 
+                (learning_lowerbound == null || value > learning_lowerbound);
     }
 
     private void processErrorLowerbound(AnalysisResult result, double value) {

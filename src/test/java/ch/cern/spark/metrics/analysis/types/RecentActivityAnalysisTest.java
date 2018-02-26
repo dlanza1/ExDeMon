@@ -56,6 +56,8 @@ public class RecentActivityAnalysisTest {
         properties.put(RecentActivityAnalysis.PERIOD_PARAM, "30s");
         properties.put(RecentActivityAnalysis.WARN_RATIO_PARAM, "2");
         properties.put(RecentActivityAnalysis.ERROR_RATIO_PARAM, "3");
+        properties.put(RecentActivityAnalysis.LEARNING_UPPERBOUND_RATIO_PARAM, "3");
+        properties.put(RecentActivityAnalysis.LEARNING_LOWERBOUND_RATIO_PARAM, "3");
         properties.put(RecentActivityAnalysis.ERROR_UPPERBOUND_PARAM, Boolean.TRUE.toString());
         properties.put(RecentActivityAnalysis.WARNING_UPPERBOUND_PARAM, Boolean.TRUE.toString());
         properties.put(RecentActivityAnalysis.WARNING_LOWERBOUND_PARAM, Boolean.TRUE.toString());
