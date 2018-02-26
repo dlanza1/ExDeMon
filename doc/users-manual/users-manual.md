@@ -18,7 +18,7 @@ An image that describes some of the previous concepts and shows the data flow ca
 
 A basic configuration contains a [metrics source](metric-sources.md), one or more [monitors](monitor.md) and [analysis results sink](analysis-results-sink.md) or [actuators](actuators.md).
 
-Note that the configuration of [metric schemas](metrics-schema.md), [defined metrics](define-metrics.md) and [monitors](monitor.md) is dynamic, so it can be updated while running. This dynamic configuration is obtained from the configured [properties source](properties-source.md), which by default is configured to read the same configuration file.
+Note that the configuration is dynamic (except for sources), so it can be updated while running. This dynamic configuration is obtained from the configured [properties source](properties-source.md), which by default is configured to read the same configuration file.
 
 Any ID in the configuration must follow the regular expression: "[a-zA-Z0-9_-]+"
 

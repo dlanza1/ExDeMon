@@ -124,6 +124,12 @@ public class HTTPSink implements Serializable{
 		
 		requestsStream.foreachRDD(rdd -> rdd.foreachPartitionAsync(requests -> send(requests)));
 	}
+	
+    public void sink(Object object) throws ParseException {
+        JsonPOSTRequest request = toJsonPOSTRequest(object);
+        
+        send(Collections.singleton(request).iterator());
+    }
 
     public JsonPOSTRequest toJsonPOSTRequest(Object object) throws ParseException {
         String url = this.url;

@@ -1,8 +1,8 @@
 # Properties sources
 
-Components which configuration can be updated while running, metric schemas, defined metrics and monitors, obtain their configuration from this component.
+Configuration can be updated while running (except sources), configuration is obtained from this component.
 
-This source will be periodically queried, every "expire" period, and the job will be updated with the new configuration.
+This source will be periodically queried, every "expire" period, and ExDeMon will be updated with the new configuration.
 
 To configure an external source of properties:
 

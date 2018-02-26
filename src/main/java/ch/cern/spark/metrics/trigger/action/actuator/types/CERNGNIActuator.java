@@ -1,7 +1,5 @@
 package ch.cern.spark.metrics.trigger.action.actuator.types;
 
-import org.apache.spark.streaming.api.java.JavaDStream;
-
 import ch.cern.components.RegisterComponent;
 import ch.cern.monitoring.gni.GNINotification;
 import ch.cern.properties.ConfigurationException;
@@ -30,12 +28,10 @@ public class CERNGNIActuator extends Actuator {
 	}
 	
 	@Override
-	protected void run(JavaDStream<Action> actions) {
-	    JavaDStream<GNINotification> gniNotifStream = actions.map(notification -> {
-			return GNINotification.from(contentProperties, notification);
-		});
+	protected void run(Action action) throws Exception {
+	    GNINotification notif = GNINotification.from(contentProperties, action);
 
-		sink.sink(gniNotifStream);
+        sink.sink(notif);
 	}
 
 }

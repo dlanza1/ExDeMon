@@ -12,7 +12,6 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.apache.spark.streaming.api.java.JavaDStream;
 
 import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
@@ -57,15 +56,13 @@ public class EmailActuator extends Actuator {
 	}
 
     @Override
-    protected void run(JavaDStream<Action> actions) {
+    protected void run(Action action) throws Exception{
         setSession();
-        
-        actions.foreachRDD(rdd -> rdd.foreach(action -> {
-                    MimeMessage message = toMimeMessage(action);
+
+        MimeMessage message = toMimeMessage(action);
                     
-                    if(message != null)
-                        Transport.send(message);
-                }));
+        if(message != null)
+            Transport.send(message);
     }
 
     public MimeMessage toMimeMessage(Action action) throws AddressException, MessagingException {

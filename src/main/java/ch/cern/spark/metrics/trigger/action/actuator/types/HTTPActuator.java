@@ -1,7 +1,5 @@
 package ch.cern.spark.metrics.trigger.action.actuator.types;
 
-import org.apache.spark.streaming.api.java.JavaDStream;
-
 import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -25,7 +23,7 @@ public class HTTPActuator extends Actuator {
 	}
 
 	@Override
-	protected void run(JavaDStream<Action> action) {
+	protected void run(Action action) throws Exception {    
 		sink.sink(action);	
 	}
 

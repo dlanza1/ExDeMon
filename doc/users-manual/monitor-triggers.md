@@ -8,7 +8,7 @@ All triggers have at least the following parameters:
 monitor.<monitor-id>.triggers.<trigger-id>.type = <type> (default: statuses)
 monitor.<monitor-id>.triggers.<trigger-id>.filter.attribute.<analyzed_metric_attribute_key> = <[!]regex_or_exact_value>
 monitor.<monitor-id>.triggers.<trigger-id>.filter.attribute... (as many attributes as needed)
-monitor.<monitor-id>.triggers.<trigger-id>.actuators = <ALL|actuators-ids> (default: none)
+monitor.<monitor-id>.triggers.<trigger-id>.actuators = <actuators-ids> (default: none)
 monitor.<monitor-id>.triggers.<trigger-id>.silent.period = <period like 1h, 3m or 45s> (default: 0)
 monitor.<monitor-id>.triggers.<trigger-id>.silent.trigger.type = <type> (default: not set)
 monitor.<monitor-id>.triggers.<trigger-id>.silent.trigger....

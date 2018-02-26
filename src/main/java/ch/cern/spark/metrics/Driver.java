@@ -35,6 +35,7 @@ import ch.cern.spark.metrics.trigger.TriggerStatus;
 import ch.cern.spark.metrics.trigger.TriggerStatusKey;
 import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.metrics.trigger.action.actuator.Actuator;
+import ch.cern.spark.metrics.trigger.action.actuator.Actuators;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusesKeyReceiver;
 import ch.cern.spark.status.storage.StatusesStorage;
@@ -50,6 +51,7 @@ public final class Driver {
     
 	private List<MetricsSource> metricSources;
 	private Optional<AnalysisResultsSink> analysisResultsSink;
+	@Deprecated
 	private List<Actuator> actuators;
 
 	public static String STATUSES_REMOVAL_SOCKET_PARAM = "statuses.removal.socket";
@@ -72,9 +74,6 @@ public final class Driver {
         metricSources = getMetricSources(properties);
 		analysisResultsSink = getAnalysisResultsSink(properties);
 		actuators = getActuators(properties);
-		
-		if(!analysisResultsSink.isPresent() && actuators.size() == 0)
-            throw new ConfigurationException("At least one sink must be configured");
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -122,10 +121,9 @@ public final class Driver {
 		
 		JavaDStream<Action> actions = Monitors.applyTriggers(results, propertiesSourceProps, statusesToRemove);
 		
+		Actuators.run(actions, propertiesSourceProps);
+		
     		actuators.stream().forEach(actuator -> actuator.sink(actions));
-    		
-    		//Make batch synchronous in case all output operations are async
-    		actions.foreachRDD(rdd -> rdd.foreachPartition(it -> it.hasNext()));
 
 		return ssc;
 	}

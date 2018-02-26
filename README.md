@@ -25,7 +25,7 @@ Action can be triggered if certain statuses like error or warning are maintained
 - Components: properties source, metrics source, analysis, analysis results sink, trigger and actuators. They can be easily replaced. 
 - Some built-in components: Kafka source, different analysis, Elastic sink, e-mail, ...
 - Metrics can arrive at different frequencies.
-- Monitors and defined metrics configuration can be updated while running. Configuration could come from an external source (Apache Zookeeper, HTTP request, data base, ...).
+- Configuration can be updated while running. Configuration comes from an external source (Apache Zookeeper, HTTP request, data base, files, ...).
 - Detection of missing metrics.
 
 An image that describes some of the previous concepts and shows the data flow in the streaming job can be seen here.  
@@ -132,6 +132,4 @@ Actions triggered by monitors are processed by one or several actuators. Actuato
 
 Built-in actuators:
 - Email.
-- Mattermost.
-- Elastic.
 - HTTP (e.g. to [Mattermost](https://api.mattermost.com/) or [Rundesk](http://rundeck.org/)).

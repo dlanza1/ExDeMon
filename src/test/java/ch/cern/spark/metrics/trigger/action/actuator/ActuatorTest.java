@@ -9,18 +9,14 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.spark.streaming.api.java.JavaDStream;
 import org.junit.Test;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.metrics.trigger.action.ActionTest;
 import ch.cern.spark.metrics.trigger.action.Template;
-import ch.cern.spark.metrics.trigger.action.actuator.Actuator;
 
 public class ActuatorTest {
 
@@ -87,15 +83,13 @@ public class ActuatorTest {
 
         private static final long serialVersionUID = 1281273704318553809L;
 
-        public List<Action> actionsCollector = new LinkedList<>();
-
         public TestActuator() {
             setId("test");
         }
 
         @Override
-        protected void run(JavaDStream<Action> actions) {
-            actions.foreachRDD(rdd -> actionsCollector.addAll(rdd.collect()));
+        protected void run(Action action) {
+            
         }
 
     }
