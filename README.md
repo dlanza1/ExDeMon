@@ -122,7 +122,7 @@ A trigger determine when to raise an action based on analysis results.
 Several triggers can be configured in a monitor.
 
 Built-in triggers:
-- Statuses: raise an action as soon as it receives a metric with onw of the configured statuses.
+- Statuses: raise an action as soon as it receives a metric with one of the configured statuses.
 - Constant status: if a metric has been in configured statuses during a certain period.
 - Percentage status: if a metric has been in configured statuses during a percentage of a certain period.
 
@@ -132,4 +132,4 @@ Actions triggered by monitors are processed by one or several actuators. Actuato
 
 Built-in actuators:
 - Email.
-- HTTP (e.g. to [Mattermost](https://api.mattermost.com/) or [Rundesk](http://rundeck.org/)).
+- HTTP (e.g. to [Mattermost](https://api.mattermost.com/) or [Rundeck](http://rundeck.org/)).
