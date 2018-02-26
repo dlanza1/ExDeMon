@@ -20,9 +20,7 @@ public class CERNGNIActuator extends Actuator {
 	private HTTPSink sink = new HTTPSink();
 
 	@Override
-	public void config(Properties properties) throws ConfigurationException {
-		super.config(properties);
-		
+	public void tryConfig(Properties properties) throws ConfigurationException {
 		properties.setPropertyIfAbsent(HTTPSink.RETRIES_PARAM, "5");
 		sink.config(properties);
 		

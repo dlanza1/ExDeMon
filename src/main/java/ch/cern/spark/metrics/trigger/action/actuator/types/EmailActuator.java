@@ -40,9 +40,7 @@ public class EmailActuator extends Actuator {
     private String textProp;
 
     @Override
-	public void config(Properties properties) throws ConfigurationException {
-		super.config(properties);
-		
+	public void tryConfig(Properties properties) throws ConfigurationException {
 		sessionPoperties = properties.getSubset("session");
 		
 		username = properties.getProperty("username");
