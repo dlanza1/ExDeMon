@@ -59,4 +59,4 @@ If same data need to be kept, this component can have a [Status](#store-for-stat
 
 Actions produced by triggers are processed using this component. Actions can be sinked to an external storage, sent by email, used to run jobs, etc. 
 
-Externally developed analysis results sinks must extend ch.cern.spark.metrics.results.sink.AnalysisResultsSink.
+Externally developed actuators must extend ch.cern.spark.metrics.trigger.action.actuator.Actuator.
