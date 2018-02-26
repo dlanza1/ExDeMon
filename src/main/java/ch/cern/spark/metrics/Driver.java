@@ -122,7 +122,7 @@ public final class Driver {
 		
 		JavaDStream<Action> actions = Monitors.applyTriggers(results, propertiesSourceProps, statusesToRemove);
 		
-    		actuators.stream().forEach(sink -> sink.sink(actions));
+    		actuators.stream().forEach(actuator -> actuator.sink(actions));
     		
     		//Make batch synchronous in case all output operations are async
     		actions.foreachRDD(rdd -> rdd.foreachPartition(it -> it.hasNext()));
