@@ -53,6 +53,8 @@ public class KafkaStatusesStorage extends StatusesStorage {
 	private static final long serialVersionUID = 1194347587683707148L;
 	
 	private transient final static Logger LOG = Logger.getLogger(KafkaStatusesStorage.class.getName());
+
+    public static final int MAX_RECORD_SIZE = 1048576;
 	
 	private Map<String, Object> kafkaProducerParams = null;
 	private Map<String, Object> kafkaConsumerParams;
@@ -308,6 +310,15 @@ public class KafkaStatusesStorage extends StatusesStorage {
 				
 				ProducerRecord<Bytes, Bytes> record = new ProducerRecord<Bytes, Bytes>(topic, key, value);
 				
+				int record_size = 0;
+				if(key != null)
+				    record_size += key.get().length;
+				if(value != null)
+                    record_size += value.get().length;
+				
+				if(record_size > MAX_RECORD_SIZE)
+				    LOG.warn("Record is too large (" + record_size + " bytes). Key=" + tuple._1);
+				    
 				producer.send(record, new Callback() {
                     @Override
                     public void onCompletion(RecordMetadata metadata, Exception exception) {
