@@ -8,7 +8,7 @@ Exdemon REST API
 from setuptools import setup, find_packages
 
 setup(name='exdemon-api',
-      version='0.1.3',
+      version='0.2.0',
       description='Exdemon REST API',
       author='CERN',
       author_email='j.cordero@cern.ch',

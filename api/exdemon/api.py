@@ -47,3 +47,17 @@ class Api():
             view_func=schema.SchemaEndpoint.as_view('schema_collection')
         )
 
+        # Actuators endpoints
+        app.add_url_rule('/api/v1/actuator/<int:id>', methods=['GET','PUT','DELETE'],
+            defaults={'project': None, 'environment': None, 'name': None},
+            view_func=actuator.ActuatorEndpoint.as_view('actuator_id_operations'), 
+        )
+        app.add_url_rule('/api/v1/actuator/<project>/<environment>/<name>', methods=['GET','PUT','DELETE'],
+            defaults={'id': None},
+            view_func=actuator.ActuatorEndpoint.as_view('actuator_name_operations'),
+        )
+        app.add_url_rule('/api/v1/actuator', methods=['GET','POST'],
+            defaults={'id': None, 'project': None, 'environment': None, 'name': None},
+            view_func=actuator.ActuatorEndpoint.as_view('actuator_collection')
+        )
+

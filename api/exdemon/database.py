@@ -70,6 +70,24 @@ class Monitor(db.Model):
         return "<Monitor(id='%s', name='%s', project='%s', environment='%s', 'data='%s')>" % (
                         self.id, self.name, self.project, self.environment, self.data)
 
+class Actuator(db.Model):
+    __tablename__ = 'actuator'
+
+    id = db.Column('id', db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column('name', db.String(32), nullable=False)
+    project = db.Column('project', db.String(32), nullable=False)
+    environment = db.Column('environment', db.String(32), nullable=False)
+    data = db.Column('data', db.JSON, nullable=False)
+    enabled = db.Column('enabled', db.Boolean, nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint("name", "project", "environment"),
+    )
+
+    def __repr__(self):
+        return "<Actuator(id='%s', name='%s', project='%s', environment='%s', 'data='%s')>" % (
+                        self.id, self.name, self.project, self.environment, self.data)
+
 class SchemaSchema(ma.ModelSchema):
     class Meta:
         model = Schema
@@ -81,6 +99,10 @@ class MetricSchema(ma.ModelSchema):
 class MonitorSchema(ma.ModelSchema):
     class Meta:
         model = Monitor
+
+class ActuatorSchema(ma.ModelSchema):
+    class Meta:
+        model = Actuator
 
 if __name__ == "__main__":
     # Create the database schema
