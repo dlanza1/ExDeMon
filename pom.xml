@@ -143,6 +143,18 @@
             <version>1.10.19</version>
             <scope>test</scope>
         </dependency>
+		<dependency>
+		    <groupId>org.apache.curator</groupId>
+		    <artifactId>curator-recipes</artifactId>
+		    <version>4.0.1</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.apache.curator</groupId>
+		    <artifactId>curator-test</artifactId>
+		    <version>4.0.1</version>
+		    <scope>test</scope>
+		</dependency>
     </dependencies>
 
 </project>

@@ -20,6 +20,32 @@ properties.source.expire = 1m
 properties.source.path = {path to main configuration file}
 ```
 
+## Zookeeper properties source
+
+This source keeps properties synchronized with Zookeeper.
+
+It expects the following structure in the specified path:
+```
+/type=schema/id=spark_batch/attributes/$environment = qa
+/type=schema/id=perf/timestamp/key = data.timestamp
+/type=monitor/id=inventory-missing/triggers/mattermost/actuators = a1 a2
+```
+
+It would translate each type to the corresponding format, resulting properties:
+```
+metrics.schema.spark_batch.attributes.$environment = qa
+metrics.schema.perf.timestamp.key = data.timestamp
+monitors.inventory-missing.triggers.mattermost.actuators = a1 a2
+```
+
+Configuration:
+
+```
+properties.source.type = zookeeper
+properties.source.connection_string = <host:port,host:port/path>
+properties.source.initialization_timeout_ms = <milliseconds>
+```
+
 ## File properties source
 
 This source obtains all properties from a file or set of files.
