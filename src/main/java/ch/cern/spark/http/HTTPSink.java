@@ -81,7 +81,8 @@ public class HTTPSink implements Serializable{
 		addAction = properties.getBoolean("add.$action", true);
 		
 		//TODO backward compatibility
-		addAction = addAction | properties.getBoolean("add.$notification", true);
+		if(properties.contains("add.$notification"))
+		    addAction = properties.getBoolean("add.$notification", true);
 		//TODO backward compatibility
 		
 		propertiesToAdd = properties.getSubset("add").toStringMap();
