@@ -24,20 +24,6 @@ properties.source.path = {path to main configuration file}
 
 This source keeps properties synchronized with Zookeeper.
 
-It expects the following structure in the specified path:
-```
-/type=schema/id=spark_batch/attributes/$environment = qa
-/type=schema/id=perf/timestamp/key = data.timestamp
-/type=monitor/id=inventory-missing/triggers/mattermost/actuators = a1 a2
-```
-
-It would translate each type to the corresponding format, resulting properties:
-```
-metrics.schema.spark_batch.attributes.$environment = qa
-metrics.schema.perf.timestamp.key = data.timestamp
-monitors.inventory-missing.triggers.mattermost.actuators = a1 a2
-```
-
 Configuration:
 
 ```
@@ -45,6 +31,31 @@ properties.source.type = zookeeper
 properties.source.connection_string = <host:port,host:port/path>
 properties.source.initialization_timeout_ms = <milliseconds> (default: 5000)
 properties.source.timeout_ms = <milliseconds> (default: 20000)
+properties.source.asjson = <node_with_json_name> (recommended)
+```
+
+If asjson property is not specified, it expects the following structure in the specified path:
+
+```
+/type=schema/id=spark_batch/attributes/$environment = qa
+/type=schema/id=perf/timestamp/key = data.timestamp
+/type=schema/id=perf/timestamp/format = YYYY-MM-DD HH:MM:SS
+```
+
+If asjson property is specified, it expects that nodes in Zookeeper with the configured name contains JSON (recommended). 
+Configured with asjson=json_text, It expects:
+
+```
+/type=schema/id=spark_batch/json_text = { "qa": "$environment" }
+/type=schema/id=perf/json_text = { "timestamp": { "key": "data.timestamp", "format": "YYYY-MM-DD HH:MM:SS" }}
+```
+
+Both would be translated to:
+
+```
+metrics.schema.spark_batch.attributes.$environment = qa
+metrics.schema.perf.timestamp.key = data.timestamp
+metrics.schema.perf.timestamp.format = YYYY-MM-DD HH:MM:SS
 ```
 
 ## File properties source

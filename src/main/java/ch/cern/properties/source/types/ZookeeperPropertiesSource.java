@@ -41,6 +41,8 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
     private Properties currentProperties;
 
     private int timeout_ms;
+
+    private String asJsonNodeName;
     
     private static final Pattern typePattern = Pattern.compile("/type=([^/]+)/");
     private static final Pattern idPattern = Pattern.compile("/id=([^/]+)/");
@@ -52,6 +54,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
         zkConnString = properties.getProperty("connection_string");
         initialization_timeout_ms = properties.getLong("initialization_timeout_ms", 5000);
         timeout_ms = (int) properties.getLong("timeout_ms", 20000);
+        asJsonNodeName = properties.getProperty("asjson");
         
         properties.confirmAllPropertiesUsed();
     }
@@ -92,26 +95,41 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
             return;
         }
         
-        String key = toPropertyKey(owner, env, id, path);
+        String prefixType = getPrefixType(type);
         
-        switch(type) {
-        case "schema":
-            currentProperties.setProperty("metrics.schema." + key, value);
-            break;
-        case "metric":
-            currentProperties.setProperty("metrics.define." + key, value);
-            break;
-        case "monitor":
-            currentProperties.setProperty("monitor." + key, value);
-            break;
-        case "actuator":
-            currentProperties.setProperty("actuators." + key, value);
-            break;
-        default:
-            return;
+        if(asJsonNodeName != null) {
+            if(path.endsWith("/" + asJsonNodeName)) {
+                Properties componentProps = Properties.fromJson(value);
+                
+                if(value != null && componentProps == null)
+                    LOG.warn("Not a valid JSON at path " + path + ". Value: " + value);
+                
+                String prefix = prefixType + "." + buildId(owner, env, id);
+                
+                currentProperties.replaceSubset(prefix, componentProps);
+            }
+        }else {
+            String key = toPropertyKey(owner, env, id, path);
+            
+            currentProperties.setProperty(prefixType + "." + key, value);
         }
     }
     
+    private String getPrefixType(String type) {
+        switch(type) {
+        case "schema":
+            return "metrics.schema";
+        case "metric":
+            return "metrics.define";
+        case "monitor":
+            return "monitor";
+        case "actuator":
+            return "actuators";
+        default:
+            throw new RuntimeException("Not compatible type");
+        }
+    }
+
     private void removeValue(String path) {
         String type = extractProperty(typePattern, path);
         String env = extractProperty(envPattern, path);
@@ -128,28 +146,38 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
             return;
         }
         
-        String key = toPropertyKey(owner, env, id, path);
-        
-        switch(type) {
-        case "schema":
-            currentProperties.remove("metrics.schema." + key);
-            break;
-        case "metric":
-            currentProperties.remove("metrics.define." + key);
-            break;
-        case "monitor":
-            currentProperties.remove("monitor." + key);
-            break;
-        case "actuator":
-            currentProperties.remove("actuators." + key);
-            break;
-        default:
-            return;
+        String prefixType = getPrefixType(type);
+                
+        if(asJsonNodeName != null) {
+            if(path.endsWith("/" + asJsonNodeName)) {
+                String prefix = prefixType + "." + buildId(owner, env, id);
+                
+                currentProperties.replaceSubset(prefix, null);
+            }
+        }else {
+            String key = toPropertyKey(owner, env, id, path);
+            
+            currentProperties.remove(prefixType + "." + key);
         }
     }
 
     public static String toPropertyKey(String owner, String env, String id, String path) {
+        String full_id = buildId(owner, env, id);
+        
+        LinkedList<String> elementsForKey = new LinkedList<>();
+        elementsForKey.add(full_id);
+        
+        String[] nodes = path.split("/");
+        for (String node : nodes)
+            if(node.length() > 0 && !Pattern.matches("[a-z]+=.*", node))
+                elementsForKey.add(node);
+        
+        return String.join(".", elementsForKey);
+    }
+
+    private static String buildId(String owner, String env, String id) {
         String full_id = id;
+                
         if(owner != null || env != null) {
             if(env != null)
                 full_id = env + "_" + full_id;
@@ -161,15 +189,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
                 full_id = "UNKNOWN_" + full_id;
         }
         
-        LinkedList<String> elementsForKey = new LinkedList<>();
-        elementsForKey.add(full_id);
-        
-        String[] nodes = path.split("/");
-        for (String node : nodes)
-            if(node.length() > 0 && !Pattern.matches("[a-z]+=.*", node))
-                elementsForKey.add(node);
-        
-        return String.join(".", elementsForKey);
+        return full_id;
     }
 
     private String extractProperty(Pattern pattern, String string) {
@@ -209,6 +229,14 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
         TreeCacheListener listener = new TreeCacheListener() {
             @Override
             public void childEvent(CuratorFramework curatorFramework, TreeCacheEvent event) throws Exception {
+                try {
+                    tryApply(event);
+                }catch(Exception e) {
+                    LOG.error("Error when applying tree event", e);
+                }
+            }
+
+            private void tryApply(TreeCacheEvent event) {
                 switch (event.getType()) {
                 case INITIALIZED:
                     LOG.info("TreeCache initialized");

@@ -32,6 +32,7 @@ public class ZookeeperPropertiesSourceTest {
         zkTestServer = new TestingServer(2181);
         
         zk = new ZooKeeper("localhost:2181/", 1000, null);
+        zk.create("/exdemon_json", null, acls, mode);
         zk.create("/exdemon", null, acls, mode);
         zk.create("/exdemon/owner=exdemon", null, acls, mode);
         zk.create("/exdemon/owner=exdemon/env=qa", null, acls, mode);
@@ -116,6 +117,73 @@ public class ZookeeperPropertiesSourceTest {
         props.setProperty("monitor.db_production_inventory-missing.triggers.mattermost.actuators", "a1 a2 a3");
         
         assertEquals(props, source.load());
+    }
+    
+    @Test
+    public void parsePropertiesAsJSON() throws Exception {
+        ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
+        Properties sourceProperties = new Properties();
+        sourceProperties.setProperty("connection_string", "localhost:2181/exdemon");
+        sourceProperties.setProperty("asjson", "json");
+        source.config(sourceProperties);
+        
+        String json = "{ \"a\": 12, \"b\": { \"c\": 34 }}";
+        
+        zk.create("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes(), acls, mode);
+        
+        Properties props = new Properties();
+        props.setProperty("monitor.db_production_inventory-missing.a", "12");
+        props.setProperty("monitor.db_production_inventory-missing.b.c", "34");
+        
+        assertEquals(props, source.load());
+    }
+    
+    @Test
+    public void updatePropertiesAsJSON() throws Exception {
+        ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
+        Properties sourceProperties = new Properties();
+        sourceProperties.setProperty("connection_string", "localhost:2181/exdemon");
+        sourceProperties.setProperty("asjson", "json");
+        source.config(sourceProperties);
+        
+        String json = "{ \"a\": 12, \"b\": { \"c\": 34 }}";
+        
+        zk.create("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes(), acls, mode);
+        
+        Properties props = new Properties();
+        props.setProperty("monitor.db_production_inventory-missing.a", "12");
+        props.setProperty("monitor.db_production_inventory-missing.b.c", "34");
+        
+        json = "{ \"z\": 52, \"b\": 98 }";
+        zk.setData("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes(), -1);
+        
+        props = new Properties();
+        props.setProperty("monitor.db_production_inventory-missing.b", "98");
+        props.setProperty("monitor.db_production_inventory-missing.z", "52");
+        assertEquals(props, source.load());
+    }
+    
+    @Test
+    public void removePropertiesAsJSON() throws Exception {
+        ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
+        Properties sourceProperties = new Properties();
+        sourceProperties.setProperty("connection_string", "localhost:2181/exdemon");
+        sourceProperties.setProperty("asjson", "json");
+        source.config(sourceProperties);
+        
+        String json = "{ \"a\": 12, \"b\": { \"c\": 34 }}";
+        
+        zk.create("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes(), acls, mode);
+        
+        Properties props = new Properties();
+        props.setProperty("monitor.db_production_inventory-missing.a", "12");
+        props.setProperty("monitor.db_production_inventory-missing.b.c", "34");
+        
+        assertEquals(props, source.load());
+        
+        zk.delete("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", -1);
+        
+        assertEquals(0, source.load().size());
     }
     
     @Test

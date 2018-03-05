@@ -314,5 +314,15 @@ public class Properties extends java.util.Properties {
         
         return clonedProperties;
     }
+
+    public void replaceSubset(String prefix, Properties newProperties) {
+        entrySet().removeIf(entry -> entry.getKey().toString().startsWith(prefix));
+        
+        if(newProperties == null)
+            return;
+        
+        for (Map.Entry<Object, Object> entry : newProperties.entrySet())
+            setProperty(prefix + "." + entry.getKey(), entry.getValue().toString());
+    }
     
 }
