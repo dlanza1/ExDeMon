@@ -184,16 +184,16 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
     }
 
     private void initialize() throws Exception {
-        if(client != null)
-            return;
-        
-        client = CuratorFrameworkFactory.builder()
-                                .connectString(zkConnString)
-                                .retryPolicy(new ExponentialBackoffRetry(1000, 3))
-                                .sessionTimeoutMs(timeout_ms)
-                                .build();
-        client.start();
-        LOG.info("Client started. Connection string: " + zkConnString);
+        if(client == null){
+            client = CuratorFrameworkFactory.builder()
+                    .connectString(zkConnString)
+                    .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+                    .sessionTimeoutMs(timeout_ms)
+                    .build();
+            
+            client.start();
+            LOG.info("Client started. Connection string: " + zkConnString);
+        }
         
         initialiceCache();
     }
