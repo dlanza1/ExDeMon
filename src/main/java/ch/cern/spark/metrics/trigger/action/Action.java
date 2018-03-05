@@ -42,7 +42,6 @@ public class Action implements Serializable, Taggable {
     private AnalysisResult triggeringResult;
 
     public Action(
-            @NonNull Instant timestamp, 
             @NonNull String monitorID, 
             @NonNull String trgiggerID, 
             @NonNull Map<String, String> metric_attributes,
@@ -50,7 +49,7 @@ public class Action implements Serializable, Taggable {
             @NonNull Set<String> actuatorIDs,
             @NonNull Map<String, String> tags,
             @NonNull AnalysisResult triggeringResult) {
-        this.creation_timestamp = timestamp;
+        this.creation_timestamp = Instant.now();
         this.monitor_id = monitorID;
         this.trigger_id = trgiggerID;
         this.metric_attributes = metric_attributes;

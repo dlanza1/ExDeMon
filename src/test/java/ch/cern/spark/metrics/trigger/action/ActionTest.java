@@ -14,7 +14,6 @@ public class ActionTest {
     public static Action DUMMY = null;
     static {
         DUMMY = new Action(
-                        Instant.now(), 
                         "dummyMonitorID", 
                         "dummyTriggerID",
                         new HashMap<>(),

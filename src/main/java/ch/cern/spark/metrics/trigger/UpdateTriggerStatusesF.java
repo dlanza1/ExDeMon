@@ -47,7 +47,7 @@ public class UpdateTriggerStatusesF
             actionOpt = trigger.apply(result);
             
             if(actionOpt.isPresent())
-                status.setLastRaised(actionOpt.get().getCreation_timestamp());
+                status.setLastRaised(actionOpt.get().getTriggeringResult().getAnalyzed_metric().getTimestamp());
 
             if (trigger.hasStatus())
                 status.setActiveStatus(((HasStatus) trigger).save());

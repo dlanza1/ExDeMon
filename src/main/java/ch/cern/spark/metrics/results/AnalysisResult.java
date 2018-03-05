@@ -11,6 +11,7 @@ import java.util.function.Function;
 import ch.cern.Taggable;
 import ch.cern.spark.metrics.Metric;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -25,14 +26,16 @@ public class AnalysisResult implements Serializable, Taggable {
     @Getter
     private String status_reason;
     
-    @Setter
+    @Getter @Setter @NonNull
     private Instant analysis_timestamp;
     
-    @Getter
+    @Getter @NonNull
     private Metric analyzed_metric;
     
+    @NonNull
     private Map<String, Object> analysis_params;
     
+    @NonNull
     private Map<String, String> tags;
     
     public AnalysisResult() {
@@ -41,7 +44,7 @@ public class AnalysisResult implements Serializable, Taggable {
         tags = new HashMap<>();
     }
 
-	public void setAnalyzedMetric(Metric metric) {
+	public void setAnalyzedMetric(@NonNull Metric metric) {
     		if(metric.getValue().getAsException().isPresent()) {
     			this.status = Status.EXCEPTION;
     			this.status_reason = metric.getValue().getAsException().get();

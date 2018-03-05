@@ -91,8 +91,7 @@ public abstract class Trigger extends Component implements Function<AnalysisResu
         triggerTags.putAll(tags);
     		
     		return Optional.of(new Action(
-                		                result.getAnalyzed_metric().getTimestamp(),
-                		                "",
+    		                            "",
                 		                getId(),
                 		                result.getAnalyzed_metric().getAttributes(),
                 		                reasonOpt.get(),
