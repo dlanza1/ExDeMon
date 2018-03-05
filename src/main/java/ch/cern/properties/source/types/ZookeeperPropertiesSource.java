@@ -51,7 +51,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
     public void config(Properties properties) throws ConfigurationException {
         zkConnString = properties.getProperty("connection_string");
         initialization_timeout_ms = properties.getLong("initialization_timeout_ms", 5000);
-        timeout_ms = (int) properties.getLong("timeout_ms", 1000);
+        timeout_ms = (int) properties.getLong("timeout_ms", 20000);
         
         properties.confirmAllPropertiesUsed();
     }
@@ -189,7 +189,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
         
         client = CuratorFrameworkFactory.builder()
                                 .connectString(zkConnString)
-                                .retryPolicy(new ExponentialBackoffRetry(timeout_ms, 3))
+                                .retryPolicy(new ExponentialBackoffRetry(1000, 3))
                                 .sessionTimeoutMs(timeout_ms)
                                 .build();
         client.start();

@@ -44,6 +44,7 @@ Configuration:
 properties.source.type = zookeeper
 properties.source.connection_string = <host:port,host:port/path>
 properties.source.initialization_timeout_ms = <milliseconds> (default: 5000)
+properties.source.timeout_ms = <milliseconds> (default: 20000)
 ```
 
 ## File properties source
