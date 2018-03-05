@@ -60,7 +60,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
     public Properties load() throws Exception {
         initialize();
         
-        return currentProperties;
+        return (Properties) currentProperties.clone();
     }
 
     @SuppressWarnings("unused")
@@ -231,12 +231,12 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
                         String value = new String(event.getData().getData());
                         insertValue(path, value);
                     
-                        LOG.info("Node with data added to the tree: " + path + "=" + value);
+                        LOG.trace("Node with data added to the tree: " + path + "=" + value);
                     }
                     break;
                 case NODE_REMOVED:
                     removeValue(event.getData().getPath());
-                    LOG.info("Node removed from the tree: " + event.getData().getPath());
+                    LOG.trace("Node removed from the tree: " + event.getData().getPath());
                     break;
                 case NODE_UPDATED:
                     if(event.getData().getData() != null) {
@@ -244,7 +244,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
                         String value = new String(event.getData().getData());
                         insertValue(path, value);
                     
-                        LOG.info("Node with data updated in the tree: " + path + "=" + value);
+                        LOG.trace("Node with data updated in the tree: " + path + "=" + value);
                     }
                     break;
                 default:

@@ -306,4 +306,13 @@ public class Properties extends java.util.Properties {
                 this.addProperties(item.getKey(), from(item.getValue().getAsJsonObject()));
     }
 
+    @Override
+    public synchronized Object clone() {
+        Properties clonedProperties = new Properties();
+        
+        clonedProperties.putAll(this);
+        
+        return clonedProperties;
+    }
+    
 }
