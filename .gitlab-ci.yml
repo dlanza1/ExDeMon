@@ -27,6 +27,7 @@ exdemon_package:
   stage: test
   image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
   script:
+    - mvn versions:set -DnewVersion=$RPM_VERSION
     - mvn clean test package
   artifacts:
     expire_in: 5 mins
