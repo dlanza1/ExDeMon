@@ -19,7 +19,7 @@ ExDeMon is a general purpose metrics monitor implemented with Apache Spark. Kafk
 [ -d %{buildroot} ] && rm -rf %{buildroot}
 
 mkdir -p %{buildroot}/opt/%{name}/lib/
-install -m 644 lib/exdemon-*.jar %{buildroot}/opt/%{name}/lib/
+install -m 644 target/exdemon-*.jar %{buildroot}/opt/%{name}/lib/
 
 mkdir -p %{buildroot}/opt/%{name}/bin/
 install -m 744 bin/* %{buildroot}/opt/%{name}/bin/
