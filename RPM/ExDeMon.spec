@@ -32,7 +32,6 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root)
 /opt/%{name}/*
-/etc/cron.d/%{name}.cron
 
 %post
 
