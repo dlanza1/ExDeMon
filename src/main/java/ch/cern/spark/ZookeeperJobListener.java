@@ -209,7 +209,7 @@ public class ZookeeperJobListener implements SparkListenerInterface, StreamingLi
                     .withMode(CreateMode.PERSISTENT)
                     .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
                     .forPath(path, value.getBytes());
-        }catch(Exception e) {
+        }catch(Throwable e) {
             LOG.error(e.getMessage(), e);
         }
     }
