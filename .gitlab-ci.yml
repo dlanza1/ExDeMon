@@ -38,6 +38,7 @@ exdemon_rpm:
   image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
   script:
     - mkdir -p RPM/lib
+    - cp target/*.jar RPM/lib/
     - cd RPM
     - make build
   dependencies:
