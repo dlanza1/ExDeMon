@@ -5,7 +5,7 @@ MAINTAINER daniel.lanza@cern.ch
 LABEL description="Testbed for CASTOR TapeMonCompaction project"
 
 # Install Apache Maven (for packing projects)
-RUN curl https://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo > /etc/yum.repos.d/epel-apache-maven && sed -i s/\$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo && yum install -y apache-maven java bc
+RUN curl https://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo > /etc/yum.repos.d/epel-apache-maven.repo && sed -i s/\$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo && yum install -y apache-maven java bc
 
 # Run maven to download binaries and dependencies
 ENV SHARED_DIR="/tmp/repository/"
