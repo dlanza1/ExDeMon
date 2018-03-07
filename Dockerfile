@@ -2,12 +2,14 @@ FROM cern/cc7-base
 
 # Dockerfile metadata
 MAINTAINER daniel.lanza@cern.ch
-LABEL description="Testbed for CASTOR TapeMonCompaction project"
+LABEL description="Testbed for ExDeMon project"
 
 # Install Apache Maven (for packing projects)
-RUN curl https://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo > /etc/yum.repos.d/epel-apache-maven.repo && sed -i s/\$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo && yum install -y apache-maven java bc
+RUN curl https://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo > /etc/yum.repos.d/epel-apache-maven.repo
+RUN sed -i s/\$releasever/7/g /etc/yum.repos.d/epel-apache-maven.repo
+RUN yum install -y which java apache-maven
 
-# Run maven to download binaries and dependencies
+# Run Maven to download dependencies
 ENV SHARED_DIR="/tmp/repository/"
 COPY ./pom.xml $SHARED_DIR/
 RUN (cd $SHARED_DIR/; mvn dependency:resolve)
