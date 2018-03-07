@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Copyright (C) 2016, CERN
+# This software is distributed under the terms of the GNU General Public
+# Licence version 3 (GPL Version 3), copied verbatim in the file "LICENSE".
+# In applying this license, CERN does not waive the privileges and immunities
+# granted to it by virtue of its status as Intergovernmental Organization
+# or submit itself to any jurisdiction.
+
+# Reference: http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+HOME=$SCRIPT_DIR/..
+
+CONFIG_PATH=$HOME/conf/config.properties
+CONFIG_PATH=/tmp/config.properties
+
+$HOME/bin/update_config
+
+export JAVA_HOME=/root/jdk1.8.0_112/
+export SPARK_HOME=/root/spark-2.2.1-bin-without-hadoop/
+
+export HADOOP_CONF_DIR=$HOME/conf/
+export SPARK_CONF_DIR=$HOME/conf/
+
+[ -f $HOME/elasticsearch-hadoop-6.1.2.jar ] || \
+    wget http://central.maven.org/maven2/org/elasticsearch/elasticsearch-hadoop/6.1.2/elasticsearch-hadoop-6.1.2.jar -O $HOME/elasticsearch-hadoop-6.1.2.jar
+
+# Stop if runnning
+kill `ps -ax | grep "ch.cern.spark.metrics.Driver" | grep -v grep | awk '{$1=$1};1' | cut -d' ' -f 1`
+echo `date` Restarting... >> $HOME/log/restarts
+
+# STart
+$SPARK_HOME/bin/spark-submit \
+	--master yarn \
+	--driver-cores 2 \
+	--driver-memory 2G \
+	--executor-memory 3G \
+	--num-executors 3 \
+	--executor-cores 1 \
+	--class ch.cern.spark.metrics.Driver \
+	--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.2.1 \
+	--jars $HOME/elasticsearch-hadoop-6.1.2.jar \
+	--repositories https://repository.cloudera.com/artifactory/cloudera-repos/ \
+	$HOME/target/metrics-monitor-*.jar \
+	$CONFIG_PATH

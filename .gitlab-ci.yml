@@ -1,0 +1,59 @@
+stages:
+  - dockerimage
+  - test
+  - build
+  - release
+  
+variables:
+  DOCKER_IMAGE: docker-0.0.1
+  
+before_script:
+  - if [[ "$CI_COMMIT_TAG" == rpm-* ]] ; then export RPM_VERSION=${CI_COMMIT_TAG#rpm-}; else export RPM_VERSION=test${CI_PIPELINE_ID}git${CI_COMMIT_SHA:0:8}; fi
+  
+create_dockerimage:
+  stage: dockerimage
+  only:
+    - /^docker-.*$/
+  tags:
+    - docker-image-build
+  script:
+    - ""
+  variables:
+    TO: gitlab-registry.cern.ch/tapeanalytics/exdemon:$CI_COMMIT_TAG
+    DOCKER_LOGIN_SERVER: gitlab-registry.cern.ch
+  # DOCKER_LOGIN_USERNAME and DOCKER_LOGIN_PASSWORD should be provided as secure variables from gitlab web interface
+  
+exdemon_package:
+  stage: test
+  image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
+  script:
+    - mvn clean test package
+  artifacts:
+    expire_in: 5 mins
+    paths:
+      - target/
+      
+exdemon_rpm:
+  stage: build
+  image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
+  script:
+    - mkdir -p RPM/lib
+    - cd RPM
+    - make build
+  dependencies:
+    - exdemon_package
+  artifacts:
+    expire_in: 7 days
+    paths:
+      - RPM/build
+
+exdemon_release:
+  stage: release
+  only:
+    - /^rpm-.*$/
+  image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
+  script:
+    - echo "$KOJI_PASSWORD" | kinit $KOJI_USER
+    - koji build --wait tapemon7 RPM/build/*.src.rpm
+  dependencies:
+    - exdemon_rpm 
