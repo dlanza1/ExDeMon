@@ -12,8 +12,8 @@ RUN yum install -y which java apache-maven
 # Run Maven to download dependencies
 ENV SHARED_DIR="/tmp/repository/"
 COPY ./pom.xml $SHARED_DIR/
-RUN (cd $SHARED_DIR/; mvn dependency:resolve)
 RUN (cd $SHARED_DIR/; mvn versions:set -DnewVersion=1-DOCKER_GENERATION)
+RUN (cd $SHARED_DIR/; mvn package clean)
 
 # Install make and rpmbuild (for building RPMs)
 RUN yum install -y make rpm-build
