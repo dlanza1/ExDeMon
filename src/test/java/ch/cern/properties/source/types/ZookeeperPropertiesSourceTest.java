@@ -31,6 +31,8 @@ public class ZookeeperPropertiesSourceTest {
     public void startZookeeper() throws Exception {
         zkTestServer = new TestingServer(2181);
         
+        Thread.sleep(100);
+        
         zk = new ZooKeeper("localhost:2181/", 1000, null);
         zk.create("/exdemon_json", null, acls, mode);
         zk.create("/exdemon", null, acls, mode);
