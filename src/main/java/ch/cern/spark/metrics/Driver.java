@@ -11,6 +11,7 @@ import java.util.Set;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.log4j.Logger;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
@@ -21,6 +22,7 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.properties.source.PropertiesSource;
 import ch.cern.spark.SparkConf;
+import ch.cern.spark.ZookeeperJobListener;
 import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
 import ch.cern.spark.metrics.defined.DefinedMetrics;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
@@ -41,6 +43,8 @@ import ch.cern.spark.status.StatusesKeyReceiver;
 import ch.cern.spark.status.storage.StatusesStorage;
 
 public final class Driver {
+    
+    private transient final static Logger LOG = Logger.getLogger(Driver.class.getName());
     
     public static String BATCH_INTERVAL_PARAM = "spark.batch.time";
     
@@ -88,9 +92,12 @@ public final class Driver {
 	    Driver driver = new Driver(properties);
 		
         JavaStreamingContext ssc = driver.createNewStreamingContext(properties.getSubset(PropertiesSource.CONFIGURATION_PREFIX));
-		
+        
 		// Start the computation
 		ssc.start();
+		
+		ssc.sparkContext().sc().applicationId();
+		
 		try {
 			ssc.awaitTermination();
 		} catch (InterruptedException e) {
@@ -224,6 +231,15 @@ public final class Driver {
     		JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, Durations.seconds(batchInterval));
 		
 		ssc.checkpoint(checkpointDir + "/checkpoint/");
+		
+        try {
+            ZookeeperJobListener streamingListener = new ZookeeperJobListener(properties.getSubset("spark.streaming.listener"));
+            
+            ssc.sparkContext().sc().addSparkListener(streamingListener);
+            ssc.addStreamingListener(streamingListener);
+        } catch (Exception e) {
+            LOG.error("Zookeeper job listener could not be attached: " + e.getMessage(), e);
+        }
 		
 		return ssc;
 	}
