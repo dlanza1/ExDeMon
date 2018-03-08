@@ -29,9 +29,9 @@ public class ZookeeperPropertiesSourceTest {
     
     @Before
     public void startZookeeper() throws Exception {
-        zkTestServer = new TestingServer(2181);
+        zkTestServer = new TestingServer(2182);
         
-        zk = new ZooKeeper("localhost:2181", 1000, null);
+        zk = new ZooKeeper("localhost:2182", 1000, null);
         Thread.sleep(100);
         
         zk.create("/exdemon_json", null, acls, mode);
@@ -61,7 +61,7 @@ public class ZookeeperPropertiesSourceTest {
     public void hostNotAccesible() {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
-        sourceProperties.setProperty("connection_string", "UNKNOWN:2181/exdemon");
+        sourceProperties.setProperty("connection_string", "UNKNOWN:2182/exdemon");
         sourceProperties.setProperty("initialization_timeout_ms", "500");
 
         try{
@@ -75,7 +75,7 @@ public class ZookeeperPropertiesSourceTest {
     public void hostNotAccesibleAfterInitialization() throws Exception {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
-        sourceProperties.setProperty("connection_string", "localhost:2181/exdemon");
+        sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
         sourceProperties.setProperty("initialization_timeout_ms", "100");
         sourceProperties.setProperty("timeout_ms", "100");
         
@@ -97,7 +97,7 @@ public class ZookeeperPropertiesSourceTest {
     public void pathDoesNotExist() {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
-        sourceProperties.setProperty("connection_string", "localhost:2181/UNKNOWN");
+        sourceProperties.setProperty("connection_string", "localhost:2182/UNKNOWN");
         
         try{
             source.config(sourceProperties);
@@ -110,7 +110,7 @@ public class ZookeeperPropertiesSourceTest {
     public void parseProperties() throws Exception {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
-        sourceProperties.setProperty("connection_string", "localhost:2181/exdemon");
+        sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
         source.config(sourceProperties);
         
         Properties props = new Properties();
@@ -125,7 +125,7 @@ public class ZookeeperPropertiesSourceTest {
     public void parsePropertiesAsJSON() throws Exception {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
-        sourceProperties.setProperty("connection_string", "localhost:2181/exdemon");
+        sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
         sourceProperties.setProperty("asjson", "json");
         source.config(sourceProperties);
         
@@ -144,7 +144,7 @@ public class ZookeeperPropertiesSourceTest {
     public void updatePropertiesAsJSON() throws Exception {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
-        sourceProperties.setProperty("connection_string", "localhost:2181/exdemon");
+        sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
         sourceProperties.setProperty("asjson", "json");
         source.config(sourceProperties);
         
@@ -169,7 +169,7 @@ public class ZookeeperPropertiesSourceTest {
     public void removePropertiesAsJSON() throws Exception {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
-        sourceProperties.setProperty("connection_string", "localhost:2181/exdemon");
+        sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
         sourceProperties.setProperty("asjson", "json");
         source.config(sourceProperties);
         
@@ -194,7 +194,7 @@ public class ZookeeperPropertiesSourceTest {
     public void removeProperties() throws Exception {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
-        sourceProperties.setProperty("connection_string", "localhost:2181/exdemon");
+        sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
         source.config(sourceProperties);
         
         Properties props = new Properties();
@@ -222,7 +222,7 @@ public class ZookeeperPropertiesSourceTest {
     public void updateProperties() throws Exception {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
-        sourceProperties.setProperty("connection_string", "localhost:2181/exdemon");
+        sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
         source.config(sourceProperties);
         
         Properties props = new Properties();
