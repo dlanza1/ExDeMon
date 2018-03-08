@@ -8,7 +8,7 @@ public class StaticPropertiesSource extends PropertiesSource{
 
 	private static final long serialVersionUID = -7121294339770042193L;
 	
-	public static Properties properties;
+	public static Properties properties = new Properties();
 
 	@Override
 	public Properties loadAll() throws Exception {

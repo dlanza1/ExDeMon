@@ -28,7 +28,9 @@ public class ComputeBatchDefinedMetricsFTest {
 	
 	@Before
 	public void reset() throws ConfigurationException {
-		Properties.initCache(null);
+		Properties propertiesSourceProps = new Properties();
+		propertiesSourceProps.setProperty("type", "static");
+        Properties.initCache(propertiesSourceProps);
 		propertiesCache = Properties.getCache();
 		propertiesCache.reset();
 		DefinedMetrics.getCache().reset();

@@ -19,7 +19,9 @@ public class CacheTest {
     
     @Before
     public void setUp() throws Exception {
-        Properties.initCache(null);
+        Properties propertiesSourceProps = new Properties();
+        propertiesSourceProps.setProperty("type", "static");
+        Properties.initCache(propertiesSourceProps);
         Properties.getCache().reset();
     }
     

@@ -228,32 +228,25 @@ public class Properties extends java.util.Properties {
 
     public static class PropertiesCache extends Cache<Properties> {
 
-        private Properties propertiesSourceProps;
+        private Optional<PropertiesSource> propertiesSourceOpt = null;
 
-        public PropertiesCache(Properties propertiesSourceProps) {
-            this.propertiesSourceProps = propertiesSourceProps;
+        public PropertiesCache(Properties propertiesSourceProps) throws ConfigurationException {
+            LOG.info("Properties source parameters: " + propertiesSourceProps);
+            
+            propertiesSourceOpt = ComponentManager.buildOptional(Type.PROPERTIES_SOURCE, propertiesSourceProps);
+            
+            if(!propertiesSourceOpt.isPresent())
+                throw new ConfigurationException("No properties source was configured");
         }
 
         @Override
         protected Properties load() throws Exception {
-            LOG.info("Loading properties.");
-            LOG.info("Properties source parameters: " + propertiesSourceProps);
-
-            if (propertiesSourceProps == null)
-                return new Properties();
-
-            Optional<PropertiesSource> propertiesSource = ComponentManager.buildOptional(Type.PROPERTIES_SOURCE, propertiesSourceProps);
-
-            if (propertiesSource.isPresent()) {
-                Properties properties = propertiesSource.get().load();
-
-                LOG.info("Properties loaded from source.");
-
-                return properties;
-            }else {
-                LOG.info("Properties source not configured.");
+            if(propertiesSourceOpt.isPresent()) {
+                LOG.info("Loading properties.");
                 
-                return propertiesSourceProps;
+                return propertiesSourceOpt.get().load();
+            }else {
+                throw new ConfigurationException("No properties source was configured");
             }
         }
         
