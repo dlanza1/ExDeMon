@@ -170,12 +170,12 @@ public class Properties extends java.util.Properties {
                     key + " expects boolean value (true or false). \"" + value + "\" could not be parsed");
     }
 
-    public void setPropertyIfAbsent(String key, String value) {
+    public synchronized void setPropertyIfAbsent(String key, String value) {
         if (!containsKey(key))
             setProperty(key, value);
     }
     
-    private void addProperties(String subfix, Properties newProps) {
+    private synchronized void addProperties(String subfix, Properties newProps) {
         for (Map.Entry<Object, Object> item : newProps.entrySet())
             put(subfix + "." + item.getKey(), item.getValue());
     }
@@ -264,7 +264,7 @@ public class Properties extends java.util.Properties {
 
     }
 
-    public void confirmAllPropertiesUsed() throws ConfigurationException {
+    public synchronized void confirmAllPropertiesUsed() throws ConfigurationException {
         HashSet<Object> leftKeys = new HashSet<>(keySet());
         leftKeys.removeAll(usedKeys);
 
@@ -298,7 +298,7 @@ public class Properties extends java.util.Properties {
         return properties;
     }
     
-    public void addFrom(JsonObject json) {
+    public synchronized void addFrom(JsonObject json) {
         for (Map.Entry<String, JsonElement> item : json.entrySet())
             if(item.getValue().isJsonPrimitive())
                 this.setProperty(item.getKey(), item.getValue().getAsJsonPrimitive().getAsString());
@@ -315,7 +315,7 @@ public class Properties extends java.util.Properties {
         return clonedProperties;
     }
 
-    public void replaceSubset(String prefix, Properties newProperties) {
+    public synchronized void replaceSubset(String prefix, Properties newProperties) {
         entrySet().removeIf(entry -> entry.getKey().toString().startsWith(prefix));
         
         if(newProperties == null)
