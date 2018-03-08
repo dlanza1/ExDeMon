@@ -50,7 +50,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
     private static final Pattern ownerPattern = Pattern.compile("/owner=([^/]+)/");
     
     @Override
-    public void config(Properties properties) throws ConfigurationException {
+    public void configure(Properties properties) throws ConfigurationException {
         zkConnString = properties.getProperty("connection_string");
         initialization_timeout_ms = properties.getLong("initialization_timeout_ms", 5000);
         timeout_ms = (int) properties.getLong("timeout_ms", 20000);
@@ -60,7 +60,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
     }
 
     @Override
-    public Properties load() throws Exception {
+    public Properties loadAll() throws Exception {
         initialize();
         
         return (Properties) currentProperties.clone();

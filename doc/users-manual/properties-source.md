@@ -9,8 +9,12 @@ To configure an external source of properties:
 ```
 properties.source.type = <properties_source_type>
 properties.source.expire = <period like 1h, 3m or 45s> (default: 1m)
+properties.source.id.filters.<filter_name1> = <regex>
+properties.source.id.filters.<filter_nameN> = <regex> 
 properties.source.<other_confs> = <value>
 ```
+
+Component's properties to be loaded will be filtered by id.filters. All these regexs will build filter for ids with or operator.
 
 If not properties source is configured, the default configuration is:
 

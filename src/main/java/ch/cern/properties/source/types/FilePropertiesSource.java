@@ -26,7 +26,7 @@ public class FilePropertiesSource extends PropertiesSource {
     private transient FileSystem fs;
     
     @Override
-    public void config(Properties properties) throws ConfigurationException {
+    public void configure(Properties properties) throws ConfigurationException {
         path = properties.getProperty("path");
         
         properties.confirmAllPropertiesUsed();
@@ -41,7 +41,7 @@ public class FilePropertiesSource extends PropertiesSource {
     }
 
     @Override
-    public Properties load() throws Exception {
+    public Properties loadAll() throws Exception {
         Properties props = new Properties();
         
         RemoteIterator<LocatedFileStatus> fileStatusListIterator = fs.listFiles(new Path(path), true);

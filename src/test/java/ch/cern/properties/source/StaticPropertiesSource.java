@@ -11,7 +11,7 @@ public class StaticPropertiesSource extends PropertiesSource{
 	public static Properties properties;
 
 	@Override
-	public Properties load() throws Exception {
+	public Properties loadAll() throws Exception {
 		return properties;
 	}
 	

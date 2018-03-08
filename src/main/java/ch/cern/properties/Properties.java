@@ -38,7 +38,7 @@ public class Properties extends java.util.Properties {
 
     private static Cache<Properties> cachedProperties = null;
 
-    private static Pattern ID_REGEX = Pattern.compile("[a-zA-Z0-9_-]+");
+    public static Pattern ID_REGEX = Pattern.compile("[a-zA-Z0-9_-]+");
 
     private Set<String> usedKeys = new HashSet<>();
 

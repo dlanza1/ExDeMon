@@ -23,12 +23,14 @@ import ch.cern.utils.Pair;
 public class DefinedMetrics {
 
 	private transient final static Logger LOG = Logger.getLogger(DefinedMetrics.class.getName());
+
+    public static final String PARAM = "metrics.define";
 	
 	private static final Cache<Map<String, DefinedMetric>> cachedDefinedMetrics = new Cache<Map<String,DefinedMetric>>() {
 		
 		@Override
 		protected Map<String, DefinedMetric> load() throws Exception {
-	        Properties properties = Properties.getCache().get().getSubset("metrics.define");
+	        Properties properties = Properties.getCache().get().getSubset(PARAM);
 	        
 	        Set<String> metricsDefinedNames = properties.getIDs();
 	        

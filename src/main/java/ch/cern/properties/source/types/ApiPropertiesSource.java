@@ -24,14 +24,14 @@ public class ApiPropertiesSource extends PropertiesSource {
     private String api_url;
     
     @Override
-    public void config(Properties properties) throws ConfigurationException {
+    public void configure(Properties properties) throws ConfigurationException {
         api_url = properties.getProperty("url");
         
         properties.confirmAllPropertiesUsed();
     }
 
     @Override
-    public Properties load() throws Exception {
+    public Properties loadAll() throws Exception {
         try {
             Properties props = new Properties();
             

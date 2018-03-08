@@ -81,7 +81,7 @@ public class ZookeeperPropertiesSourceTest {
         
         source.config(sourceProperties);
         
-        assertNotNull(source.load());
+        assertNotNull(source.loadAll());
         
         zkTestServer.stop();
         zkTestServer = null;
@@ -89,7 +89,7 @@ public class ZookeeperPropertiesSourceTest {
         Thread.sleep(1000);
         
         try {
-            source.load();
+            source.loadAll();
         }catch(IOException e) {}
     }
     
@@ -118,7 +118,7 @@ public class ZookeeperPropertiesSourceTest {
         props.setProperty("metrics.schema.tape_tapeserver_diskserver_perf.timestamp.key", "data.timestamp");
         props.setProperty("monitor.db_production_inventory-missing.triggers.mattermost.actuators", "a1 a2 a3");
         
-        assertEquals(props, source.load());
+        assertEquals(props, source.loadAll());
     }
     
     @Test
@@ -137,7 +137,7 @@ public class ZookeeperPropertiesSourceTest {
         props.setProperty("monitor.db_production_inventory-missing.a", "12");
         props.setProperty("monitor.db_production_inventory-missing.b.c", "34");
         
-        assertEquals(props, source.load());
+        assertEquals(props, source.loadAll());
     }
     
     @Test
@@ -162,7 +162,7 @@ public class ZookeeperPropertiesSourceTest {
         props = new Properties();
         props.setProperty("monitor.db_production_inventory-missing.b", "98");
         props.setProperty("monitor.db_production_inventory-missing.z", "52");
-        assertEquals(props, source.load());
+        assertEquals(props, source.loadAll());
     }
     
     @Test
@@ -181,11 +181,11 @@ public class ZookeeperPropertiesSourceTest {
         props.setProperty("monitor.db_production_inventory-missing.a", "12");
         props.setProperty("monitor.db_production_inventory-missing.b.c", "34");
         
-        assertEquals(props, source.load());
+        assertEquals(props, source.loadAll());
         
         zk.delete("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", -1);
         
-        assertEquals(0, source.load().size());
+        assertEquals(0, source.loadAll().size());
     }
     
     @Test
@@ -200,7 +200,7 @@ public class ZookeeperPropertiesSourceTest {
         props.setProperty("metrics.schema.tape_tapeserver_diskserver_perf.timestamp.key", "data.timestamp");
         props.setProperty("monitor.db_production_inventory-missing.triggers.mattermost.actuators", "a1 a2 a3");
         
-        assertEquals(props, source.load());
+        assertEquals(props, source.loadAll());
         
         zk.delete("/exdemon/owner=exdemon/env=qa/id=spark_batch/type=schema/attributes/$environment", -1);
         zk.delete("/exdemon/owner=tape/env=tapeserver_diskserver/id=perf/type=schema/timestamp/key", -1);
@@ -208,12 +208,12 @@ public class ZookeeperPropertiesSourceTest {
         props.remove("metrics.schema.tape_tapeserver_diskserver_perf.timestamp.key");
         
         Thread.sleep(100);
-        assertEquals(props, source.load());
+        assertEquals(props, source.loadAll());
         
         zk.delete("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/triggers/mattermost/actuators", -1);
         
         Thread.sleep(100);
-        assertEquals(new Properties(), source.load());
+        assertEquals(new Properties(), source.loadAll());
     }
     
     @Test
@@ -228,7 +228,7 @@ public class ZookeeperPropertiesSourceTest {
         props.setProperty("metrics.schema.tape_tapeserver_diskserver_perf.timestamp.key", "data.timestamp");
         props.setProperty("monitor.db_production_inventory-missing.triggers.mattermost.actuators", "a1 a2 a3");
         
-        assertEquals(props, source.load());
+        assertEquals(props, source.loadAll());
         zk.setData("/exdemon/owner=exdemon/env=qa/id=spark_batch/type=schema/attributes/$environment", "qa_v2".getBytes(), -1);
         zk.setData("/exdemon/owner=tape/env=tapeserver_diskserver/id=perf/type=schema/timestamp/key", "data.timestamp_v2".getBytes(), -1);
         zk.setData("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/triggers/mattermost/actuators", "a1 a2 a3_v2".getBytes(), -1);
@@ -237,7 +237,7 @@ public class ZookeeperPropertiesSourceTest {
         props.setProperty("monitor.db_production_inventory-missing.triggers.mattermost.actuators", "a1 a2 a3_v2");
         
         Thread.sleep(100);
-        assertEquals(props, source.load());
+        assertEquals(props, source.loadAll());
     }
     
     @Test

@@ -269,7 +269,7 @@ public class ApiPropertiesSourceTest {
         Properties properties = new Properties();
         properties.put("url", API_URL);
         apiMock.config(properties);
-        Properties props = apiMock.load();
+        Properties props = apiMock.loadAll();
         
         assertEquals("drive_consec_failed_reqs", props.get("metrics.define.tape_qa_drive_consec_failed_reqs.metrics.attribute.$defined_metric"));
         assertEquals("$owner $environment hostname", props.get("metrics.define.tape_qa_perf-missing.metrics.groupby"));
