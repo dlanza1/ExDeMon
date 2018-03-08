@@ -151,7 +151,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
         if(asJsonNodeName != null) {
             if(path.endsWith("/" + asJsonNodeName)) {
                 String prefix = prefixType + "." + buildId(owner, env, id);
-                
+
                 currentProperties.replaceSubset(prefix, null);
             }
         }else {
@@ -213,9 +213,9 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
             
             client.start();
             LOG.info("Client started. Connection string: " + zkConnString);
+            
+            initialiceCache();
         }
-        
-        initialiceCache();
     }
 
     private void initialiceCache() throws Exception {
@@ -259,20 +259,20 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
                         String value = new String(event.getData().getData());
                         insertValue(path, value);
                     
-                        LOG.trace("Node with data added to the tree: " + path + "=" + value);
+                        LOG.info("Node with data added to the tree: " + path + "=" + value);
                     }
                     break;
                 case NODE_REMOVED:
                     removeValue(event.getData().getPath());
-                    LOG.trace("Node removed from the tree: " + event.getData().getPath());
+                    LOG.info("Node removed from the tree: " + event.getData().getPath());
                     break;
                 case NODE_UPDATED:
                     if(event.getData().getData() != null) {
                         String path = event.getData().getPath();
                         String value = new String(event.getData().getData());
                         insertValue(path, value);
-                    
-                        LOG.trace("Node with data updated in the tree: " + path + "=" + value);
+                        
+                        LOG.info("Node with data updated in the tree: " + path + "=" + value);
                     }
                     break;
                 default:

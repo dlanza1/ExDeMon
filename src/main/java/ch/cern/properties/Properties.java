@@ -317,7 +317,7 @@ public class Properties extends java.util.Properties {
 
     public synchronized void replaceSubset(String prefix, Properties newProperties) {
         entrySet().removeIf(entry -> entry.getKey().toString().startsWith(prefix));
-        
+
         if(newProperties == null)
             return;
         

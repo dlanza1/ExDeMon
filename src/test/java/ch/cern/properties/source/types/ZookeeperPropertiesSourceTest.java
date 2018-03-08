@@ -185,6 +185,8 @@ public class ZookeeperPropertiesSourceTest {
         
         zk.delete("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", -1);
         
+        Thread.sleep(10);
+        
         assertEquals(0, source.loadAll().size());
     }
     
