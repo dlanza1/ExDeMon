@@ -236,6 +236,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
                     tryApply(event);
                 }catch(Exception e) {
                     LOG.error("Error when applying tree event", e);
+                    close();
                 }
             }
 
@@ -262,7 +263,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
                         String value = new String(event.getData().getData());
                         insertValue(path, value);
                     
-                        LOG.info("Node with data added to the tree: " + path + "=" + value);
+                        LOG.debug("Node with data added to the tree: " + path + "=" + value);
                     }
                     break;
                 case NODE_REMOVED:
@@ -275,7 +276,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
                         String value = new String(event.getData().getData());
                         insertValue(path, value);
                         
-                        LOG.info("Node with data updated in the tree: " + path + "=" + value);
+                        LOG.debug("Node with data updated in the tree: " + path + "=" + value);
                     }
                     break;
                 default:
