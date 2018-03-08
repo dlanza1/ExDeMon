@@ -63,6 +63,9 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
     public Properties loadAll() throws Exception {
         initialize();
         
+        if(currentProperties == null)
+            throw new IOException("Properties could not be initialized");
+        
         return (Properties) currentProperties.clone();
     }
 
