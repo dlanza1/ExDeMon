@@ -16,11 +16,13 @@ public class MetricSchemas {
 	
 	private transient final static Logger LOG = Logger.getLogger(MetricSchemas.class.getName());
 	
+	public static final String PARAM = "metrics.schema";
+	
 	private static final Cache<Map<String, MetricSchema>> cachedMetricSchemas = new Cache<Map<String, MetricSchema>>() {
-		
-		@Override
+
+        @Override
 		protected Map<String, MetricSchema> load() throws Exception {
-	        Properties properties = Properties.getCache().get().getSubset("metrics.schema");
+	        Properties properties = Properties.getCache().get().getSubset(PARAM);
 	        
 	        Set<String> metricSchemaIDs = properties.getIDs();
 	        

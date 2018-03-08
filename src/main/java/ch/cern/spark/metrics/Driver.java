@@ -62,7 +62,8 @@ public final class Driver {
 	private String statuses_removal_socket_host;
 	private Integer statuses_removal_socket_port;
 
-	public Driver(Properties properties) throws Exception {
+	@SuppressWarnings("deprecation")
+    public Driver(Properties properties) throws Exception {
 		removeSparkCheckpointDir(properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT));
 		
 		String removalSocket = properties.getProperty(STATUSES_REMOVAL_SOCKET_PARAM);
@@ -77,7 +78,7 @@ public final class Driver {
 
         metricSources = getMetricSources(properties);
 		analysisResultsSink = getAnalysisResultsSink(properties);
-		actuators = getActuators(properties);
+		actuators = Actuators.getActuators(properties);
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -174,30 +175,6 @@ public final class Driver {
 		    throw new ConfigurationException("At least one metric source must be configured");
 		
 		return metricSources;
-	}
-	
-	private List<Actuator> getActuators(Properties properties) throws Exception {
-		List<Actuator> actuators = new LinkedList<>();
-		
-		Properties actuatorsProperties = properties.getSubset("actuators");
-		
-		//TODO backward compatibility
-    		Properties sinkPropertiesOld = properties.getSubset("notifications.sink");
-    		actuatorsProperties.putAll(sinkPropertiesOld);
-    		//TODO backward compatibility
-		
-    		Set<String> ids = actuatorsProperties.getIDs();
-    		
-    		for (String id : ids) {
-    			Properties props = actuatorsProperties.getSubset(id);
-			
-    			Actuator sink = ComponentManager.build(Type.ACTUATOR, props);
-    			sink.setId(id);
-    			
-    			actuators.add(sink);
-		}
-		
-		return actuators;
 	}
 	
 	public JavaStreamingContext newStreamingContext(Properties properties) throws IOException, ConfigurationException {

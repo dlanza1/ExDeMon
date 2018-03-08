@@ -27,12 +27,14 @@ import ch.cern.spark.status.StatusValue;
 public class Monitors {
 
 	private transient final static Logger LOG = Logger.getLogger(Monitors.class.getName());
+
+    public static final String PARAM = "monitor";
 	
 	private static Cache<Map<String, Monitor>> cachedMonitors = new Cache<Map<String,Monitor>>() {
 		
 		@Override
 		protected Map<String, Monitor> load() throws Exception {
-	        Properties properties = Properties.getCache().get().getSubset("monitor");
+	        Properties properties = Properties.getCache().get().getSubset(PARAM);
 	        
 	        Set<String> monitorNames = properties.getIDs();
 	        
