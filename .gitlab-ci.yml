@@ -38,6 +38,8 @@ exdemon_rpm:
   stage: build
   image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
   script:
+    - mkdir -p RPM/bin
+    - cp bin/* RPM/bin/
     - mkdir -p RPM/lib
     - cp target/*.jar RPM/lib/
     - cd RPM
