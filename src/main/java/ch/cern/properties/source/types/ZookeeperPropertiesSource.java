@@ -209,10 +209,10 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
     private void initialize() throws Exception {
         if(client == null){
             client = CuratorFrameworkFactory.builder()
-                    .connectString(zkConnString)
-                    .retryPolicy(new ExponentialBackoffRetry(1000, 3))
-                    .sessionTimeoutMs(timeout_ms)
-                    .build();
+                                                .connectString(zkConnString)
+                                                .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+                                                .sessionTimeoutMs(timeout_ms)
+                                                .build();
             
             client.start();
             LOG.info("Client started. Connection string: " + zkConnString);
@@ -248,14 +248,12 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
                     break;
                 case CONNECTION_LOST:
                     LOG.error("Conection lost");
-                    close();
                     break;
                 case CONNECTION_RECONNECTED:
                     LOG.warn("Conection reconnected");
                     break;
                 case CONNECTION_SUSPENDED:
                     LOG.error("Conection suspended");
-                    close();
                     break;
                 case NODE_ADDED:
                     if(event.getData().getData() != null) {
@@ -306,9 +304,11 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
     
     private void close() {
         currentProperties = null;
-        cache.close();
+        if(cache != null)
+            cache.close();
         cache = null;
-        client.close();
+        if(client != null)
+            client.close();
         client = null;
     }
     
