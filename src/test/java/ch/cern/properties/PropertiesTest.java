@@ -3,6 +3,8 @@ package ch.cern.properties;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -90,5 +92,12 @@ public class PropertiesTest {
         assertEquals("tape_logs", props.get("metrics.schema.perf.sources"));
         assertEquals("1234", props.get("metrics.schema.perf.filter.attribute"));
 	}
+	
+    @Test
+    public void fromClasspath() throws IOException {
+        Properties props = Properties.fromFile("classpath:/config.properties");
+
+        assertTrue(props.size() > 0);
+    }
 	
 }

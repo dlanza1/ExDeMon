@@ -1,7 +1,10 @@
 package ch.cern.properties;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
@@ -52,11 +55,18 @@ public class Properties extends java.util.Properties {
     public static Properties fromFile(String loadingPath) throws IOException {
         Properties props = null;
         
-        FileSystem fs = FileSystem.get(new Configuration());
-        if (loadingPath.startsWith("file:/"))
-            fs = FileSystem.getLocal(new Configuration()).getRawFileSystem();
+        InputStream in = null;
+        if(loadingPath.startsWith("classpath:/"))
+            in = Properties.class.getClass().getResourceAsStream(loadingPath.replaceFirst("classpath:", ""));
+        else {
+            FileSystem fs = FileSystem.get(new Configuration());
+            if (loadingPath.startsWith("file:/"))
+                fs = FileSystem.getLocal(new Configuration()).getRawFileSystem();
+            
+            in = fs.open(new Path(loadingPath));
+        }
         
-        InputStreamReader is = new InputStreamReader(fs.open(new Path(loadingPath)));
+        InputStreamReader is = new InputStreamReader(in);
         
         String possibleJSON = IOUtils.toString(is);
         is.close();
@@ -68,7 +78,7 @@ public class Properties extends java.util.Properties {
         }else {
             props = new Properties();
             
-            is = new InputStreamReader(fs.open(new Path(loadingPath)));
+            is = new InputStreamReader(new ByteArrayInputStream(possibleJSON.getBytes(StandardCharsets.UTF_8)));
             
             props.load(is);
             
