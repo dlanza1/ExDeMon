@@ -24,7 +24,7 @@ install -m 644 lib/exdemon-*.jar %{buildroot}/opt/%{name}/lib/
 mkdir -p %{buildroot}/opt/%{name}/bin/
 install -m 744 bin/* %{buildroot}/opt/%{name}/bin/
 
-mkdir -p %{buildroot}/opt/%{name}/etc/
+mkdir -p %{buildroot}/opt/%{name}/conf/spark/
 
 %clean
 rm -rf %{buildroot}
