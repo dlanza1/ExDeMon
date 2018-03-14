@@ -111,6 +111,7 @@ public class Monitor {
             LOG.error(e.getMessage(), e);
         }
         
+        metric.addAttribute("$monitor", id);
         result.addAnalysisParam("monitor.name", id);
         result.setAnalyzedMetric(metric);
         result.setTags(tags);
