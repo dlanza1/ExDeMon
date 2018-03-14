@@ -51,7 +51,7 @@ exdemon_rpm:
     paths:
       - RPM/build
 
-exdemon_release
+exdemon_release:
   stage: release
   only:
     - /^rpm-.*$/
