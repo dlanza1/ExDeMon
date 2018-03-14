@@ -51,9 +51,7 @@ exdemon_rpm:
     paths:
       - RPM/build
 
-exdemon_release:
-  variables:
-    CI_DEBUG_TRACE: "true"
+exdemon_release
   stage: release
   only:
     - /^rpm-.*$/
