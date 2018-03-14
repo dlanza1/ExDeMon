@@ -20,8 +20,9 @@ HOME=$SCRIPT_DIR/..
 
 source $HOME/conf/env
 
-if [ -z "${SPARK_HOME}" ]; then
-	SPARK_CMD=spark-submit
+SPARK_CMD=spark-submit
+if [ ! -z "${SPARK_HOME}" ]; then
+	SPARK_CMD=$SPARK_HOME/bin/$SPARK_CMD
 fi
 
 SPARK_VERSION=`$SPARK_CMD --version |& grep version | grep -o '[^ ]*$'`
