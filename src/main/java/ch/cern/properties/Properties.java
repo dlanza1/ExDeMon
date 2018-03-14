@@ -56,9 +56,9 @@ public class Properties extends java.util.Properties {
         Properties props = null;
         
         InputStream in = null;
-        if(loadingPath.startsWith("classpath:/"))
-            in = Properties.class.getClass().getResourceAsStream(loadingPath.replaceFirst("classpath:", ""));
-        else {
+        if(loadingPath.startsWith("classpath:/")) {
+            in = Thread.currentThread().getContextClassLoader().getResourceAsStream(loadingPath.replaceFirst("classpath:/", ""));
+        }else {
             FileSystem fs = FileSystem.get(new Configuration());
             if (loadingPath.startsWith("file:/"))
                 fs = FileSystem.getLocal(new Configuration()).getRawFileSystem();
