@@ -52,6 +52,8 @@ exdemon_rpm:
       - RPM/build
 
 exdemon_release:
+  variables:
+    CI_DEBUG_TRACE: "true"
   stage: release
   only:
     - /^rpm-.*$/
@@ -59,5 +61,6 @@ exdemon_release:
   script:
     - echo "$KOJI_PASSWORD" | kinit $KOJI_USER
     - koji build --wait tapemon7 RPM/build/*.src.rpm
+    - koji tag-build tapemon7-qa exdemon-$RPM_VERSION-1.0
   dependencies:
     - exdemon_rpm 
