@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Copyright (C) 2016, CERN
+# This software is distributed under the terms of the GNU General Public
+# Licence version 3 (GPL Version 3), copied verbatim in the file "LICENSE".
+# In applying this license, CERN does not waive the privileges and immunities
+# granted to it by virtue of its status as Intergovernmental Organization
+# or submit itself to any jurisdiction.
+
+# Reference: http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+HOME=$SCRIPT_DIR/..
+
+CONFIG_PATH=$HOME/etc/config.properties
+
+spark-submit     \
+	--master local     \
+	--driver-memory 2G \
+	--repositories https://repository.cloudera.com/artifactory/cloudera-repos/     \
+	--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.2.1,org.reflections:reflections:0.9.9     \
+	--class ch.cern.spark.status.storage.manager.StatusesManagerCLI     \
+	$HOME/lib/exdemon-*.jar     \
+	-c $CONFIG_PATH      \
+	--print json \
+	--save /tmp/status

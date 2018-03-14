@@ -36,7 +36,7 @@ export SPARK_CONF_DIR=$HOME/conf/
 kill `ps -ax | grep "ch.cern.spark.metrics.Driver" | grep -v grep | awk '{$1=$1};1' | cut -d' ' -f 1`
 echo `date` Restarting... >> $HOME/log/restarts
 
-# STart
+# Start
 $SPARK_HOME/bin/spark-submit \
 	--master yarn \
 	--driver-cores 2 \
