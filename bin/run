@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (C) 2016, CERN
+# Copyright (C) 2018, CERN
 # This software is distributed under the terms of the GNU General Public
 # Licence version 3 (GPL Version 3), copied verbatim in the file "LICENSE".
 # In applying this license, CERN does not waive the privileges and immunities
@@ -18,35 +18,24 @@ SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 HOME=$SCRIPT_DIR/..
 
-CONFIG_PATH=$HOME/conf/config.properties
-CONFIG_PATH=/tmp/config.properties
+source $HOME/conf/env
 
-$HOME/bin/update_config
+if [ -z "${SPARK_HOME}" ]; then
+	SPARK_CMD=spark-submit
+fi
 
-export JAVA_HOME=/root/jdk1.8.0_112/
-export SPARK_HOME=/root/spark-2.2.1-bin-without-hadoop/
-
-export HADOOP_CONF_DIR=$HOME/conf/
-export SPARK_CONF_DIR=$HOME/conf/
-
-[ -f $HOME/elasticsearch-hadoop-6.1.2.jar ] || \
-    wget http://central.maven.org/maven2/org/elasticsearch/elasticsearch-hadoop/6.1.2/elasticsearch-hadoop-6.1.2.jar -O $HOME/elasticsearch-hadoop-6.1.2.jar
-
-# Stop if runnning
-kill `ps -ax | grep "ch.cern.spark.metrics.Driver" | grep -v grep | awk '{$1=$1};1' | cut -d' ' -f 1`
-echo `date` Restarting... >> $HOME/log/restarts
-
-# Start
-$SPARK_HOME/bin/spark-submit \
-	--master yarn \
-	--driver-cores 2 \
-	--driver-memory 2G \
-	--executor-memory 3G \
-	--num-executors 3 \
-	--executor-cores 1 \
-	--class ch.cern.spark.metrics.Driver \
-	--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.2.1 \
-	--jars $HOME/elasticsearch-hadoop-6.1.2.jar \
-	--repositories https://repository.cloudera.com/artifactory/cloudera-repos/ \
-	$HOME/target/metrics-monitor-*.jar \
-	$CONFIG_PATH
+SPARK_VERSION=`$SPARK_CMD --version |& grep version | grep -o '[^ ]*$'`
+	
+$SPARK_CMD \
+		--master yarn \
+		--deploy-mode cluster \
+		--driver-cores 2 \
+		--driver-memory 4G \
+		--executor-memory 2G \
+		--executor-cores 1 \
+		--class ch.cern.spark.metrics.Driver \
+		--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:$SPARK_VERSION,org.reflections:reflections:0.9.9,org.apache.curator:curator-recipes:4.0.1 \
+		--jars $HOME/lib/*.jar \
+		--files "$HOME/conf/exdemon.properties,$HOME/conf/log4j.properties,$SPARK_SUBMIT_FILES" \
+		$HOME/target/exdemon-*.jar \
+		exdemon.properties

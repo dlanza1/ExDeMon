@@ -42,6 +42,7 @@ exdemon_rpm:
     - cp bin/* RPM/bin/
     - mkdir -p RPM/lib
     - cp target/*.jar RPM/lib/
+    - cp lib/*.jar RPM/lib/
     - cd RPM
     - make build
   dependencies:
