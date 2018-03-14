@@ -14,6 +14,8 @@ The configuration parameters can be seen below.
 monitor.<monitor-id>.filter.expr = <predicate with () | & = !=>
 monitor.<monitor-id>.filter.attribute.<metric_attribute_key> = <[!]regex_or_exact_value>
 monitor.<monitor-id>.filter.attribute... (as many attributes as needed)
+# Fixed value attributes to add to the generated analyzed metric
+monitor.<monitor-id>.attribute.<attribute-name> = <value>
 ## analysis
 monitor.<monitor-id>.analysis.type = <analysis_type> (default: none analysis)
 monitor.<monitor-id>.analysis.<other_confs> = <value>

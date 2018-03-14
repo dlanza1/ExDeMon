@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.apache.spark.streaming.State;
@@ -22,6 +23,7 @@ import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.metrics.trigger.Trigger;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
+import ch.cern.utils.Pair;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -43,6 +45,8 @@ public class Monitor {
     protected Map<String, Trigger> triggers;
 
 	private Map<String, String> tags;
+
+    private Map<String, String> fixedValueAttributes;
     
     public Monitor(String id){
         this.id = id;
@@ -62,6 +66,10 @@ public class Monitor {
     
 	public Monitor tryConfig(Properties properties) throws ConfigurationException {
         filter = MetricsFilter.build(properties.getSubset("filter"));
+        
+        fixedValueAttributes = properties.getSubset("attribute").entrySet().stream()
+                .map(entry -> new Pair<String, String>(entry.getKey().toString(), entry.getValue().toString()))
+                .collect(Collectors.toMap(Pair::first, Pair::second));
         
         Properties analysis_props = properties.getSubset("analysis");
         if(!analysis_props.isTypeDefined())
@@ -111,7 +119,7 @@ public class Monitor {
             LOG.error(e.getMessage(), e);
         }
         
-        metric.addAttribute("$monitor", id);
+        metric.getAttributes().putAll(fixedValueAttributes);
         result.addAnalysisParam("monitor.name", id);
         result.setAnalyzedMetric(metric);
         result.setTags(tags);
