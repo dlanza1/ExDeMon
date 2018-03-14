@@ -18,15 +18,19 @@ SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 HOME=$SCRIPT_DIR/..
 
-source $HOME/conf/env
+if [ -e $HOME/conf/exdemon-env.sh ] ; then
+  . $HOME/conf/exdemon-env.sh
+fi
 
 SPARK_CMD=spark-submit
 if [ ! -z "${SPARK_HOME}" ]; then
 	SPARK_CMD=$SPARK_HOME/bin/$SPARK_CMD
 fi
 
-SPARK_VERSION=`$SPARK_CMD --version |& grep version | grep -o '[^ ]*$'`
-	
+JARS=`ls -dm $HOME/lib/* | tr -d ' \t\n\r'`
+
+SPARK_VERSION=`$SPARK_CMD --version |& grep version | head -1 | grep -o '[^ ]*$'`
+
 $SPARK_CMD \
 		--master yarn \
 		--deploy-mode cluster \
@@ -36,7 +40,9 @@ $SPARK_CMD \
 		--executor-cores 1 \
 		--class ch.cern.spark.metrics.Driver \
 		--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:$SPARK_VERSION,org.reflections:reflections:0.9.9,org.apache.curator:curator-recipes:4.0.1 \
-		--jars $HOME/lib/*.jar \
-		--files "$HOME/conf/exdemon.properties,$HOME/conf/log4j.properties,$SPARK_SUBMIT_FILES" \
-		$HOME/target/exdemon-*.jar \
+		--jars $JARS \
+		--files "$HOME/conf/exdemon.properties,$HOME/conf/log4j.properties" \
+		--conf spark.yarn.submit.waitAppCompletion=false \
+		$SPARK_EXTRA_ARGS \
+		$HOME/lib/exdemon-*.jar \
 		exdemon.properties
