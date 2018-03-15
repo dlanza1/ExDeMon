@@ -45,4 +45,4 @@ $SPARK_CMD \
 		--conf spark.yarn.submit.waitAppCompletion=false \
 		$SPARK_EXTRA_ARGS \
 		$HOME/lib/exdemon-*.jar \
-		exdemon.properties
+		classpath:/exdemon.properties
