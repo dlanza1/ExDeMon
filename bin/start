@@ -28,6 +28,7 @@ if [ ! -z "${SPARK_HOME}" ]; then
 fi
 
 JARS=`ls -dm $HOME/lib/* | tr -d ' \t\n\r'`
+HTTP_LOG4J_JAR=`ls $HOME/lib/http-appender-log4j-*.jar`
 
 SPARK_VERSION=`$SPARK_CMD --version |& grep version | head -1 | grep -o '[^ ]*$'`
 
@@ -40,9 +41,13 @@ $SPARK_CMD \
 		--executor-cores 1 \
 		--class ch.cern.spark.metrics.Driver \
 		--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:$SPARK_VERSION,org.reflections:reflections:0.9.9,org.apache.curator:curator-recipes:4.0.1 \
-		--jars $JARS \
+		--jars $HTTP_LOG4J_JAR#http-appender-log4j.jar,$JARS \
 		--files "$HOME/conf/exdemon.properties,$HOME/conf/log4j.properties" \
 		--conf spark.yarn.submit.waitAppCompletion=false \
+		--conf spark.driver.extraJavaOptions='-Dlog4j.configuration=log4j.properties -Djava.security.krb5.conf=/etc/krb5.conf' \
+	    	--conf spark.driver.extraClassPath="http-appender-log4j.jar" \
+    		--conf spark.executor.extraJavaOptions='-Dlog4j.configuration=log4j.properties -Djava.security.krb5.conf=/etc/krb5.conf -XX:+UseG1GC' \
+    		--conf spark.executor.extraClassPath="http-appender-log4j.jar" \
 		$SPARK_EXTRA_ARGS \
 		$HOME/lib/exdemon-*.jar \
 		classpath:/exdemon.properties
