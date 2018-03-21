@@ -203,8 +203,11 @@ public class ZookeeperJobListener implements SparkListenerInterface, StreamingLi
     
     private void report(String path, String value) {
         try {
+            client.setData().forPath(path, value.getBytes());
+        }catch(Throwable e) {}
+        
+        try {
             client.create()
-                    .orSetData()
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.PERSISTENT)
                     .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)

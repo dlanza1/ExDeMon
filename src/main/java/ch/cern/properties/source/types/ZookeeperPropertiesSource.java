@@ -61,7 +61,14 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
 
     @Override
     public Properties loadAll() throws Exception {
-        initialize();
+        try {
+            initialize();
+        }catch(Exception e) {
+            LOG.error("Error initializing", e);
+            close();
+            
+            throw e;
+        }
         
         if(currentProperties == null)
             throw new IOException("Properties could not be initialized");
