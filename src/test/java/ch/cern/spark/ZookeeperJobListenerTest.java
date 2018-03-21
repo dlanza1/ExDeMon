@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 
 import org.apache.curator.test.TestingServer;
+import org.apache.spark.SparkConf;
 import org.apache.spark.scheduler.SparkListenerApplicationStart;
 import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.scheduler.BatchInfo;
@@ -37,6 +38,25 @@ public class ZookeeperJobListenerTest {
         
         zk = new ZooKeeper("localhost:2181/", 1000, null);
         zk.create("/exdemon", null, acls, mode);
+    }
+    
+    @Test
+    public void sparkConfConstructor() throws Exception {
+        SparkConf sparkConfig = new SparkConf();
+        sparkConfig.set("spark.streaming.listener.connection_string", "localhost:2181/exdemon");
+        
+        ZookeeperJobListener listener = new ZookeeperJobListener(sparkConfig);
+
+        SparkListenerApplicationStart event = new SparkListenerApplicationStart(
+                                                                    "app_name", 
+                                                                    Option.apply("app_id_1234"), 
+                                                                    Instant.now().toEpochMilli(), 
+                                                                    "user_test", 
+                                                                    Option.apply("attempt_id_1"), 
+                                                                    Option.empty());
+        listener.onApplicationStart(event);
+        
+        assertEquals("app_id_1234", new String(zk.getData("/exdemon/app/id", false, null)));
     }
 
     @Test

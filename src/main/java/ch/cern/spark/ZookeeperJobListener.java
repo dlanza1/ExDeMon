@@ -1,6 +1,8 @@
 package ch.cern.spark;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -42,8 +44,11 @@ import org.apache.spark.streaming.scheduler.StreamingListenerStreamingStarted;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
 
+import org.apache.spark.SparkConf;
+
 import ch.cern.properties.Properties;
 import scala.Option;
+import scala.Tuple2;
 
 public class ZookeeperJobListener implements SparkListenerInterface, StreamingListener {
     
@@ -51,8 +56,24 @@ public class ZookeeperJobListener implements SparkListenerInterface, StreamingLi
     
     private CuratorFramework client;
 
+    private String path;
+    
+    public ZookeeperJobListener(SparkConf sparkConf) {
+        Tuple2<String, String>[] tuples = sparkConf.getAllWithPrefix("spark.streaming.listener.");
+        
+        Properties props = new Properties();
+        props.putAll(Arrays.stream(tuples).collect(Collectors.toMap(Tuple2::_1, Tuple2::_2)));
+        
+        init(props);
+    }
+
     public ZookeeperJobListener(Properties properties) throws Exception {
+        init(properties);
+    }
+    
+    private void init(Properties properties) {
         String connectionString = properties.getProperty("connection_string");
+        path = properties.getProperty("path", "/app");
         
         client = CuratorFrameworkFactory.builder()
                 .connectString(connectionString)
@@ -66,31 +87,31 @@ public class ZookeeperJobListener implements SparkListenerInterface, StreamingLi
     public void onApplicationStart(SparkListenerApplicationStart event) {
         Option<String> idOpt = event.appId();
         if(idOpt.isDefined())
-            report("/app/id", idOpt.get());
+            report(path + "/id", idOpt.get());
         
         Option<String> attemptIdOpt = event.appAttemptId();
         if(attemptIdOpt.isDefined())
-            report("/app/attemptId", attemptIdOpt.get());
+            report(path + "/attemptId", attemptIdOpt.get());
         
-        report("/app/status", "RUNNING");
-        report("/app/start_timestamp", Instant.now().toString());
+        report(path + "/status", "RUNNING");
+        report(path + "/start_timestamp", Instant.now().toString());
     }
 
     @Override
     public void onApplicationEnd(SparkListenerApplicationEnd event) {
-        report("/app/status", "FINISHED");
-        report("/app/end_timestamp", Instant.now().toString());
+        report(path + "/status", "FINISHED");
+        report(path + "/end_timestamp", Instant.now().toString());
     } 
 
     @Override
     public void onBatchStarted(StreamingListenerBatchStarted event) {
-        report("/app/batch/batch_timestamp", Instant.ofEpochMilli(event.batchInfo().batchTime().milliseconds()).toString());
-        report("/app/batch/start_timestamp", Instant.now().toString());
+        report(path + "/batch/batch_timestamp", Instant.ofEpochMilli(event.batchInfo().batchTime().milliseconds()).toString());
+        report(path + "/batch/start_timestamp", Instant.now().toString());
     }
     
     @Override
     public void onBatchCompleted(StreamingListenerBatchCompleted event) {
-        report("/app/batch/end_timestamp", Instant.now().toString());
+        report(path + "/batch/end_timestamp", Instant.now().toString());
     }
     
     @Override
@@ -204,16 +225,16 @@ public class ZookeeperJobListener implements SparkListenerInterface, StreamingLi
     private void report(String path, String value) {
         try {
             client.setData().forPath(path, value.getBytes());
-        }catch(Throwable e) {}
-        
-        try {
-            client.create()
-                    .creatingParentsIfNeeded()
-                    .withMode(CreateMode.PERSISTENT)
-                    .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-                    .forPath(path, value.getBytes());
-        }catch(Throwable e) {
-            LOG.error(e.getMessage(), e);
+        }catch(Throwable e1) {
+            try {
+                client.create()
+                        .creatingParentsIfNeeded()
+                        .withMode(CreateMode.PERSISTENT)
+                        .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
+                        .forPath(path, value.getBytes());
+            }catch(Throwable e2) {
+                LOG.error(e2.getMessage(), e2);
+            }
         }
     }
 
