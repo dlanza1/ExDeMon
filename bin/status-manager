@@ -18,7 +18,14 @@ SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 HOME=$SCRIPT_DIR/..
 
-CONFIG_PATH=$HOME/etc/config.properties
+if [ -e $HOME/conf/exdemon-env.sh ] ; then
+  . $HOME/conf/exdemon-env.sh
+fi
+
+SPARK_CMD=spark-submit
+if [ ! -z "${SPARK_HOME}" ]; then
+	SPARK_CMD=$SPARK_HOME/bin/$SPARK_CMD
+fi
 
 spark-submit     \
 	--master local     \
@@ -26,7 +33,9 @@ spark-submit     \
 	--repositories https://repository.cloudera.com/artifactory/cloudera-repos/     \
 	--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.2.1,org.reflections:reflections:0.9.9     \
 	--class ch.cern.spark.status.storage.manager.StatusesManagerCLI     \
+	--conf spark.authenticate=false \
 	$HOME/lib/exdemon-*.jar     \
-	-c $CONFIG_PATH      \
+	-c file://$HOME/conf/exdemon.properties      \
 	--print json \
 	--save /tmp/status
+	
