@@ -75,12 +75,18 @@ public class ZookeeperJobListener implements SparkListenerInterface, StreamingLi
         String connectionString = properties.getProperty("connection_string");
         path = properties.getProperty("path", "/app");
         
-        client = CuratorFrameworkFactory.builder()
-                .connectString(connectionString)
-                .retryPolicy(new ExponentialBackoffRetry(1000, 3))
-                .sessionTimeoutMs(20000)
-                .build();
-        client.start();
+        try {
+            client = CuratorFrameworkFactory.builder()
+                    .connectString(connectionString)
+                    .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+                    .sessionTimeoutMs(20000)
+                    .build();
+            client.start();
+        }catch(Exception e) {
+            LOG.error(e.getMessage(), e);
+            
+            client = null;
+        }
     }
 
     @Override
@@ -223,6 +229,9 @@ public class ZookeeperJobListener implements SparkListenerInterface, StreamingLi
     }
     
     private void report(String path, String value) {
+        if(client == null)
+            return;
+        
         try {
             client.setData().forPath(path, value.getBytes());
         }catch(Throwable e1) {
