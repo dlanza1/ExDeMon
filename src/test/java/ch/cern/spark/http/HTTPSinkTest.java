@@ -2,7 +2,6 @@ package ch.cern.spark.http;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -126,9 +125,9 @@ public class HTTPSinkTest {
         
         JsonPOSTRequest jsonResult = sink.toJsonPOSTRequest(analysis);
         
-        assertTrue(jsonResult.getJson().getElement("idb_tags").getAsJsonArray().contains(new JsonPrimitive("analyzed_metric.attributes.$value")));
-        assertTrue(jsonResult.getJson().getElement("idb_tags").getAsJsonArray().contains(new JsonPrimitive("analyzed_metric.attributes.att1")));
-        assertTrue(jsonResult.getJson().getElement("idb_tags").getAsJsonArray().contains(new JsonPrimitive("analyzed_metric.attributes.att2")));
+        assertEquals(new JsonPrimitive("analyzed_metric.attributes.$value"), jsonResult.getJson().getElement("idb_tags").getAsJsonArray().get(2));
+        assertEquals(new JsonPrimitive("analyzed_metric.attributes.att1"), jsonResult.getJson().getElement("idb_tags").getAsJsonArray().get(1));
+        assertEquals(new JsonPrimitive("analyzed_metric.attributes.att2"), jsonResult.getJson().getElement("idb_tags").getAsJsonArray().get(0));
     }
 
 }

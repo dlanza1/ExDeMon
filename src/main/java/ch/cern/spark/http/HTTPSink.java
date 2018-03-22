@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 import org.apache.spark.streaming.api.java.JavaDStream;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonPrimitive;
 
 import ch.cern.Taggable;
 import ch.cern.properties.ConfigurationException;
@@ -186,7 +187,7 @@ public class HTTPSink implements Serializable{
                     String[] matchingKeys = request.getJson().getKeys(Pattern.compile(keysRegex));
                     JsonArray jsonArray = new JsonArray();
                     for (String matchingKey : matchingKeys)
-                        jsonArray.add(matchingKey);
+                        jsonArray.add(new JsonPrimitive(matchingKey));
                     
                     request.getJson().getElement().getAsJsonObject().add(propertyToAdd.getKey(), jsonArray);
                 }
