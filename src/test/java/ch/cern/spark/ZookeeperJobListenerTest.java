@@ -35,6 +35,7 @@ public class ZookeeperJobListenerTest {
     @Before
     public void startZookeeper() throws Exception {
         zkTestServer = new TestingServer(2181);
+        Thread.sleep(100);
         
         zk = new ZooKeeper("localhost:2181/", 1000, null);
         zk.create("/exdemon", null, acls, mode);
