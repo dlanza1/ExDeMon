@@ -34,5 +34,6 @@ results.sink.auth.password = <password>
 # Add properties to JSON document
 results.sink.add.<key-1> = <value-1|%analysis-result-tag-key>
 results.sink.add.<key-2> = <value-2|%analysis-result-tag-key>
+results.sink.add.<key-3> = [keys:key_regex] (array of keys from JSON document that match specified regex)
 results.sink.add.<key-n> = <value-n|%analysis-result-tag-key>
 ```

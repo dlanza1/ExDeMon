@@ -2,6 +2,7 @@ package ch.cern.spark.http;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -26,6 +27,8 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+
+import com.google.gson.JsonPrimitive;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -101,6 +104,39 @@ public class HTTPSinkTest {
         assertEquals("fromtag2", jsonResult.getJson().getProperty("body.payload.bp1"));
         assertNull(jsonResult.getJson().getProperty("body.payload.bp2"));
         assertEquals("1234", jsonResult.getJson().getProperty("body.metadata.metric_id"));
+    }
+    
+    @Test
+    public void shouldAddArrayOfKeys() throws ConfigurationException, HttpException, IOException, ParseException {
+        Properties properties = new Properties();
+        properties.setProperty("url", "https://abcd.cern.ch/<tags:url-suffix>");
+        properties.setProperty("add.idb_tags", "[keys:metric_attributes.*]");
+        HTTPSink sink = new HTTPSink();
+        sink.config(properties);
+        
+        Action action = ActionTest.DUMMY;
+        Set<String> sinks = new HashSet<>();
+        sinks.add("ALL");
+        action.setActuatorIDs(sinks);
+        Map<String, String> tags = new HashMap<>();
+        tags.put("url-suffix", "/job/id/23/");
+        tags.put("header_tag", "fromtag1");
+        tags.put("metric_id_tag", "1234");
+        tags.put("payload_tag", "fromtag2");
+        action.setTags(tags);
+        Map<String, String> metric_attributes = new HashMap<>();
+        metric_attributes.put("$value", "value1");
+        metric_attributes.put("att1", "att1-value");
+        metric_attributes.put("att2", "att2-value");
+        action.setMetric_attributes(metric_attributes);
+        
+        JsonPOSTRequest jsonResult = sink.toJsonPOSTRequest(action);
+        
+        assertEquals("https://abcd.cern.ch//job/id/23/", jsonResult.getUrl());
+        
+        assertTrue(jsonResult.getJson().getElement("idb_tags").getAsJsonArray().contains(new JsonPrimitive("metric_attributes.$value")));
+        assertTrue(jsonResult.getJson().getElement("idb_tags").getAsJsonArray().contains(new JsonPrimitive("metric_attributes.att1")));
+        assertTrue(jsonResult.getJson().getElement("idb_tags").getAsJsonArray().contains(new JsonPrimitive("metric_attributes.att2")));
     }
 
 }

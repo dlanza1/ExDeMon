@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.httpclient.Header;
@@ -22,6 +23,8 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.spark.streaming.api.java.JavaDStream;
+
+import com.google.gson.JsonArray;
 
 import ch.cern.Taggable;
 import ch.cern.properties.ConfigurationException;
@@ -166,7 +169,25 @@ public class HTTPSink implements Serializable{
             if(value != null && value.equals("null"))
                 value = null;
                 
-            request.addProperty(propertyToAdd.getKey(), value);
+            if(value != null 
+                    && object instanceof Action
+                    && value.startsWith("[")
+                    && value.endsWith("]")) {
+                String arrayContent = value.substring(1, value.length() - 1);
+                
+                if(arrayContent.startsWith("keys:")) {
+                    String keysRegex = arrayContent.replace("keys:", "");
+                    
+                    String[] matchingKeys = request.getJson().getKeys(Pattern.compile(keysRegex));
+                    JsonArray jsonArray = new JsonArray(matchingKeys.length);
+                    for (String matchingKey : matchingKeys)
+                        jsonArray.add(matchingKey);
+                    
+                    request.getJson().getElement().getAsJsonObject().add(propertyToAdd.getKey(), jsonArray);
+                }
+            }else{
+                request.addProperty(propertyToAdd.getKey(), value);
+            }
         }
         
         return request;

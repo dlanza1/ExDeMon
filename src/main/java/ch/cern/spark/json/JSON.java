@@ -35,6 +35,10 @@ public class JSON {
             return jsonElement.getAsString();
     }
 
+    public JsonElement getElement(){
+        return object;
+    }
+    
     public JsonElement getElement(String elementName) throws ParseException {
         if(!object.isJsonObject())
             return null;
