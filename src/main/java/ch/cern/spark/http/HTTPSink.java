@@ -176,7 +176,6 @@ public class HTTPSink implements Serializable{
                 value = null;
                 
             if(value != null 
-                    && object instanceof Action
                     && value.startsWith("[")
                     && value.endsWith("]")) {
                 String arrayContent = value.substring(1, value.length() - 1);

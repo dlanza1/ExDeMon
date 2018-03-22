@@ -33,6 +33,7 @@ import com.google.gson.JsonPrimitive;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSONParser;
+import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.metrics.trigger.action.ActionTest;
@@ -110,33 +111,24 @@ public class HTTPSinkTest {
     public void shouldAddArrayOfKeys() throws ConfigurationException, HttpException, IOException, ParseException {
         Properties properties = new Properties();
         properties.setProperty("url", "https://abcd.cern.ch/<tags:url-suffix>");
-        properties.setProperty("add.idb_tags", "[keys:metric_attributes.*]");
+        properties.setProperty("add.idb_tags", "[keys:analyzed_metric.attributes.*]");
         HTTPSink sink = new HTTPSink();
         sink.config(properties);
         
-        Action action = ActionTest.DUMMY;
-        Set<String> sinks = new HashSet<>();
-        sinks.add("ALL");
-        action.setActuatorIDs(sinks);
-        Map<String, String> tags = new HashMap<>();
-        tags.put("url-suffix", "/job/id/23/");
-        tags.put("header_tag", "fromtag1");
-        tags.put("metric_id_tag", "1234");
-        tags.put("payload_tag", "fromtag2");
-        action.setTags(tags);
+        AnalysisResult analysis = new AnalysisResult();
+        
         Map<String, String> metric_attributes = new HashMap<>();
         metric_attributes.put("$value", "value1");
         metric_attributes.put("att1", "att1-value");
         metric_attributes.put("att2", "att2-value");
-        action.setMetric_attributes(metric_attributes);
+        Metric metric = new Metric(Instant.now(), 10f, metric_attributes);
+        analysis.setAnalyzedMetric(metric );
         
-        JsonPOSTRequest jsonResult = sink.toJsonPOSTRequest(action);
+        JsonPOSTRequest jsonResult = sink.toJsonPOSTRequest(analysis);
         
-        assertEquals("https://abcd.cern.ch//job/id/23/", jsonResult.getUrl());
-        
-        assertTrue(jsonResult.getJson().getElement("idb_tags").getAsJsonArray().contains(new JsonPrimitive("metric_attributes.$value")));
-        assertTrue(jsonResult.getJson().getElement("idb_tags").getAsJsonArray().contains(new JsonPrimitive("metric_attributes.att1")));
-        assertTrue(jsonResult.getJson().getElement("idb_tags").getAsJsonArray().contains(new JsonPrimitive("metric_attributes.att2")));
+        assertTrue(jsonResult.getJson().getElement("idb_tags").getAsJsonArray().contains(new JsonPrimitive("analyzed_metric.attributes.$value")));
+        assertTrue(jsonResult.getJson().getElement("idb_tags").getAsJsonArray().contains(new JsonPrimitive("analyzed_metric.attributes.att1")));
+        assertTrue(jsonResult.getJson().getElement("idb_tags").getAsJsonArray().contains(new JsonPrimitive("analyzed_metric.attributes.att2")));
     }
 
 }
