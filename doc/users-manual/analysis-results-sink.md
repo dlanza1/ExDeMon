@@ -28,7 +28,7 @@ results.sink.batch.size = <max-number-of-records-in-a-POST-request> (default: 10
 results.sink.retries = <max-number-of-retries> (default: 1)
 results.sink.timeout = <max-wait-time-in-ms> (default: 2000)
 # HTTP simple authentication
-results.sink.auth = <true|false> (default: false)
+results.sink.auth.type = <disabled|basic-user-password> (default: disabled)
 results.sink.auth.user = <username>
 results.sink.auth.password = <password>
 # Add properties to JSON document

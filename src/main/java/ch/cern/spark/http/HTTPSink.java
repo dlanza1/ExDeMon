@@ -59,6 +59,7 @@ public class HTTPSink implements Serializable{
 	private int batch_size;
 	
 	public static final String AUTH_PARAM = "auth";
+	public static final String AUTH_TYPE_PARAM = AUTH_PARAM + "type";
     public static final String AUTH_USERNAME_PARAM = AUTH_PARAM + ".user";
     public static final String AUTH_PASSWORD_PARAM = AUTH_PARAM + ".password";
     private Header authHeader;
@@ -96,7 +97,12 @@ public class HTTPSink implements Serializable{
 		//TODO backward compatibility
 		
 		// Authentication configs
+		//TODO backward compatibility
         boolean authentication = properties.getBoolean(AUTH_PARAM);
+        //TODO backward compatibility
+        if(!authentication)
+            authentication = properties.getProperty(AUTH_TYPE_PARAM, "disabled").equals("basic-user-password");
+        
         if(authentication){
             String username = properties.getProperty(AUTH_USERNAME_PARAM);
             String password = properties.getProperty(AUTH_PASSWORD_PARAM);

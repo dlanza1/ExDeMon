@@ -51,7 +51,7 @@ actuators.<actuator-id>.as-array = <true|false> (default: true)
 actuators.<actuator-id>.retries = <max-number-of-retries> (default: 5)
 actuators.<actuator-id>.timeout = <max-wait-time-in-ms> (default: 2000)
 # HTTP simple authentication
-actuators.<actuator-id>.auth = <true|false> (default: false)
+actuators.<actuator-id>.auth.type = <disabled|basic-user-password> (default: disabled)
 actuators.<actuator-id>.auth.user = <username>
 actuators.<actuator-id>.auth.password = <password>
 # Add properties to JSON document
