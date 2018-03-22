@@ -45,6 +45,8 @@ public class Properties extends java.util.Properties {
 
     private Set<String> usedKeys = new HashSet<>();
 
+    private Properties staticProperties;
+
     public Properties() {
     }
 
@@ -107,13 +109,26 @@ public class Properties extends java.util.Properties {
     public String getProperty(String key) {
         usedKeys.add(key);
 
-        return super.getProperty(key);
+        String value = super.getProperty(key);
+        
+        if(value == null && staticProperties != null)
+            value = staticProperties.getProperty(key);
+        
+        if(value != null && value.startsWith("@")) {
+            key = value.substring(1);
+            
+            if(containsKey(key) || staticProperties.containsKey(key))
+                return getProperty(key);
+        }
+        
+        return value;
     }
 
     public Properties getSubset(String topLevelKey) {
         topLevelKey += ".";
 
         Properties properties = new Properties();
+        properties.setStaticProperties(staticProperties);
 
         List<String> keysWithPrefix = getKeysThatStartWith(topLevelKey);
 
@@ -312,7 +327,7 @@ public class Properties extends java.util.Properties {
     @Override
     public synchronized Object clone() {
         Properties clonedProperties = new Properties();
-        
+        clonedProperties.setStaticProperties(staticProperties);
         clonedProperties.putAll(this);
         
         return clonedProperties;
@@ -326,6 +341,10 @@ public class Properties extends java.util.Properties {
         
         for (Map.Entry<Object, Object> entry : newProperties.entrySet())
             setProperty(prefix + "." + entry.getKey(), entry.getValue().toString());
+    }
+
+    public void setStaticProperties(Properties staticProperties) {
+        this.staticProperties = staticProperties;
     }
     
 }

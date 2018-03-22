@@ -10,7 +10,9 @@ To configure an external source of properties:
 properties.source.type = <properties_source_type>
 properties.source.expire = <period like 1h, 3m or 45s> (default: 1m)
 properties.source.id.filters.<filter_name1> = <regex>
-properties.source.id.filters.<filter_nameN> = <regex> 
+properties.source.id.filters.<filter_nameN> = <regex>
+properties.source.static.<key1> = <value>
+properties.source.static.<keyn> = <value> 
 properties.source.<other_confs> = <value>
 ```
 

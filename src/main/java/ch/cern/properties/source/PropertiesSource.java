@@ -19,10 +19,12 @@ import ch.cern.spark.metrics.trigger.action.actuator.Actuators;
 public abstract class PropertiesSource extends Component {
 
 	private static final long serialVersionUID = 4436444683021922084L;
-	
+
 	public static String CONFIGURATION_PREFIX = "properties.source";
 	
 	public List<Pattern> id_filters = new LinkedList<>();
+
+    private Properties staticProperties;
 
 	@Override
 	public final void config(Properties properties) throws ConfigurationException {
@@ -35,6 +37,8 @@ public abstract class PropertiesSource extends Component {
 	        id_filters = Arrays.asList(Properties.ID_REGEX);
 	    }
 	    
+	    staticProperties = properties.getSubset("static");
+	    
 	    configure(properties);
 	}
 	
@@ -43,6 +47,7 @@ public abstract class PropertiesSource extends Component {
 
 	public Properties load() throws Exception{
 	    Properties props = loadAll();
+	    props.setStaticProperties(staticProperties);
 	    
 	    props.entrySet().removeIf(entry -> {
                String key = (String) entry.getKey();

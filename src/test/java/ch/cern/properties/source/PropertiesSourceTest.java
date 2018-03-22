@@ -67,5 +67,19 @@ public class PropertiesSourceTest extends PropertiesSource {
 
         assertEquals(4, loadedProps.size());
     }
+    
+    @Test
+    public void loadStaticProperties() throws Exception {
+        PropertiesSourceTest source = new PropertiesSourceTest();
+        Properties sourceProperties = new Properties();
+        sourceProperties.setProperty("static.a.b.c", "abc");
+        sourceProperties.setProperty("static.b.c.d", "bcd");
+        source.config(sourceProperties);
+
+        Properties loadedProps = source.load();
+
+        assertEquals("abc", loadedProps.getProperty("a.b.c"));
+        assertEquals("bcd", loadedProps.getProperty("b.c.d"));
+    }
 
 }
