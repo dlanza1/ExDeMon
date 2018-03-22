@@ -184,7 +184,7 @@ public class HTTPSink implements Serializable{
                     String keysRegex = arrayContent.replace("keys:", "");
                     
                     String[] matchingKeys = request.getJson().getKeys(Pattern.compile(keysRegex));
-                    JsonArray jsonArray = new JsonArray(matchingKeys.length);
+                    JsonArray jsonArray = new JsonArray();
                     for (String matchingKey : matchingKeys)
                         jsonArray.add(matchingKey);
                     
