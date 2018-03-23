@@ -39,6 +39,7 @@ public class ApiPropertiesSource extends PropertiesSource {
             loadSchemas(props);
             loadMetrics(props);
             loadMonitors(props);
+            loadActuators(props);
             LOG.info("Loaded");
             
             return props;
@@ -104,6 +105,21 @@ public class ApiPropertiesSource extends PropertiesSource {
                                 monitor.get("environment").getAsString(), 
                                 monitor.get("name").getAsString())
                         , monitor.getAsJsonObject("data"));
+            props.addFrom(jobject);
+        }
+    }
+    
+    protected void loadActuators(Properties props) throws Exception {
+        JsonArray actuators = loadFromUrl(api_url + "/api/v1/actuators").getAsJsonArray("actuators");
+        Iterator<JsonElement> actuatorsItr = actuators.iterator();
+        while (actuatorsItr.hasNext()) {
+            JsonObject actuator = actuatorsItr.next().getAsJsonObject();
+            JsonObject jobject = new JsonObject();
+            jobject.add(String.format("actuator.%s_%s_%s", 
+                                actuator.get("project").getAsString(), 
+                                actuator.get("environment").getAsString(), 
+                                actuator.get("name").getAsString())
+                        , actuator.getAsJsonObject("data"));
             props.addFrom(jobject);
         }
     }
