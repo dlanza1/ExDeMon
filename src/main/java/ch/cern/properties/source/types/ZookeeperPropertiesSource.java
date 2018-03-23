@@ -95,12 +95,12 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
         String env = extractProperty(envPattern, path);
         String owner = extractProperty(ownerPattern, path);
         
-        if(type == null) {
+        if(value != null && type == null) {
             LOG.warn("Path not added because is missing type in the path: " + path);
             return;
         }
         
-        if(id == null) {
+        if(value != null && id == null) {
             LOG.warn("Path not added because is missing id in the path: " + path);
             return;
         }
