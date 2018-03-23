@@ -49,7 +49,7 @@ fi
 
 cat $OUTPUT_FILE
 
-cat $OUTPUT_FILE | grep "RUNNING\|ACCEPTED" >/dev/null
+cat $OUTPUT_FILE | grep State | grep "RUNNING\|ACCEPTED" >/dev/null
 RESULT=$?
 
 rm -f $OUTPUT_FILE
