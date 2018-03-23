@@ -51,6 +51,7 @@ public class StatusesManagerCLI {
     private JavaSparkContext context;
         
     private String filter_by_id;
+    private String filter_key_regex;
     private String filter_by_fqcn;
     private long filter_value_size;
     
@@ -257,8 +258,13 @@ public class StatusesManagerCLI {
         
         System.out.println("List of found keys:");
         
-        for (Map.Entry<Integer, StatusKey> key : indexedKeys.entrySet())
-            System.out.println(key.getKey() + ":\t" + new String(serializer.fromKey(key.getValue())));
+        if(serializer instanceof JavaStatusSerializer) {
+            for (Map.Entry<Integer, StatusKey> key : indexedKeys.entrySet())
+                System.out.println(key.getKey() + ":\t" + key.getValue().toString());
+        }else {
+            for (Map.Entry<Integer, StatusKey> key : indexedKeys.entrySet())
+                System.out.println(key.getKey() + ":\t" + new String(serializer.fromKey(key.getValue())));
+        }
     }
 
     public JavaPairRDD<StatusKey, StatusValue> loadAndFilter() throws IOException, ConfigurationException {
@@ -266,6 +272,9 @@ public class StatusesManagerCLI {
         
         if(filter_by_id != null)
             statuses = statuses.filter(new IDStatusKeyFilter(filter_by_id));
+        
+        if(filter_key_regex != null)
+            statuses = statuses.filter(new ToStringPatternStatusKeyFilter(filter_key_regex));
         
         if(filter_by_fqcn != null)
             statuses = statuses.filter(new ClassNameStatusKeyFilter(filter_by_fqcn));
@@ -287,6 +296,7 @@ public class StatusesManagerCLI {
         options.addOption(brokers);
         
         options.addOption(new Option("id", "id", true, "filter by status key id"));
+        options.addOption(new Option("kr", "key-regex", true, "filter by regex that matches key.toString"));
         options.addOption(new Option("n", "fqcn", true, "filter by FQCN or alias"));
         options.addOption(new Option("e", "expired", true, "filter by expired values, expiration period like 1m, 3h, 5d"));
         options.addOption(new Option("vs", "value-size", true, "filter by minimum value size in bytes"));
@@ -326,6 +336,7 @@ public class StatusesManagerCLI {
         }
         
         filter_by_id = cmd.getOptionValue("id");
+        filter_key_regex = cmd.getOptionValue("key-regex");
         filter_by_fqcn = cmd.getOptionValue("fqcn");
         String filter_value_sizeString = cmd.getOptionValue("value-size");
         if(filter_value_sizeString != null)
