@@ -27,15 +27,14 @@ if [ ! -z "${SPARK_HOME}" ]; then
 	SPARK_CMD=$SPARK_HOME/bin/$SPARK_CMD
 fi
 
-spark-submit     \
-	--master local     \
-	--driver-memory 2G \
-	--repositories https://repository.cloudera.com/artifactory/cloudera-repos/     \
-	--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.2.1,org.reflections:reflections:0.9.9     \
-	--class ch.cern.spark.status.storage.manager.StatusesManagerCLI     \
-	--conf spark.authenticate=false \
-	$HOME/lib/exdemon-*.jar     \
-	-c file://$HOME/conf/exdemon.properties      \
-	--print json \
-	--save /tmp/status
-	
+$SPARK_CMD \
+        --master local     \
+        --driver-memory 2G \
+        --packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.2.1,org.reflections:reflections:0.9.9     \
+        --class ch.cern.spark.status.storage.manager.StatusesManagerCLI     \
+        --conf spark.authenticate=false \
+        $HOME/lib/exdemon-*.jar     \
+        -c file://$HOME/conf/exdemon.properties      \
+        --print json \
+        --save /tmp/status \
+        "$@"
