@@ -249,11 +249,15 @@ public class ApiPropertiesSourceTest {
                                 "  ]" +
                                 "}";
     
+    private String actuatorsResp = "{\"actuators\":[]}";
+    
     private static String API_URL = "http://localhost:5000";
     
     @Before
     public void setUp() throws Exception {
-        Properties.initCache(null);
+        Properties props = new Properties();
+        props.setProperty("type", "static");
+        Properties.initCache(props );
         Properties.getCache().reset();
     }
 
@@ -265,6 +269,7 @@ public class ApiPropertiesSourceTest {
         doReturn(jparser.parse(schemaResp).getAsJsonObject()).when(apiMock).loadFromUrl(API_URL + "/api/v1/schemas");
         doReturn(jparser.parse(metricResp).getAsJsonObject()).when(apiMock).loadFromUrl(API_URL + "/api/v1/metrics");
         doReturn(jparser.parse(monitoResp).getAsJsonObject()).when(apiMock).loadFromUrl(API_URL + "/api/v1/monitors");
+        doReturn(jparser.parse(actuatorsResp).getAsJsonObject()).when(apiMock).loadFromUrl(API_URL + "/api/v1/actuators");
         
         Properties properties = new Properties();
         properties.put("url", API_URL);
