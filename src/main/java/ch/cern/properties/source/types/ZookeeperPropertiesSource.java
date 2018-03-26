@@ -263,11 +263,13 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
                     LOG.error("Conection suspended");
                     break;
                 case NODE_ADDED:
-                    if(event.getData().getData() != null) {
+                    byte[] data = event.getData().getData();
+                    
+                    if(data != null && data.length > 0) {
                         String path = event.getData().getPath();
                         String value = new String(event.getData().getData());
                         insertValue(path, value);
-                    
+                        
                         LOG.debug("Node with data added to the tree: " + path + "=" + value);
                     }
                     break;

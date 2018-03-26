@@ -5,18 +5,17 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.spark.SparkConf;
 import org.apache.spark.scheduler.SparkListenerApplicationStart;
 import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.scheduler.BatchInfo;
 import org.apache.spark.streaming.scheduler.StreamingListenerBatchStarted;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.data.ACL;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,16 +28,22 @@ public class ZookeeperJobListenerTest {
     private TestingServer zkTestServer;
     private ZooKeeper zk;
 
-    private ArrayList<ACL> acls = ZooDefs.Ids.OPEN_ACL_UNSAFE;
-    private CreateMode mode = CreateMode.PERSISTENT;
-    
     @Before
     public void startZookeeper() throws Exception {
         zkTestServer = new TestingServer(2181);
-        Thread.sleep(100);
         
-        zk = new ZooKeeper("localhost:2181/", 1000, null);
-        zk.create("/exdemon", null, acls, mode);
+        CuratorFramework client = CuratorFrameworkFactory.builder()
+                                            .connectString(zkTestServer.getConnectString())
+                                            .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+                                            .sessionTimeoutMs(20000)
+                                            .build();
+        client.start();
+        
+        client.create()
+                    .creatingParentsIfNeeded()
+                    .forPath("/exdemon", null);
+        
+        zk = client.getZookeeperClient().getZooKeeper();
     }
     
     @Test

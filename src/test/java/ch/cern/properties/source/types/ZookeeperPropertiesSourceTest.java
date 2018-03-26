@@ -7,6 +7,9 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
@@ -30,30 +33,24 @@ public class ZookeeperPropertiesSourceTest {
     @Before
     public void startZookeeper() throws Exception {
         zkTestServer = new TestingServer(2182);
-        Thread.sleep(100);
         
-        zk = new ZooKeeper("localhost:2182", 1000, null);
-        zk.create("/exdemon_json", null, acls, mode);
-        zk.create("/exdemon", null, acls, mode);
-        zk.create("/exdemon/owner=exdemon", null, acls, mode);
-        zk.create("/exdemon/owner=exdemon/env=qa", null, acls, mode);
-        zk.create("/exdemon/owner=exdemon/env=qa/id=spark_batch", null, acls, mode);
-        zk.create("/exdemon/owner=exdemon/env=qa/id=spark_batch/type=schema", null, acls, mode);
-        zk.create("/exdemon/owner=exdemon/env=qa/id=spark_batch/type=schema/attributes", null, acls, mode);
-        zk.create("/exdemon/owner=exdemon/env=qa/id=spark_batch/type=schema/attributes/$environment", "qa".getBytes(), acls, mode);
-        zk.create("/exdemon/owner=tape", null, acls, mode);
-        zk.create("/exdemon/owner=tape/env=tapeserver_diskserver", null, acls, mode);
-        zk.create("/exdemon/owner=tape/env=tapeserver_diskserver/id=perf", null, acls, mode);
-        zk.create("/exdemon/owner=tape/env=tapeserver_diskserver/id=perf/type=schema", null, acls, mode);
-        zk.create("/exdemon/owner=tape/env=tapeserver_diskserver/id=perf/type=schema/timestamp", null, acls, mode);
-        zk.create("/exdemon/owner=tape/env=tapeserver_diskserver/id=perf/type=schema/timestamp/key", "data.timestamp".getBytes(), acls, mode);
-        zk.create("/exdemon/owner=db", null, acls, mode);
-        zk.create("/exdemon/owner=db/env=production", null, acls, mode);
-        zk.create("/exdemon/owner=db/env=production/id=inventory-missing", null, acls, mode);
-        zk.create("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor", null, acls, mode);
-        zk.create("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/triggers", null, acls, mode);
-        zk.create("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/triggers/mattermost", null, acls, mode);
-        zk.create("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/triggers/mattermost/actuators", "a1 a2 a3".getBytes(), acls, mode);
+        CuratorFramework client = CuratorFrameworkFactory.builder()
+                .connectString(zkTestServer.getConnectString())
+                .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+                .sessionTimeoutMs(20000)
+                .build();
+        client.start();
+        
+        client.create().creatingParentsIfNeeded()
+                .forPath("/exdemon_json", null);
+        client.create().creatingParentsIfNeeded()
+                .forPath("/exdemon/owner=exdemon/env=qa/id=spark_batch/type=schema/attributes/$environment", "qa".getBytes());
+        client.create().creatingParentsIfNeeded()
+                .forPath("/exdemon/owner=tape/env=tapeserver_diskserver/id=perf/type=schema/timestamp/key", "data.timestamp".getBytes());
+        client.create().creatingParentsIfNeeded()
+                .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/triggers/mattermost/actuators", "a1 a2 a3".getBytes());
+        
+        zk = client.getZookeeperClient().getZooKeeper();
     }
     
     @Test
