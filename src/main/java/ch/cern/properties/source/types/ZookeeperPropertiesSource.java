@@ -147,12 +147,12 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
         String owner = extractProperty(ownerPattern, path);
         
         if(type == null) {
-            LOG.warn("Path not removed because is missing type in the path: " + path);
+            LOG.debug("Path not removed because is missing type in the path: " + path);
             return;
         }
         
         if(id == null) {
-            LOG.warn("Path not removed because is missing id in the path: " + path);
+            LOG.debug("Path not removed because is missing id in the path: " + path);
             return;
         }
         
