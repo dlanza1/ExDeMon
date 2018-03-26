@@ -16,9 +16,14 @@ import java.lang.management.ManagementFactory;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.LongAccumulator;
@@ -415,13 +420,17 @@ public class MetricSchemaTest {
         props.setProperty(SOURCES_PARAM, "test");
         props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
         props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy-MM-dd HH:mm:ss");
-        props.setProperty("value.keys.data.payload.WMBS_INFO.thresholds.pending_slots",
-                "data.payload.WMBS_INFO.thresholds.pending_slots");
+        props.setProperty("value.keys.data.payload.WMBS_INFO.thresholds.pending_slots", "data.payload.WMBS_INFO.thresholds.pending_slots");
         parser.config(props);
 
-        String jsonString = "{\"metadata\":{" + "\"timestamp\":\"2017-12-20 02:00:12\"" + "},\"data\":{"
-                + "\"payload\":{" + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89},"
-                + "\"thresholdsGQ2LQ\":2111.0}" + "}}}";
+        String jsonString = "{\"metadata\":{" 
+                                + "\"timestamp\":\"2017-12-20 02:00:12\"" 
+                                + "},\"data\":{"
+                                    + "\"payload\":{" 
+                                        + "\"WMBS_INFO\":{" 
+                                            + "\"thresholds\":{" 
+                                                + "\"pending_slots\":2111.89},"
+                                            + "\"thresholdsGQ2LQ\":2111.0}" + "}}}";
         JSON jsonObject = new JSON(jsonString);
 
         Iterator<Metric> metrics = parser.call(jsonObject.toString()).iterator();
@@ -429,11 +438,17 @@ public class MetricSchemaTest {
         metrics.hasNext();
         Metric metric = metrics.next();
 
-        DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd HH:mm:ss").toFormatter()
-                .withZone(ZoneId.systemDefault());
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                                                    .appendPattern(props.getProperty(TIMESTAMP_FORMAT_PARAM))
+                                                    .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+                                                    .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+                                                    .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+                                                    .toFormatter();
 
         // Value should be --> Fri Oct 20 2017 00:00:12 UTC
-        Instant timestamp = Instant.from(formatter.parse("2017-12-20 02:00:12"));
+        TemporalAccessor temporalAccesor = formatter.parse("2017-12-20 02:00:12");
+        Instant timestamp = LocalTime.from(temporalAccesor).atOffset(OffsetDateTime.now().getOffset()).atDate(LocalDate.from(temporalAccesor)).toInstant();
+        
         assertEquals(timestamp, metric.getTimestamp());
 
         assertFalse(metrics.hasNext());
@@ -462,7 +477,8 @@ public class MetricSchemaTest {
         DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("yyyy MM dd HH:mm:ss").toFormatter()
                 .withZone(ZoneId.systemDefault());
 
-        Instant timestamp = Instant.from(formatter.parse("2017 12 20 00:00:00"));
+        TemporalAccessor temporalAccesor = formatter.parse("2017 12 20 00:00:00");
+        Instant timestamp = LocalTime.from(temporalAccesor).atOffset(OffsetDateTime.now().getOffset()).atDate(LocalDate.from(temporalAccesor)).toInstant();
         assertEquals(timestamp, metric.getTimestamp());
 
         assertFalse(metrics.hasNext());
