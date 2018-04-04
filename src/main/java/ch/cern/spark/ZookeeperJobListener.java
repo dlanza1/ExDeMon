@@ -25,6 +25,7 @@ import org.apache.spark.scheduler.SparkListenerJobEnd;
 import org.apache.spark.scheduler.SparkListenerJobStart;
 import org.apache.spark.scheduler.SparkListenerNodeBlacklisted;
 import org.apache.spark.scheduler.SparkListenerNodeUnblacklisted;
+import org.apache.spark.scheduler.SparkListenerSpeculativeTaskSubmitted;
 import org.apache.spark.scheduler.SparkListenerStageCompleted;
 import org.apache.spark.scheduler.SparkListenerStageSubmitted;
 import org.apache.spark.scheduler.SparkListenerTaskEnd;
@@ -226,6 +227,10 @@ public class ZookeeperJobListener implements SparkListenerInterface, StreamingLi
 
     @Override
     public void onUnpersistRDD(SparkListenerUnpersistRDD event) {
+    }
+
+    @Override
+    public void onSpeculativeTaskSubmitted(SparkListenerSpeculativeTaskSubmitted arg0) {
     }
     
     private void report(String path, String value) {
