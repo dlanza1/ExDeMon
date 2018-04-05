@@ -146,6 +146,7 @@ public class MetricSchema {
                 metricsData = metricsData.union(valueMetrics);
         }
         
+        metricsData = metricsData.where("timestamp IS NOT NULL");
         metricsData = metricsData.where("value.num IS NOT NULL OR value.str IS NOT NULL OR value.bool IS NOT NULL");
         
         Dataset<Metric> metrics = metricsData.as(Encoders.bean(Metric.class));
