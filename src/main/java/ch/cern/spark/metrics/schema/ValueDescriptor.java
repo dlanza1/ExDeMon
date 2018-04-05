@@ -1,10 +1,19 @@
 package ch.cern.spark.metrics.schema;
 
+import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.lit;
+import static org.apache.spark.sql.functions.lower;
+import static org.apache.spark.sql.functions.struct;
+import static org.apache.spark.sql.functions.when;
+
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.spark.sql.Column;
+import org.apache.spark.sql.types.DataTypes;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
@@ -35,7 +44,7 @@ public class ValueDescriptor implements Serializable{
     private Pattern regex;
     public static final String REGEX_PARAM = "regex";
     
-    private enum Type {STRING, NUMERIC, BOOLEAN, AUTO};
+    public enum Type {STRING, NUMERIC, BOOLEAN, AUTO};
     private Type type;
     public static final String TYPE_PARAM = "type";
 
@@ -135,6 +144,51 @@ public class ValueDescriptor implements Serializable{
         }
         
         throw new RuntimeException("an option of the enum was not covered");
+    }
+
+    public Column getColum() {
+        switch (type) {
+        case STRING:
+            return struct(
+                        lit(null).cast(DataTypes.DoubleType).as("num"),
+                        col(key).cast(DataTypes.StringType).as("str"),
+                        lit(null).cast(DataTypes.BooleanType).as("bool")
+                   );
+        case NUMERIC:
+            return struct(
+                        when(col(key).rlike(NUMERIC_PATTERN.pattern()), 
+                                col(key))
+                                .otherwise(lit(null))
+                            .cast(DataTypes.DoubleType).as("num"),
+                        lit(null).cast(DataTypes.StringType).as("str"),
+                        lit(null).cast(DataTypes.BooleanType).as("bool")
+                   );
+        case BOOLEAN:
+            return struct(
+                        lit(null).cast(DataTypes.DoubleType).as("num"),
+                        lit(null).cast(DataTypes.StringType).as("str"),
+                        when(lower(col(key)).equalTo("true").or(lower(col(key)).equalTo("false")), 
+                                col(key))
+                                .otherwise(lit(null))
+                            .cast(DataTypes.BooleanType).as("bool")
+                   );
+        default:
+            return struct(
+                        when(col(key).rlike(NUMERIC_PATTERN.pattern()), 
+                                col(key))
+                                .otherwise(lit(null))
+                            .cast(DataTypes.DoubleType).as("num"),
+                        col(key).cast(DataTypes.StringType).as("str"),
+                        when(lower(col(key)).equalTo("true").or(lower(col(key)).equalTo("false")), 
+                                col(key))
+                                .otherwise(lit(null))
+                            .cast(DataTypes.BooleanType).as("bool")
+               );
+        }
+    }
+
+    public Type getType() {
+        return type;
     }
 
 }
