@@ -1,4 +1,4 @@
-package ch.cern.exdemon.metric.schema;
+package ch.cern.exdemon.schema;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -20,7 +20,7 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import ch.cern.exdemon.metric.Metric;
+import ch.cern.exdemon.Metric;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import scala.collection.JavaConversions;
@@ -64,7 +64,7 @@ public class MetricSchemaTest {
         props.setProperty("values.str_value.key", "str_value");
         schema.config(props);
         
-        Dataset<Metric> metrics = schema.apply(allSourcesMap);
+        Dataset<Metric> metrics = schema.apply(allSourcesMap).get();
         
         query = metrics.writeStream()
                     .format("memory")
@@ -119,7 +119,7 @@ public class MetricSchemaTest {
         props.setProperty("values.str_value.type", "string");
         schema.config(props);
         
-        Dataset<Metric> metrics = schema.apply(allSourcesMap);
+        Dataset<Metric> metrics = schema.apply(allSourcesMap).get();
         
         query = metrics.writeStream()
                     .format("memory")
@@ -173,7 +173,7 @@ public class MetricSchemaTest {
         props.setProperty("values.num_value.key", "num_value");
         schema.config(props);
         
-        Dataset<Metric> metrics = schema.apply(allSourcesMap);
+        Dataset<Metric> metrics = schema.apply(allSourcesMap).get();
         
         query = metrics.writeStream()
                     .format("memory")
@@ -219,7 +219,7 @@ public class MetricSchemaTest {
         props.setProperty("values.num_value.key", "num_value");
         schema.config(props);
         
-        Dataset<Metric> metrics = schema.apply(allSourcesMap);
+        Dataset<Metric> metrics = schema.apply(allSourcesMap).get();
         
         query = metrics.writeStream()
                     .format("memory")
@@ -258,7 +258,7 @@ public class MetricSchemaTest {
         props.setProperty("values.num_value.key", "num_value");
         schema.config(props);
         
-        Dataset<Metric> metrics = schema.apply(allSourcesMap);
+        Dataset<Metric> metrics = schema.apply(allSourcesMap).get();
         
         query = metrics.writeStream()
                     .format("memory")
@@ -297,7 +297,7 @@ public class MetricSchemaTest {
         props.setProperty("values.num_value.key", "num_value");
         schema.config(props);
         
-        Dataset<Metric> metrics = schema.apply(allSourcesMap);
+        Dataset<Metric> metrics = schema.apply(allSourcesMap).get();
         
         query = metrics.writeStream()
                     .format("memory")
@@ -310,6 +310,51 @@ public class MetricSchemaTest {
         List<Row> results = spark.sql("select * from Output").collectAsList();
         Row row = results.get(0);
         assertEquals(Instant.parse("2017-08-01T00:26:59.000Z"), row.getTimestamp(row.fieldIndex("timestamp")).toInstant());
+    }
+    
+    @Test
+    public void filter() throws ConfigurationException {
+        List<String> data = new LinkedList<>();
+        data.add("{"
+                    + "\"id\": \"id1\", "
+                    + "\"time\": 1522919277000, "
+                    + "\"num_value\": 12.45"
+               + "}");
+        data.add("{"
+                    + "\"id\": \"id2\", "
+                    + "\"time\": 1522919277000, "
+                    + "\"num_value\": 1"
+               + "}");
+        
+        MemoryStream<String> input = new MemoryStream<String>(10, spark.sqlContext(), Encoders.STRING());
+        input.addData(JavaConversions.asScalaBuffer(data));
+        
+        Dataset<String> json = input.toDF().as(Encoders.STRING());
+        
+        HashMap<String, Dataset<String>> allSourcesMap = new HashMap<>();
+        allSourcesMap.put("test-source", json);
+        
+        MetricSchema schema = new MetricSchema("test");
+        Properties props = new Properties();
+        props.setProperty("sources", "test-source");
+        props.setProperty("timestamp.key", "time");
+        props.setProperty("attributes.id", "id");
+        props.setProperty("attributes.tag1", "tag.tag1");
+        props.setProperty("attributes.tag2", "tag.tag2");
+        props.setProperty("attributes.tag3", "tag.tag3");
+        props.setProperty("values.num_value.key", "num_value");
+        props.setProperty("filter.expr", "att.id = 'id1'");
+        schema.config(props);
+        
+        Dataset<Metric> metrics = schema.apply(allSourcesMap).get();
+        query = metrics.writeStream()
+                    .format("memory")
+                    .queryName("Output")
+                    .outputMode(OutputMode.Append())
+                    .start();
+        query.processAllAvailable();
+        List<Row> results = spark.sql("select * from Output").collectAsList();
+        assertEquals(1, results.size());
     }
     
     @After

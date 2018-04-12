@@ -1,6 +1,11 @@
-package ch.cern.exdemon.metric.schema;
+package ch.cern.exdemon.schema;
 
-import static org.apache.spark.sql.functions.*;
+import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.current_timestamp;
+import static org.apache.spark.sql.functions.from_json;
+import static org.apache.spark.sql.functions.lit;
+import static org.apache.spark.sql.functions.struct;
+import static org.apache.spark.sql.functions.unix_timestamp;
 
 import java.text.ParseException;
 import java.util.Arrays;
@@ -12,6 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
+import org.apache.spark.api.java.Optional;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
@@ -20,7 +26,8 @@ import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 
-import ch.cern.exdemon.metric.Metric;
+import ch.cern.exdemon.Metric;
+import ch.cern.exdemon.filter.MetricsFilter;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.schema.ValueDescriptor;
@@ -51,6 +58,9 @@ public class MetricSchema {
     private String timestamp_format_pattern;
 
     private StructType jsonSchema;
+    
+    public static String FILTER_PARAM = "filter";
+    private MetricsFilter filter;
     
     public MetricSchema(String id) {
         this.id = id;
@@ -90,6 +100,9 @@ public class MetricSchema {
             attributes.add(new Pair<String, String>(alias, key));
         }
         
+        filter = new MetricsFilter();
+        filter.config(properties.getSubset(FILTER_PARAM));
+        
         properties.confirmAllPropertiesUsed();
         
         try {
@@ -99,7 +112,7 @@ public class MetricSchema {
         }
     }
     
-    public Dataset<Metric> apply(Map<String, Dataset<String>> sourcesMap){
+    public Optional<Dataset<Metric>> apply(Map<String, Dataset<String>> sourcesMap) throws ConfigurationException{
         
         Dataset<Metric> metrics = null;
         
@@ -112,22 +125,25 @@ public class MetricSchema {
                 continue;
             }
             
-            Dataset<Metric> metricsFromSource = apply(sourceDataset, sourceName);
+            Optional<Dataset<Metric>> metricsFromSource = apply(sourceDataset, sourceName);
             
-            if(metricsFromSource != null)
+            if(metricsFromSource.isPresent())
                 if(metrics == null)
-                    metrics = metricsFromSource;
+                    metrics = metricsFromSource.get();
                 else
-                    metrics.union(metricsFromSource);
+                    metrics.union(metricsFromSource.get());
         }
         
-        if(metrics == null)
-            LOG.warn("Schema does not have any valid source");
+        if(metrics == null) {
+            LOG.warn("Schema \"" + id + "\" does not have any valid source");
+            
+            return Optional.empty();
+        }
         
-        return metrics;
+        return Optional.of(filter.apply(metrics));
     }
 
-    private Dataset<Metric> apply(Dataset<String> source, String sourceName) {
+    private Optional<Dataset<Metric>> apply(Dataset<String> source, String sourceName) {
 
         Dataset<Row> inputData = source.select(from_json(col("value"), jsonSchema).as("value")).select("value.*");
         
@@ -146,12 +162,18 @@ public class MetricSchema {
                 metricsData = metricsData.union(valueMetrics);
         }
         
+        if(metricsData == null) {
+            LOG.warn("Schema \"" + id + "\", source \"" + sourceName + "\": does not have values to extract");
+            
+            return Optional.empty();
+        }
+        
         metricsData = metricsData.where("timestamp IS NOT NULL");
         metricsData = metricsData.where("value.num IS NOT NULL OR value.str IS NOT NULL OR value.bool IS NOT NULL");
         
         Dataset<Metric> metrics = metricsData.as(Encoders.bean(Metric.class));
         
-        return metrics;
+        return Optional.of(metrics);
     }
 
     private Column getTimestampColum() {
