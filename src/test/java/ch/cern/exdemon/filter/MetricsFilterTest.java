@@ -101,6 +101,22 @@ public class MetricsFilterTest {
         testFilter(props, 1);
     }
     
+    @Test
+    public void attributesRlike() throws ConfigurationException {        
+        Properties props = new Properties();
+        props.setProperty("attribute.id", "rlike:^id1");
+        
+        testFilter(props, 1);
+    }
+    
+    @Test
+    public void attributesNotRlike() throws ConfigurationException {        
+        Properties props = new Properties();
+        props.setProperty("attribute.id", "!rlike:^id2");
+        
+        testFilter(props, 2);
+    }
+    
     public void testFilter(Properties filterProps, int expected) throws ConfigurationException {        
         MemoryStream<String> input = new MemoryStream<String>(10, spark.sqlContext(), Encoders.STRING());
         input.addData(JavaConversions.asScalaBuffer(data));

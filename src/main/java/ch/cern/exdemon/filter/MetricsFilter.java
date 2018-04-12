@@ -38,9 +38,21 @@ public class MetricsFilter {
             
             boolean negate = valueString.startsWith("!");
             if(negate) 
-                valueString = valueString.substring(1);
+                valueString = valueString.substring(1).trim();
             
-            String[] values = getValues(valueString);
+            boolean rlike = valueString.startsWith("rlike:");
+            if(rlike) {
+                valueString = valueString.substring(6).trim();
+            
+                if(negate)
+                    metrics = metrics.filter(not(col(key).rlike(valueString)));
+                else
+                    metrics = metrics.filter(col(key).rlike(valueString));
+            
+                continue;
+            }
+            
+            Object[] values = getValues(valueString);
             
             if(negate)
                 metrics = metrics.filter(not(col(key).isin(values)));
@@ -51,7 +63,7 @@ public class MetricsFilter {
         return metrics;
     }
 
-    private static String[] getValues(String valueString) {
+    private static Object[] getValues(String valueString) {
         Pattern pattern = Pattern.compile("([\"'])(?:(?=(\\\\?))\\2.)*?\\1");
         
         LinkedList<String> hits = new LinkedList<>();
@@ -68,7 +80,7 @@ public class MetricsFilter {
         if(hits.size() == 0)
             hits.add(valueString);
         
-        return hits.toArray(new String[0]);
+        return hits.toArray();
     }
     
 }
