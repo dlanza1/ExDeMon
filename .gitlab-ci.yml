@@ -67,6 +67,7 @@ exdemon_release:
     
 tag_qa:
   stage: deploy_qa
+  image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
   when: manual
   only:
     - /^rpm-.*$/
@@ -77,6 +78,7 @@ tag_qa:
 
 tag_stable:
   stage: deploy_stable
+  image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
   when: manual
   only:
     - /^rpm-.*$/
