@@ -45,7 +45,7 @@ public class MetricSchemaTest {
         data.add("{"
                     + "\"num_value\": 9.98,"
                     + "\"bool_value\": true,"
-                    + "\"str_value\": \"string_value\""
+                    + "\"str_value\": { \"level1\": \"string_string\"}"
                + "}");
         
         MemoryStream<String> input = new MemoryStream<String>(10, spark.sqlContext(), Encoders.STRING());
@@ -59,9 +59,9 @@ public class MetricSchemaTest {
         MetricSchema schema = new MetricSchema("test");
         Properties props = new Properties();
         props.setProperty("sources", "test-source");
-        props.setProperty("values.num_value.key", "num_value");
-        props.setProperty("values.bool_value.key", "bool_value");
-        props.setProperty("values.str_value.key", "str_value");
+        props.setProperty("values.n_value.key", "num_value");
+        props.setProperty("values.b_value.key", "bool_value");
+        props.setProperty("values.s_value.key", "str_value.level1");
         schema.config(props);
         
         Dataset<Metric> metrics = schema.apply(allSourcesMap).get();
@@ -78,8 +78,8 @@ public class MetricSchemaTest {
         
         Row row = results.get(0);
         Row rowValue = row.getStruct(row.fieldIndex("value"));
-        assertEquals("string_value", rowValue.getString(rowValue.fieldIndex("str")));
-        
+        assertEquals("string_string", rowValue.getString(rowValue.fieldIndex("str")));
+
         row = results.get(1);
         rowValue = row.getStruct(row.fieldIndex("value"));
         assertEquals(9.98, rowValue.getDouble(rowValue.fieldIndex("num")), 0);
@@ -142,6 +142,52 @@ public class MetricSchemaTest {
         row = results.get(2);
         rowValue = row.getStruct(row.fieldIndex("value"));
         assertEquals(true, rowValue.getBoolean(rowValue.fieldIndex("bool")));
+    }
+    
+    @Test
+    public void regexValues() throws ConfigurationException {
+        List<String> data = new LinkedList<>();
+        data.add("{"
+                    + "\"str_value\": \"v1=123.12 v2=home\""
+               + "}");
+        
+        MemoryStream<String> input = new MemoryStream<String>(10, spark.sqlContext(), Encoders.STRING());
+        input.addData(JavaConversions.asScalaBuffer(data));
+        
+        Dataset<String> json = input.toDF().as(Encoders.STRING());
+        
+        HashMap<String, Dataset<String>> allSourcesMap = new HashMap<>();
+        allSourcesMap.put("test-source", json);
+        
+        MetricSchema schema = new MetricSchema("test");
+        Properties props = new Properties();
+        props.setProperty("sources", "test-source");
+        props.setProperty("values.v1.key", "str_value");
+        props.setProperty("values.v1.regex", ".*v1=([0-9.]+).*");
+        props.setProperty("values.v2.key", "str_value");
+        props.setProperty("values.v2.regex", ".*v2=(\\w+).*");
+        schema.config(props);
+        
+        Dataset<Metric> metrics = schema.apply(allSourcesMap).get();
+        
+        query = metrics.writeStream()
+                    .format("memory")
+                    .queryName("Output")
+                    .outputMode(OutputMode.Append())
+                    .start();
+        
+        query.processAllAvailable();
+        
+        List<Row> results = spark.sql("select * from Output").collectAsList();
+        
+        Row row = results.get(0);
+
+        Row rowValue = row.getStruct(row.fieldIndex("value"));
+        assertEquals(123.12, rowValue.getDouble(rowValue.fieldIndex("num")), 0f);
+        
+        row = results.get(1);
+        rowValue = row.getStruct(row.fieldIndex("value"));
+        assertEquals("home", rowValue.getString(rowValue.fieldIndex("str")));
     }
     
     @Test

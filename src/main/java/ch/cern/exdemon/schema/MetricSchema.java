@@ -30,7 +30,6 @@ import ch.cern.exdemon.Metric;
 import ch.cern.exdemon.filter.MetricsFilter;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.schema.ValueDescriptor;
 import ch.cern.spark.utils.StructTypeUtils;
 import ch.cern.utils.Pair;
 
@@ -215,16 +214,16 @@ public class MetricSchema {
         for (ValueDescriptor value : values)
             switch (value.getType()) {
             case STRING:
-                keys.put(value.getId(), DataTypes.StringType);
+                keys.put(value.getKey(), DataTypes.StringType);
                 break;
             case NUMERIC:
-                keys.put(value.getId(), DataTypes.DoubleType);
+                keys.put(value.getKey(), DataTypes.DoubleType);
                 break;
             case BOOLEAN:
-                keys.put(value.getId(), DataTypes.BooleanType);
+                keys.put(value.getKey(), DataTypes.BooleanType);
                 break;
             default:
-                keys.put(value.getId(), DataTypes.StringType);
+                keys.put(value.getKey(), DataTypes.StringType);
             }
         
         if(timestamp_key != null)
