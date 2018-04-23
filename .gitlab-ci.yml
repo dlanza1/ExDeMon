@@ -3,6 +3,7 @@ stages:
   - test
   - build
   - release
+  - deploy
   
 variables:
   DOCKER_IMAGE: docker-0.2.0
@@ -60,6 +61,26 @@ exdemon_release:
   script:
     - echo "$KOJI_PASSWORD" | kinit $KOJI_USER
     - koji build --wait tapemon7 RPM/build/*.src.rpm
-    - koji tag-build tapemon7-qa exdemon-$RPM_VERSION-1.0
   dependencies:
     - exdemon_rpm 
+    
+tag_qa:
+  stage: deploy
+  when: manual
+  only:
+    - /^rpm-.*$/
+  script:
+    - koji tag-build tapemon7-qa exdemon-$RPM_VERSION-1.0
+  allow_failure: false
+  dependencies: []
+
+tag_stable:
+  stage: deploy
+  when: manual
+  only:
+    - /^rpm-.*$/
+  script:
+    - koji tag-build tapemon7-stable exdemon-$RPM_VERSION-1.0
+  allow_failure: false
+  dependencies:
+    - tag_qa
