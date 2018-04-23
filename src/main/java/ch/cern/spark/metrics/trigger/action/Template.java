@@ -1,10 +1,12 @@
 package ch.cern.spark.metrics.trigger.action;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import lombok.NonNull;
 
@@ -43,8 +45,6 @@ public class Template {
             }
         }
         
-        text = text.replaceAll("<datetime>", String.valueOf(action.getCreation_timestamp()));
-        
         text = text.replaceAll("<reason>", String.valueOf(action.getReason()));
         
         Map<String, String> tags = action.getTags() != null ? action.getTags() : new HashMap<>();
@@ -74,6 +74,43 @@ public class Template {
         
         text = text.replaceAll("<triggering_value>", String.valueOf(triggeringResult.getAnalyzed_metric().getValue()));
         
+        int startAggMetrics = text.indexOf("<agg_metrics>");
+        while (startAggMetrics > -1){
+        	int endAggMetrics = text.indexOf("</agg_metrics>", startAggMetrics);
+        	
+        	String preText = text.substring(0, startAggMetrics);
+        	String metricTemplate = text.substring(startAggMetrics + 13, endAggMetrics);
+        	String postText = text.substring(endAggMetrics + 14);
+        	
+        	List<Metric> lastSourceMetrics = triggeringResult.getAnalyzed_metric().getValue().getLastSourceMetrics();
+        	String metricsText = "";
+        	for (Metric metric : lastSourceMetrics) {
+        		String metricText = metricTemplate;
+        		
+        		Matcher analysisParamMatcher = Pattern.compile("\\<attribute:([^>]+)\\>").matcher(metricText);        
+                while (analysisParamMatcher.find()) {
+                    for (int j = 1; j <= analysisParamMatcher.groupCount(); j++) {
+                        String key = analysisParamMatcher.group(j);
+                        
+                        String value = String.valueOf(metric.getAttributes().get(key));
+                        
+                        metricText = metricText.replaceAll("<attribute:"+key+">", value);
+                        
+                        j++;
+                    }
+                }
+        		
+        		metricText = metricText.replaceAll("<datetime>", String.valueOf(metric.getTimestamp()));
+        		metricText = metricText.replaceAll("<value>", String.valueOf(metric.getValue()));
+        		
+        		metricsText += metricText;
+			}
+
+			text = preText + metricsText + postText;
+
+        	startAggMetrics = text.indexOf("<agg_metrics>", endAggMetrics);
+        }
+        
         text = text.replaceAll("<analysis_status>", String.valueOf(triggeringResult.getStatus().toString().toLowerCase()));
         
         Map<String, Object> analysisParams = triggeringResult.getAnalysisParams();
@@ -89,6 +126,8 @@ public class Template {
                 j++;
             }
         }
+        
+        text = text.replaceAll("<datetime>", String.valueOf(action.getCreation_timestamp()));
         
         return text;
     }

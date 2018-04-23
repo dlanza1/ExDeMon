@@ -38,7 +38,7 @@ public class Action implements Serializable, Taggable {
     @Getter @Setter @NonNull
 	private Set<String> actuatorIDs;
 
-    @Getter @NonNull
+    @Getter @Setter @NonNull
     private AnalysisResult triggeringResult;
 
     public Action(

@@ -14,6 +14,7 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.value.FloatValue;
+import ch.cern.spark.metrics.value.Value;
 
 public class MetricVariableTest  {
 	
@@ -66,34 +67,46 @@ public class MetricVariableTest  {
         att = new HashMap<>();
         att.put("noseq", "");
         var.updateVariableStatuses(variableStatuses, new Metric(Instant.now(), 10f, att));
-        assertEquals(0f, var.compute(variableStatuses, Instant.now()).getAsFloat().get(), 0f);
+        Value computed = var.compute(variableStatuses, Instant.now());
+        assertEquals(0f, computed.getAsFloat().get(), 0f);
+        assertEquals(0, computed.getLastSourceMetrics().size());
         
         att = new HashMap<>();
         att.put("seq", "1");
         var.updateVariableStatuses(variableStatuses, new Metric(Instant.now(), 10f, att));
-        assertEquals(1f, var.compute(variableStatuses, Instant.now()).getAsFloat().get(), 0f);
+        computed = var.compute(variableStatuses, Instant.now());
+        assertEquals(1f, computed.getAsFloat().get(), 0f);
+        assertEquals(1, computed.getLastSourceMetrics().size());
         
         att = new HashMap<>();
         att.put("seq", "2");
         var.updateVariableStatuses(variableStatuses, new Metric(Instant.now(), 10f, att));
-        assertEquals(2f, var.compute(variableStatuses, Instant.now()).getAsFloat().get(), 0f);
+        computed = var.compute(variableStatuses, Instant.now());
+        assertEquals(2f, computed.getAsFloat().get(), 0f);
+        assertEquals(2, computed.getLastSourceMetrics().size());
         
         att = new HashMap<>();
         att.put("seq", "1");
         var.updateVariableStatuses(variableStatuses, new Metric(Instant.now(), 10f, att));
+        computed = var.compute(variableStatuses, Instant.now());
         assertEquals(2f, var.compute(variableStatuses, Instant.now()).getAsFloat().get(), 0f);
+        assertEquals(2, computed.getLastSourceMetrics().size());
         
         att = new HashMap<>();
         att.put("seq", "1");
         att.put("noseq", "1");
         var.updateVariableStatuses(variableStatuses, new Metric(Instant.now(), 10f, att));
-        assertEquals(2f, var.compute(variableStatuses, Instant.now()).getAsFloat().get(), 0f);
+        computed = var.compute(variableStatuses, Instant.now());
+        assertEquals(2f, computed.getAsFloat().get(), 0f);
+        assertEquals(2, computed.getLastSourceMetrics().size());
         
         att = new HashMap<>();
         att.put("seq", "3");
         att.put("noseq", "1");
         var.updateVariableStatuses(variableStatuses, new Metric(Instant.now(), 10f, att));
-        assertEquals(3f, var.compute(variableStatuses, Instant.now()).getAsFloat().get(), 0f);
+        computed = var.compute(variableStatuses, Instant.now());
+        assertEquals(3f, computed.getAsFloat().get(), 0f);
+        assertEquals(3, computed.getLastSourceMetrics().size());
     }
     
 }

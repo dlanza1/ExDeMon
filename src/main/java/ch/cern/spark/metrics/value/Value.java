@@ -1,9 +1,11 @@
 package ch.cern.spark.metrics.value;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 
 import ch.cern.properties.Properties;
+import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +16,9 @@ public abstract class Value implements Serializable {
 
     @Getter @Setter
     protected String source;
+    
+    @Getter @Setter
+    protected List<Metric> lastSourceMetrics;
 
     public Optional<Float> getAsFloat() {
         return Optional.empty();

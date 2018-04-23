@@ -117,6 +117,12 @@ public class MetricVariable extends Variable {
             
             if(aggValue.getAsAggregated().isPresent())
                 aggValue = aggValue.getAsAggregated().get();
+            
+            if(status instanceof AggregationValues) {
+            	AggregationValues aggValues = (AggregationValues) status;
+            	
+            	aggValue.setLastSourceMetrics(new LinkedList<>(aggValues.getLastAggregatedMetrics().values()));
+            }
         } catch (ComputationException e) {
             aggValue = new ExceptionValue(e.getMessage());
         }
@@ -208,8 +214,10 @@ public class MetricVariable extends Variable {
                                                     .collect(Collectors.toList())
                                                     .hashCode();
 	        
+	        
+	        
 	        if(aggregateSelectALL || (hash != 1 && hash != 0))
-	            aggValues.add(hash, metric.getValue(), metric.getTimestamp());
+	            aggValues.add(hash, metric.getValue(), metric.getTimestamp(), metric);
 	    }
 
 	    return status;        
