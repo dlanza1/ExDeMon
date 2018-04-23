@@ -75,5 +75,23 @@ public class TemplateTest {
         				+ "Other text.", 
         		Template.apply("Some text:<agg_metrics> <datetime>:A1(=<attribute:a1>)A2(=<attribute:a2>)=<value> </agg_metrics>. Other text.", action));
     }
+    
+    @Test
+    public void aggMetricsEmpty() throws ConfigurationException, AddressException, MessagingException, IOException{
+        Action action = ActionTest.DUMMY;
+
+        AnalysisResult triggeringResult = new AnalysisResult();
+        Value value = new StringValue("VALUE");		
+		Map<String, String> ids = new HashMap<>();
+		Metric metric = new Metric(Instant.EPOCH, value, ids);
+		triggeringResult.setAnalyzedMetric(metric);
+		triggeringResult.setStatus(Status.OK, "");
+		action.setTriggeringResult(triggeringResult);
+        
+        assertEquals("Some text: "
+        				+ "No aggregated metrics."
+        				+ " Other text.", 
+        		Template.apply("Some text: <agg_metrics>A</agg_metrics> Other text.", action));
+    }
 
 }

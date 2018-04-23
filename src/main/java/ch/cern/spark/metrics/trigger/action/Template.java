@@ -83,6 +83,11 @@ public class Template {
         	String postText = text.substring(endAggMetrics + 14);
         	
         	List<Metric> lastSourceMetrics = triggeringResult.getAnalyzed_metric().getValue().getLastSourceMetrics();
+        	if(lastSourceMetrics == null || lastSourceMetrics.isEmpty()) {
+        		text = preText + "No aggregated metrics." + postText;
+        		break;
+        	}
+        		
         	String metricsText = "";
         	for (Metric metric : lastSourceMetrics) {
         		String metricText = metricTemplate;
