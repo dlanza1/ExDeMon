@@ -105,6 +105,8 @@ public class PropertiesTest {
         props.setStaticProperties(sprops);
         
         assertEquals("aa1", props.getProperty("aa"));
+        assertEquals("aa1", props.getSubset("").getProperty("aa"));
+        assertEquals("aa1", ((Properties)props.clone()).getProperty("aa"));
     }
     
     @Test
@@ -123,9 +125,11 @@ public class PropertiesTest {
         
         Properties props = new Properties();
         props.setStaticProperties(sprops);
-        props.setProperty("bb", "@aa");
+        props.setProperty("aa.bb", "@aa");
         
-        assertEquals("aa1", props.getProperty("bb"));
+        assertEquals("aa1", props.getProperty("aa.bb"));
+        assertEquals("aa1", props.getSubset("aa").getProperty("bb"));
+        assertEquals("aa1", ((Properties)props.clone()).getSubset("aa").getProperty("bb"));
     }
 
     @Test

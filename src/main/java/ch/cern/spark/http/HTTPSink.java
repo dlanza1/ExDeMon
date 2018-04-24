@@ -85,26 +85,11 @@ public class HTTPSink implements Serializable{
 		
 		addAction = properties.getBoolean("add.$action", true);
 		
-		//TODO backward compatibility
-		if(properties.contains("add.$notification"))
-		    addAction = properties.getBoolean("add.$notification", true);
-		//TODO backward compatibility
-		
 		propertiesToAdd = properties.getSubset("add").toStringMap();
 		propertiesToAdd.remove("$action");
 		
-		//TODO backward compatibility
-		propertiesToAdd.remove("$notification");
-		//TODO backward compatibility
-		
-		// Authentication configs
-		//TODO backward compatibility
-        boolean authentication = properties.getBoolean(AUTH_PARAM);
-        //TODO backward compatibility
-        if(!authentication)
-            authentication = properties.getProperty(AUTH_TYPE_PARAM, "disabled").equals("basic-user-password");
-        
-        if(authentication){
+		String authenticationType = properties.getProperty(AUTH_TYPE_PARAM, "disabled");
+        if(authenticationType.equals("basic-user-password")){
             String username = properties.getProperty(AUTH_USERNAME_PARAM);
             String password = properties.getProperty(AUTH_PASSWORD_PARAM);
             
@@ -112,12 +97,14 @@ public class HTTPSink implements Serializable{
                 String encoding = Base64.getEncoder().encodeToString((username+":"+password).getBytes("UTF-8"));
                 
                 authHeader = new Header("Authorization", "Basic " + encoding);
-                
-                LOG.info("Authentication enabled, user: " + username);
             } catch (UnsupportedEncodingException e) {
                 throw new ConfigurationException("Problem when creating authentication header");
             }
+        }else if(!authenticationType.equals("disabled")){
+        	throw new ConfigurationException("Authentication type \"" + authenticationType + "\" is not available.");
         }
+        
+        LOG.info("Configured: " + toString());
 	}
 	
 	public void sink(JavaDStream<?> outputStream) {
@@ -267,8 +254,8 @@ public class HTTPSink implements Serializable{
 			}	
 		}
 		
-		if(retry > 1)
-		    LOG.info("Request sent successfully after " + (retry) + "retries");
+		if(retry > 1 && thrownException != null)
+		    LOG.info("Request sent successfully after " + (retry) + " retries");
 		
 		return thrownException;	
 	}
@@ -308,6 +295,13 @@ public class HTTPSink implements Serializable{
             	        
             	        return new JsonPOSTRequest(entry.getKey(), new JSON(jsonString));
             	    }).collect(Collectors.toList());
+	}
+
+	@Override
+	public String toString() {
+		return "HTTPSink [url=" + url + ", retries=" + retries + ", timeout_ms=" + timeout_ms + ", parallelization="
+				+ parallelization + ", batch_size=" + batch_size + ", authHeader=" + authHeader + ", propertiesToAdd="
+				+ propertiesToAdd + ", as_array=" + as_array + ", addAction=" + addAction + "]";
 	}
 
 }
