@@ -62,7 +62,7 @@ public class HTTPSink implements Serializable{
 	private int batch_size;
 	
 	public static final String AUTH_PARAM = "auth";
-	public static final String AUTH_TYPE_PARAM = AUTH_PARAM + "type";
+	public static final String AUTH_TYPE_PARAM = AUTH_PARAM + ".type";
     public static final String AUTH_USERNAME_PARAM = AUTH_PARAM + ".user";
     public static final String AUTH_PASSWORD_PARAM = AUTH_PARAM + ".password";
     private Header authHeader;
@@ -107,8 +107,6 @@ public class HTTPSink implements Serializable{
         }else {
         	throw new ConfigurationException("Authentication type \"" + authenticationType + "\" is not available.");
         }
-        
-        LOG.info("Configured: " + toString());
 	}
 	
 	public void sink(JavaDStream<?> outputStream) {
