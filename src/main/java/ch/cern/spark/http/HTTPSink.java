@@ -100,7 +100,9 @@ public class HTTPSink implements Serializable{
             } catch (UnsupportedEncodingException e) {
                 throw new ConfigurationException("Problem when creating authentication header");
             }
-        }else if(!authenticationType.equals("disabled")){
+        }else if(authenticationType.equals("disabled")){
+        	authHeader = null;
+        }else {
         	throw new ConfigurationException("Authentication type \"" + authenticationType + "\" is not available.");
         }
         
