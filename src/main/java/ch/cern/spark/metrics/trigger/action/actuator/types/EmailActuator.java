@@ -19,8 +19,10 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.metrics.trigger.action.Template;
 import ch.cern.spark.metrics.trigger.action.actuator.Actuator;
+import lombok.ToString;
 
 @RegisterComponent("email")
+@ToString(callSuper=false)
 public class EmailActuator extends Actuator {
 
     private static final long serialVersionUID = 7529886359533539703L;

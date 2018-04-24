@@ -6,8 +6,10 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.http.HTTPSink;
 import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.metrics.trigger.action.actuator.Actuator;
+import lombok.ToString;
 
 @RegisterComponent("http")
+@ToString(callSuper=false)
 public class HTTPActuator extends Actuator {
 
 	private static final long serialVersionUID = 6368509840922047167L;

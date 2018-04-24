@@ -35,7 +35,9 @@ import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.metrics.trigger.action.Template;
 import ch.cern.utils.TimeUtils;
+import lombok.ToString;
 
+@ToString(callSuper=false)
 public class HTTPSink implements Serializable{
 	
 	private static final long serialVersionUID = 2779022310649799825L;
@@ -297,13 +299,6 @@ public class HTTPSink implements Serializable{
             	        
             	        return new JsonPOSTRequest(entry.getKey(), new JSON(jsonString));
             	    }).collect(Collectors.toList());
-	}
-
-	@Override
-	public String toString() {
-		return "HTTPSink [url=" + url + ", retries=" + retries + ", timeout_ms=" + timeout_ms + ", parallelization="
-				+ parallelization + ", batch_size=" + batch_size + ", authHeader=" + authHeader + ", propertiesToAdd="
-				+ propertiesToAdd + ", as_array=" + as_array + ", addAction=" + addAction + "]";
 	}
 
 }

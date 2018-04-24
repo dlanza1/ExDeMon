@@ -7,8 +7,10 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.http.HTTPSink;
 import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.metrics.trigger.action.actuator.Actuator;
+import lombok.ToString;
 
 @RegisterComponent("cern-gni")
+@ToString(callSuper=false)
 public class CERNGNIActuator extends Actuator {
 
 	private static final long serialVersionUID = 6416955181811280312L;
