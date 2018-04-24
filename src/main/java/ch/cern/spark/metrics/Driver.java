@@ -36,194 +36,191 @@ import ch.cern.spark.metrics.source.MetricsSource;
 import ch.cern.spark.metrics.trigger.TriggerStatus;
 import ch.cern.spark.metrics.trigger.TriggerStatusKey;
 import ch.cern.spark.metrics.trigger.action.Action;
-import ch.cern.spark.metrics.trigger.action.actuator.Actuator;
 import ch.cern.spark.metrics.trigger.action.actuator.Actuators;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusesKeyReceiver;
 import ch.cern.spark.status.storage.StatusesStorage;
 
 public final class Driver {
-    
+
     private transient final static Logger LOG = Logger.getLogger(Driver.class.getName());
-    
+
     public static String BATCH_INTERVAL_PARAM = "spark.batch.time";
-    
-	public static String CHECKPOINT_DIR_PARAM = "checkpoint.dir";  
-    public static String CHECKPOINT_DIR_DEFAULT = "/tmp/";  
-    
+
+    public static String CHECKPOINT_DIR_PARAM = "checkpoint.dir";
+    public static String CHECKPOINT_DIR_DEFAULT = "/tmp/";
+
     private JavaStreamingContext ssc;
-    
-	private List<MetricsSource> metricSources;
-	private Optional<AnalysisResultsSink> analysisResultsSink;
-	@Deprecated
-	private List<Actuator> actuators;
 
-	public static String STATUSES_REMOVAL_SOCKET_PARAM = "statuses.removal.socket";
-	private String statuses_removal_socket_host;
-	private Integer statuses_removal_socket_port;
+    private List<MetricsSource> metricSources;
+    private Optional<AnalysisResultsSink> analysisResultsSink;
 
-	@SuppressWarnings("deprecation")
+    public static String STATUSES_REMOVAL_SOCKET_PARAM = "statuses.removal.socket";
+    private String statuses_removal_socket_host;
+    private Integer statuses_removal_socket_port;
+
     public Driver(Properties properties) throws Exception {
-		removeSparkCheckpointDir(properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT));
-		
-		String removalSocket = properties.getProperty(STATUSES_REMOVAL_SOCKET_PARAM);
-		if(removalSocket != null) {
-		    String[] host_port = removalSocket.trim().split(":");
-		    
-		    statuses_removal_socket_host = host_port[0];
-		    statuses_removal_socket_port = Integer.parseInt(host_port[1]);
-		}
-		
+        removeSparkCheckpointDir(properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT));
+
+        String removalSocket = properties.getProperty(STATUSES_REMOVAL_SOCKET_PARAM);
+        if (removalSocket != null) {
+            String[] host_port = removalSocket.trim().split(":");
+
+            statuses_removal_socket_host = host_port[0];
+            statuses_removal_socket_port = Integer.parseInt(host_port[1]);
+        }
+
         ssc = newStreamingContext(properties);
 
         metricSources = getMetricSources(properties);
-		analysisResultsSink = getAnalysisResultsSink(properties);
-		actuators = Actuators.getActuators(properties);
-	}
+        analysisResultsSink = getAnalysisResultsSink(properties);
+    }
 
-	public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
 
-	    if(args.length != 1)
-	        throw new ConfigurationException("A single argument must be specified with the path to the configuration file.");
-	    
-	    String propertyFilePath = args[0];
-	    Properties properties = Properties.fromFile(propertyFilePath);
-	    properties.setDefaultPropertiesSource(propertyFilePath);
-	    
-	    Driver driver = new Driver(properties);
-		
-        JavaStreamingContext ssc = driver.createNewStreamingContext(properties.getSubset(PropertiesSource.CONFIGURATION_PREFIX));
-        
-		// Start the computation
-		ssc.start();
-		
-		ssc.sparkContext().sc().applicationId();
-		
-		try {
-			ssc.awaitTermination();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
+        if (args.length != 1)
+            throw new ConfigurationException(
+                    "A single argument must be specified with the path to the configuration file.");
+
+        String propertyFilePath = args[0];
+        Properties properties = Properties.fromFile(propertyFilePath);
+        properties.setDefaultPropertiesSource(propertyFilePath);
+
+        Driver driver = new Driver(properties);
+
+        JavaStreamingContext ssc = driver
+                .createNewStreamingContext(properties.getSubset(PropertiesSource.CONFIGURATION_PREFIX));
+
+        // Start the computation
+        ssc.start();
+
+        ssc.sparkContext().sc().applicationId();
+
+        try {
+            ssc.awaitTermination();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
     private static void removeSparkCheckpointDir(String mainDir) throws IOException {
         Path path = new Path(mainDir + "/checkpoint/");
-        
+
         FileSystem fs = FileSystem.get(new Configuration());
-        
-        if(fs.exists(path))
+
+        if (fs.exists(path))
             fs.delete(path, true);
     }
 
     protected JavaStreamingContext createNewStreamingContext(Properties propertiesSourceProps) throws Exception {
-	    
-    		JavaDStream<Metric> metrics = getMetricStream(propertiesSourceProps);
-    		
-    		Optional<JavaDStream<StatusKey>> statusesToRemove = getStatusesToRemoveStream();
-    		
-		metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps, statusesToRemove));
-		
-		JavaDStream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps, statusesToRemove);
 
-		analysisResultsSink.ifPresent(sink -> sink.sink(results));
-		
-		JavaDStream<Action> actions = Monitors.applyTriggers(results, propertiesSourceProps, statusesToRemove);
-		
-		Actuators.run(actions, propertiesSourceProps);
-		
-    		actuators.stream().forEach(actuator -> actuator.sink(actions));
+        JavaDStream<Metric> metrics = getMetricStream(propertiesSourceProps);
 
-		return ssc;
-	}
+        Optional<JavaDStream<StatusKey>> statusesToRemove = getStatusesToRemoveStream();
 
-	private Optional<JavaDStream<StatusKey>> getStatusesToRemoveStream() {
-	    if(statuses_removal_socket_host == null || statuses_removal_socket_port == null)
-	        return Optional.empty();
+        metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps, statusesToRemove));
 
-        return Optional.of(ssc.receiverStream(new StatusesKeyReceiver(statuses_removal_socket_host, statuses_removal_socket_port)));
+        JavaDStream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps, statusesToRemove);
+
+        analysisResultsSink.ifPresent(sink -> sink.sink(results));
+
+        JavaDStream<Action> actions = Monitors.applyTriggers(results, propertiesSourceProps, statusesToRemove);
+
+        Actuators.run(actions, propertiesSourceProps);
+
+        return ssc;
+    }
+
+    private Optional<JavaDStream<StatusKey>> getStatusesToRemoveStream() {
+        if (statuses_removal_socket_host == null || statuses_removal_socket_port == null)
+            return Optional.empty();
+
+        return Optional.of(ssc
+                .receiverStream(new StatusesKeyReceiver(statuses_removal_socket_host, statuses_removal_socket_port)));
     }
 
     public JavaDStream<Metric> getMetricStream(Properties propertiesSourceProps) {
-		return metricSources.stream()
-				.map(source -> MetricSchemas.generate(source.stream(ssc), propertiesSourceProps, source.getId()))
-				.reduce((str, stro) -> str.union(stro)).get();
-	}
+        return metricSources.stream()
+                .map(source -> MetricSchemas.generate(source.stream(ssc), propertiesSourceProps, source.getId()))
+                .reduce((str, stro) -> str.union(stro)).get();
+    }
 
-	private Optional<AnalysisResultsSink> getAnalysisResultsSink(Properties properties) throws Exception {
-		Properties analysisResultsSinkProperties = properties.getSubset("results.sink");
-		
-		return ComponentManager.buildOptional(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
-	}
+    private Optional<AnalysisResultsSink> getAnalysisResultsSink(Properties properties) throws Exception {
+        Properties analysisResultsSinkProperties = properties.getSubset("results.sink");
 
-	private List<MetricsSource> getMetricSources(Properties properties) throws Exception {
-		List<MetricsSource> metricSources = new LinkedList<>();
-		
-    		Properties metricSourcesProperties = properties.getSubset("metrics.source");
-		
-    		Set<String> ids = metricSourcesProperties.getIDs();
-    		
-    		for (String id : ids) {
-    			Properties props = metricSourcesProperties.getSubset(id);
-			
-    			MetricsSource source = ComponentManager.build(Type.METRIC_SOURCE, id, props);
-    			source.setId(id);
-    			
-    			metricSources.add(source);
-		}
-    		
-    		if(metricSources.size() < 1)
-		    throw new ConfigurationException("At least one metric source must be configured");
-		
-		return metricSources;
-	}
-	
-	public JavaStreamingContext newStreamingContext(Properties properties) throws IOException, ConfigurationException {
-		
-		SparkConf sparkConf = new SparkConf();
+        return ComponentManager.buildOptional(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
+    }
+
+    private List<MetricsSource> getMetricSources(Properties properties) throws Exception {
+        List<MetricsSource> metricSources = new LinkedList<>();
+
+        Properties metricSourcesProperties = properties.getSubset("metrics.source");
+
+        Set<String> ids = metricSourcesProperties.getIDs();
+
+        for (String id : ids) {
+            Properties props = metricSourcesProperties.getSubset(id);
+
+            MetricsSource source = ComponentManager.build(Type.METRIC_SOURCE, id, props);
+            source.setId(id);
+
+            metricSources.add(source);
+        }
+
+        if (metricSources.size() < 1)
+            throw new ConfigurationException("At least one metric source must be configured");
+
+        return metricSources;
+    }
+
+    public JavaStreamingContext newStreamingContext(Properties properties) throws IOException, ConfigurationException {
+
+        SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("ExDeMon");
         sparkConf.runLocallyIfMasterIsNotConfigured();
         sparkConf.addProperties(properties, "spark.");
-        
+
         sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
         sparkConf.set("spark.extraListeners", ZookeeperJobListener.class.getName());
-        
+
         sparkConf.registerKryoClasses(Arrays.asList(
-                                DefinedMetricStatuskey.class,
-                                MonitorStatusKey.class,
+                                DefinedMetricStatuskey.class, 
+                                MonitorStatusKey.class, 
                                 TriggerStatusKey.class,
-                                TriggerStatus.class,
-                                ValueHistory.class,
-                                VariableStatuses.class,
-                                AggregationValues.class
-                            ).toArray(new Class[0]));
-        
+                                TriggerStatus.class, 
+                                ValueHistory.class, 
+                                VariableStatuses.class, 
+                                AggregationValues.class)
+                                .toArray(new Class[0]));
+
         String checkpointDir = properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT);
-        
-        if(!sparkConf.contains(StatusesStorage.STATUS_STORAGE_PARAM + ".type")) {
-        		sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".type", "single-file");
-        		sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".path", checkpointDir + "/statuses");
+
+        if (!sparkConf.contains(StatusesStorage.STATUS_STORAGE_PARAM + ".type")) {
+            sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".type", "single-file");
+            sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".path", checkpointDir + "/statuses");
         }
 
-    		long batchInterval = properties.getPeriod(BATCH_INTERVAL_PARAM, Duration.ofMinutes(1)).getSeconds();
-    		
-    		JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, Durations.seconds(batchInterval));
-		
-		ssc.checkpoint(checkpointDir + "/checkpoint/");
-		
+        long batchInterval = properties.getPeriod(BATCH_INTERVAL_PARAM, Duration.ofMinutes(1)).getSeconds();
+
+        JavaStreamingContext ssc = new JavaStreamingContext(sparkConf, Durations.seconds(batchInterval));
+
+        ssc.checkpoint(checkpointDir + "/checkpoint/");
+
         try {
-            ZookeeperJobListener streamingListener = new ZookeeperJobListener(properties.getSubset("spark.streaming.listener"));
-            
+            ZookeeperJobListener streamingListener = new ZookeeperJobListener(
+                    properties.getSubset("spark.streaming.listener"));
+
             ssc.sparkContext().sc().addSparkListener(streamingListener);
             ssc.addStreamingListener(streamingListener);
         } catch (Exception e) {
             LOG.error("Zookeeper job listener could not be attached: " + e.getMessage(), e);
         }
-		
-		return ssc;
-	}
-	
-	public JavaStreamingContext getJavaStreamingContext() {
-		return ssc;
-	}
+
+        return ssc;
+    }
+
+    public JavaStreamingContext getJavaStreamingContext() {
+        return ssc;
+    }
 
 }

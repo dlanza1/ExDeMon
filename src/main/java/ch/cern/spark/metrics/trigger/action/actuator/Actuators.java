@@ -1,7 +1,5 @@
 package ch.cern.spark.metrics.trigger.action.actuator;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -55,31 +53,6 @@ public class Actuators {
         Properties.initCache(propertiesSourceProps);
 
         getCache().setExpiration(Properties.getCache().getExpirationPeriod());
-    }
-
-    @Deprecated
-    public static List<Actuator> getActuators(Properties properties) throws Exception {
-        List<Actuator> actuators = new LinkedList<>();
-
-        Properties actuatorsProperties = properties.getSubset(PARAM);
-
-        // TODO backward compatibility
-        Properties sinkPropertiesOld = properties.getSubset("notifications.sink");
-        actuatorsProperties.putAll(sinkPropertiesOld);
-        // TODO backward compatibility
-
-        Set<String> ids = actuatorsProperties.getIDs();
-
-        for (String id : ids) {
-            Properties props = actuatorsProperties.getSubset(id);
-
-            Actuator sink = ComponentManager.build(Type.ACTUATOR, props);
-            sink.setId(id);
-
-            actuators.add(sink);
-        }
-
-        return actuators;
     }
 
     public static void run(JavaDStream<Action> actions, Properties propertiesSourceProps) {
