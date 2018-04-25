@@ -3,16 +3,20 @@ package ch.cern.spark.metrics.defined;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.log4j.Logger;
 import org.apache.spark.streaming.State;
 
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
+import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.status.UpdateStatusFunction;
 
 public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMetricStatuskey, Metric, VariableStatuses, Metric>{
 
 	private static final long serialVersionUID = 2965182980222300453L;
+	
+	private final static Logger LOG = Logger.getLogger(UpdateDefinedMetricStatusesF.class.getName());
 
 	private Properties propertiesSourceProps;
 
@@ -32,9 +36,22 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
             
         VariableStatuses store = getStore(status);
 
-        definedMetric.updateStore(store, metric, id.getMetric_attributes().keySet());
-        
-        Optional<Metric> newMetric = definedMetric.generateByUpdate(store, metric, id.getMetric_attributes());
+        Optional<Metric> newMetric = Optional.empty();
+        try {
+            definedMetric.updateStore(store, metric, id.getMetric_attributes().keySet());
+            
+            newMetric = definedMetric.generateByUpdate(store, metric, id.getMetric_attributes());
+        }catch(Exception e) {
+            LOG.error("ID:" + id
+                    + " Metric: " + metric
+                    + " VariableStatuses: " + store
+                    + " Message:" + e.getMessage(), e);
+            
+            newMetric = Optional.of(new Metric(
+                                            metric.getTimestamp(), 
+                                            new ExceptionValue("Error when processing defined metric: " + e.getMessage()), 
+                                            id.getMetric_attributes()));   
+        }
         
         status.update(store);
         
