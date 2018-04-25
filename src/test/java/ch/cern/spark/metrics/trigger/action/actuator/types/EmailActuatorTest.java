@@ -22,13 +22,13 @@ import ch.cern.spark.metrics.trigger.action.actuator.types.EmailActuator;
 public class EmailActuatorTest {
     
     @Test
-    public void send() throws ConfigurationException, AddressException, MessagingException{
+    public void send() throws Exception{
         EmailActuator sink = new EmailActuator();
         
         Properties properties = new Properties();
         properties.setProperty("session.mail.smtp.host", "mmm.cern.ch");
         properties.setProperty("session.mail.smtp.auth", "true");
-        properties.setProperty("username", "tapeops@cern.ch");
+        properties.setProperty("username", "exdemon.m@cern.ch");
         properties.setProperty("password", "");
         sink.config(properties);
         sink.setSession();
@@ -47,7 +47,7 @@ public class EmailActuatorTest {
         metric_attributes.put("b", "2");
         action.setMetric_attributes(metric_attributes);
         
-        //sink.sendEmail(action);
+//        sink.run(action);
     }
     
     @Test
