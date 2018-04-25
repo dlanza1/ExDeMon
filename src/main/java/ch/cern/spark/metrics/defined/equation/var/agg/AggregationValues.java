@@ -46,6 +46,8 @@ public class AggregationValues extends StatusValue {
     }
     
 	public void add(int hash, Value value, Instant timestamp, Metric metric) {
+	    if(lastAggregatedMetrics == null)
+	        lastAggregatedMetrics = new LinkedHashMap<>();
 		lastAggregatedMetrics.put(hash, metric);
 		
 		add(hash, value, timestamp);
