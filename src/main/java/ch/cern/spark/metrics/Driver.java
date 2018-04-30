@@ -14,6 +14,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
+import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import ch.cern.components.Component.Type;
@@ -38,7 +39,10 @@ import ch.cern.spark.metrics.trigger.TriggerStatusKey;
 import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.metrics.trigger.action.actuator.Actuators;
 import ch.cern.spark.status.StatusKey;
-import ch.cern.spark.status.StatusesKeyReceiver;
+import ch.cern.spark.status.StatusOperation;
+import ch.cern.spark.status.StatusValue;
+import ch.cern.spark.status.StatusesKeySocketReceiver;
+import ch.cern.spark.status.StatusOperation.Op;
 import ch.cern.spark.status.storage.StatusesStorage;
 
 public final class Driver {
@@ -116,27 +120,39 @@ public final class Driver {
 
         JavaDStream<Metric> metrics = getMetricStream(propertiesSourceProps);
 
-        Optional<JavaDStream<StatusKey>> statusesToRemove = getStatusesToRemoveStream();
+        Optional<JavaDStream<StatusOperation<StatusKey, StatusValue>>> statusesOperationsOpt = getStatusesOperarions();
+        Optional<JavaDStream<StatusOperation<DefinedMetricStatuskey, Metric>>> metricsStatusesOperationsOpt = Optional.empty();
+        Optional<JavaDStream<StatusOperation<MonitorStatusKey, Metric>>> analysisStatusesOperationsOpt = Optional.empty();
+        Optional<JavaDStream<StatusOperation<TriggerStatusKey, AnalysisResult>>> monitorsStatusesOperationsOpt = Optional.empty();
+        if(statusesOperationsOpt.isPresent()) {
+            metricsStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() instanceof DefinedMetricStatuskey).map(op -> new StatusOperation<>((DefinedMetricStatuskey) op.getKey(), op.getOp())));
+            analysisStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() instanceof MonitorStatusKey).map(op -> new StatusOperation<>((MonitorStatusKey) op.getKey(), op.getOp())));
+            monitorsStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() instanceof TriggerStatusKey).map(op -> new StatusOperation<>((TriggerStatusKey) op.getKey(), op.getOp())));
+        }
+        
+        metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps, metricsStatusesOperationsOpt));
 
-        metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps, statusesToRemove));
-
-        JavaDStream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps, statusesToRemove);
+        JavaDStream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps, analysisStatusesOperationsOpt);
 
         analysisResultsSink.ifPresent(sink -> sink.sink(results));
 
-        JavaDStream<Action> actions = Monitors.applyTriggers(results, propertiesSourceProps, statusesToRemove);
+        JavaDStream<Action> actions = Monitors.applyTriggers(results, propertiesSourceProps, monitorsStatusesOperationsOpt);
 
         Actuators.run(actions, propertiesSourceProps);
 
         return ssc;
     }
 
-    private Optional<JavaDStream<StatusKey>> getStatusesToRemoveStream() {
+    private Optional<JavaDStream<StatusOperation<StatusKey, StatusValue>>> getStatusesOperarions() {
         if (statuses_removal_socket_host == null || statuses_removal_socket_port == null)
             return Optional.empty();
+        
+        JavaReceiverInputDStream<StatusKey> keysToRemove = ssc.receiverStream(new StatusesKeySocketReceiver(statuses_removal_socket_host, statuses_removal_socket_port));
+        
+        JavaDStream<StatusOperation<StatusKey, StatusValue>> removeOperations = keysToRemove
+                                                                                    .map(key -> new StatusOperation<>(key, Op.REMOVE));
 
-        return Optional.of(ssc
-                .receiverStream(new StatusesKeyReceiver(statuses_removal_socket_host, statuses_removal_socket_port)));
+        return Optional.of(removeOperations);
     }
 
     public JavaDStream<Metric> getMetricStream(Properties propertiesSourceProps) {

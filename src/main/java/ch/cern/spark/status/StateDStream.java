@@ -6,9 +6,9 @@ import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 public class StateDStream<K extends StatusKey, V, S extends StatusValue, R> {
 
-    private JavaMapWithStateDStream<K, ActionOrValue<V>, S, RemoveAndValue<K, R>> stream;
+    private JavaMapWithStateDStream<K, StatusOperation<K, V>, S, RemoveAndValue<K, R>> stream;
 
-    public StateDStream(JavaMapWithStateDStream<K, ActionOrValue<V>, S, RemoveAndValue<K, R>> statusStream) {
+    public StateDStream(JavaMapWithStateDStream<K, StatusOperation<K, V>, S, RemoveAndValue<K, R>> statusStream) {
         this.stream = statusStream;
     }
     

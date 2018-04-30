@@ -5,20 +5,22 @@ import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
+import ch.cern.spark.status.StatusOperation.Op;
+
 public abstract class UpdateStatusFunction<K extends StatusKey, V, S extends StatusValue, R>
-    implements Function4<Time, K, Optional<ActionOrValue<V>>, State<S>, Optional<RemoveAndValue<K, R>>> {
+    implements Function4<Time, K, Optional<StatusOperation<K, V>>, State<S>, Optional<RemoveAndValue<K, R>>> {
 
     private static final long serialVersionUID = 8556057397769787107L;
     
     @Override
-    public Optional<RemoveAndValue<K, R>> call(Time time, K key, Optional<ActionOrValue<V>> actionOrValue, State<S> state) throws Exception {
+    public Optional<RemoveAndValue<K, R>> call(Time time, K key, Optional<StatusOperation<K, V>> actionOrValue, State<S> state) throws Exception {
         if(state.isTimingOut()) {
             Optional<R> result = timingOut(time, key, state.get());
             
             return Optional.of(new RemoveAndValue<>(key, result));
         }
         
-        if(actionOrValue.get().isRemoveAction()) {
+        if(actionOrValue.get().getOp().equals(Op.REMOVE)) {
             state.remove();
             
             return Optional.absent();

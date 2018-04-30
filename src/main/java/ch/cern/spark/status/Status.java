@@ -16,7 +16,7 @@ import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentManager;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.status.ActionOrValue.Action;
+import ch.cern.spark.status.StatusOperation.Op;
 import ch.cern.spark.status.storage.StatusesStorage;
 import scala.Option;
 import scala.Tuple2;
@@ -28,44 +28,39 @@ public class Status {
 	public static<K extends StatusKey, V, S extends StatusValue, R> StateDStream<K, V, S, R> map(
 			Class<K> keyClass,
 			Class<S> statusClass,
-			JavaPairDStream<K, V> valuesStream,
-			UpdateStatusFunction<K, V, S, R> updateStatusFunction,
-			Optional<JavaDStream<K>> requestedKeysToRemove) 
+			JavaDStream<StatusOperation<K, V>> operations,
+			UpdateStatusFunction<K, V, S, R> updateStatusFunction) 
 					throws ClassNotFoundException, IOException, ConfigurationException {
 		
-		JavaSparkContext context = JavaSparkContext.fromSparkContext(valuesStream.context().sparkContext());
+		JavaSparkContext context = JavaSparkContext.fromSparkContext(operations.context().sparkContext());
 		
 		Optional<StatusesStorage> storageOpt = getStorage(context);
 		if(!storageOpt.isPresent())
 			throw new ConfigurationException("Storage needs to be configured");
 		StatusesStorage storage = storageOpt.get();
 
-		//Create input with all values
-		JavaPairDStream<K, ActionOrValue<V>> actionsOrValues = valuesStream.mapToPair(tuple -> new Tuple2<K, ActionOrValue<V>>(tuple._1, new ActionOrValue<>(tuple._2)));
-
-		//Add to the input the requested keys to remove (to trigger the removal from Spark data)
-        if(requestedKeysToRemove.isPresent())
-            actionsOrValues = actionsOrValues.union(requestedKeysToRemove.get().mapToPair(k -> new Tuple2<K, ActionOrValue<V>>(k, new ActionOrValue<>(Action.REMOVE))));
-
+        JavaDStream<StatusOperation<K, V>> updatesAndRemoves = operations.filter(op -> op.getOp().equals(Op.UPDATE) || op.getOp().equals(Op.REMOVE));
+        JavaPairDStream<K, StatusOperation<K, V>> updatesAndRemovesKeyed = updatesAndRemoves.mapToPair(op -> new Tuple2<>(op.getKey(), op));
+        
         //Load initial state from external storage
 		JavaPairRDD<K, S> initialStates = storage.load(context, keyClass, statusClass);
         
 		//Map values and remove states
-        StateSpec<K, ActionOrValue<V>, S, RemoveAndValue<K, R>> statusSpec = StateSpec.function(updateStatusFunction).initialState(initialStates.rdd());
+        StateSpec<K, StatusOperation<K, V>, S, RemoveAndValue<K, R>> statusSpec = StateSpec.function(updateStatusFunction).initialState(initialStates.rdd());
         statusSpec.numPartitions(10);
         
         Option<Duration> timeout = getStatusExpirationPeriod(context);
         if(timeout.isDefined())
             statusSpec = statusSpec.timeout(timeout.get());
         
-        JavaMapWithStateDStream<K, ActionOrValue<V>, S, RemoveAndValue<K, R>> statusStream = actionsOrValues.mapWithState(statusSpec);
+        JavaMapWithStateDStream<K, StatusOperation<K, V>, S, RemoveAndValue<K, R>> statusStream = updatesAndRemovesKeyed.mapWithState(statusSpec);
         
         //Keys that has been removed while mapping with states
         JavaDStream<K> keysToRemove = statusStream.filter(rv -> rv.isRemoveAction()).map(rv -> rv.getKey());
         
         //Union them with requested keys to remove 
-        if(requestedKeysToRemove.isPresent())
-            keysToRemove = keysToRemove.union(requestedKeysToRemove.get());
+        JavaDStream<StatusOperation<K, V>> requestedRemoves = updatesAndRemoves.filter(op -> op.getOp().equals(Op.REMOVE));
+        keysToRemove = keysToRemove.union(requestedRemoves.map(op -> op.getKey()));
         
         //Remove all from external storage
         keysToRemove.foreachRDD(rdd -> storage.remove(rdd));    

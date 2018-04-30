@@ -12,18 +12,18 @@ import org.apache.spark.streaming.receiver.Receiver;
 
 import ch.cern.spark.status.storage.JSONStatusSerializer;
 
-public class StatusesKeyReceiver extends Receiver<StatusKey> {
+public class StatusesKeySocketReceiver extends Receiver<StatusKey> {
 
     private static final long serialVersionUID = -3082306224466741384L;
     
-    private transient final static Logger LOG = Logger.getLogger(StatusesKeyReceiver.class.getName());
+    private transient final static Logger LOG = Logger.getLogger(StatusesKeySocketReceiver.class.getName());
 
     private String host;
     private int port;
 
     private JSONStatusSerializer derializer;
     
-    public StatusesKeyReceiver(String host, int port) {
+    public StatusesKeySocketReceiver(String host, int port) {
         super(StorageLevel.MEMORY_ONLY());
         
         this.host = host;
