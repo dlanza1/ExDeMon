@@ -40,9 +40,9 @@ import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.metrics.trigger.action.actuator.Actuators;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusOperation;
+import ch.cern.spark.status.StatusOperation.Op;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.StatusesKeySocketReceiver;
-import ch.cern.spark.status.StatusOperation.Op;
 import ch.cern.spark.status.storage.StatusesStorage;
 import ch.cern.spark.status.storage.manager.ZookeeperStatusesOperationsReceiver;
 

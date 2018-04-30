@@ -26,7 +26,7 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
 
     private static final long serialVersionUID = -6756122444455084725L;
     
-    private transient final static Logger LOG = Logger.getLogger(ZookeeperStatusesOperationsReceiver.class.getName());
+    private transient final static Logger LOG = Logger.getLogger(ZookeeperStatusesOperationsReceiverTest.class.getName());
     
     private String zkConnString;
     private long initialization_timeout_ms;
@@ -107,8 +107,8 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
                     String path = event.getData().getPath();
                     byte[] data = event.getData().getData();
                     
-                    if(data != null && data.length > 0) {
-                        addOperation(new String(data));
+                    if(path.endsWith("/op")) {
+                        addOperation(path, new String(data));
                         
                         LOG.info("New operation at " + path + " => " + new String(data));
                     }
@@ -142,9 +142,16 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
             throw new IOException("Initialization timed-out, connection string is wrong or nodes/port are not reachable?");
     }
 
-    protected void addOperation(String arguments) {
-        // TODO Auto-generated method stub
+    protected void addOperation(String path, String opString) {
+        String rootPath = path.substring(0, path.length() - "op".length());
         
+        System.out.println(rootPath);
+        
+        try {
+            client.create().forPath(rootPath + "status", "OK".getBytes());
+        } catch (Exception e) {
+            LOG.error(e);
+        }
     }
 
     @Override
