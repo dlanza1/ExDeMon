@@ -1,6 +1,8 @@
 package ch.cern.spark.status.storage.manager;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -17,16 +19,22 @@ import org.apache.log4j.Logger;
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.receiver.Receiver;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusOperation;
+import ch.cern.spark.status.StatusOperation.Op;
 import ch.cern.spark.status.StatusValue;
+import ch.cern.spark.status.storage.JSONStatusSerializer;
 
 public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperation<StatusKey, StatusValue>> {
 
     private static final long serialVersionUID = -6756122444455084725L;
     
-    private transient final static Logger LOG = Logger.getLogger(ZookeeperStatusesOperationsReceiverTest.class.getName());
+    private transient final static Logger LOG = Logger.getLogger(ZookeeperStatusesOperationsReceiver.class.getName());
     
     private String zkConnString;
     private long initialization_timeout_ms;
@@ -36,12 +44,18 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
 
     private TreeCache cache;
 
+    private JsonParser parser;
+	private JSONStatusSerializer derializer;
+
     public ZookeeperStatusesOperationsReceiver(Properties properties) {
         super(StorageLevel.MEMORY_ONLY());
 
         zkConnString = properties.getProperty("connection_string");
         initialization_timeout_ms = properties.getLong("initialization_timeout_ms", 5000);
         timeout_ms = (int) properties.getLong("timeout_ms", 20000);
+        
+        parser = new JsonParser();
+        derializer = new JSONStatusSerializer();
     }
     
     @Override
@@ -108,7 +122,19 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
                     byte[] data = event.getData().getData();
                     
                     if(path.endsWith("/op")) {
-                        addOperation(path, new String(data));
+                    	String rootPath = path.substring(0, path.length() - "op".length());
+                        
+                        try {
+							addOperation(rootPath, new String(data));
+						} catch (Exception e) {
+							LOG.error(rootPath, e);
+							
+							try {
+								client.create().forPath(rootPath + "status", ("ERROR " + e.getMessage()).getBytes());
+							} catch (Exception e1) {
+								LOG.error(rootPath + " when setting error message", e);
+							}
+						}
                         
                         LOG.info("New operation at " + path + " => " + new String(data));
                     }
@@ -142,19 +168,46 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
             throw new IOException("Initialization timed-out, connection string is wrong or nodes/port are not reachable?");
     }
 
-    protected void addOperation(String path, String opString) {
-        String rootPath = path.substring(0, path.length() - "op".length());
+    protected void addOperation(String rootPath, String opString) throws Exception {
+    	switch(Op.valueOf(opString.toUpperCase())) {
+		case REMOVE:
+			getKeys(rootPath).stream().forEach(key -> store(new StatusOperation<>(key, Op.REMOVE)));
+			break;
+		case LIST:
+		case UPDATE:
+		default:
+			throw new Exception("Operation " + opString + " not available.");
+    	}
         
-        System.out.println(rootPath);
-        
-        try {
-            client.create().forPath(rootPath + "status", "OK".getBytes());
-        } catch (Exception e) {
-            LOG.error(e);
-        }
+        client.create().forPath(rootPath + "status", "OK".getBytes());
     }
 
-    @Override
+    private List<StatusKey> getKeys(String rootPath) throws Exception {
+    	LinkedList<StatusKey> keys = new LinkedList<>();
+    	
+        byte[] jsonKeysAsString = client.getData().forPath(rootPath + "keys");
+        if(jsonKeysAsString == null)
+            throw new Exception("keys are empty");
+        
+        JsonElement element = parser.parse(new String(jsonKeysAsString));
+        
+        if(element.isJsonObject()) {
+        	keys.add(derializer.toKey(jsonKeysAsString));
+        }else if(element.isJsonArray()) {
+        	JsonArray jsonArray = element.getAsJsonArray();
+        	
+        	for (JsonElement jsonElement : jsonArray) {
+        		if(!jsonElement.isJsonObject())
+        			continue;
+        		
+        		keys.add(derializer.toKey(jsonElement.toString().getBytes()));
+			}
+        }
+        
+		return keys;
+	}
+
+	@Override
     public void onStop() {
         close();
     }

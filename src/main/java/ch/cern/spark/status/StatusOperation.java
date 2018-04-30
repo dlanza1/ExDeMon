@@ -2,10 +2,12 @@ package ch.cern.spark.status;
 
 import java.io.Serializable;
 
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
 
 @ToString
+@EqualsAndHashCode(callSuper=false)
 public class StatusOperation<K, V> implements Serializable{
 
     private static final long serialVersionUID = 1246832289612522256L;
