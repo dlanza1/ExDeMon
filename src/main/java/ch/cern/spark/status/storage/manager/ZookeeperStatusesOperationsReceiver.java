@@ -126,6 +126,8 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
                         
                         try {
 							addOperation(rootPath, new String(data));
+							
+							LOG.info("New operation at " + path + " => " + new String(data));
 						} catch (Exception e) {
 							LOG.error(rootPath, e);
 							
@@ -135,8 +137,6 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
 								LOG.error(rootPath + " when setting error message", e1);
 							}
 						}
-                        
-                        LOG.info("New operation at " + path + " => " + new String(data));
                     }
                     break;
                 case NODE_REMOVED:

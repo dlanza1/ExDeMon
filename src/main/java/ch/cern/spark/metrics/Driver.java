@@ -129,11 +129,11 @@ public final class Driver {
         Optional<JavaDStream<StatusOperation<MonitorStatusKey, Metric>>> analysisStatusesOperationsOpt = Optional.empty();
         Optional<JavaDStream<StatusOperation<TriggerStatusKey, AnalysisResult>>> monitorsStatusesOperationsOpt = Optional.empty();
         if(statusesOperationsOpt.isPresent()) {
-            metricsStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() instanceof DefinedMetricStatuskey)
+            metricsStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() == null || op.getKey() instanceof DefinedMetricStatuskey)
             																		.map(op -> new StatusOperation<>(op.getId(), (DefinedMetricStatuskey) op.getKey(), op.getOp())));
-            analysisStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() instanceof MonitorStatusKey)
+            analysisStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() == null || op.getKey() instanceof MonitorStatusKey)
             																		.map(op -> new StatusOperation<>(op.getId(), (MonitorStatusKey) op.getKey(), op.getOp())));
-            monitorsStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() instanceof TriggerStatusKey)
+            monitorsStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() == null || op.getKey() instanceof TriggerStatusKey)
             																		.map(op -> new StatusOperation<>(op.getId(), (TriggerStatusKey) op.getKey(), op.getOp())));
         }
         
