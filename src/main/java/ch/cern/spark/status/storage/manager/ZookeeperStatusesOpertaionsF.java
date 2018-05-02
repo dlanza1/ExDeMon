@@ -61,7 +61,7 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 	private void writeResult(String id, StatusKey key) throws Exception {
 		String path = "/id="+id+"/results";
 		
-		String keyAsString = new String(derializer.fromKey(key)).concat("/n");
+		String keyAsString = new String(derializer.fromKey(key)).concat("\n");
 		
 		if(client.checkExists().forPath(path) != null) {
 			byte[] currentData = client.getData().forPath(path);
