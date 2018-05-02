@@ -69,8 +69,6 @@ tag_qa:
   stage: deploy_qa
   image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
   when: manual
-  variables:
-    CI_DEBUG_TRACE: "true"
   only:
     - /^rpm-.*$/
   script:
