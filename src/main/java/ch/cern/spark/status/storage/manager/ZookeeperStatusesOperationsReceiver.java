@@ -117,6 +117,7 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
                     LOG.error("Conection suspended");
                     break;
                 case NODE_ADDED:
+                case NODE_UPDATED:
                     String path = event.getData().getPath();
                     byte[] data = event.getData().getData();
                     
@@ -129,9 +130,9 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
 							LOG.error(rootPath, e);
 							
 							try {
-								client.create().forPath(rootPath + "status", ("ERROR " + e.getMessage()).getBytes());
+								client.create().forPath(rootPath + "status", ("ERROR " + e.getClass().getSimpleName() + ": " + e.getMessage()).getBytes());
 							} catch (Throwable e1) {
-								LOG.error(rootPath + " when setting error message", e);
+								LOG.error(rootPath + " when setting error message", e1);
 							}
 						}
                         
@@ -139,8 +140,6 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
                     }
                     break;
                 case NODE_REMOVED:
-                    break;
-                case NODE_UPDATED:
                     break;
                 default:
                     break;
