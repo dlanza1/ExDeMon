@@ -74,13 +74,13 @@ public class Status {
         statusStream.stateSnapshots().foreachRDD((rdd, time) -> storage.save(rdd, time));
         
         //Statuses operations (list)
-        JavaPairDStream<String, StatusOperation<K, V>> filterOperations = operations
+        JavaPairDStream<String, StatusOperation<K, V>> listOperations = operations
         																		.filter(op -> op.getOp().equals(Op.LIST))
         																		.mapToPair(op -> new Tuple2<>("filter", op));
         
         Properties zooStatusesOpFProps = Properties.from(context.getConf().getAll()).getSubset(Driver.STATUSES_OPERATIONS_RECEIVER_PARAM);
 		statusStream.stateSnapshots().mapToPair(s -> new Tuple2<>("filter", s))
-															.leftOuterJoin(filterOperations)
+															.leftOuterJoin(listOperations)
 															.filter(t -> t._2._2.isPresent())
 															.mapToPair(t -> new Tuple2<>(t._2._1, t._2._2.get()))
 															.foreachRDD(rdd -> {

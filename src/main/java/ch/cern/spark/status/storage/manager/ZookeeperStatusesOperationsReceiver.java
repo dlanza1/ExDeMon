@@ -171,10 +171,10 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
     	
     	switch(Op.valueOf(opString.toUpperCase())) {
 		case REMOVE:
-			getKeys(rootPath).stream().forEach(key -> store(new StatusOperation<>(id, key, Op.REMOVE)));
+			getKeys(rootPath).stream().forEach(key -> storeOperation(new StatusOperation<>(id, key, Op.REMOVE)));
 			break;
 		case LIST:
-			store(new StatusOperation<>(id, getFilters(rootPath)));
+			storeOperation(new StatusOperation<>(id, getFilters(rootPath)));
 			break;
 		case UPDATE:
 		default:
@@ -184,7 +184,13 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
     	setNodeData(rootPath + "status", "OK".getBytes());
     }
 
-    private void setNodeData(String path, byte[] bytes) throws Exception {
+    private void storeOperation(StatusOperation<StatusKey, StatusValue> op) {
+    	LOG.info("New operation: " + op);
+		
+    	store(op);
+	}
+
+	private void setNodeData(String path, byte[] bytes) throws Exception {
 		if(client.checkExists().forPath(path) != null)
 			client.setData().forPath(path, bytes);
 		else
