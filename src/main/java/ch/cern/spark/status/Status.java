@@ -3,7 +3,6 @@ package ch.cern.spark.status;
 import java.io.IOException;
 import java.util.Optional;
 
-import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -27,8 +26,6 @@ import scala.Tuple2;
 public class Status {
 	
 	public static final String STATUSES_EXPIRATION_PERIOD_PARAM = "spark.cern.streaming.status.timeout";
-	
-	private transient final static Logger LOG = Logger.getLogger(Status.class.getName());
 
 	public static<K extends StatusKey, V, S extends StatusValue, R> StateDStream<K, V, S, R> map(
 			Class<K> keyClass,
@@ -83,13 +80,7 @@ public class Status {
 															.leftOuterJoin(listOperations)
 															.filter(t -> t._2._2.isPresent())
 															.mapToPair(t -> new Tuple2<>(t._2._1, t._2._2.get()))
-															.foreachRDD(rdd -> {
-																long count = rdd.count();
-																
-																LOG.info("Processing list operations (states " + count + ")");
-																
-																rdd.foreachPartitionAsync(new ZookeeperStatusesOpertaionsF<K, V, S>(zooStatusesOpFProps));
-															});
+															.foreachRDD(rdd -> rdd.foreachPartitionAsync(new ZookeeperStatusesOpertaionsF<K, V, S>(zooStatusesOpFProps)));
 		
 		return new StateDStream<>(statusStream);
 	}
