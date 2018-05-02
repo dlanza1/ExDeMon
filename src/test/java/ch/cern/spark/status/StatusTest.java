@@ -56,7 +56,7 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
                 .build();
         client.start();
         
-        client.create().creatingParentsIfNeeded().forPath("/id=1122");
+        client.create().creatingParentsIfNeeded().forPath("/id=1122/status", "OK".getBytes());
         
         zk = client.getZookeeperClient().getZooKeeper();
         
@@ -95,6 +95,7 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
         
         assertEquals("{\"id\":\"dm1\",\"metric_attributes\":{\"HOSTNAME\":\"host4321\"},\"fqcn-alias\":\"defined-metric-key\"}\n", 
         			 new String(client.getData().forPath("/id=1122/results")));
+        assertEquals("FINISHED", new String(client.getData().forPath("/id=1122/status")));
 	}
     
     @After
