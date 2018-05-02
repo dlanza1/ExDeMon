@@ -34,6 +34,7 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 	public ZookeeperStatusesOpertaionsF(Properties props) {
         zkConnString = props.getProperty("connection_string");
         timeout_ms = (int) props.getLong("timeout_ms", 20000);
+        initClient();
 		
 		derializer = new JSONStatusSerializer();
 	}
