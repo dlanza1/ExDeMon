@@ -26,17 +26,14 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 	private static CuratorFramework client = null;
 	
 	private static JSONStatusSerializer derializer = new JSONStatusSerializer();
+
+	private String zkConnString;
+
+	private int timeout_ms;
 	
 	public ZookeeperStatusesOpertaionsF(Properties props) {
-        String zkConnString = props.getProperty("connection_string");
-        int timeout_ms = (int) props.getLong("timeout_ms", 20000);
-        client = CuratorFrameworkFactory.builder()
-                .connectString(zkConnString)
-                .retryPolicy(new ExponentialBackoffRetry(1000, 3))
-                .sessionTimeoutMs(timeout_ms)
-                .build();
-		client.start();
-		LOG.info("Client started. Connection string: " + zkConnString);
+        zkConnString = props.getProperty("connection_string");
+        timeout_ms = (int) props.getLong("timeout_ms", 20000);
 		
 		derializer = new JSONStatusSerializer();
 	}
@@ -59,6 +56,8 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 	}
 
 	private void writeResult(String id, StatusKey key) throws Exception {
+		initClient();
+		
 		String path = "/id="+id+"/results";
 		
 		String keyAsString = new String(derializer.fromKey(key)).concat("\n");
@@ -75,6 +74,20 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 		}else{
 			client.create().forPath(path, keyAsString.getBytes());
 		}
+	}
+
+	private void initClient() {
+		if(client != null)
+			return;
+		
+        client = CuratorFrameworkFactory.builder()
+		                .connectString(zkConnString)
+		                .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+		                .sessionTimeoutMs(timeout_ms)
+		                .build();
+		client.start();
+		
+		LOG.info("Client started. Connection string: " + zkConnString);
 	}
 
 }
