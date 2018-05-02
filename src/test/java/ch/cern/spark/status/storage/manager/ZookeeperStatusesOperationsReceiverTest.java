@@ -64,7 +64,7 @@ public class ZookeeperStatusesOperationsReceiverTest {
         
         Thread.sleep(100);
         
-        List<StatusOperation<StatusKey, StatusValue>> ops = receiver.getStoredOps();
+        List<StatusOperation<StatusKey, ?>> ops = receiver.getStoredOps();
         
         assertEquals("OK", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
         assertEquals(new StatusOperation<>("1122", key, Op.REMOVE), ops.get(0));
@@ -89,7 +89,7 @@ public class ZookeeperStatusesOperationsReceiverTest {
         
         Thread.sleep(100);
         
-        List<StatusOperation<StatusKey, StatusValue>> ops = receiver.getStoredOps();
+        List<StatusOperation<StatusKey, ?>> ops = receiver.getStoredOps();
         
         assertEquals("OK", new String(client.getData().forPath("/exdemon/operations/qa/id=1234/status")));
         assertEquals(new StatusOperation<>("1234", key1, Op.REMOVE), ops.get(0));
@@ -112,7 +112,7 @@ public class ZookeeperStatusesOperationsReceiverTest {
         
         Thread.sleep(100);
         
-        List<StatusOperation<StatusKey, StatusValue>> ops = receiver.getStoredOps();
+        List<StatusOperation<StatusKey, ?>> ops = receiver.getStoredOps();
         
         List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> filters = new LinkedList<>();
         filters.add(new ClassNameStatusKeyFilter("abcd"));
@@ -137,7 +137,7 @@ public class ZookeeperStatusesOperationsReceiverTest {
         
         Thread.sleep(100);
         
-        List<StatusOperation<StatusKey, StatusValue>> ops = receiver.getStoredOps();
+        List<StatusOperation<StatusKey, ?>> ops = receiver.getStoredOps();
         
         List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> filters = new LinkedList<>();
         filters.add(new ClassNameStatusKeyFilter("abcd"));
@@ -160,18 +160,18 @@ public class ZookeeperStatusesOperationsReceiverTest {
 
         private static final long serialVersionUID = 6275351290636755863L;
         
-        private List<StatusOperation<StatusKey, StatusValue>> storedOps = new LinkedList<>();
+        private List<StatusOperation<StatusKey, ?>> storedOps = new LinkedList<>();
         
         public ZookeeperStatusesOperationsReceiver_(Properties properties) {
             super(properties);
         }
         
         @Override
-        public void store(StatusOperation<StatusKey, StatusValue> dataItem) {
+        public void store(StatusOperation<StatusKey, ?> dataItem) {
             storedOps.add(dataItem);
         }
         
-        public List<StatusOperation<StatusKey, StatusValue>> getStoredOps() {
+        public List<StatusOperation<StatusKey, ?>> getStoredOps() {
             return storedOps;
         }
         

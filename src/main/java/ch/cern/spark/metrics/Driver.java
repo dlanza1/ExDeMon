@@ -41,7 +41,6 @@ import ch.cern.spark.metrics.trigger.action.actuator.Actuators;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusOperation;
 import ch.cern.spark.status.StatusOperation.Op;
-import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.StatusesKeySocketReceiver;
 import ch.cern.spark.status.storage.StatusesStorage;
 import ch.cern.spark.status.storage.manager.ZookeeperStatusesOperationsReceiver;
@@ -124,17 +123,14 @@ public final class Driver {
 
     protected JavaStreamingContext createNewStreamingContext(Properties propertiesSourceProps) throws Exception {
 
-        Optional<JavaDStream<StatusOperation<StatusKey, StatusValue>>> statusesOperationsOpt = getStatusesOperarions();
+        Optional<JavaDStream<StatusOperation<StatusKey, ?>>> statusesOperationsOpt = getStatusesOperarions();
         Optional<JavaDStream<StatusOperation<DefinedMetricStatuskey, Metric>>> metricsStatusesOperationsOpt = Optional.empty();
         Optional<JavaDStream<StatusOperation<MonitorStatusKey, Metric>>> analysisStatusesOperationsOpt = Optional.empty();
         Optional<JavaDStream<StatusOperation<TriggerStatusKey, AnalysisResult>>> monitorsStatusesOperationsOpt = Optional.empty();
         if(statusesOperationsOpt.isPresent()) {
-            metricsStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() == null || op.getKey() instanceof DefinedMetricStatuskey)
-            																		.map(op -> new StatusOperation<>(op.getId(), (DefinedMetricStatuskey) op.getKey(), op.getOp())));
-            analysisStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() == null || op.getKey() instanceof MonitorStatusKey)
-            																		.map(op -> new StatusOperation<>(op.getId(), (MonitorStatusKey) op.getKey(), op.getOp())));
-            monitorsStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() == null || op.getKey() instanceof TriggerStatusKey)
-            																		.map(op -> new StatusOperation<>(op.getId(), (TriggerStatusKey) op.getKey(), op.getOp())));
+            metricsStatusesOperationsOpt = filterOperations(statusesOperationsOpt, DefinedMetricStatuskey.class);
+            analysisStatusesOperationsOpt = filterOperations(statusesOperationsOpt, MonitorStatusKey.class);
+            monitorsStatusesOperationsOpt = filterOperations(statusesOperationsOpt, TriggerStatusKey.class);
         }
         
         JavaDStream<Metric> metrics = getMetricStream(propertiesSourceProps);
@@ -152,11 +148,23 @@ public final class Driver {
         return ssc;
     }
 
-    private Optional<JavaDStream<StatusOperation<StatusKey, StatusValue>>> getStatusesOperarions() {
+    @SuppressWarnings("unchecked")
+	private <K, V> Optional<JavaDStream<StatusOperation<K, V>>> filterOperations(
+    		Optional<JavaDStream<StatusOperation<StatusKey, ?>>> operations,
+    		Class<K> keyClass) {
+    	
+    	if(!operations.isPresent())
+    		return Optional.empty();
+
+		return Optional.of(operations.get().filter(op -> op.getKey() == null || op.getKey().getClass().isAssignableFrom(keyClass))
+								.map(op -> new StatusOperation<>(op.getId(), op.getOp(), (K) op.getKey(), (V) op.getValue(), op.getFilters())));
+	}
+
+	private Optional<JavaDStream<StatusOperation<StatusKey, ?>>> getStatusesOperarions() {
         if (statuses_removal_socket_host == null || statuses_removal_socket_port == null)
             return Optional.empty();
         
-        JavaDStream<StatusOperation<StatusKey, StatusValue>> operations = ssc.receiverStream(new ZookeeperStatusesOperationsReceiver(statusesOperationsReceiverProperties));
+        JavaDStream<StatusOperation<StatusKey, ?>> operations = ssc.receiverStream(new ZookeeperStatusesOperationsReceiver(statusesOperationsReceiverProperties));
         
         JavaReceiverInputDStream<StatusKey> keysToRemove = ssc.receiverStream(new StatusesKeySocketReceiver(statuses_removal_socket_host, statuses_removal_socket_port));
         operations = operations.union(keysToRemove.map(key -> new StatusOperation<>("old_remove", key, Op.REMOVE)));

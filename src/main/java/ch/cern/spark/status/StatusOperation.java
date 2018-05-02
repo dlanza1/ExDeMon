@@ -43,13 +43,27 @@ public class StatusOperation<K, V> implements Serializable{
         this.value = null;
     }
     
-    public StatusOperation(@NonNull String id, List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> filters) {
+    public StatusOperation(@NonNull String id, @NonNull List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> filters) {
     	this.id = id;
         this.op = Op.LIST;
         this.key = null;
         this.value = null;
         this.filters = filters;
     }
+    
+	public StatusOperation(
+			String id, 
+			Op op, 
+			K key, 
+			V value,
+			List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> filters) {
+		super();
+		this.id = id;
+		this.op = op;
+		this.key = key;
+		this.value = value;
+		this.filters = filters;
+	}
     
     public String getId() {
 		return id;
@@ -68,14 +82,18 @@ public class StatusOperation<K, V> implements Serializable{
     }
 
 	public boolean filter(Tuple2<StatusKey, StatusValue> tuple) throws Exception {
-		if(filters == null)
-			return true;
+		if(!op.equals(Op.LIST))
+			throw new Exception("Filter is not allowed, it must be a list operation");
 		
 		for (Function<Tuple2<StatusKey, StatusValue>, Boolean> function : filters)
 			if(!function.call(tuple))
 				return false;
 		
 		return true;
+	}
+
+	public List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> getFilters() {
+		return filters;
 	}
     
 }

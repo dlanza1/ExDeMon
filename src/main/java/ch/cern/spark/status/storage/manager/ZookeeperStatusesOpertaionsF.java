@@ -67,8 +67,8 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 		if(client.checkExists().forPath(path) != null) {
 			byte[] currentData = client.getData().forPath(path);
 			
-			if(currentData.length > 10000) {
-				client.setData().forPath("/id="+id+"/status", "ERROR results maximun size reached".getBytes());
+			if(currentData.length > 100000) {
+				client.setData().forPath("/id="+id+"/status", "WARNING results maximun size reached".getBytes());
 				return;
 			}
 			

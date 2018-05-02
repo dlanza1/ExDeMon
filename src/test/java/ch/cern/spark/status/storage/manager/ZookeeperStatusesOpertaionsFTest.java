@@ -58,15 +58,16 @@ public class ZookeeperStatusesOpertaionsFTest {
     	List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> filters = new LinkedList<>();
     	filters.add(new ToStringPatternStatusKeyFilter(".*tpsrv100.*"));
 		StatusOperation<MonitorStatusKey, Metric> op = new StatusOperation<>("1122", filters);
-		Map<String, String> atts = new HashMap<>();
-		atts.put("host", "tpsrv100");
-		tuples.add(new Tuple2<>(new Tuple2<>(new MonitorStatusKey("m1", atts), null), op));
-		tuples.add(new Tuple2<>(new Tuple2<>(new MonitorStatusKey("m2", atts), null), op));
+		Map<String, String> atts1 = new HashMap<>();
+		atts1.put("host", "tpsrv100");
+		tuples.add(new Tuple2<>(new Tuple2<>(new MonitorStatusKey("m1", atts1), null), op));
+		Map<String, String> atts2 = new HashMap<>();
+		atts2.put("host", "tpsrv102");
+		tuples.add(new Tuple2<>(new Tuple2<>(new MonitorStatusKey("m2", atts2), null), op));
     	
 		f.call(tuples.iterator());
 		
-		assertEquals("{\"id\":\"m1\",\"metric_attributes\":{\"host\":\"tpsrv100\"},\"fqcn-alias\":\"monitor-key\"}\n" + 
-					 "{\"id\":\"m2\",\"metric_attributes\":{\"host\":\"tpsrv100\"},\"fqcn-alias\":\"monitor-key\"}\n", 
+		assertEquals("{\"id\":\"m1\",\"metric_attributes\":{\"host\":\"tpsrv100\"},\"fqcn-alias\":\"monitor-key\"}\n", 
 					 new String(client.getData().forPath("/exdemon/operations/env=qa/id=1122/results")));
     }
     

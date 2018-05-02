@@ -32,7 +32,7 @@ import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
 import scala.Tuple2;
 
-public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperation<StatusKey, StatusValue>> {
+public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperation<StatusKey, ?>> {
 
     private static final long serialVersionUID = -6756122444455084725L;
     
