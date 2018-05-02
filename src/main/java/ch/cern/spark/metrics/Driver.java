@@ -64,7 +64,7 @@ public final class Driver {
     private String statuses_removal_socket_host;
     private Integer statuses_removal_socket_port;
     
-    public static String STATUSES_OPERATIONS_RECEIVER_PARAM = "statuses.operations.zookeeper";
+    public static String STATUSES_OPERATIONS_RECEIVER_PARAM = "spark.statuses.operations.zookeeper";
     public Properties statusesOperationsReceiverProperties;
 
     public Driver(Properties properties) throws Exception {
@@ -129,9 +129,12 @@ public final class Driver {
         Optional<JavaDStream<StatusOperation<MonitorStatusKey, Metric>>> analysisStatusesOperationsOpt = Optional.empty();
         Optional<JavaDStream<StatusOperation<TriggerStatusKey, AnalysisResult>>> monitorsStatusesOperationsOpt = Optional.empty();
         if(statusesOperationsOpt.isPresent()) {
-            metricsStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() instanceof DefinedMetricStatuskey).map(op -> new StatusOperation<>((DefinedMetricStatuskey) op.getKey(), op.getOp())));
-            analysisStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() instanceof MonitorStatusKey).map(op -> new StatusOperation<>((MonitorStatusKey) op.getKey(), op.getOp())));
-            monitorsStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() instanceof TriggerStatusKey).map(op -> new StatusOperation<>((TriggerStatusKey) op.getKey(), op.getOp())));
+            metricsStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() instanceof DefinedMetricStatuskey)
+            																		.map(op -> new StatusOperation<>(op.getId(), (DefinedMetricStatuskey) op.getKey(), op.getOp())));
+            analysisStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() instanceof MonitorStatusKey)
+            																		.map(op -> new StatusOperation<>(op.getId(), (MonitorStatusKey) op.getKey(), op.getOp())));
+            monitorsStatusesOperationsOpt = Optional.of(statusesOperationsOpt.get().filter(op -> op.getKey() instanceof TriggerStatusKey)
+            																		.map(op -> new StatusOperation<>(op.getId(), (TriggerStatusKey) op.getKey(), op.getOp())));
         }
         
         JavaDStream<Metric> metrics = getMetricStream(propertiesSourceProps);
@@ -156,7 +159,7 @@ public final class Driver {
         JavaDStream<StatusOperation<StatusKey, StatusValue>> operations = ssc.receiverStream(new ZookeeperStatusesOperationsReceiver(statusesOperationsReceiverProperties));
         
         JavaReceiverInputDStream<StatusKey> keysToRemove = ssc.receiverStream(new StatusesKeySocketReceiver(statuses_removal_socket_host, statuses_removal_socket_port));
-        operations = operations.union(keysToRemove.map(key -> new StatusOperation<>(key, Op.REMOVE)));
+        operations = operations.union(keysToRemove.map(key -> new StatusOperation<>("old_remove", key, Op.REMOVE)));
 
         return Optional.of(operations);
     }

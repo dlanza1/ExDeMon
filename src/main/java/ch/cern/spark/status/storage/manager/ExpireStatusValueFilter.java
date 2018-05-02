@@ -7,8 +7,12 @@ import org.apache.spark.api.java.function.Function;
 
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import scala.Tuple2;
 
+@ToString
+@EqualsAndHashCode(callSuper=false)
 public class ExpireStatusValueFilter implements Function<Tuple2<StatusKey, StatusValue>, Boolean> {
 
     private static final long serialVersionUID = 8935468162326857198L;

@@ -16,6 +16,7 @@ import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.receiver.Receiver;
 
@@ -29,6 +30,7 @@ import ch.cern.spark.status.StatusOperation;
 import ch.cern.spark.status.StatusOperation.Op;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
+import scala.Tuple2;
 
 public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperation<StatusKey, StatusValue>> {
 
@@ -131,7 +133,7 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
 							
 							try {
 								client.create().forPath(rootPath + "status", ("ERROR " + e.getMessage()).getBytes());
-							} catch (Exception e1) {
+							} catch (Throwable e1) {
 								LOG.error(rootPath + " when setting error message", e);
 							}
 						}
@@ -169,11 +171,15 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
     }
 
     protected void addOperation(String rootPath, String opString) throws Exception {
+    	String id = getId(rootPath);
+    	
     	switch(Op.valueOf(opString.toUpperCase())) {
 		case REMOVE:
-			getKeys(rootPath).stream().forEach(key -> store(new StatusOperation<>(key, Op.REMOVE)));
+			getKeys(rootPath).stream().forEach(key -> store(new StatusOperation<>(id, key, Op.REMOVE)));
 			break;
 		case LIST:
+			store(new StatusOperation<>(id, getFilters(rootPath)));
+			break;
 		case UPDATE:
 		default:
 			throw new Exception("Operation " + opString + " not available.");
@@ -182,7 +188,47 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
         client.create().forPath(rootPath + "status", "OK".getBytes());
     }
 
-    private List<StatusKey> getKeys(String rootPath) throws Exception {
+    private List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> getFilters(String rootPath) throws Exception {
+    	List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> filters = new LinkedList<>();
+    	
+    	byte[] filtersAsBytes = client.getData().forPath(rootPath + "filters");
+        if(filtersAsBytes == null)
+            throw new Exception("filters are empty");
+        
+        String filtersAsString = new String(filtersAsBytes);
+        
+        for(String filterAsString : filtersAsString.split("\n")) {
+        	if(filterAsString.trim().length() <= 0)
+        		continue;
+        	
+        	String[] fieldFields = filterAsString.trim().split(" ");
+        	
+        	if(fieldFields.length < 2)
+        		throw new Exception("filter of type " + fieldFields[0] + " does not exist");
+        	
+        	switch (fieldFields[0]) {
+			case "class":
+				filters.add(new ClassNameStatusKeyFilter(fieldFields[1]));
+				break;
+			case "id":
+				filters.add(new IDStatusKeyFilter(fieldFields[1]));
+				break;
+			case "pattern":
+				filters.add(new ToStringPatternStatusKeyFilter(fieldFields[1]));
+				break;
+			default:
+				throw new Exception("filter of type " + fieldFields[0] + " does not exist");
+			}
+        }
+    	
+		return filters;
+	}
+
+	private String getId(String rootPath) {
+		return rootPath.split("/")[1].replace("id=", "");
+	}
+
+	private List<StatusKey> getKeys(String rootPath) throws Exception {
     	LinkedList<StatusKey> keys = new LinkedList<>();
     	
         byte[] jsonKeysAsString = client.getData().forPath(rootPath + "keys");

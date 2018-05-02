@@ -5,8 +5,12 @@ import org.apache.spark.api.java.function.Function;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import scala.Tuple2;
 
+@ToString
+@EqualsAndHashCode(callSuper=false)
 public class ClassNameStatusKeyFilter implements Function<Tuple2<StatusKey, StatusValue>, Boolean> {
 
     private static final long serialVersionUID = -5039261513238813096L;

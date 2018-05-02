@@ -11,6 +11,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
+import org.apache.spark.api.java.function.Function;
 import org.apache.zookeeper.ZooKeeper;
 import org.junit.After;
 import org.junit.Before;
@@ -24,6 +25,7 @@ import ch.cern.spark.status.StatusOperation;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.StatusOperation.Op;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
+import scala.Tuple2;
 
 public class ZookeeperStatusesOperationsReceiverTest {
 
@@ -57,15 +59,15 @@ public class ZookeeperStatusesOperationsReceiverTest {
         
         MonitorStatusKey key = new MonitorStatusKey("m1", new HashMap<>());
         
-        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1234/keys", derializer.fromKey(key));
-        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1234/op", "REMOVE".getBytes());
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/keys", derializer.fromKey(key));
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/op", "REMOVE".getBytes());
         
         Thread.sleep(100);
         
         List<StatusOperation<StatusKey, StatusValue>> ops = receiver.getStoredOps();
         
-        assertEquals(new StatusOperation<>(key, Op.REMOVE), ops.get(0));
-        assertEquals("OK", new String(client.getData().forPath("/exdemon/operations/qa/id=1234/status")));
+        assertEquals("OK", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
+        assertEquals(new StatusOperation<>("1122", key, Op.REMOVE), ops.get(0));
         
         receiver.onStop();
     }
@@ -89,9 +91,60 @@ public class ZookeeperStatusesOperationsReceiverTest {
         
         List<StatusOperation<StatusKey, StatusValue>> ops = receiver.getStoredOps();
         
-        assertEquals(new StatusOperation<>(key1, Op.REMOVE), ops.get(0));
-        assertEquals(new StatusOperation<>(key2, Op.REMOVE), ops.get(1));
         assertEquals("OK", new String(client.getData().forPath("/exdemon/operations/qa/id=1234/status")));
+        assertEquals(new StatusOperation<>("1234", key1, Op.REMOVE), ops.get(0));
+        assertEquals(new StatusOperation<>("1234", key2, Op.REMOVE), ops.get(1));
+        
+        receiver.onStop();
+    }
+    
+    @Test
+    public void listOperationWithSingleFilter() throws Exception {
+        Properties properties = new Properties();
+        properties.setProperty("connection_string", "localhost:2182/exdemon/operations/qa");
+        ZookeeperStatusesOperationsReceiver_ receiver = new ZookeeperStatusesOperationsReceiver_(properties);
+        receiver.onStart();
+        
+        String filtersString = "class abcd";
+        
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/filters", filtersString.getBytes());
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/op", "LIST".getBytes());
+        
+        Thread.sleep(100);
+        
+        List<StatusOperation<StatusKey, StatusValue>> ops = receiver.getStoredOps();
+        
+        List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> filters = new LinkedList<>();
+        filters.add(new ClassNameStatusKeyFilter("abcd"));
+        
+        assertEquals("OK", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
+		assertEquals(new StatusOperation<>("1122", filters), ops.get(0));
+        
+        receiver.onStop();
+    }
+    
+    @Test
+    public void listOperationWithMultipleFilters() throws Exception {
+        Properties properties = new Properties();
+        properties.setProperty("connection_string", "localhost:2182/exdemon/operations/qa");
+        ZookeeperStatusesOperationsReceiver_ receiver = new ZookeeperStatusesOperationsReceiver_(properties);
+        receiver.onStart();
+        
+        String filtersString = "class abcd\npattern .*tpsrv1234.*\n";
+        
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/filters", filtersString.getBytes());
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/op", "LIST".getBytes());
+        
+        Thread.sleep(100);
+        
+        List<StatusOperation<StatusKey, StatusValue>> ops = receiver.getStoredOps();
+        
+        List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> filters = new LinkedList<>();
+        filters.add(new ClassNameStatusKeyFilter("abcd"));
+        filters.add(new ToStringPatternStatusKeyFilter(".*tpsrv1234.*"));
+
+        assertEquals("OK", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
+		assertEquals(new StatusOperation<>("1122", filters), ops.get(0));
         
         receiver.onStop();
     }

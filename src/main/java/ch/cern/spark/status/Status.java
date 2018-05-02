@@ -16,8 +16,10 @@ import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentManager;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
+import ch.cern.spark.metrics.Driver;
 import ch.cern.spark.status.StatusOperation.Op;
 import ch.cern.spark.status.storage.StatusesStorage;
+import ch.cern.spark.status.storage.manager.ZookeeperStatusesOpertaionsF;
 import scala.Option;
 import scala.Tuple2;
 
@@ -67,7 +69,19 @@ public class Status {
         
         //Save statuses
         statusStream.stateSnapshots().foreachRDD((rdd, time) -> storage.save(rdd, time));
-        		
+        
+        //Statuses operations (list)
+        JavaPairDStream<String, StatusOperation<K, V>> filterOperations = operations
+        																		.filter(op -> op.getOp().equals(Op.LIST))
+        																		.mapToPair(op -> new Tuple2<>("filter", op));
+        Properties sparkConf = Properties.from(context.getConf().getAll());
+		Properties zooStatusesOpFProps = sparkConf.getSubset(Driver.STATUSES_OPERATIONS_RECEIVER_PARAM);
+		statusStream.stateSnapshots().mapToPair(s -> new Tuple2<>("filter", s))
+															.leftOuterJoin(filterOperations)
+															.filter(t -> t._2._2.isPresent())
+															.mapToPair(t -> new Tuple2<>(t._2._1, t._2._2.get()))
+															.foreachRDD(rdd -> rdd.foreachPartitionAsync(new ZookeeperStatusesOpertaionsF<K, V, S>(zooStatusesOpFProps)));
+        
 		return new StateDStream<>(statusStream);
 	}
 
