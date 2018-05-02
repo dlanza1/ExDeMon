@@ -42,12 +42,12 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
     private long initialization_timeout_ms;
     private int timeout_ms;
     
-    private CuratorFramework client = null;
+    private static CuratorFramework client = null;
 
-    private TreeCache cache;
+    private static TreeCache cache;
 
-    private JsonParser parser;
-	private JSONStatusSerializer derializer;
+    private static JsonParser parser = new JsonParser();
+	private static JSONStatusSerializer derializer = new JSONStatusSerializer();
 
     public ZookeeperStatusesOperationsReceiver(Properties properties) {
         super(StorageLevel.MEMORY_ONLY());
@@ -55,9 +55,6 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
         zkConnString = properties.getProperty("connection_string");
         initialization_timeout_ms = properties.getLong("initialization_timeout_ms", 5000);
         timeout_ms = (int) properties.getLong("timeout_ms", 20000);
-        
-        parser = new JsonParser();
-        derializer = new JSONStatusSerializer();
     }
     
     @Override

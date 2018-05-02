@@ -23,9 +23,9 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 	
 	private transient final static Logger LOG = Logger.getLogger(ZookeeperStatusesOpertaionsF.class.getName());
 	
-	private CuratorFramework client = null;
+	private static CuratorFramework client = null;
 	
-	private JSONStatusSerializer derializer;
+	private static JSONStatusSerializer derializer = new JSONStatusSerializer();
 	
 	public ZookeeperStatusesOpertaionsF(Properties props) {
         String zkConnString = props.getProperty("connection_string");
