@@ -130,7 +130,7 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
 							LOG.error(rootPath, e);
 							
 							try {
-								client.create().forPath(rootPath + "status", ("ERROR " + e.getClass().getSimpleName() + ": " + e.getMessage()).getBytes());
+								setNodeData(rootPath + "status", ("ERROR " + e.getClass().getSimpleName() + ": " + e.getMessage()).getBytes());
 							} catch (Throwable e1) {
 								LOG.error(rootPath + " when setting error message", e1);
 							}
@@ -181,10 +181,17 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
 			throw new Exception("Operation " + opString + " not available.");
     	}
         
-        client.create().forPath(rootPath + "status", "OK".getBytes());
+    	setNodeData(rootPath + "status", "OK".getBytes());
     }
 
-    private List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> getFilters(String rootPath) throws Exception {
+    private void setNodeData(String path, byte[] bytes) throws Exception {
+		if(client.checkExists().forPath(path) != null)
+			client.setData().forPath(path, bytes);
+		else
+			client.create().forPath(path, bytes);
+	}
+
+	private List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> getFilters(String rootPath) throws Exception {
     	List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> filters = new LinkedList<>();
     	
     	byte[] filtersAsBytes = client.getData().forPath(rootPath + "filters");
