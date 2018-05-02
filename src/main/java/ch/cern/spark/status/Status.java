@@ -86,8 +86,7 @@ public class Status {
 															.foreachRDD(rdd -> {
 																long count = rdd.count();
 																
-																if(count > 0)
-																	LOG.info("Processing list operations (states " + count + ")");
+																LOG.info("Processing list operations (states " + count + ")");
 																
 																rdd.foreachPartitionAsync(new ZookeeperStatusesOpertaionsF<K, V, S>(zooStatusesOpFProps));
 															});
