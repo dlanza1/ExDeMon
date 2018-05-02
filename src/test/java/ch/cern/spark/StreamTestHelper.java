@@ -3,6 +3,8 @@ package ch.cern.spark;
 import static org.junit.Assert.assertEquals;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -32,8 +34,12 @@ public class StreamTestHelper<IN, OUT> implements Serializable {
 
 	private Duration batchDuration;
 
-    @Before
-    public void setUp() throws Exception {        
+	@Before
+    public void setUp() throws Exception {    
+		setUp(new HashMap<>());
+	}
+    
+    public void setUp(Map<String, String> extraSparkConfs) throws Exception {        
         Path checkpointPath = new Path("/tmp/spark-checkpoint-tests/");
         FileSystem fs = FileSystem.get(new Configuration());
         fs.delete(checkpointPath, true);
@@ -46,6 +52,8 @@ public class StreamTestHelper<IN, OUT> implements Serializable {
         sparkConf.set("spark.streaming.clock", "org.apache.spark.util.ManualClock");
         sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".type", "single-file");
         sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".path", checkpointPath.toString() + "/statuses");
+        for (Map.Entry<String, String> e : extraSparkConfs.entrySet())
+			sparkConf.set(e.getKey(), e.getValue());
         
         if(batchDuration == null)
     			batchDuration = Durations.seconds(1);
@@ -77,11 +85,15 @@ public class StreamTestHelper<IN, OUT> implements Serializable {
     }
     
     public JavaDStream<IN> createStream(Class<?> class1){
+        return createStream(class1, inputBatches);
+    }
+    
+    public<T> JavaDStream<T> createStream(Class<?> class1, Batches<T> inputBatches){
         long batchDuration = getBatchDuration();
         
-        ClassTag<IN> classTag = scala.reflect.ClassTag$.MODULE$.apply(class1);
+        ClassTag<T> classTag = scala.reflect.ClassTag$.MODULE$.apply(class1);
         
-        return new JTestInputStream<IN>(sc.ssc(), classTag, inputBatches, batchDuration);
+        return new JTestInputStream<T>(sc.ssc(), classTag, inputBatches, batchDuration);
     }
     
     private int getNumBatches() {

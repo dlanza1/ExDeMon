@@ -24,7 +24,9 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
 	@Before
 	public void reset() throws Exception {
 		super.setUp();
-		Properties.initCache(null);
+		Properties propertiesSourceProps = new Properties();
+		propertiesSourceProps.setProperty("type", "static");
+        Properties.initCache(propertiesSourceProps);
 		DefinedMetrics.getCache().reset();
 	}
 

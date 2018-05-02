@@ -74,14 +74,14 @@ public class Status {
         JavaPairDStream<String, StatusOperation<K, V>> filterOperations = operations
         																		.filter(op -> op.getOp().equals(Op.LIST))
         																		.mapToPair(op -> new Tuple2<>("filter", op));
-        Properties sparkConf = Properties.from(context.getConf().getAll());
-		Properties zooStatusesOpFProps = sparkConf.getSubset(Driver.STATUSES_OPERATIONS_RECEIVER_PARAM);
+        
+        Properties zooStatusesOpFProps = Properties.from(context.getConf().getAll()).getSubset(Driver.STATUSES_OPERATIONS_RECEIVER_PARAM);
 		statusStream.stateSnapshots().mapToPair(s -> new Tuple2<>("filter", s))
 															.leftOuterJoin(filterOperations)
 															.filter(t -> t._2._2.isPresent())
 															.mapToPair(t -> new Tuple2<>(t._2._1, t._2._2.get()))
 															.foreachRDD(rdd -> rdd.foreachPartitionAsync(new ZookeeperStatusesOpertaionsF<K, V, S>(zooStatusesOpFProps)));
-        
+		
 		return new StateDStream<>(statusStream);
 	}
 
