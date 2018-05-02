@@ -57,7 +57,8 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 	}
 
 	private void writeResult(String id, StatusKey key) throws Exception {
-		initClient();
+		if(client == null)
+			initClient();
 		
 		String path = "/id="+id+"/results";
 		
@@ -78,9 +79,6 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 	}
 
 	private void initClient() {
-		if(client != null)
-			return;
-		
         client = CuratorFrameworkFactory.builder()
 		                .connectString(zkConnString)
 		                .retryPolicy(new ExponentialBackoffRetry(1000, 3))
