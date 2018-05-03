@@ -65,6 +65,10 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 	}
 
 	private void finishOperation(String id) throws Exception {
+		String currentStatus = new String(client.getData().forPath("/id=" + id + "/ops"));
+		if(currentStatus.startsWith("ERROR"))
+			return;
+		
 		client.setData().forPath("/id=" + id + "/status", "DONE".getBytes());
 		
 		String[] ops = new String(client.getData().forPath("/id=" + id + "/ops")).split(" ");
