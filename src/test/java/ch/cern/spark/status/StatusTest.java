@@ -56,8 +56,6 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
                 .build();
         client.start();
         
-        client.create().creatingParentsIfNeeded().forPath("/id=1122/status", "OK".getBytes());
-        
         zk = client.getZookeeperClient().getZooKeeper();
         
         Map<String, String> extraSparkConf = new HashMap<>();
@@ -73,6 +71,9 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
         addInput(0,    Metric(1, 20f, "HOSTNAME=host4321"));
         addExpected(0, Metric(1, 20f, "HOSTNAME=host4321", "$defined_metric=dm1"));
         addExpected(0, Metric(1, 10f, "HOSTNAME=host1234", "$defined_metric=dm1"));
+        
+        client.create().creatingParentsIfNeeded().forPath("/id=1122/ops", "LIST".getBytes());
+        client.create().creatingParentsIfNeeded().forPath("/id=1122/status", "RECEIVED".getBytes());
         
         Batches<StatusOperation<DefinedMetricStatuskey, Metric>> opBatches = new Batches<>();
         List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> filters = new LinkedList<>();
