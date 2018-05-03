@@ -94,7 +94,7 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
         assertExpected(results);
         
         assertEquals("{\"id\":\"dm1\",\"metric_attributes\":{\"HOSTNAME\":\"host4321\"},\"fqcn-alias\":\"defined-metric-key\"}\n", 
-        			 new String(client.getData().forPath("/id=1122/results")));
+        			 new String(client.getData().forPath("/id=1122/keys")));
         assertEquals("DONE", new String(client.getData().forPath("/id=1122/status")));
 	}
     
