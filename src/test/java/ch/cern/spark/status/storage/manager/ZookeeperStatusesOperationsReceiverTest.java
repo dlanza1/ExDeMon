@@ -60,7 +60,7 @@ public class ZookeeperStatusesOperationsReceiverTest {
         MonitorStatusKey key = new MonitorStatusKey("m1", new HashMap<>());
         
         client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/keys", derializer.fromKey(key));
-        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/op", "REMOVE".getBytes());
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/ops", "REMOVE".getBytes());
         
         Thread.sleep(100);
         
@@ -84,8 +84,8 @@ public class ZookeeperStatusesOperationsReceiverTest {
         TriggerStatusKey key2 = new TriggerStatusKey("m2", "tg1", new HashMap<>());
         String str2 = new String(derializer.fromKey(key2));
         
-        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1234/keys", ("["+str1+","+str2+"]").getBytes());
-        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1234/op", "REMOVE".getBytes());
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1234/keys", (str1+"\n"+str2+"\n").getBytes());
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1234/ops", "REMOVE".getBytes());
         
         Thread.sleep(100);
         
@@ -108,7 +108,7 @@ public class ZookeeperStatusesOperationsReceiverTest {
         String filtersString = "class abcd";
         
         client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/filters", filtersString.getBytes());
-        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/op", "LIST".getBytes());
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/ops", "LIST".getBytes());
         
         Thread.sleep(100);
         
@@ -133,7 +133,7 @@ public class ZookeeperStatusesOperationsReceiverTest {
         String filtersString = "class abcd\npattern .*tpsrv1234.*\n";
         
         client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/filters", filtersString.getBytes());
-        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/op", "LIST".getBytes());
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/ops", "LIST".getBytes());
         
         Thread.sleep(100);
         

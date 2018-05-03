@@ -56,7 +56,7 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 					foreachFuture.get();
 
 					for (String id : distinctFuture.get())
-						client.setData().forPath("/id=" + id + "/status", "DONE".getBytes());
+						finishOperation(id);
 				} catch (Exception e) {
 					LOG.error(e);
 				}
@@ -64,6 +64,20 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 		}.start();
 	}
 
+	private void finishOperation(String id) throws Exception {
+		client.setData().forPath("/id=" + id + "/status", "DONE".getBytes());
+		
+		String[] ops = new String(client.getData().forPath("/id=" + id + "/ops")).split(" ");
+		
+		if(ops.length > 1) {
+			String leftOps = null;
+			for (int i = 1; i < ops.length; i++)
+				leftOps = leftOps == null ? ops[i] : leftOps + " " + ops[i];
+			
+			client.setData().forPath("/id=" + id + "/ops", leftOps.getBytes());
+		}
+	}
+	
 	public void call(Iterator<Tuple2<Tuple2<K, S>, StatusOperation<K, V>>> tuples) throws Exception {
 		while (tuples.hasNext()) {
 			Tuple2<Tuple2<K, S>, StatusOperation<K, V>> tuple = tuples.next();
@@ -83,7 +97,7 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 	private void writeResult(String id, StatusKey key) throws Exception {
 		getClient();
 		
-		String path = "/id="+id+"/results";
+		String path = "/id="+id+"/keys";
 		
 		String keyAsString = new String(derializer.fromKey(key)).concat("\n");
 		

@@ -20,10 +20,6 @@ import org.apache.spark.api.java.function.Function;
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.receiver.Receiver;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusOperation;
@@ -48,7 +44,6 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
 
     private static TreeCache cache;
 
-    private static JsonParser parser = new JsonParser();
 	private static JSONStatusSerializer derializer = new JSONStatusSerializer();
 
     public ZookeeperStatusesOperationsReceiver(Properties properties) {
@@ -123,11 +118,13 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
                     String path = event.getData().getPath();
                     byte[] data = event.getData().getData();
                     
-                    if(path.endsWith("/op")) {
-                    	String rootPath = path.substring(0, path.length() - "op".length());
+                    if(path.endsWith("/ops")) {
+                    	String rootPath = path.substring(0, path.length() - "ops".length());
                         
                         try {
-							addOperation(rootPath, new String(data));
+                        	String nextOp = new String(data).split(" ")[0];
+                        	
+							addOperation(rootPath, nextOp);
 							
 							LOG.info("New operation at " + path + " => " + new String(data));
 						} catch (Exception e) {
@@ -242,24 +239,15 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
 	private List<StatusKey> getKeys(String rootPath) throws Exception {
     	LinkedList<StatusKey> keys = new LinkedList<>();
     	
-        byte[] jsonKeysAsString = client.getData().forPath(rootPath + "keys");
-        if(jsonKeysAsString == null)
+        byte[] jsonKeysAsBytes = client.getData().forPath(rootPath + "keys");
+        if(jsonKeysAsBytes == null)
             throw new Exception("keys are empty");
         
-        JsonElement element = parser.parse(new String(jsonKeysAsString));
+        String[] jsonKeysAsString = new String(jsonKeysAsBytes).split("\n");
         
-        if(element.isJsonObject()) {
-        	keys.add(derializer.toKey(jsonKeysAsString));
-        }else if(element.isJsonArray()) {
-        	JsonArray jsonArray = element.getAsJsonArray();
-        	
-        	for (JsonElement jsonElement : jsonArray) {
-        		if(!jsonElement.isJsonObject())
-        			continue;
-        		
-        		keys.add(derializer.toKey(jsonElement.toString().getBytes()));
-			}
-        }
+        for (String jsonKeyAsString : jsonKeysAsString) {
+        	keys.add(derializer.toKey(jsonKeyAsString.getBytes()));
+		}
         
 		return keys;
 	}

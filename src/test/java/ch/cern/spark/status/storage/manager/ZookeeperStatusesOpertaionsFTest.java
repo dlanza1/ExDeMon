@@ -68,7 +68,7 @@ public class ZookeeperStatusesOpertaionsFTest {
 		f.call(tuples.iterator());
 		
 		assertEquals("{\"id\":\"m1\",\"metric_attributes\":{\"host\":\"tpsrv100\"},\"fqcn-alias\":\"monitor-key\"}\n", 
-					 new String(client.getData().forPath("/exdemon/operations/env=qa/id=1122/results")));
+					 new String(client.getData().forPath("/exdemon/operations/env=qa/id=1122/keys")));
     }
     
     @After
