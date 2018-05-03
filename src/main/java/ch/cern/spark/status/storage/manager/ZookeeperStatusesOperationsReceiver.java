@@ -38,6 +38,8 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
     
     private transient final static Logger LOG = Logger.getLogger(ZookeeperStatusesOperationsReceiver.class.getName());
     
+    public static String PARAM = "spark.statuses.operations.zookeeper";
+    
     private String zkConnString;
     private long initialization_timeout_ms;
     private int timeout_ms;
@@ -172,16 +174,16 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
     	switch(Op.valueOf(opString.toUpperCase())) {
 		case REMOVE:
 			getKeys(rootPath).stream().forEach(key -> storeOperation(new StatusOperation<>(id, key, Op.REMOVE)));
+			setNodeData(rootPath + "status", "DONE".getBytes());
 			break;
 		case LIST:
 			storeOperation(new StatusOperation<>(id, getFilters(rootPath)));
+			setNodeData(rootPath + "status", "RECEIVED".getBytes());
 			break;
 		case UPDATE:
 		default:
 			throw new Exception("Operation " + opString + " not available.");
     	}
-        
-    	setNodeData(rootPath + "status", "OK".getBytes());
     }
 
     private void storeOperation(StatusOperation<StatusKey, StatusValue> op) {

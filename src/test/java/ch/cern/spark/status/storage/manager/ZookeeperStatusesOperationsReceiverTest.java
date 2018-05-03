@@ -28,7 +28,7 @@ import ch.cern.spark.status.storage.JSONStatusSerializer;
 import scala.Tuple2;
 
 public class ZookeeperStatusesOperationsReceiverTest {
-
+	
     private TestingServer zkTestServer;
     private ZooKeeper zk;
     private CuratorFramework client;
@@ -66,7 +66,7 @@ public class ZookeeperStatusesOperationsReceiverTest {
         
         List<StatusOperation<StatusKey, ?>> ops = receiver.getStoredOps();
         
-        assertEquals("OK", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
+        assertEquals("DONE", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
         assertEquals(new StatusOperation<>("1122", key, Op.REMOVE), ops.get(0));
         
         receiver.onStop();
@@ -91,7 +91,7 @@ public class ZookeeperStatusesOperationsReceiverTest {
         
         List<StatusOperation<StatusKey, ?>> ops = receiver.getStoredOps();
         
-        assertEquals("OK", new String(client.getData().forPath("/exdemon/operations/qa/id=1234/status")));
+        assertEquals("DONE", new String(client.getData().forPath("/exdemon/operations/qa/id=1234/status")));
         assertEquals(new StatusOperation<>("1234", key1, Op.REMOVE), ops.get(0));
         assertEquals(new StatusOperation<>("1234", key2, Op.REMOVE), ops.get(1));
         
@@ -117,7 +117,7 @@ public class ZookeeperStatusesOperationsReceiverTest {
         List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> filters = new LinkedList<>();
         filters.add(new ClassNameStatusKeyFilter("abcd"));
         
-        assertEquals("OK", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
+        assertEquals("RECEIVED", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
 		assertEquals(new StatusOperation<>("1122", filters), ops.get(0));
         
         receiver.onStop();
@@ -143,7 +143,7 @@ public class ZookeeperStatusesOperationsReceiverTest {
         filters.add(new ClassNameStatusKeyFilter("abcd"));
         filters.add(new ToStringPatternStatusKeyFilter(".*tpsrv1234.*"));
 
-        assertEquals("OK", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
+        assertEquals("RECEIVED", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
 		assertEquals(new StatusOperation<>("1122", filters), ops.get(0));
         
         receiver.onStop();

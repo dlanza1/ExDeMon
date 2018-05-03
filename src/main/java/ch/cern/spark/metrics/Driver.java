@@ -63,7 +63,6 @@ public final class Driver {
     private String statuses_removal_socket_host;
     private Integer statuses_removal_socket_port;
     
-    public static String STATUSES_OPERATIONS_RECEIVER_PARAM = "spark.statuses.operations.zookeeper";
     public Properties statusesOperationsReceiverProperties;
 
     public Driver(Properties properties) throws Exception {
@@ -77,7 +76,7 @@ public final class Driver {
             statuses_removal_socket_port = Integer.parseInt(host_port[1]);
         }
 
-        statusesOperationsReceiverProperties = properties.getSubset(STATUSES_OPERATIONS_RECEIVER_PARAM);
+        statusesOperationsReceiverProperties = properties.getSubset(ZookeeperStatusesOperationsReceiver.PARAM);
         
         ssc = newStreamingContext(properties);
 

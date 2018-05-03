@@ -1,11 +1,9 @@
 package ch.cern.spark.status;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaFutureAction;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Duration;
@@ -18,7 +16,6 @@ import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentManager;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.Driver;
 import ch.cern.spark.status.StatusOperation.Op;
 import ch.cern.spark.status.storage.StatusesStorage;
 import ch.cern.spark.status.storage.manager.ZookeeperStatusesOpertaionsF;
@@ -73,32 +70,7 @@ public class Status {
         statusStream.stateSnapshots().foreachRDD((rdd, time) -> storage.save(rdd, time));
         
         //Statuses operations (list)
-        JavaPairDStream<String, StatusOperation<K, V>> listOperations = operations
-        																		.filter(op -> op.getOp().equals(Op.LIST))
-        																		.mapToPair(op -> new Tuple2<>("filter", op));
-        
-        Properties zooStatusesOpFProps = Properties.from(context.getConf().getAll()).getSubset(Driver.STATUSES_OPERATIONS_RECEIVER_PARAM);
-		statusStream.stateSnapshots().mapToPair(s -> new Tuple2<>("filter", s))
-															.leftOuterJoin(listOperations)
-															.filter(t -> t._2._2.isPresent())
-															.mapToPair(t -> new Tuple2<>(t._2._1, t._2._2.get()))
-															.foreachRDD(rdd -> {
-																ZookeeperStatusesOpertaionsF<K, V, S> statusOpF = new ZookeeperStatusesOpertaionsF<K, V, S>(zooStatusesOpFProps);
-																
-																JavaFutureAction<Void> foreachFuture = rdd.foreachPartitionAsync(statusOpF);
-																JavaFutureAction<List<String>> distinctFuture = rdd.map(o -> o._2.getId()).distinct().collectAsync();
-																
-																new Thread() {
-																	public void run() {
-																		try {
-																			foreachFuture.get();
-																			
-																			for (String id : distinctFuture.get())
-																				statusOpF.getClient().setData().forPath("/id=" + id + "/status", "FINISHED".getBytes());
-																		} catch (Exception e) {}
-																	}
-																}.start();
-															});
+        ZookeeperStatusesOpertaionsF.apply(context, statusStream.stateSnapshots(), operations);
 		
 		return new StateDStream<>(statusStream);
 	}

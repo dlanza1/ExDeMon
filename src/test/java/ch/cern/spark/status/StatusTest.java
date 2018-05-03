@@ -25,11 +25,11 @@ import ch.cern.Cache;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Batches;
 import ch.cern.spark.StreamTestHelper;
-import ch.cern.spark.metrics.Driver;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
 import ch.cern.spark.metrics.defined.DefinedMetrics;
 import ch.cern.spark.status.storage.manager.ToStringPatternStatusKeyFilter;
+import ch.cern.spark.status.storage.manager.ZookeeperStatusesOperationsReceiver;
 import scala.Tuple2;
 
 public class StatusTest extends StreamTestHelper<Metric, Metric> {
@@ -61,7 +61,7 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
         zk = client.getZookeeperClient().getZooKeeper();
         
         Map<String, String> extraSparkConf = new HashMap<>();
-    	extraSparkConf.put(Driver.STATUSES_OPERATIONS_RECEIVER_PARAM + ".connection_string", zkTestServer.getConnectString());
+    	extraSparkConf.put(ZookeeperStatusesOperationsReceiver.PARAM + ".connection_string", zkTestServer.getConnectString());
 		super.setUp(extraSparkConf);
     }
     

@@ -1,12 +1,18 @@
 package ch.cern.spark.status.storage.manager;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
+import org.apache.spark.api.java.JavaFutureAction;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.VoidFunction;
+import org.apache.spark.streaming.api.java.JavaDStream;
+import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.bouncycastle.util.Arrays;
 
 import ch.cern.properties.Properties;
@@ -17,7 +23,7 @@ import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
 import scala.Tuple2;
 
-public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends StatusValue> implements VoidFunction<Iterator<Tuple2<Tuple2<K, S>, StatusOperation<K, V>>>> {
+public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends StatusValue> implements VoidFunction<JavaPairRDD<Tuple2<K,S>,StatusOperation<K,V>>> {
 
 	private static final long serialVersionUID = 4641310780508591435L;
 	
@@ -38,8 +44,26 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 		
 		derializer = new JSONStatusSerializer();
 	}
-
+	
 	@Override
+	public void call(JavaPairRDD<Tuple2<K, S>, StatusOperation<K, V>> rdd) throws Exception {
+		JavaFutureAction<Void> foreachFuture = rdd.foreachPartitionAsync(rddPart -> call(rddPart));
+		JavaFutureAction<List<String>> distinctFuture = rdd.map(o -> o._2.getId()).distinct().collectAsync();
+		
+		new Thread() {
+			public void run() {
+				try {
+					foreachFuture.get();
+
+					for (String id : distinctFuture.get())
+						client.setData().forPath("/id=" + id + "/status", "DONE".getBytes());
+				} catch (Exception e) {
+					LOG.error(e);
+				}
+			}
+		}.start();
+	}
+
 	public void call(Iterator<Tuple2<Tuple2<K, S>, StatusOperation<K, V>>> tuples) throws Exception {
 		while (tuples.hasNext()) {
 			Tuple2<Tuple2<K, S>, StatusOperation<K, V>> tuple = tuples.next();
@@ -93,6 +117,21 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 		client.start();
 		
 		LOG.info("Client started. Connection string: " + zkConnString);
+	}
+
+	public static <K extends StatusKey, V, S extends StatusValue> void apply(JavaSparkContext context, JavaPairDStream<K, S> statuses, JavaDStream<StatusOperation<K, V>> operations) {
+        JavaPairDStream<String, StatusOperation<K, V>> listOperations = operations
+				.filter(op -> op.getOp().equals(Op.LIST))
+				.mapToPair(op -> new Tuple2<>("filter", op));
+
+		Properties zooStatusesOpFProps = Properties.from(context.getConf().getAll()).getSubset(ZookeeperStatusesOperationsReceiver.PARAM);
+		if(zooStatusesOpFProps.size() > 0)
+			statuses.mapToPair(s -> new Tuple2<>("filter", s))
+				.leftOuterJoin(listOperations)
+				.filter(t -> t._2._2.isPresent())
+				.mapToPair(t -> new Tuple2<>(t._2._1, t._2._2.get()))
+				.foreachRDD(new ZookeeperStatusesOpertaionsF<K, V, S>(zooStatusesOpFProps));
+		
 	}
 
 }
