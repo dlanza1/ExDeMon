@@ -45,10 +45,10 @@ public class AggregationValues extends StatusValue {
         add(hashCode, new FloatValue(f), now);   
     }
     
-	public void add(int hash, Value value, Instant timestamp, Metric metric) {
+	public void add(int hash, Value value, Instant timestamp, Metric metric, Metric originalMetric) {
 	    if(lastAggregatedMetrics == null)
 	        lastAggregatedMetrics = new LinkedHashMap<>();
-		lastAggregatedMetrics.put(hash, metric);
+		lastAggregatedMetrics.put(hash, originalMetric);
 		
 		add(hash, value, timestamp);
 	}

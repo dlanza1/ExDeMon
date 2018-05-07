@@ -180,7 +180,7 @@ public class DefinedMetric implements Serializable{
 			metricForStore.getAttributes().entrySet().removeIf(entry -> groupByKeys.contains(entry.getKey()));
 		
 		for (MetricVariable variableToUpdate : variablesToUpdate.values())
-			variableToUpdate.updateVariableStatuses(stores, metricForStore);
+			variableToUpdate.updateVariableStatuses(stores, metricForStore, metric.clone());
 	}
 
 	public Optional<Metric> generateByUpdate(VariableStatuses stores, Metric metric, Map<String, String> groupByMetricIDs) {
