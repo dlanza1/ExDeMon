@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -118,11 +119,7 @@ public class MetricVariable extends Variable {
             if(aggValue.getAsAggregated().isPresent())
                 aggValue = aggValue.getAsAggregated().get();
             
-            if(status instanceof AggregationValues) {
-            	AggregationValues aggValues = (AggregationValues) status;
-            	
-            	aggValue.setLastSourceMetrics(new LinkedList<>(aggValues.getLastAggregatedMetrics().values()));
-            }
+            aggValue.setLastSourceMetrics(getLastAggregatedMetrics(status));
         } catch (ComputationException e) {
             aggValue = new ExceptionValue(e.getMessage());
         }
@@ -141,7 +138,21 @@ public class MetricVariable extends Variable {
 	    return aggValue;
 	}
 
-    private Collection<DatedValue> getDatedValues(StatusValue status, Instant time, Class<? extends Value> inputType) throws ComputationException {
+    private List<Metric> getLastAggregatedMetrics(StatusValue status) {
+    	if(status instanceof AggregationValues) {
+        	AggregationValues aggValues = (AggregationValues) status;
+        	
+        	return new LinkedList<>(aggValues.getLastAggregatedMetrics().values());
+        }else if (status instanceof ValueHistory.Status) {
+        	ValueHistory history = ((ValueHistory.Status) status).history;
+        	
+        	return new LinkedList<>(history.getLastAggregatedMetrics());
+        }
+    	
+		return null;
+	}
+
+	private Collection<DatedValue> getDatedValues(StatusValue status, Instant time, Class<? extends Value> inputType) throws ComputationException {
         Collection<DatedValue> values = new LinkedList<>();
         
 	    if(status == null)
@@ -198,7 +209,7 @@ public class MetricVariable extends Variable {
 	        history.setGranularity(granularity);
 	        history.setAggregation(aggregation);
 	        history.setMax_size(max_aggregation_size);
-	        history.add(metric.getTimestamp(), metric.getValue());
+	        history.add(metric);
 	    }else{
 	        if(!(status instanceof AggregationValues))
                 status = initStatus();

@@ -47,6 +47,10 @@ public class ValueHistory implements Serializable {
     
     @Getter @Setter
     private Aggregation aggregation;
+    
+    @Getter
+    private LinkedList<Metric> lastAggregatedMetrics;
+    private int max_aggregated_metrics_size = 10;
 
     public ValueHistory(){
         this(MetricVariable.MAX_SIZE_DEFAULT, null, null);
@@ -54,6 +58,7 @@ public class ValueHistory implements Serializable {
     
     public ValueHistory(long max_size, ChronoUnit granularity, Aggregation aggregation){
         this.values = new LinkedList<>();
+        this.lastAggregatedMetrics = new LinkedList<>();
         
         this.max_size = max_size;
         
@@ -66,6 +71,14 @@ public class ValueHistory implements Serializable {
         add(time, new FloatValue(value));
     }
     
+	public void add(Metric metric) {
+		add(metric.getTimestamp(), metric.getValue());
+		
+		if(lastAggregatedMetrics == null)
+	        lastAggregatedMetrics = new LinkedList<>();
+		lastAggregatedMetrics.add(metric);
+	}
+    
     public void add(Instant time, Value value) {
         if(values.size() >= (max_size * 0.9))
             summarizeValues(time);
@@ -73,6 +86,9 @@ public class ValueHistory implements Serializable {
         // Removing the oldest entry if max size
         if (values.size() >= max_size + 1)
             values.remove(values.iterator().next());
+        
+        if (lastAggregatedMetrics.size() >= max_aggregated_metrics_size + 1)
+        	lastAggregatedMetrics.removeFirst();
         
         values.add(new DatedValue(time, value));
     }
@@ -92,7 +108,8 @@ public class ValueHistory implements Serializable {
     }
 
     public void purge(Instant oldest_time) {
-    		values.removeIf(value -> value.getTime().isBefore(oldest_time));
+    	values.removeIf(value -> value.getTime().isBefore(oldest_time));
+    	lastAggregatedMetrics.removeIf(m -> m.getTimestamp().isBefore(oldest_time));
     }
 
     public int size() {

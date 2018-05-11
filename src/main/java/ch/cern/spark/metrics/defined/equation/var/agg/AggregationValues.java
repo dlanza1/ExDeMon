@@ -31,7 +31,6 @@ public class AggregationValues extends StatusValue {
 
     @Getter
     private Map<Integer, Metric> lastAggregatedMetrics;
-    
     private int max_aggregated_metrics_size = 10;
     
     public AggregationValues(int max_aggregation_size) {
