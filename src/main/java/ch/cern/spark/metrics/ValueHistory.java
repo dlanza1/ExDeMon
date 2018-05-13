@@ -61,6 +61,7 @@ public class ValueHistory implements Serializable {
         this.lastAggregatedMetrics = new LinkedList<>();
         
         this.max_size = max_size;
+        this.max_aggregated_metrics_size = (int) Math.min(max_size, 10);
         this.granularity = granularity;
         this.aggregation = aggregation;
     }
