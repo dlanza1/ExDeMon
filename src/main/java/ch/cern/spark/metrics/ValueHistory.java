@@ -49,7 +49,7 @@ public class ValueHistory implements Serializable {
     private Aggregation aggregation;
     
     @Getter
-    private LinkedList<Metric> lastAggregatedMetrics;
+//    private LinkedList<Metric> lastAggregatedMetrics;
     private int max_aggregated_metrics_size = 10;
 
     public ValueHistory(){
@@ -58,7 +58,7 @@ public class ValueHistory implements Serializable {
     
     public ValueHistory(long max_size, ChronoUnit granularity, Aggregation aggregation){
         this.values = new LinkedList<>();
-        this.lastAggregatedMetrics = new LinkedList<>();
+//        this.lastAggregatedMetrics = new LinkedList<>();
         
         this.max_size = max_size;
         this.max_aggregated_metrics_size = (int) Math.min(max_size, 10);
@@ -71,11 +71,11 @@ public class ValueHistory implements Serializable {
     }
     
 	public void add(Metric metric) {
+//	    if(lastAggregatedMetrics == null)
+//            lastAggregatedMetrics = new LinkedList<>();
+//        lastAggregatedMetrics.add(metric);
+        
 		add(metric.getTimestamp(), metric.getValue());
-		
-		if(lastAggregatedMetrics == null)
-	        lastAggregatedMetrics = new LinkedList<>();
-		lastAggregatedMetrics.add(metric);
 	}
     
     public void add(Instant time, Value value) {
@@ -85,8 +85,8 @@ public class ValueHistory implements Serializable {
         if (isMaxSizeReached())
             values.remove(values.iterator().next());
         
-        if (lastAggregatedMetrics.size() >= max_aggregated_metrics_size + 1)
-        	lastAggregatedMetrics.removeFirst();
+//        if (lastAggregatedMetrics.size() >= max_aggregated_metrics_size + 1)
+//        	lastAggregatedMetrics.removeFirst();
         
         values.add(new DatedValue(time, value));
     }
@@ -111,7 +111,7 @@ public class ValueHistory implements Serializable {
 
     public void purge(Instant oldest_time) {
     	values.removeIf(value -> value.getTime().isBefore(oldest_time));
-    	lastAggregatedMetrics.removeIf(m -> m.getTimestamp().isBefore(oldest_time));
+//    	lastAggregatedMetrics.removeIf(m -> m.getTimestamp().isBefore(oldest_time));
     }
 
     public int size() {

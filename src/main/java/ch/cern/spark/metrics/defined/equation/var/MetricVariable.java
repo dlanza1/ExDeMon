@@ -140,9 +140,9 @@ public class MetricVariable extends Variable {
         	
         	return new LinkedList<>(aggValues.getLastAggregatedMetrics().values());
         }else if (status instanceof ValueHistory.Status) {
-        	ValueHistory history = ((ValueHistory.Status) status).history;
+//        	ValueHistory history = ((ValueHistory.Status) status).history;
         	
-        	return new LinkedList<>(history.getLastAggregatedMetrics());
+//        	return new LinkedList<>(history.getLastAggregatedMetrics());
         }
     	
 		return null;
