@@ -109,7 +109,7 @@ public class MetricVariable extends Variable {
 	@Override
 	public Value compute(VariableStatuses variableStatuses, Instant time) {
 	    StatusValue status = variableStatuses.get(name);
-	    
+	     
         Value aggValue = null;
         try {
             Collection<DatedValue> values = getDatedValues(status, time, aggregation.inputType());
@@ -128,12 +128,8 @@ public class MetricVariable extends Variable {
 	    if(aggValue.getAsException().isPresent())
 	        aggValue = new ExceptionValue("Variable " + name + ": " + aggValue.getAsException().get());
 		
-        if(aggregation instanceof LastValueAggregation) {
-            aggValue.setSource("var(" + name + ")=" + source);
-        }else{
-            String aggName = aggregation.getClass().getAnnotation(RegisterComponent.class).value();
-            aggValue.setSource(aggName.toLowerCase() + "(var(" + name + "))=" + source);
-        }
+        String aggName = aggregation.getClass().getAnnotation(RegisterComponent.class).value();
+        aggValue.setSource(aggName.toLowerCase() + "(var(" + name + "))=" + source);
 	    
 	    return aggValue;
 	}
@@ -158,20 +154,20 @@ public class MetricVariable extends Variable {
 	    if(status == null)
             return values;
 	    
-        if(aggregateSelectAtt == null && status instanceof ValueHistory.Status) {
-            ValueHistory history = ((ValueHistory.Status) status).history;
-            
-            if(expire != null)
-                history.purge(expire.adjust(time));
-            
-            values = history.getDatedValues();
-        }else if((aggregateSelectAtt != null || aggregateSelectALL) && status instanceof AggregationValues) {
+	    if(isThereSelectedAttributes() && status instanceof AggregationValues) {
             AggregationValues aggValues = ((AggregationValues) status);
             
             if(expire != null)
                 aggValues.purge(expire.adjust(time));
             
             values = aggValues.getDatedValues();
+        }else if(!isThereSelectedAttributes() && status instanceof ValueHistory.Status) {
+            ValueHistory history = ((ValueHistory.Status) status).history;
+            
+            if(expire != null)
+                history.purge(expire.adjust(time));
+            
+            values = history.getDatedValues();
         }
 	    
         if(ignore != null) {
@@ -200,17 +196,7 @@ public class MetricVariable extends Variable {
 	private StatusValue updateStatus(Optional<StatusValue> statusOpt, Metric metric, Metric originalMetric) {
 	    StatusValue status = statusOpt.isPresent() ? statusOpt.get() : initStatus();
 	    
-	    if(aggregateSelectAtt == null && !aggregateSelectALL) {
-	        if(!(status instanceof ValueHistory.Status))
-	            status = initStatus();
-	        
-	        ValueHistory history = ((ValueHistory.Status) status).history;
-	        
-	        history.setGranularity(granularity);
-	        history.setAggregation(aggregation);
-	        history.setMax_size(max_aggregation_size);
-	        history.add(metric);
-	    }else{
+	    if(isThereSelectedAttributes()) {
 	        if(!(status instanceof AggregationValues))
                 status = initStatus();
 	        
@@ -233,16 +219,30 @@ public class MetricVariable extends Variable {
 	        
 	        if(aggregateSelectALL || (hash != 1 && hash != 0))
 	            aggValues.add(hash, metric.getValue(), metric.getTimestamp(), metric, originalMetric);
+	    }else{
+	        if(!(status instanceof ValueHistory.Status))
+                status = initStatus();
+            
+            ValueHistory history = ((ValueHistory.Status) status).history;
+            
+            history.setGranularity(granularity);
+            history.setAggregation(aggregation);
+            history.setMax_size(max_aggregation_size);
+            history.add(metric);
 	    }
 
 	    return status;        
     }
 
+    private boolean isThereSelectedAttributes() {
+        return aggregateSelectAtt != null || aggregateSelectALL;
+    }
+
     private StatusValue initStatus() {
-        if(aggregateSelectAtt == null && !aggregateSelectALL)
-            return new ValueHistory.Status(max_aggregation_size, granularity, aggregation);
-        else
+        if(isThereSelectedAttributes())
             return new AggregationValues(max_aggregation_size);
+        else
+            return new ValueHistory.Status(max_aggregation_size, granularity, aggregation);
     }
 
     private Map<String, String> getAggSelectAttributes(Map<String, String> attributes) {
@@ -261,9 +261,6 @@ public class MetricVariable extends Variable {
     
     @Override
     public String toString() {
-        if(aggregation instanceof LastValueAggregation)
-            return "time_filter(" + name + ", from:"+expire+", to:"+ignore+")";
-
         String aggName = aggregation.getClass().getAnnotation(RegisterComponent.class).value();        
         return aggName + "(time_filter(" + name + ", from:"+expire+", to:"+ignore+"))";
     }

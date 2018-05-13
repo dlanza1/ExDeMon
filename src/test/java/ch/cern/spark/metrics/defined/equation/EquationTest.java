@@ -129,7 +129,7 @@ public class EquationTest {
 		Value result = new Equation("x + y", props).compute(stores, Instant.now());
 		assertTrue(result.getAsException().isPresent());
 		assertEquals("Function \"+\": argument 2: requires float value", result.getAsException().get());
-		assertEquals("(var(x)=5.0 + var(y)=\"10\")={Error: argument 2: requires float value}", result.getSource());
+		assertEquals("(last(var(x))=5.0 + last(var(y))=\"10\")={Error: argument 2: requires float value}", result.getSource());
 		
 		xstore.history.add(time, new FloatValue(5));
         ystore.history.add(time, new FloatValue(10));

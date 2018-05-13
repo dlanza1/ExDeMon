@@ -603,14 +603,14 @@ public class DefinedMetricTest {
 		Optional<Metric> result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
 		assertTrue(result.isPresent());
 		assertEquals("Variable writebytestotal: no values, Variable readbytestotal: no values", result.get().getValue().getAsException().get());
-		assertEquals("(var(readbytestotal)={Error: no values} + var(writebytestotal)={Error: no values})={Error: in arguments}", result.get().getValue().getSource());
+		assertEquals("(last(var(readbytestotal))={Error: no values} + last(var(writebytestotal))={Error: no values})={Error: in arguments}", result.get().getValue().getSource());
 		
 		metric = Metric(now, 10, "METRIC_NAME=Read Bytes");
 		definedMetric.updateStore(stores, metric, null);
 		result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
 		assertTrue(result.isPresent());
 		assertEquals("Variable writebytestotal: no values", result.get().getValue().getAsException().get());
-		assertEquals("(var(readbytestotal)=10.0 + var(writebytestotal)={Error: no values})={Error: in arguments}", result.get().getValue().getSource());
+		assertEquals("(last(var(readbytestotal))=10.0 + last(var(writebytestotal))={Error: no values})={Error: in arguments}", result.get().getValue().getSource());
 		
 		metric = Metric(now.plus(Duration.ofSeconds(20)), 7, "METRIC_NAME=Write Bytes");
 		definedMetric.updateStore(stores, metric, null);
@@ -655,14 +655,14 @@ public class DefinedMetricTest {
         Optional<Metric> result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
         assertTrue(result.isPresent());
         assertEquals("Variable writebytestotal: no values, Variable readbytestotal: no values", result.get().getValue().getAsException().get());
-        assertEquals("(var(readbytestotal)={Error: no values} + var(writebytestotal)={Error: no values})={Error: in arguments}", result.get().getValue().getSource());
+        assertEquals("(last(var(readbytestotal))={Error: no values} + last(var(writebytestotal))={Error: no values})={Error: in arguments}", result.get().getValue().getSource());
 
         metric = Metric(now.plus(Duration.ofSeconds(20)), 7, "METRIC_NAME=Write Bytes");
         definedMetric.updateStore(stores, metric, null);
         result = definedMetric.generateByUpdate(stores, metric, new HashMap<String, String>());
         assertTrue(result.isPresent());
         assertEquals("Variable readbytestotal: no values", result.get().getValue().getAsException().get());
-        assertEquals("(var(readbytestotal)={Error: no values} + var(writebytestotal)=7.0)={Error: in arguments}", result.get().getValue().getSource());
+        assertEquals("(last(var(readbytestotal))={Error: no values} + last(var(writebytestotal))=7.0)={Error: in arguments}", result.get().getValue().getSource());
 
         metric = Metric(now.plus(Duration.ofSeconds(80)), 8, "METRIC_NAME=Write Bytes");
         definedMetric.updateStore(stores, metric, null);

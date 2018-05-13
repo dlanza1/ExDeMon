@@ -61,8 +61,6 @@ public class ValueHistory implements Serializable {
         this.lastAggregatedMetrics = new LinkedList<>();
         
         this.max_size = max_size;
-        
-        this.max_size = max_size;
         this.granularity = granularity;
         this.aggregation = aggregation;
     }
@@ -83,8 +81,7 @@ public class ValueHistory implements Serializable {
         if(values.size() >= (max_size * 0.9))
             summarizeValues(time);
 
-        // Removing the oldest entry if max size
-        if (values.size() >= max_size + 1)
+        if (isMaxSizeReached())
             values.remove(values.iterator().next());
         
         if (lastAggregatedMetrics.size() >= max_aggregated_metrics_size + 1)
@@ -92,6 +89,10 @@ public class ValueHistory implements Serializable {
         
         values.add(new DatedValue(time, value));
     }
+
+	private boolean isMaxSizeReached() {
+		return values.size() > max_size;
+	}
     
     private void summarizeValues(Instant time) {
         if(granularity == null || aggregation == null)
@@ -117,7 +118,7 @@ public class ValueHistory implements Serializable {
     }
 
     public List<DatedValue> getDatedValues() throws ComputationException {
-        if(values.size() > max_size)
+        if(isMaxSizeReached())
             throw new ComputationException("Maximum aggregation size reached. You may mitigate that by increasing granularity.");
         
         return values;
@@ -142,7 +143,7 @@ public class ValueHistory implements Serializable {
     }
 
     public List<Value> getWeeklyValues(Instant time) {
-    		LocalDateTime dateTime = TimeUtils.toLocalDateTime(time);
+        LocalDateTime dateTime = TimeUtils.toLocalDateTime(time);
     		
         return values.stream()
         		.filter(value -> isSameMinute(dateTime, TimeUtils.toLocalDateTime(value.getTime()), true, true))
