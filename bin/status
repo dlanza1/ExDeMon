@@ -35,16 +35,23 @@ fi
 ZOOCNX=`sed -n 's/^spark.streaming.listener.connection_string[ ]=//p' $HOME/conf/exdemon.properties`
 ZOOPTH=`sed -n 's/^spark.streaming.listener.path[ ]=//p' $HOME/conf/exdemon.properties`
 
-APPID=`$ZOOCLI_CMD -server $ZOOCNX get $ZOOPTH/id 2>/dev/null | grep application_`
+APPID=`$ZOOCLI_CMD -server $ZOOCNX get $ZOOPTH/id 2>/tmp/exdemon_status_zk.err | grep application_`
+RESULT=$?
+if [ $RESULT -ne 0 ]; then
+    echo Error when getting application ID from Zookeeper
+    cat /tmp/exdemon_status_zk.err
+    exit 100
+fi
 
 OUTPUT_FILE=`mktemp`
 
 $YARN_CMD application -status $APPID > $OUTPUT_FILE 2>&1
 RESULT=$?
 if [ $RESULT -ne 0 ]; then
+    echo Error when checking app status in YARN for $APPID
 	cat $OUTPUT_FILE
 	
-	exit 100
+	exit 101
 fi
 
 cat $OUTPUT_FILE
