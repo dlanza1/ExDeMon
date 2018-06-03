@@ -107,7 +107,15 @@ public class JSONStatusSerializer implements StatusSerializer {
 
         @Override
         public JsonElement serialize(Value value, Type type, JsonSerializationContext context) {
-            return context.serialize(value);
+            try {
+                return context.serialize(value);
+            }catch(StackOverflowError e) {
+                System.out.println(Instant.now() + " e " + e);
+                System.out.println(Instant.now() + " v " + value);
+                System.out.println(Instant.now() + " t " + type);
+                
+                return null;
+            }
         }
 
     }
