@@ -134,15 +134,16 @@ public class MetricVariable extends Variable {
 	    return aggValue;
 	}
 
+    @SuppressWarnings("unchecked")
     private List<Metric> getLastAggregatedMetrics(StatusValue status) {
     	if(status instanceof AggregationValues) {
         	AggregationValues aggValues = (AggregationValues) status;
         	
-        	return new LinkedList<>(aggValues.getLastAggregatedMetrics().values());
+        	return (List<Metric>) new LinkedList<>(aggValues.getLastAggregatedMetrics().values()).clone();
         }else if (status instanceof ValueHistory.Status) {
         	ValueHistory history = ((ValueHistory.Status) status).history;
         	
-        	return new LinkedList<>(history.getLastAggregatedMetrics());
+        	return (List<Metric>) new LinkedList<>(history.getLastAggregatedMetrics()).clone();
         }
     	
 		return null;
