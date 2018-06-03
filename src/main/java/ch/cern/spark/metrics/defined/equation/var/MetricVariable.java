@@ -229,7 +229,7 @@ public class MetricVariable extends Variable {
             history.setGranularity(granularity);
             history.setAggregation(aggregation);
             history.setMax_size(max_aggregation_size);
-            history.add(metric);
+            history.add(metric.getTimestamp(), metric.getValue(), originalMetric);
 	    }
 
 	    return status;        

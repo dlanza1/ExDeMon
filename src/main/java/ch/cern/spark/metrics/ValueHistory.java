@@ -69,14 +69,14 @@ public class ValueHistory implements Serializable {
     public void add(Instant time, float value) {
         add(time, new FloatValue(value));
     }
-    
-	public void add(Metric metric) {
-	    if(lastAggregatedMetrics == null)
+
+    public void add(Instant time, Value value, Metric originalMetric) {
+        if(lastAggregatedMetrics == null)
             lastAggregatedMetrics = new LinkedList<>();
-        lastAggregatedMetrics.add(metric);
+        lastAggregatedMetrics.add(originalMetric);
         
-		add(metric.getTimestamp(), metric.getValue());
-	}
+        add(time, value);
+    }
     
     public void add(Instant time, Value value) {
         if(values.size() >= (max_size * 0.9))

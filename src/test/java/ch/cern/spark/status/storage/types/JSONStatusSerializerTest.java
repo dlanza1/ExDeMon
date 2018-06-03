@@ -12,7 +12,6 @@ import org.apache.spark.streaming.Time;
 import org.junit.Test;
 
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.ValueHistory;
 import ch.cern.spark.metrics.ValueHistory.Status;
 import ch.cern.spark.metrics.defined.equation.var.agg.AggregationValues;
@@ -25,7 +24,6 @@ import ch.cern.spark.metrics.value.PropertiesValue;
 import ch.cern.spark.metrics.value.StringValue;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
-import jersey.repackaged.com.google.common.collect.Maps;
 
 public class JSONStatusSerializerTest {
     
@@ -34,7 +32,7 @@ public class JSONStatusSerializerTest {
         JSONStatusSerializer ser = new JSONStatusSerializer();
         
         ValueHistory.Status status = new ValueHistory.Status(100, ChronoUnit.MINUTES, new CountAgregation());
-        status.history.add(new Metric(Instant.now(), new FloatValue(1), Maps.newHashMap()));
+        status.history.add(Instant.now(), new FloatValue(1));
         String json = new String(ser.fromValue(status));
         
         ValueHistory.Status statusDesser = (Status) ser.toValue(json.getBytes());
