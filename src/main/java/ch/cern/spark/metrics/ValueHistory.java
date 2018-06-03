@@ -85,6 +85,8 @@ public class ValueHistory implements Serializable {
         if (isMaxSizeReached())
             values.remove(values.iterator().next());
         
+        if(lastAggregatedMetrics == null)
+            lastAggregatedMetrics = new LinkedList<>();
         if (lastAggregatedMetrics.size() >= max_aggregated_metrics_size + 1)
             lastAggregatedMetrics.remove(lastAggregatedMetrics.iterator().next());
         
