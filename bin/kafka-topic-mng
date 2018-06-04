@@ -1,0 +1,15 @@
+[root@monit-kafka-dev-714ebf7283 ~]# 
+
+/opt/kafka/bin/kafka-topics.sh \
+    --zookeeper monit-zookeeper-dev-ab5bcc5450:2181,monit-zookeeper-dev-af7ea987bd:2181,monit-zookeeper-dev-c50f381e22:2181/kafka/monit \
+    --delete \
+    --topic metrics_monitor_checkpoint_qa
+
+/opt/kafka/bin/kafka-topics.sh \
+    --zookeeper monit-zookeeper-dev-ab5bcc5450:2181,monit-zookeeper-dev-af7ea987bd:2181,monit-zookeeper-dev-c50f381e22:2181/kafka/monit \
+    --config cleanup.policy=compact \
+    --config segment.ms=240000 \
+    --topic metrics_monitor_checkpoint_qa \
+    --create \
+    --partitions 10 \
+    --replication-factor 3
