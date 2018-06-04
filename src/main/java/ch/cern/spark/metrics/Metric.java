@@ -15,49 +15,49 @@ import lombok.Setter;
 import lombok.ToString;
 
 @ToString
-@EqualsAndHashCode(callSuper=false)
-public class Metric implements Serializable{
+@EqualsAndHashCode(callSuper = false)
+public class Metric implements Serializable {
 
     private static final long serialVersionUID = -182236104179624396L;
 
-    @Getter 
+    @Getter
     @Setter
     @NonNull
     private Map<String, String> attributes;
-    
+
     @Getter
     @NonNull
     private Instant timestamp;
-    
+
     @Getter
     @NonNull
     private Value value;
 
-    public Metric(Instant timestamp, float value, Map<String, String> ids){
+    public Metric(Instant timestamp, float value, Map<String, String> ids) {
         this(timestamp, new FloatValue(value), ids);
     }
-    
-    public Metric(@NonNull Instant timestamp, @NonNull Value value, Map<String, String> attributes){
-        if(attributes == null)
+
+    public Metric(@NonNull Instant timestamp, @NonNull Value value, Map<String, String> attributes) {
+        if (attributes == null)
             this.attributes = new HashMap<String, String>();
         else
             this.attributes = new HashMap<String, String>(attributes);
-        
+
         this.timestamp = timestamp;
         this.value = value;
     }
-    
-    public void addAttribute(@NonNull String key, @NonNull String value){
+
+    public void addAttribute(@NonNull String key, @NonNull String value) {
         attributes.put(key, value);
     }
 
-	public void removeAttributes(@NonNull Set<String> keySet) {
-		keySet.forEach(key -> attributes.remove(key));
-	}
+    public void removeAttributes(@NonNull Set<String> keySet) {
+        keySet.forEach(key -> attributes.remove(key));
+    }
 
     @Override
-	public Metric clone() throws CloneNotSupportedException {
-    		return new Metric(timestamp, Value.clone(value), new HashMap<>(attributes));
+    public Metric clone() throws CloneNotSupportedException {
+        return new Metric(timestamp, value, new HashMap<>(attributes));
     }
 
 }
