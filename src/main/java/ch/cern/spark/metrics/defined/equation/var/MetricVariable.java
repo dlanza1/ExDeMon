@@ -49,6 +49,7 @@ public class MetricVariable extends Variable {
 	private boolean aggregateSelectALL = false;
 
     private int max_aggregation_size;
+    private int max_lastAggregatedMetrics_size;
     
     private ChronoUnit granularity;
 
@@ -98,6 +99,8 @@ public class MetricVariable extends Variable {
 		
 		max_aggregation_size = Integer.parseInt(properties.getProperty("aggregate.max-size", MAX_SIZE_DEFAULT+""));
 		
+		max_lastAggregatedMetrics_size = Integer.parseInt(properties.getProperty("aggregate.latest-metrics.max-size", MAX_SIZE_DEFAULT+""));
+		
 		return this;
 	}
 
@@ -138,11 +141,15 @@ public class MetricVariable extends Variable {
     	if(status instanceof AggregationValues) {
         	AggregationValues aggValues = (AggregationValues) status;
         	
-        	return new LinkedList<>(aggValues.getLastAggregatedMetrics().values());
+        	Map<Integer, Metric> metrics = aggValues.getLastAggregatedMetrics();
+        	
+        	return metrics != null ? new LinkedList<>(metrics.values()) : null;
         }else if (status instanceof ValueHistory.Status) {
         	ValueHistory history = ((ValueHistory.Status) status).history;
         	
-        	return new LinkedList<>(history.getLastAggregatedMetrics());
+        	List<Metric> metrics = history.getLastAggregatedMetrics();
+        	
+        	return metrics != null ? new LinkedList<>(metrics) : null;
         }
     	
 		return null;
@@ -240,9 +247,9 @@ public class MetricVariable extends Variable {
 
     private StatusValue initStatus() {
         if(isThereSelectedAttributes())
-            return new AggregationValues(max_aggregation_size);
+            return new AggregationValues(max_aggregation_size, max_lastAggregatedMetrics_size);
         else
-            return new ValueHistory.Status(max_aggregation_size, granularity, aggregation);
+            return new ValueHistory.Status(max_aggregation_size, max_lastAggregatedMetrics_size, granularity, aggregation);
     }
 
     private Map<String, String> getAggSelectAttributes(Map<String, String> attributes) {

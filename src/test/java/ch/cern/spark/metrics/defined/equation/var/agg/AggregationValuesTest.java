@@ -13,7 +13,7 @@ public class AggregationValuesTest {
     
     @Test
     public void shouldGenerateExceptionWhenMaxSizeIsReached() throws ComputationException {
-        AggregationValues values = new AggregationValues(3);
+        AggregationValues values = new AggregationValues(3, 0);
         
         Instant now = Instant.now();
         
@@ -35,7 +35,7 @@ public class AggregationValuesTest {
     
     @Test
     public void shouldRecoverAfterMaxSizeIsReached() throws ComputationException {
-        AggregationValues values = new AggregationValues(3);
+        AggregationValues values = new AggregationValues(3, 0);
         
         Instant now = Instant.now();
         

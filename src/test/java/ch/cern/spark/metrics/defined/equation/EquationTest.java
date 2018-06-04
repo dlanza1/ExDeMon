@@ -80,13 +80,13 @@ public class EquationTest {
 		Properties props = new Properties();
 		
 		VariableStatuses stores = new VariableStatuses();
-		ValueHistory.Status var1store = new ValueHistory.Status(100, null, null);
+		ValueHistory.Status var1store = new ValueHistory.Status(100, 0, null, null);
 		stores.put("var1", var1store);
-		ValueHistory.Status var2store = new ValueHistory.Status(100, null, null);
+		ValueHistory.Status var2store = new ValueHistory.Status(100, 0, null, null);
 		stores.put("var2", var2store);
-		ValueHistory.Status xstore = new ValueHistory.Status(100, null, null);
+		ValueHistory.Status xstore = new ValueHistory.Status(100, 0, null, null);
 		stores.put("x", xstore);
-		ValueHistory.Status ystore = new ValueHistory.Status(100, null, null);
+		ValueHistory.Status ystore = new ValueHistory.Status(100, 0, null, null);
 		stores.put("y", ystore);
 		
 		props = new Properties();
@@ -160,9 +160,9 @@ public class EquationTest {
 		props.setProperty("x.filter.attribute.A", "A");
 		
 		VariableStatuses stores = new VariableStatuses();
-		ValueHistory.Status xstore = new ValueHistory.Status(100, null, null);
+		ValueHistory.Status xstore = new ValueHistory.Status(100, 0, null, null);
         stores.put("x", xstore);
-        ValueHistory.Status ystore = new ValueHistory.Status(100, null, null);
+        ValueHistory.Status ystore = new ValueHistory.Status(100, 0, null, null);
         stores.put("y", ystore);
 		
 		xstore.history.add(time, new FloatValue(9));

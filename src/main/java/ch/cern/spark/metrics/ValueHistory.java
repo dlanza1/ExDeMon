@@ -50,18 +50,18 @@ public class ValueHistory implements Serializable {
     
     @Getter
     private List<Metric> lastAggregatedMetrics;
-    private int max_aggregated_metrics_size = 10;
+    private int max_lastAggregatedMetrics_size = 0;
 
     public ValueHistory(){
-        this(MetricVariable.MAX_SIZE_DEFAULT, null, null);
+        this(MetricVariable.MAX_SIZE_DEFAULT, 0, null, null);
     }
     
-    public ValueHistory(long max_size, ChronoUnit granularity, Aggregation aggregation){
+    public ValueHistory(long max_size, int max_lastAggregatedMetrics_size, ChronoUnit granularity, Aggregation aggregation){
         this.values = new LinkedList<>();
         this.lastAggregatedMetrics = new LinkedList<>();
         
         this.max_size = max_size;
-        this.max_aggregated_metrics_size = (int) Math.min(max_size, 10);
+        this.max_lastAggregatedMetrics_size = (int) Math.min(max_size, max_lastAggregatedMetrics_size);
         this.granularity = granularity;
         this.aggregation = aggregation;
     }
@@ -71,11 +71,23 @@ public class ValueHistory implements Serializable {
     }
 
     public void add(Instant time, Value value, Metric originalMetric) {
+        addLastAggMetric(originalMetric);
+        add(time, value);
+    }
+    
+    private void addLastAggMetric(Metric originalMetric) {
+        if(max_lastAggregatedMetrics_size <= 0) {
+            lastAggregatedMetrics = null;
+            return;
+        }
+        
         if(lastAggregatedMetrics == null)
             lastAggregatedMetrics = new LinkedList<>();
+        
         lastAggregatedMetrics.add(originalMetric);
         
-        add(time, value);
+        while(lastAggregatedMetrics != null && lastAggregatedMetrics.size() >= max_lastAggregatedMetrics_size + 1)
+            lastAggregatedMetrics.remove(lastAggregatedMetrics.iterator().next());
     }
     
     public void add(Instant time, Value value) {
@@ -84,11 +96,6 @@ public class ValueHistory implements Serializable {
 
         if (isMaxSizeReached())
             values.remove(values.iterator().next());
-        
-        if(lastAggregatedMetrics == null)
-            lastAggregatedMetrics = new LinkedList<>();
-        if (lastAggregatedMetrics.size() >= max_aggregated_metrics_size + 1)
-            lastAggregatedMetrics.remove(lastAggregatedMetrics.iterator().next());
         
         values.add(new DatedValue(time, value));
     }
@@ -113,7 +120,9 @@ public class ValueHistory implements Serializable {
 
     public void purge(Instant oldest_time) {
     	values.removeIf(value -> value.getTime().isBefore(oldest_time));
-    	lastAggregatedMetrics.removeIf(m -> m.getTimestamp().isBefore(oldest_time));
+    	
+    	if(lastAggregatedMetrics != null)
+            lastAggregatedMetrics.removeIf(m -> m.getTimestamp().isBefore(oldest_time));
     }
 
     public int size() {
@@ -182,8 +191,8 @@ public class ValueHistory implements Serializable {
             history = new ValueHistory();
         }
 
-        public Status(int max_aggregation_size, ChronoUnit granularity, Aggregation aggregation) {
-            history = new ValueHistory(max_aggregation_size, granularity, aggregation);
+        public Status(int max_aggregation_size, int max_lastAggregatedMetrics_size, ChronoUnit granularity, Aggregation aggregation) {
+            history = new ValueHistory(max_aggregation_size, max_lastAggregatedMetrics_size, granularity, aggregation);
         }
 
         private void writeObject(ObjectOutputStream out) throws IOException{
@@ -212,7 +221,7 @@ public class ValueHistory implements Serializable {
         private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException{
             ChronoUnit granularity = (ChronoUnit) in.readObject();
             Aggregation aggregation = (Aggregation) in.readObject();
-            history = new ValueHistory(MetricVariable.MAX_SIZE_DEFAULT, granularity, aggregation);
+            history = new ValueHistory(MetricVariable.MAX_SIZE_DEFAULT, 0, granularity, aggregation);
             
             int[] times = (int[]) in.readObject();
             Value[] values = (Value[]) in.readObject();
@@ -228,6 +237,7 @@ public class ValueHistory implements Serializable {
 
     public void reset() {
         this.values = new LinkedList<>();
+        this.lastAggregatedMetrics = new LinkedList<>();
     }
 
 }

@@ -162,7 +162,7 @@ public class ValueHistoryTest {
     
     @Test
     public void shouldGenerateExceptionWhenMaxSizeIsReached() throws ComputationException {
-        ValueHistory values = new ValueHistory(3, null, null);
+        ValueHistory values = new ValueHistory(3, 0, null, null);
         
         Instant now = Instant.now();
         
@@ -186,10 +186,10 @@ public class ValueHistoryTest {
     public void granularityShouldProvideSameResults() throws ComputationException {
         Aggregation aggregation = new SumAggregation();
         
-        ValueHistory values = new ValueHistory(10000, null, null);
+        ValueHistory values = new ValueHistory(10000, 0, null, null);
         
         ChronoUnit granularity = ChronoUnit.MINUTES;
-        ValueHistory granularValues = new ValueHistory(100, granularity, aggregation);
+        ValueHistory granularValues = new ValueHistory(100, 0, granularity, aggregation);
         
         Instant time = Instant.parse("2007-12-03T10:15:00.00Z");
         float num = (float) Math.random();
@@ -232,10 +232,10 @@ public class ValueHistoryTest {
     public void granularityWithDifferentInputOutputTypeInAggregation() throws ComputationException {
         Aggregation aggregation = new CountAgregation();
         
-        ValueHistory values = new ValueHistory(100, null, null);
+        ValueHistory values = new ValueHistory(100, 0, null, null);
         
         ChronoUnit granularity = ChronoUnit.MINUTES;
-        ValueHistory granularValues = new ValueHistory(10, granularity, aggregation);
+        ValueHistory granularValues = new ValueHistory(10, 0, granularity, aggregation);
         
         Instant time = Instant.parse("2007-12-03T10:15:00.00Z");
         StringValue input = new StringValue("a");
@@ -269,7 +269,7 @@ public class ValueHistoryTest {
     
     @Test
     public void shouldRecoverAfterMaxSizeIsReached() throws ComputationException {
-        ValueHistory values = new ValueHistory(3, null, null);
+        ValueHistory values = new ValueHistory(3, 0, null, null);
         
         Instant now = Instant.now();
         

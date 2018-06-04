@@ -16,7 +16,7 @@ The following strings will be replaced by the action corresponding information:
 * &lt;datetime&gt;
 * &lt;reason&gt;
 * &lt;triggering_value&gt;
-* &lt;agg\_metrics&gt; &lt;attribute:key&gt; &lt;value&gt; &lt;datetime&gt; &lt;/agg\_metrics&gt;
+* &lt;agg\_metrics&gt; &lt;attribute:key&gt; &lt;value&gt; &lt;datetime&gt; &lt;/agg\_metrics&gt; (max size parameter: aggregate.latest-metrics.max-size)
 * &lt;tags&gt; (will be replaced by the tag list)
 * &lt;tags:key&gt; (will be replaced by the value of the specified tag key)
 * &lt;analysis_param:key&gt; (will be replaced by the value of the specified analysis parameter key)

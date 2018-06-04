@@ -31,13 +31,16 @@ public class AggregationValues extends StatusValue {
 
     @Getter
     private Map<Integer, Metric> lastAggregatedMetrics;
-    private int max_aggregated_metrics_size = 10;
+    private int max_lastAggregatedMetrics_size = 0;
     
-    public AggregationValues(int max_aggregation_size) {
+    public AggregationValues(int max_aggregation_size, int max_lastAggregatedMetrics_size) {
         this.max_aggregation_size = max_aggregation_size;
+        this.max_lastAggregatedMetrics_size = max_lastAggregatedMetrics_size;
         
         values = new LinkedHashMap<>();
-        lastAggregatedMetrics = new LinkedHashMap<>();
+        
+        if(max_lastAggregatedMetrics_size > 0)
+            lastAggregatedMetrics = new LinkedHashMap<>();
     }
     
     public void add(int hashCode, float f, Instant now) {
@@ -45,13 +48,25 @@ public class AggregationValues extends StatusValue {
     }
     
 	public void add(int hash, Value value, Instant timestamp, Metric metric, Metric originalMetric) {
-	    if(lastAggregatedMetrics == null)
-	        lastAggregatedMetrics = new LinkedHashMap<>();
-		lastAggregatedMetrics.put(hash, originalMetric);
-		
+		addLastAggMetric(hash, originalMetric);
 		add(hash, value, timestamp);
 	}
     
+    private void addLastAggMetric(int hash, Metric originalMetric) {
+        if(max_lastAggregatedMetrics_size <= 0) {
+            lastAggregatedMetrics = null;
+            return;
+        }
+        
+        if(lastAggregatedMetrics == null)
+            lastAggregatedMetrics = new LinkedHashMap<>();
+        
+        lastAggregatedMetrics.put(hash, originalMetric);
+        
+        while(lastAggregatedMetrics != null && lastAggregatedMetrics.size() >= max_lastAggregatedMetrics_size + 1)
+            lastAggregatedMetrics.remove(lastAggregatedMetrics.keySet().iterator().next());
+    }
+
     public void add(int idHash, Value value, Instant instant) {
         value = Value.clone(value);
 
@@ -60,11 +75,9 @@ public class AggregationValues extends StatusValue {
         	int key = values.keySet().iterator().next();
         	
             values.remove(key);
-            lastAggregatedMetrics.remove(key);
+            if(lastAggregatedMetrics != null)
+                lastAggregatedMetrics.remove(key);
         }
-            
-        if (lastAggregatedMetrics.size() >= max_aggregated_metrics_size + 1)
-        	lastAggregatedMetrics.remove(lastAggregatedMetrics.keySet().iterator().next());
 
         values.put(idHash, new DatedValue(instant, value));
     }
@@ -78,7 +91,9 @@ public class AggregationValues extends StatusValue {
 
     public void purge(Instant oldestTime) {
         values.values().removeIf(dv -> dv.getTime().isBefore(oldestTime));
-        lastAggregatedMetrics.values().removeIf(m -> m.getTimestamp().isBefore(oldestTime));
+        
+        if(lastAggregatedMetrics != null)
+            lastAggregatedMetrics.values().removeIf(m -> m.getTimestamp().isBefore(oldestTime));
     }
 
 }

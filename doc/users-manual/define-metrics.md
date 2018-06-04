@@ -26,6 +26,7 @@ metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<a
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.type = <not set|sum|avg|weighted_avg|count|max|min|diff>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.attributes = <not set|ALL|space separated list of attributes> (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.max-size = <maximum-aggregation-size> (default: 10000)
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.latest-metrics.max-size = <size> (default: 0)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.history.granularity = <not set|d|h|m|s|ms>  (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.ignore = <not set|period like 1h, 3m or 45s[, truncate d, h, m]> (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.expire = <never|period like 1h, 3m or 45s[, truncate d, h, m]> (default: 10m)

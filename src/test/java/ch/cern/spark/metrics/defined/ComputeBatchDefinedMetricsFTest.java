@@ -52,7 +52,7 @@ public class ComputeBatchDefinedMetricsFTest {
 		State<VariableStatuses> status = new StateImpl<>();
 		
 		VariableStatuses varStores = new VariableStatuses();
-		AggregationValues valueStore = new AggregationValues(100);
+		AggregationValues valueStore = new AggregationValues(100, 0);
 		varStores.put("value", valueStore);
 		
 		Map<String, String> ids = new HashMap<>();

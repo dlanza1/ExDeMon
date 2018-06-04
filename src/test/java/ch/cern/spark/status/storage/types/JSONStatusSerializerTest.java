@@ -31,7 +31,7 @@ public class JSONStatusSerializerTest {
     public void serializeValueHistory() throws IOException {
         JSONStatusSerializer ser = new JSONStatusSerializer();
         
-        ValueHistory.Status status = new ValueHistory.Status(100, ChronoUnit.MINUTES, new CountAgregation());
+        ValueHistory.Status status = new ValueHistory.Status(100, 0, ChronoUnit.MINUTES, new CountAgregation());
         status.history.add(Instant.now(), new FloatValue(1));
         String json = new String(ser.fromValue(status));
         
@@ -44,7 +44,7 @@ public class JSONStatusSerializerTest {
     public void serializeValue() throws IOException {
         JSONStatusSerializer ser = new JSONStatusSerializer();
         
-        AggregationValues status = new AggregationValues(100);
+        AggregationValues status = new AggregationValues(100, 0);
         
         Instant instant = Instant.now();
         status.add(0, new FloatValue(1d), instant);
