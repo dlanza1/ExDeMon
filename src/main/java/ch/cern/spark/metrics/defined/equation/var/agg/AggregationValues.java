@@ -68,7 +68,7 @@ public class AggregationValues extends StatusValue {
     }
 
     public void add(int idHash, Value value, Instant instant) {
-        value = Value.clone(value);
+        value = value.clone();
 
         // Removing the oldest entry if max size
         if (values.size() >= max_aggregation_size + 1) {

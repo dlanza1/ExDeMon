@@ -54,7 +54,7 @@ public abstract class Value implements Serializable, Cloneable {
     }
 
     @Override
-    public Value clone() throws CloneNotSupportedException {
+    public Value clone() {
         if (getAsFloat().isPresent())
             return new FloatValue(getAsFloat().get());
         if (getAsString().isPresent())
