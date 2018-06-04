@@ -138,11 +138,11 @@ public class MetricVariable extends Variable {
     	if(status instanceof AggregationValues) {
         	AggregationValues aggValues = (AggregationValues) status;
         	
-        	return (List<Metric>) new LinkedList<>(aggValues.getLastAggregatedMetrics().values());
+        	return new LinkedList<>(aggValues.getLastAggregatedMetrics().values());
         }else if (status instanceof ValueHistory.Status) {
         	ValueHistory history = ((ValueHistory.Status) status).history;
         	
-        	return (List<Metric>) new LinkedList<>(history.getLastAggregatedMetrics());
+        	return new LinkedList<>(history.getLastAggregatedMetrics());
         }
     	
 		return null;
