@@ -10,7 +10,7 @@ import ch.cern.spark.metrics.results.AnalysisResult;
 import lombok.Getter;
 import lombok.Setter;
 
-public abstract class Value implements Serializable {
+public abstract class Value implements Serializable, Cloneable {
 
     private static final long serialVersionUID = -5082571575744839753L;
 
@@ -53,19 +53,20 @@ public abstract class Value implements Serializable {
         return source;
     }
 
-    public static Value clone(Value value) {
-        if (value.getAsFloat().isPresent())
-            return new FloatValue(value.getAsFloat().get());
-        if (value.getAsString().isPresent())
-            return new StringValue(value.getAsString().get());
-        if (value.getAsBoolean().isPresent())
-            return new BooleanValue(value.getAsBoolean().get());
-        if (value.getAsAggregated().isPresent())
-            return new AggregatedValue(value.getAsAggregated().get());
-        if (value.getAsException().isPresent())
-            return new ExceptionValue(value.getAsException().get());
-        if (value.getAsProperties().isPresent()) {
-            PropertiesValue valueRef = (PropertiesValue) value;
+    @Override
+    public Value clone() throws CloneNotSupportedException {
+        if (getAsFloat().isPresent())
+            return new FloatValue(getAsFloat().get());
+        if (getAsString().isPresent())
+            return new StringValue(getAsString().get());
+        if (getAsBoolean().isPresent())
+            return new BooleanValue(getAsBoolean().get());
+        if (getAsAggregated().isPresent())
+            return new AggregatedValue(getAsAggregated().get());
+        if (getAsException().isPresent())
+            return new ExceptionValue(getAsException().get());
+        if (getAsProperties().isPresent()) {
+            PropertiesValue valueRef = (PropertiesValue) this;
 
             return new PropertiesValue(valueRef.getName(), new Properties(valueRef.getAsProperties().get()));
         }
