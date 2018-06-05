@@ -24,6 +24,7 @@ import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
+import ch.cern.utils.LimitedQueue;
 import ch.cern.utils.TimeUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -59,10 +60,10 @@ public class ValueHistory implements Serializable {
     
     public ValueHistory(long max_size, int max_lastAggregatedMetrics_size, ChronoUnit granularity, Aggregation aggregation){
         this.values = new LinkedList<>();
-        this.lastAggregatedMetrics = new LinkedList<>();
+        this.max_lastAggregatedMetrics_size = (int) Math.min(max_size, max_lastAggregatedMetrics_size);
+        this.lastAggregatedMetrics = new LimitedQueue<>(max_lastAggregatedMetrics_size);
         
         this.max_size = max_size;
-        this.max_lastAggregatedMetrics_size = (int) Math.min(max_size, max_lastAggregatedMetrics_size);
         this.granularity = granularity;
         this.aggregation = aggregation;
     }
@@ -83,13 +84,10 @@ public class ValueHistory implements Serializable {
         }
         
         if(lastAggregatedMetrics == null)
-            lastAggregatedMetrics = new LinkedList<>();
+            lastAggregatedMetrics = new LimitedQueue<>(max_lastAggregatedMetrics_size);
         
         if(metric != null)
             lastAggregatedMetrics.add(metric);
-        
-        while(lastAggregatedMetrics.size() > max_lastAggregatedMetrics_size)
-            lastAggregatedMetrics.remove(lastAggregatedMetrics.iterator().next());
     }
     
     public void add(Instant time, Value value) {
@@ -125,9 +123,6 @@ public class ValueHistory implements Serializable {
 
     public void purge(Instant oldest_time) {
     	values.removeIf(value -> value.getTime().isBefore(oldest_time));
-    	
-    	if(lastAggregatedMetrics != null)
-            lastAggregatedMetrics.removeIf(m -> m.getTimestamp().isBefore(oldest_time));
     }
 
     public int size() {
@@ -242,7 +237,7 @@ public class ValueHistory implements Serializable {
 
     public void reset() {
         this.values = new LinkedList<>();
-        this.lastAggregatedMetrics = new LinkedList<>();
+        this.lastAggregatedMetrics = new LimitedQueue<>(max_lastAggregatedMetrics_size);
     }
 
 }
