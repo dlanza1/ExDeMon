@@ -12,6 +12,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.esotericsoftware.minlog.Log;
+
 import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentManager;
 import ch.cern.components.RegisterComponent;
@@ -100,10 +102,14 @@ public class MetricVariable extends Variable {
         else if (aggregateSelect != null)
             aggregateSelectAtt = new HashSet<String>(Arrays.asList(aggregateSelect.split("\\s")));
 
-        max_aggregation_size = Integer.parseInt(properties.getProperty("aggregate.max-size", MAX_SIZE_DEFAULT + ""));
+        max_aggregation_size = (int) properties.getFloat("aggregate.max-size", MAX_SIZE_DEFAULT);
 
-        max_lastAggregatedMetrics_size = Integer
-                .parseInt(properties.getProperty("aggregate.latest-metrics.max-size", MAX_SIZE_DEFAULT + ""));
+        max_lastAggregatedMetrics_size = (int) properties.getFloat("aggregate.latest-metrics.max-size", 0);
+        if(max_lastAggregatedMetrics_size > 100) {
+            Log.warn("aggregate.latest-metrics.max-size can be maximun 100, new value = 100");
+            
+            max_lastAggregatedMetrics_size = 100;
+        }
 
         return this;
     }
@@ -152,9 +158,6 @@ public class MetricVariable extends Variable {
             ValueHistory history = ((ValueHistory.Status) status).history;
 
             List<Metric> metrics = history.getLastAggregatedMetrics();
-            
-            if(metrics != null && metrics.size() > 0)
-                System.out.println(Instant.now() + " " + metrics.size());
 
             return metrics != null ? new LinkedList<>(metrics) : null;
         }
@@ -241,7 +244,7 @@ public class MetricVariable extends Variable {
             history.setGranularity(granularity);
             history.setAggregation(aggregation);
             history.setMax_size(max_aggregation_size);
-            history.setMax_lastAggregatedMetrics_size(0);
+            history.setMax_lastAggregatedMetrics_size(max_lastAggregatedMetrics_size);
             history.add(metric.getTimestamp(), metric.getValue(), originalMetric);
         }
 
@@ -256,7 +259,7 @@ public class MetricVariable extends Variable {
         if (isThereSelectedAttributes())
             return new AggregationValues(max_aggregation_size, max_lastAggregatedMetrics_size);
         else
-            return new ValueHistory.Status(max_aggregation_size, 0, granularity, aggregation);
+            return new ValueHistory.Status(max_aggregation_size, max_lastAggregatedMetrics_size, granularity, aggregation);
     }
 
     private Map<String, String> getAggSelectAttributes(Map<String, String> attributes) {
