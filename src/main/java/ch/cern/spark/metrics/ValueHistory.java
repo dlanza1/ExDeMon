@@ -50,6 +50,7 @@ public class ValueHistory implements Serializable {
     
     @Getter
     private List<Metric> lastAggregatedMetrics;
+    @Getter @Setter
     private int max_lastAggregatedMetrics_size = 0;
 
     public ValueHistory(){
