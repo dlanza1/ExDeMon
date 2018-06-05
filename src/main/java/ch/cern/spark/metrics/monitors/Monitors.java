@@ -45,7 +45,9 @@ public class Monitors {
 				monitors.put(monitorName, new Monitor(monitorName).config(monitorProps));
 			}
 
-	        LOG.info("Loaded Monitors: " + monitors);
+	        LOG.info("Monitors updated");
+            for (Map.Entry<String, Monitor> definedMetric : monitors.entrySet())
+                LOG.info(definedMetric.getKey() + ": " + definedMetric.getValue());
 	        
 	        return monitors;
 		}
