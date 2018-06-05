@@ -238,7 +238,7 @@ public class MetricVariable extends Variable {
             history.setGranularity(granularity);
             history.setAggregation(aggregation);
             history.setMax_size(max_aggregation_size);
-            history.setMax_lastAggregatedMetrics_size(max_lastAggregatedMetrics_size);
+            history.setMax_lastAggregatedMetrics_size(0);
             history.add(metric.getTimestamp(), metric.getValue(), originalMetric);
         }
 
@@ -253,7 +253,7 @@ public class MetricVariable extends Variable {
         if (isThereSelectedAttributes())
             return new AggregationValues(max_aggregation_size, max_lastAggregatedMetrics_size);
         else
-            return new ValueHistory.Status(max_aggregation_size, max_lastAggregatedMetrics_size, granularity, aggregation);
+            return new ValueHistory.Status(max_aggregation_size, 0, granularity, aggregation);
     }
 
     private Map<String, String> getAggSelectAttributes(Map<String, String> attributes) {
