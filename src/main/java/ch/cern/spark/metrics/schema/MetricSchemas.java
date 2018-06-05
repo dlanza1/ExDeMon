@@ -18,6 +18,8 @@ public class MetricSchemas {
 	
 	public static final String PARAM = "metrics.schema";
 	
+	private static final int JSON_MAX_SIZE = 64000;
+	
 	private static final Cache<Map<String, MetricSchema>> cachedMetricSchemas = new Cache<Map<String, MetricSchema>>() {
 
         @Override
@@ -48,6 +50,16 @@ public class MetricSchemas {
 	}
 
 	public static JavaDStream<Metric> generate(JavaDStream<String> jsons, Properties propertiesSourceProps, String sourceId) {
+	    jsons = jsons.filter(string -> {
+                	        if(string.length() > JSON_MAX_SIZE) {
+                	            LOG.warn("Event dropped because exceeds max size ("+JSON_MAX_SIZE+"): " + string.substring(0, 10000) + "...");
+                	            
+                	            return false;
+                	        }
+                	        
+                	        return true;
+                	    });
+	    
 		return jsons.flatMap(new MetricSchemasF(propertiesSourceProps, sourceId));
 	}
 
