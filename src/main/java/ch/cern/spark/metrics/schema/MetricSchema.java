@@ -180,7 +180,7 @@ public class MetricSchema implements Serializable {
         return value.contains("*") || value.contains("+") || value.contains("(") || value.contains("*");
     }
 
-    public List<Metric> call(String jsonString) {
+    public List<Metric> call(JSON jsonObject) {
         if (configurationException != null) {
             Optional<ExceptionValue> exceptionValueOpt = raiseException(null, configurationException);
 
@@ -189,8 +189,6 @@ public class MetricSchema implements Serializable {
             else
                 return Collections.emptyList();
         }
-        
-        JSON jsonObject = new JSON(jsonString);
         
         try {
             Map<String, String> attributesForMetric = new HashMap<>(fixedAttributes);

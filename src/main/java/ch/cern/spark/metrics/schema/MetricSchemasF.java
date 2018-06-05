@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 import org.apache.spark.api.java.function.FlatMapFunction;
 
 import ch.cern.properties.Properties;
+import ch.cern.spark.json.JSON;
 import ch.cern.spark.metrics.Metric;
 
 public class MetricSchemasF implements FlatMapFunction<String, Metric> {
@@ -34,9 +35,11 @@ public class MetricSchemasF implements FlatMapFunction<String, Metric> {
 		    return Collections.<Metric>emptyList().iterator();
 		}
 		
+		JSON jsonObject = new JSON(jsonString);
+		
 		Stream<Metric> metrics = MetricSchemas.getCache().get().values().stream()
 												.filter(schema -> schema.containsSource(sourceID))
-												.flatMap(schema -> schema.call(jsonString).stream());
+												.flatMap(schema -> schema.call(jsonObject).stream());
 		
 		return metrics.map(metric -> {
 								metric.getAttributes().put("$source", sourceID);
