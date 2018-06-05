@@ -76,7 +76,7 @@ public class ValueHistory implements Serializable {
         add(time, value);
     }
     
-    private void addLastAggMetric(Metric originalMetric) {
+    private void addLastAggMetric(Metric metric) {
         if(max_lastAggregatedMetrics_size <= 0) {
             lastAggregatedMetrics = null;
             return;
@@ -85,13 +85,17 @@ public class ValueHistory implements Serializable {
         if(lastAggregatedMetrics == null)
             lastAggregatedMetrics = new LinkedList<>();
         
-        lastAggregatedMetrics.add(originalMetric);
+        if(metric != null)
+            lastAggregatedMetrics.add(metric);
         
         while(lastAggregatedMetrics.size() > max_lastAggregatedMetrics_size)
             lastAggregatedMetrics.remove(lastAggregatedMetrics.iterator().next());
     }
     
     public void add(Instant time, Value value) {
+        if(time == null || value == null)
+            return;
+        
         if(values.size() >= (max_size * 0.9))
             summarizeValues(time);
 
