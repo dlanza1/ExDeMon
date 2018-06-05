@@ -17,7 +17,7 @@ public abstract class Value implements Serializable, Cloneable {
     @Getter @Setter
     protected String source;
     
-    @Getter @Setter
+    @Setter
     protected List<Metric> lastSourceMetrics;
 
     public Optional<Float> getAsFloat() {
@@ -51,6 +51,13 @@ public abstract class Value implements Serializable, Cloneable {
     @Override
     public String toString() {
         return source;
+    }
+    
+    public List<Metric> getLastSourceMetrics() {
+        if(lastSourceMetrics == null || lastSourceMetrics.isEmpty())
+            return null;
+        
+        return lastSourceMetrics;
     }
 
     @Override

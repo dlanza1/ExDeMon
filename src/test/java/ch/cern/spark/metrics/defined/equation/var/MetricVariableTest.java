@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.defined.equation.var;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -56,6 +57,7 @@ public class MetricVariableTest  {
         Properties properties = new Properties();
         properties.setProperty("aggregate.type", "count");
         properties.setProperty("aggregate.attributes", "seq");
+        properties.setProperty("aggregate.latest-metrics.max-size", "5");
         var.config(properties, Optional.empty());
         
         VariableStatuses variableStatuses = new VariableStatuses();
@@ -69,7 +71,7 @@ public class MetricVariableTest  {
         var.updateVariableStatuses(variableStatuses, new Metric(Instant.now(), 10f, att));
         Value computed = var.compute(variableStatuses, Instant.now());
         assertEquals(0f, computed.getAsFloat().get(), 0f);
-        assertEquals(0, computed.getLastSourceMetrics().size());
+        assertNull(computed.getLastSourceMetrics());
         
         att = new HashMap<>();
         att.put("seq", "1");
