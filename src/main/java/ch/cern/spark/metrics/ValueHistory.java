@@ -87,7 +87,7 @@ public class ValueHistory implements Serializable {
         
         lastAggregatedMetrics.add(originalMetric);
         
-        while(lastAggregatedMetrics != null && lastAggregatedMetrics.size() >= max_lastAggregatedMetrics_size + 1)
+        while(lastAggregatedMetrics.size() > max_lastAggregatedMetrics_size)
             lastAggregatedMetrics.remove(lastAggregatedMetrics.iterator().next());
     }
     

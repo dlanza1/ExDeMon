@@ -2,6 +2,7 @@ package ch.cern.spark.metrics;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -16,6 +17,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -158,6 +160,29 @@ public class ValueHistoryTest {
         
         assertNotSame(store.history.getDatedValues(), restoredStore.history.getDatedValues());
         assertEquals(store.history.getDatedValues(), restoredStore.history.getDatedValues());
+    }
+    
+    @Test
+    public void lastAggregatedMetrics() throws ComputationException {
+        ValueHistory values = new ValueHistory(3, 0, null, null);
+        values.add(Instant.now(), new FloatValue(1), new Metric(Instant.now(), new FloatValue(1), new HashMap<>()));
+        assertNull(values.getLastAggregatedMetrics());
+        
+        values = new ValueHistory(3, 2, null, null);
+        values.add(Instant.now(), new FloatValue(1), new Metric(Instant.now(), new FloatValue(1), new HashMap<>()));
+        values.add(Instant.now(), new FloatValue(1), new Metric(Instant.now(), new FloatValue(1), new HashMap<>()));
+        assertEquals(2, values.getLastAggregatedMetrics().size());
+        
+        Metric metric1 = new Metric(Instant.now(), new FloatValue(1), new HashMap<>());
+        values.add(Instant.now(), new FloatValue(1), metric1);
+        assertEquals(2, values.getLastAggregatedMetrics().size());
+        assertTrue(values.getLastAggregatedMetrics().contains(metric1));
+        
+        Metric metric2 = new Metric(Instant.now(), new FloatValue(1), new HashMap<>());
+        values.add(Instant.now(), new FloatValue(1), metric2);
+        assertEquals(2, values.getLastAggregatedMetrics().size());
+        assertTrue(values.getLastAggregatedMetrics().contains(metric1));
+        assertTrue(values.getLastAggregatedMetrics().contains(metric2));
     }
     
     @Test
