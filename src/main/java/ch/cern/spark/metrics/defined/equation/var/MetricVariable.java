@@ -152,6 +152,8 @@ public class MetricVariable extends Variable {
             ValueHistory history = ((ValueHistory.Status) status).history;
 
             List<Metric> metrics = history.getLastAggregatedMetrics();
+            
+            System.out.println(Instant.now() + " " + metrics.size());
 
             return metrics != null ? new LinkedList<>(metrics) : null;
         }
