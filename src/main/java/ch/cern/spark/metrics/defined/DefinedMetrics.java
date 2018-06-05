@@ -40,7 +40,9 @@ public class DefinedMetrics {
 	        		.filter(out -> out != null)
 	        		.collect(Collectors.toMap(DefinedMetric::getId, m -> m));
 	        
-	        LOG.info("Metrics defined: " + definedMetrics);
+	        LOG.info("Metrics defined updated");
+	        for (Map.Entry<String, DefinedMetric> definedMetric : definedMetrics.entrySet())
+                LOG.info(definedMetric.getKey() + ": " + definedMetric.getValue());
 	        
 	        return definedMetrics;
 		}
