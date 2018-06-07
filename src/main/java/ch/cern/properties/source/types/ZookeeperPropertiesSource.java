@@ -74,18 +74,6 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
         return (Properties) currentProperties.clone();
     }
 
-    @SuppressWarnings("unused")
-    private void parseTree(TreeCache cache, String path, Properties properties) {
-        ChildData data = cache.getCurrentData(path.equals("") ? "/" : path);
-        if(data.getData() != null)
-            insertValue(data.getPath(), new String(data.getData()));
-        
-        Map<String, ChildData> childs = cache.getCurrentChildren(path.equals("") ? "/" : path);
-        
-        for (Map.Entry<String, ChildData> child : childs.entrySet())
-            parseTree(cache, path + "/" + child.getKey(), properties);
-    }
-
     private void insertValue(String path, String value) {
         String type = extractProperty(typePattern, path);
         String id = extractProperty(idPattern, path);

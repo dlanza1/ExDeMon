@@ -238,8 +238,13 @@ public class Properties extends java.util.Properties {
         if (Properties.cachedProperties == null)
             Properties.cachedProperties = new PropertiesCache(propertiesSourceProps);
 
-        if (propertiesSourceProps != null)
-            getCache().setExpiration(propertiesSourceProps.getPeriod("expire", Duration.ofMinutes(1)));
+        if (propertiesSourceProps != null) {
+            Optional<Duration> expirationPeriod = propertiesSourceProps.getPeriod("expire");
+            if(expirationPeriod.isPresent())
+                getCache().setExpiration(propertiesSourceProps.getPeriod("expire").get());
+            else
+                getCache().setExpiration(null);
+        }
     }
 
     public void setDefaultPropertiesSource(String propertyFilePath) {

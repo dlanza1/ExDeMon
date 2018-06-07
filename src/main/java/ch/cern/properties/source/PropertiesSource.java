@@ -77,4 +77,9 @@ public abstract class PropertiesSource extends Component {
 	
 	protected abstract Properties loadAll() throws Exception;
 
+    public void prepareConfig(Properties properties) {
+        if(!properties.contains("expire"))
+            properties.setProperty("expire", "1m");
+    }
+
 }

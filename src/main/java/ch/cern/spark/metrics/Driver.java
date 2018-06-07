@@ -38,11 +38,11 @@ import ch.cern.spark.metrics.trigger.TriggerStatus;
 import ch.cern.spark.metrics.trigger.TriggerStatusKey;
 import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.metrics.trigger.action.actuator.Actuators;
+import ch.cern.spark.status.Status;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusOperation;
 import ch.cern.spark.status.StatusOperation.Op;
 import ch.cern.spark.status.StatusesKeySocketReceiver;
-import ch.cern.spark.status.storage.StatusesStorage;
 import ch.cern.spark.status.storage.manager.ZookeeperStatusesOperationsReceiver;
 
 public final class Driver {
@@ -96,8 +96,10 @@ public final class Driver {
 
         Driver driver = new Driver(properties);
 
-        JavaStreamingContext ssc = driver
-                .createNewStreamingContext(properties.getSubset(PropertiesSource.CONFIGURATION_PREFIX));
+        Properties propertiesSourceProps = properties.getSubset(PropertiesSource.CONFIGURATION_PREFIX);
+        PropertiesSource propSource = ComponentManager.build(Type.PROPERTIES_SOURCE, propertiesSourceProps);
+        propSource.prepareConfig(propertiesSourceProps);
+        JavaStreamingContext ssc = driver.createNewStreamingContext(propertiesSourceProps);
 
         // Start the computation
         ssc.start();
@@ -227,10 +229,7 @@ public final class Driver {
 
         String checkpointDir = properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT);
 
-        if (!sparkConf.contains(StatusesStorage.STATUS_STORAGE_PARAM + ".type")) {
-            sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".type", "single-file");
-            sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".path", checkpointDir + "/statuses");
-        }
+        Status.configSpark(sparkConf, checkpointDir);
 
         long batchInterval = properties.getPeriod(BATCH_INTERVAL_PARAM, Duration.ofMinutes(1)).getSeconds();
 
@@ -239,8 +238,7 @@ public final class Driver {
         ssc.checkpoint(checkpointDir + "/checkpoint/");
 
         try {
-            ZookeeperJobListener streamingListener = new ZookeeperJobListener(
-                    properties.getSubset("spark.streaming.listener"));
+            ZookeeperJobListener streamingListener = new ZookeeperJobListener(properties.getSubset("spark.streaming.listener"));
 
             ssc.sparkContext().sc().addSparkListener(streamingListener);
             ssc.addStreamingListener(streamingListener);

@@ -94,5 +94,12 @@ public class Status {
 		
 		return storage;
 	}
+
+    public static void configSpark(SparkConf sparkConf, String checkpointDir) {
+        if (!sparkConf.contains(StatusesStorage.STATUS_STORAGE_PARAM + ".type")) {
+            sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".type", "single-file");
+            sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".path", checkpointDir + "/statuses");
+        }
+    }
 	
 }
