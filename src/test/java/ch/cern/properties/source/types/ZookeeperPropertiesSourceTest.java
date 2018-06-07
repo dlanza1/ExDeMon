@@ -5,16 +5,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.data.ACL;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,30 +22,19 @@ public class ZookeeperPropertiesSourceTest {
     
     private TestingServer zkTestServer;
     private ZooKeeper zk;
-
-    private ArrayList<ACL> acls = ZooDefs.Ids.OPEN_ACL_UNSAFE;
-    private CreateMode mode = CreateMode.PERSISTENT;
+    private CuratorFramework client;
     
     @Before
     public void startZookeeper() throws Exception {
         zkTestServer = new TestingServer(2182);
         
-        CuratorFramework client = CuratorFrameworkFactory.builder()
+        client = CuratorFrameworkFactory.builder()
                 .connectString(zkTestServer.getConnectString())
                 .retryPolicy(new ExponentialBackoffRetry(1000, 3))
                 .sessionTimeoutMs(20000)
                 .build();
         client.start();
-        
-        client.create().creatingParentsIfNeeded()
-                .forPath("/exdemon_json", null);
-        client.create().creatingParentsIfNeeded()
-                .forPath("/exdemon/owner=exdemon/env=qa/id=spark_batch/type=schema/attributes/$environment", "qa".getBytes());
-        client.create().creatingParentsIfNeeded()
-                .forPath("/exdemon/owner=tape/env=tapeserver_diskserver/id=perf/type=schema/timestamp/key", "data.timestamp".getBytes());
-        client.create().creatingParentsIfNeeded()
-                .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/triggers/mattermost/actuators", "a1 a2 a3".getBytes());
-        
+
         zk = client.getZookeeperClient().getZooKeeper();
     }
     
@@ -77,6 +62,8 @@ public class ZookeeperPropertiesSourceTest {
         
         source.config(sourceProperties);
         
+        client.create().creatingParentsIfNeeded().forPath("/exdemon");
+        
         assertNotNull(source.loadAll());
         
         zkTestServer.stop();
@@ -101,33 +88,18 @@ public class ZookeeperPropertiesSourceTest {
             assertEquals("java.io.IOException: Initialization error, parent path may not exist", e.getMessage());
         }
     }
-
-    @Test
-    public void parseProperties() throws Exception {
-        ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
-        Properties sourceProperties = new Properties();
-        sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
-        source.config(sourceProperties);
-        
-        Properties props = new Properties();
-        props.setProperty("metrics.schema.exdemon_qa_spark_batch.attributes.$environment", "qa");
-        props.setProperty("metrics.schema.tape_tapeserver_diskserver_perf.timestamp.key", "data.timestamp");
-        props.setProperty("monitor.db_production_inventory-missing.triggers.mattermost.actuators", "a1 a2 a3");
-        
-        assertEquals(props, source.loadAll());
-    }
     
     @Test
     public void parsePropertiesAsJSON() throws Exception {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
         sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
-        sourceProperties.setProperty("asjson", "json");
         source.config(sourceProperties);
         
         String json = "{ \"a\": 12, \"b\": { \"c\": 34 }}";
         
-        zk.create("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes(), acls, mode);
+        client.create().creatingParentsIfNeeded()
+            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes());
         
         Properties props = new Properties();
         props.setProperty("monitor.db_production_inventory-missing.a", "12");
@@ -141,12 +113,12 @@ public class ZookeeperPropertiesSourceTest {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
         sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
-        sourceProperties.setProperty("asjson", "json");
         source.config(sourceProperties);
         
         String json = "{ \"a\": 12, \"b\": { \"c\": 34 }}";
         
-        zk.create("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes(), acls, mode);
+        client.create().creatingParentsIfNeeded()
+            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes());
         
         Properties props = new Properties();
         props.setProperty("monitor.db_production_inventory-missing.a", "12");
@@ -166,12 +138,12 @@ public class ZookeeperPropertiesSourceTest {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
         sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
-        sourceProperties.setProperty("asjson", "json");
         source.config(sourceProperties);
         
         String json = "{ \"a\": 12, \"b\": { \"c\": 34 }}";
         
-        zk.create("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes(), acls, mode);
+        client.create().creatingParentsIfNeeded()
+            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes());
         
         Properties props = new Properties();
         props.setProperty("monitor.db_production_inventory-missing.a", "12");
@@ -184,70 +156,6 @@ public class ZookeeperPropertiesSourceTest {
         Thread.sleep(100);
         
         assertEquals(0, source.loadAll().size());
-    }
-    
-    @Test
-    public void removeProperties() throws Exception {
-        ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
-        Properties sourceProperties = new Properties();
-        sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
-        source.config(sourceProperties);
-        
-        Properties props = new Properties();
-        props.setProperty("metrics.schema.exdemon_qa_spark_batch.attributes.$environment", "qa");
-        props.setProperty("metrics.schema.tape_tapeserver_diskserver_perf.timestamp.key", "data.timestamp");
-        props.setProperty("monitor.db_production_inventory-missing.triggers.mattermost.actuators", "a1 a2 a3");
-        
-        assertEquals(props, source.loadAll());
-        
-        zk.delete("/exdemon/owner=exdemon/env=qa/id=spark_batch/type=schema/attributes/$environment", -1);
-        zk.delete("/exdemon/owner=tape/env=tapeserver_diskserver/id=perf/type=schema/timestamp/key", -1);
-        props.remove("metrics.schema.exdemon_qa_spark_batch.attributes.$environment");
-        props.remove("metrics.schema.tape_tapeserver_diskserver_perf.timestamp.key");
-        
-        Thread.sleep(100);
-        assertEquals(props, source.loadAll());
-        
-        zk.delete("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/triggers/mattermost/actuators", -1);
-        
-        Thread.sleep(100);
-        assertEquals(new Properties(), source.loadAll());
-    }
-    
-    @Test
-    public void updateProperties() throws Exception {
-        ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
-        Properties sourceProperties = new Properties();
-        sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
-        source.config(sourceProperties);
-        
-        Properties props = new Properties();
-        props.setProperty("metrics.schema.exdemon_qa_spark_batch.attributes.$environment", "qa");
-        props.setProperty("metrics.schema.tape_tapeserver_diskserver_perf.timestamp.key", "data.timestamp");
-        props.setProperty("monitor.db_production_inventory-missing.triggers.mattermost.actuators", "a1 a2 a3");
-        
-        assertEquals(props, source.loadAll());
-        zk.setData("/exdemon/owner=exdemon/env=qa/id=spark_batch/type=schema/attributes/$environment", "qa_v2".getBytes(), -1);
-        zk.setData("/exdemon/owner=tape/env=tapeserver_diskserver/id=perf/type=schema/timestamp/key", "data.timestamp_v2".getBytes(), -1);
-        zk.setData("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/triggers/mattermost/actuators", "a1 a2 a3_v2".getBytes(), -1);
-        props.setProperty("metrics.schema.exdemon_qa_spark_batch.attributes.$environment", "qa_v2");
-        props.setProperty("metrics.schema.tape_tapeserver_diskserver_perf.timestamp.key", "data.timestamp_v2");
-        props.setProperty("monitor.db_production_inventory-missing.triggers.mattermost.actuators", "a1 a2 a3_v2");
-        
-        Thread.sleep(100);
-        assertEquals(props, source.loadAll());
-    }
-    
-    @Test
-    public void toPropertyKey() {
-        assertEquals("id.triggers.mattermost.actuators", ZookeeperPropertiesSource.toPropertyKey(null, null, "id", 
-                     "/owner=db/env=production/id=inventory-missing/type=monitor/triggers/mattermost/actuators"));
-        assertEquals("OW_UNKNOWN_id.triggers.mattermost.actuators", ZookeeperPropertiesSource.toPropertyKey("OW", null, "id", 
-                     "/owner=db/env=production/id=inventory-missing/type=monitor/triggers/mattermost/actuators"));
-        assertEquals("UNKNOWN_ENV_id.triggers.mattermost.actuators", ZookeeperPropertiesSource.toPropertyKey(null, "ENV", "id", 
-                     "/owner=db/env=production/id=inventory-missing/type=monitor/triggers/mattermost/actuators"));
-        assertEquals("OW_ENV_id.triggers.mattermost.actuators", ZookeeperPropertiesSource.toPropertyKey("OW", "ENV", "id", 
-                     "/owner=db/env=production/id=inventory-missing/type=monitor/triggers/mattermost/actuators"));
     }
     
     @After

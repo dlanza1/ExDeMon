@@ -1,7 +1,6 @@
 package ch.cern.properties.source.types;
 
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -41,20 +40,19 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
     private Properties currentProperties;
 
     private int timeout_ms;
-
-    private String asJsonNodeName;
     
     private static final Pattern typePattern = Pattern.compile("/type=([^/]+)/");
     private static final Pattern idPattern = Pattern.compile("/id=([^/]+)/");
     private static final Pattern envPattern = Pattern.compile("/env=([^/]+)/");
     private static final Pattern ownerPattern = Pattern.compile("/owner=([^/]+)/");
+
+    private static final String CONF_NODE_NAME = "/json";
     
     @Override
     public void configure(Properties properties) throws ConfigurationException {
         zkConnString = properties.getProperty("connection_string");
         initialization_timeout_ms = properties.getLong("initialization_timeout_ms", 5000);
         timeout_ms = (int) properties.getLong("timeout_ms", 20000);
-        asJsonNodeName = properties.getProperty("asjson");
         
         properties.confirmAllPropertiesUsed();
     }
@@ -107,22 +105,14 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
         
         String prefixType = getPrefixType(type);
         
-        if(asJsonNodeName != null) {
-            if(path.endsWith("/" + asJsonNodeName)) {
-                Properties componentProps = Properties.fromJson(value);
-                
-                if(value != null && componentProps == null)
-                    LOG.warn("Not a valid JSON at path " + path + ". Value: " + value);
-                
-                String prefix = prefixType + "." + buildId(owner, env, id);
-                
-                currentProperties.replaceSubset(prefix, componentProps);
-            }
-        }else {
-            String key = toPropertyKey(owner, env, id, path);
-            
-            currentProperties.setProperty(prefixType + "." + key, value);
-        }
+        Properties componentProps = Properties.fromJson(value);
+        
+        if(value != null && componentProps == null)
+            LOG.warn("Not a valid JSON at path " + path + ". Value: " + value);
+        
+        String prefix = prefixType + "." + buildId(owner, env, id);
+        
+        currentProperties.replaceSubset(prefix, componentProps);
     }
     
     private String getPrefixType(String type) {
@@ -157,32 +147,10 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
         }
         
         String prefixType = getPrefixType(type);
-                
-        if(asJsonNodeName != null) {
-            if(path.endsWith("/" + asJsonNodeName)) {
-                String prefix = prefixType + "." + buildId(owner, env, id);
+        
+        String prefix = prefixType + "." + buildId(owner, env, id);
 
-                currentProperties.replaceSubset(prefix, null);
-            }
-        }else {
-            String key = toPropertyKey(owner, env, id, path);
-            
-            currentProperties.remove(prefixType + "." + key);
-        }
-    }
-
-    public static String toPropertyKey(String owner, String env, String id, String path) {
-        String full_id = buildId(owner, env, id);
-        
-        LinkedList<String> elementsForKey = new LinkedList<>();
-        elementsForKey.add(full_id);
-        
-        String[] nodes = path.split("/");
-        for (String node : nodes)
-            if(node.length() > 0 && !Pattern.matches("[a-z]+=.*", node))
-                elementsForKey.add(node);
-        
-        return String.join(".", elementsForKey);
+        currentProperties.replaceSubset(prefix, null);
     }
 
     private static String buildId(String owner, String env, String id) {
@@ -267,6 +235,9 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
                     
                     if(data != null && data.length > 0) {
                         String path = event.getData().getPath();
+                        if(!path.endsWith(CONF_NODE_NAME))
+                            return;
+                        
                         String value = new String(event.getData().getData());
                         insertValue(path, value);
                         
@@ -280,6 +251,9 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
                 case NODE_UPDATED:
                     if(event.getData().getData() != null) {
                         String path = event.getData().getPath();
+                        if(!path.endsWith(CONF_NODE_NAME))
+                            return;
+                        
                         String value = new String(event.getData().getData());
                         insertValue(path, value);
                         
