@@ -53,4 +53,13 @@ public class StringUtils {
 		return sb.toString();
 	}
 
+    public static int countLines(String string) {
+        String[] lines = string.split("\n");
+        
+        if(lines[lines.length-1].trim().length() == 0)
+            return lines.length-1;
+        
+        return lines.length;
+    }
+
 }

@@ -2,6 +2,7 @@ package ch.cern.spark.status;
 
 import static ch.cern.spark.metrics.MetricTest.Metric;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -28,6 +29,8 @@ import ch.cern.spark.StreamTestHelper;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
 import ch.cern.spark.metrics.defined.DefinedMetrics;
+import ch.cern.spark.status.StatusOperation.Op;
+import ch.cern.spark.status.storage.JSONStatusSerializer;
 import ch.cern.spark.status.storage.manager.ToStringPatternStatusKeyFilter;
 import ch.cern.spark.status.storage.manager.ZookeeperStatusesOperationsReceiver;
 import scala.Tuple2;
@@ -39,6 +42,8 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
     private TestingServer zkTestServer;
     private ZooKeeper zk;
     private CuratorFramework client;
+    
+    private static JSONStatusSerializer serializer = new JSONStatusSerializer();
     
     @Before
     public void startZookeeper() throws Exception {
@@ -64,7 +69,7 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
     }
     
 	@Test
-	public void shouldApplyListOperations() throws Exception {
+	public void listOperations() throws Exception {
 		DefinedMetrics.getCache().reset();
 		
         addInput(0,    Metric(1, 10f, "HOSTNAME=host1234"));
@@ -98,6 +103,44 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
         			 new String(client.getData().forPath("/id=1122/keys")));
         assertEquals("DONE", new String(client.getData().forPath("/id=1122/status")));
 	}
+	
+    @Test
+    public void showOperations() throws Exception {
+        DefinedMetrics.getCache().reset();
+        
+        addInput(0,    Metric(1, 10f, "HOSTNAME=host1234"));
+        addInput(0,    Metric(1, 20f, "HOSTNAME=host4321"));
+        addExpected(0, Metric(1, 20f, "HOSTNAME=host4321", "$defined_metric=dm1"));
+        addExpected(0, Metric(1, 10f, "HOSTNAME=host1234", "$defined_metric=dm1"));
+        
+        Batches<StatusOperation<DefinedMetricStatuskey, Metric>> opBatches = new Batches<>();
+        Map<String, String> metric_attributes = new HashMap<>();
+        metric_attributes.put("HOSTNAME", "host4321");
+        DefinedMetricStatuskey key = new DefinedMetricStatuskey("dm1", metric_attributes );
+        opBatches.add(0, new StatusOperation<DefinedMetricStatuskey, Metric>("1122", key, Op.SHOW));
+        
+        client.create().creatingParentsIfNeeded().forPath("/id=1122/ops", "SHOW".getBytes());
+        client.create().creatingParentsIfNeeded().forPath("/id=1122/keys", serializer.fromKey(key));
+        client.create().creatingParentsIfNeeded().forPath("/id=1122/status", "RECEIVED".getBytes());
+        
+        Cache<Properties> propertiesCache = Properties.getCache();
+        propertiesCache.set(new Properties());
+        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.type", "sum");
+        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.attributes", "ALL");
+        propertiesCache.get().setProperty("metrics.define.dm1.metrics.groupby", "HOSTNAME");
+        propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
+            
+        JavaDStream<Metric> metricsStream = createStream(Metric.class);
+        JavaDStream<StatusOperation<DefinedMetricStatuskey, Metric>> operations = createStream(StatusOperation.class, opBatches);
+        
+        JavaDStream<Metric> results = DefinedMetrics.generate(metricsStream, null, Optional.of(operations));
+        
+        assertExpected(results);
+        
+        assertTrue(new String(client.getData().forPath("/id=1122/values"))
+                   .startsWith("{\"key\":" + new String(serializer.fromKey(key)) + ",\"value\":{"));
+        assertEquals("DONE", new String(client.getData().forPath("/id=1122/status")));
+    }
     
     @After
     public void shutDown() throws IOException, InterruptedException {

@@ -92,13 +92,13 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 			
 			if(op.getOp().equals(Op.LIST)) {
 				if(op.filter(keyValue)) {
-					writeResult(op.getId(), keyValue._1);
+					writeListResult(op.getId(), keyValue._1);
 				}
 			}
 		}
 	}
 
-	private void writeResult(String id, StatusKey key) throws Exception {
+    private void writeListResult(String id, StatusKey key) throws Exception {
 		getClient();
 		
 		String path = "/id="+id+"/keys";

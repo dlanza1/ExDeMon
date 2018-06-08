@@ -66,7 +66,7 @@ public class ZookeeperStatusesOperationsReceiverTest {
         
         List<StatusOperation<StatusKey, ?>> ops = receiver.getStoredOps();
         
-        assertEquals("DONE", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
+        assertEquals("RECEIVED", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
         assertEquals(new StatusOperation<>("1122", key, Op.REMOVE), ops.get(0));
         
         receiver.onStop();
@@ -91,7 +91,7 @@ public class ZookeeperStatusesOperationsReceiverTest {
         
         List<StatusOperation<StatusKey, ?>> ops = receiver.getStoredOps();
         
-        assertEquals("DONE", new String(client.getData().forPath("/exdemon/operations/qa/id=1234/status")));
+        assertEquals("RECEIVED", new String(client.getData().forPath("/exdemon/operations/qa/id=1234/status")));
         assertEquals(new StatusOperation<>("1234", key1, Op.REMOVE), ops.get(0));
         assertEquals(new StatusOperation<>("1234", key2, Op.REMOVE), ops.get(1));
         
@@ -145,6 +145,32 @@ public class ZookeeperStatusesOperationsReceiverTest {
 
         assertEquals("RECEIVED", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
 		assertEquals(new StatusOperation<>("1122", filters), ops.get(0));
+        
+        receiver.onStop();
+    }
+    
+    @Test
+    public void showOperation() throws Exception {
+        Properties properties = new Properties();
+        properties.setProperty("connection_string", "localhost:2182/exdemon/operations/qa");
+        ZookeeperStatusesOperationsReceiver_ receiver = new ZookeeperStatusesOperationsReceiver_(properties);
+        receiver.onStart();
+        
+        MonitorStatusKey key1 = new MonitorStatusKey("m1", new HashMap<>());
+        String str1 = new String(derializer.fromKey(key1));
+        
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/keys", str1.getBytes());
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/operations/qa/id=1122/ops", "SHOW".getBytes());
+        
+        Thread.sleep(100);
+        
+        List<StatusOperation<StatusKey, ?>> ops = receiver.getStoredOps();
+        
+        List<Function<Tuple2<StatusKey, StatusValue>, Boolean>> filters = new LinkedList<>();
+        filters.add(new ClassNameStatusKeyFilter("abcd"));
+        
+        assertEquals("RECEIVED", new String(client.getData().forPath("/exdemon/operations/qa/id=1122/status")));
+        assertEquals(new StatusOperation<>("1122", key1, Op.SHOW), ops.get(0));
         
         receiver.onStop();
     }

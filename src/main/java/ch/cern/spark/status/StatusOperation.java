@@ -18,7 +18,7 @@ public class StatusOperation<K, V> implements Serializable{
     
     private String id;
     
-    public enum Op {UPDATE, LIST, REMOVE}
+    public enum Op {UPDATE, LIST, REMOVE, SHOW}
     @NonNull
     private Op op;
     

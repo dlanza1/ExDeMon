@@ -18,6 +18,7 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusOperation.Op;
 import ch.cern.spark.status.storage.StatusesStorage;
+import ch.cern.spark.status.storage.manager.ZookeeperStatusesOperationsReceiver;
 import ch.cern.spark.status.storage.manager.ZookeeperStatusesOpertaionsF;
 import scala.Option;
 import scala.Tuple2;
@@ -40,8 +41,13 @@ public class Status {
 			throw new ConfigurationException("Storage needs to be configured");
 		StatusesStorage storage = storageOpt.get();
 
-        JavaDStream<StatusOperation<K, V>> updatesAndRemoves = operations.filter(op -> op.getOp().equals(Op.UPDATE) || op.getOp().equals(Op.REMOVE));
-        JavaPairDStream<K, StatusOperation<K, V>> updatesAndRemovesKeyed = updatesAndRemoves.mapToPair(op -> new Tuple2<>(op.getKey(), op));
+        JavaDStream<StatusOperation<K, V>> opsWithKey = operations.filter(op -> op.getOp().equals(Op.UPDATE) 
+                                                                             || op.getOp().equals(Op.REMOVE)
+                                                                             || op.getOp().equals(Op.SHOW));
+        JavaPairDStream<K, StatusOperation<K, V>> opsKeyed = opsWithKey.mapToPair(op -> new Tuple2<>(op.getKey(), op));
+        
+        Properties zooStatusesOpFProps = Properties.from(context.getConf().getAll()).getSubset(ZookeeperStatusesOperationsReceiver.PARAM);
+        updateStatusFunction.configStatusesOp(zooStatusesOpFProps);
         
         //Load initial state from external storage
 		JavaPairRDD<K, S> initialStates = storage.load(context, keyClass, statusClass);
@@ -54,13 +60,13 @@ public class Status {
         if(timeout.isDefined())
             statusSpec = statusSpec.timeout(timeout.get());
         
-        JavaMapWithStateDStream<K, StatusOperation<K, V>, S, RemoveAndValue<K, R>> statusStream = updatesAndRemovesKeyed.mapWithState(statusSpec);
+        JavaMapWithStateDStream<K, StatusOperation<K, V>, S, RemoveAndValue<K, R>> statusStream = opsKeyed.mapWithState(statusSpec);
         
         //Keys that has been removed while mapping with states
         JavaDStream<K> keysToRemove = statusStream.filter(rv -> rv.isRemoveAction()).map(rv -> rv.getKey());
         
         //Union them with requested keys to remove 
-        JavaDStream<StatusOperation<K, V>> requestedRemoves = updatesAndRemoves.filter(op -> op.getOp().equals(Op.REMOVE));
+        JavaDStream<StatusOperation<K, V>> requestedRemoves = opsWithKey.filter(op -> op.getOp().equals(Op.REMOVE));
         keysToRemove = keysToRemove.union(requestedRemoves.map(op -> op.getKey()));
         
         //Remove all from external storage

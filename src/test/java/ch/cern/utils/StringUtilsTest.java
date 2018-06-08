@@ -16,4 +16,12 @@ public class StringUtilsTest {
         assertEquals(Optional.empty(), StringUtils.getLastCharacter(""));
     }
     
+    @Test
+    public void countLines(){
+        assertEquals(1, StringUtils.countLines("1234"));
+        assertEquals(1, StringUtils.countLines("1234\n"));
+        assertEquals(2, StringUtils.countLines("1234\n5678"));
+        assertEquals(2, StringUtils.countLines("1234\n5678\n"));
+    }
+    
 }
