@@ -39,6 +39,8 @@ public abstract class PropertiesSource extends Component {
 	    
 	    staticProperties = properties.getSubset("static");
 	    
+	    properties.getProperty("expire");
+	    
 	    configure(properties);
 	}
 	
