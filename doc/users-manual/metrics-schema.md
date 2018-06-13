@@ -15,7 +15,6 @@ The configuration parameters are the following:
 metrics.schema.<schema-id>.sources = <space-separated-source-ids>
 metrics.schema.<schema-id>.timestamp.key = <attribute that represent the time|not set>
 metrics.schema.<schema-id>.timestamp.format = <timestamp_format> (default: auto)
-metrics.schema.<schema-id>.attributes = <attributs separated by comma to extract from the JSON>
 metrics.schema.<schema-id>.attributes.<alias-1> = <key-to-attribute-1>
 metrics.schema.<schema-id>.attributes.<alias-2> = <key-to-attribute-2>
 metrics.schema.<schema-id>.attributes.<alias-n> = <key-to-attribute-n>
@@ -30,9 +29,8 @@ metrics.schema.<schema-id>.filter.<configs at Metrics filter> = <values>
 
 "timestamp.format" indicates the format of the timestamp stored in the attribute configured by "timestamp.attribute". If the format is a number that represents epoch in milliseconds, it must be set to "epoch-ms", if seconds "epoch-s". If the JSON document contains a timestamp with wrong format, metric with exception value will be generated, setting the timestamp to current time. By default, it automatically detects epoch-ms, epoch-s, "yyyy-MM-dd HH:mm:ssZ" and "yyyy-MM-dd'T'HH:mm:ssZ" formats.
 
-"attributes" configure the keys that will be extracted from the JSON document. You can indicate a list of keys separated by space.
-You can also configure these attributes individually assigning aliases. Assigned alias will be used to refer to the attribute in any metric filter. 
-List of keys or aliases can be combined.
+"attributes.&lt;alias>" configure the keys that will be extracted from the JSON document.
+Assigned alias will be used to refer to the attribute in any metric filter.
 If the JSON document does not contain the attribute, the metric will not contain such attribute.
 Key can be a regular expressions (e.g. data.*). You can combine alias and regular expressions, if alias contain a "+" and key is a regular expression with a group, "+" in the alias will be replaced with the content of the group. Example:
 
@@ -82,8 +80,6 @@ For this document, the configuration would looks like the following.
 ```
 metrics.schema.<schema-id>.timestamp.keys = header.TIMESTAMP
 
-metrics.schema.<schema-id>.attributes = headers.hostname
-# or/and with aliases
 metrics.schema.<schema-id>.attributes.hostname = headers.hostname
 
 metrics.schema.<schema-id>.value.CPUUsage.key = body.CPUUsage
@@ -92,17 +88,7 @@ metrics.schema.<schema-id>.value.CPUName.key = body.CPUName
 metrics.schema.<schema-id>.value.CPUName.regex = The CPU name is (.*)
 ```
 
-In this case, three metrics will be generated per JSON document (as many as attributes for values). Generated metrics will be (if aliases are not used):
-* Metric with timestamp "2017-11-01T10:29:14+02:00", value 295.13 and attributes:
-  * headers.hostname = "host-1234.cern.ch"
-  * $value = "CPUUsage"
-* Metric with timestamp "2017-11-01T10:29:14+02:00", value true and attributes:
-  * headers.hostname = "host-1234.cern.ch"
-  * $value = "IsWriteActive"
-* Metric with timestamp "2017-11-01T10:29:14+02:00", value "Intel Core i8" and attributes:
-  * headers.hostname = "host-1234.cern.ch"
-  * $value = "CPUName"
-
+In this case, three metrics will be generated per JSON document (as many as values). Generated metrics will be:
 If aliases are used:
 * Metric with timestamp "2017-11-01T10:29:14+02:00", value 295.13 and attributes:
   * hostname = "host-1234.cern.ch"

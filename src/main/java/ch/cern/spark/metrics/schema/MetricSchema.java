@@ -116,21 +116,6 @@ public class MetricSchema implements Serializable {
         values = new LinkedList<>();
         Properties valuesProps = properties.getSubset(VALUES_PARAM);
         
-        //TODO backward compatibility
-        for (Map.Entry<Object, Object> pair : valuesProps.getSubset("keys").entrySet()) {
-            String alias = (String) pair.getKey();
-            String key = (String) pair.getValue();
-            
-            ValueDescriptor descriptor = new ValueDescriptor(alias);
-            Properties props = new Properties();
-            props.setProperty(ValueDescriptor.KEY_PARAM, key);
-            descriptor.config(props);
-
-            values.add(descriptor);
-        }
-        valuesProps.entrySet().removeIf(entry -> ((String) entry.getKey()).startsWith("keys"));
-        //TODO backward compatibility
-        
         Set<String> valueIDs = valuesProps.getIDs();
         for (String valueId : valueIDs) {
             ValueDescriptor descriptor = new ValueDescriptor(valueId);
@@ -146,18 +131,8 @@ public class MetricSchema implements Serializable {
         
         attributes = new LinkedList<>();
         attributesPattern = new LinkedList<>();
-        String attributesValue = properties.getProperty(ATTRIBUTES_PARAM);
-        if (attributesValue != null) {
-            String[] attributesValues = attributesValue.split("\\s");
-
-            for (String attribute : attributesValues)
-                if(!isKeyRegex(attribute))
-                    attributes.add(new Pair<String, String>(attribute, attribute));
-                else
-                    attributesPattern.add(new Pair<String, Pattern>(attribute, Pattern.compile(attribute)));
-        }
-        Properties attributesWithAlias = properties.getSubset(ATTRIBUTES_PARAM);
-        for (Map.Entry<Object, Object> pair : attributesWithAlias.entrySet()) {
+        Properties attributesProps = properties.getSubset(ATTRIBUTES_PARAM);
+        for (Map.Entry<Object, Object> pair : attributesProps.entrySet()) {
             String alias = (String) pair.getKey();
             String key = (String) pair.getValue();
             
