@@ -8,6 +8,9 @@ import ch.cern.components.Component;
 import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentType;
 import ch.cern.spark.metrics.DatedValue;
+import ch.cern.spark.metrics.Metric;
+import ch.cern.spark.metrics.ValueHistory;
+import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
 import ch.cern.spark.metrics.value.AggregatedValue;
 import ch.cern.spark.metrics.value.BooleanValue;
 import ch.cern.spark.metrics.value.FloatValue;
@@ -56,6 +59,16 @@ public abstract class Aggregation extends Component {
     @Override
     public boolean equals(Object obj) {
         return this.getClass().equals(obj.getClass());
+    }
+    
+    public boolean isFilterEnable() {
+        return true;
+    }
+
+    public void postUpdateStatus(MetricVariable metricVariable, AggregationValues aggValues, Metric metric) {
+    }
+
+    public void postUpdateStatus(MetricVariable metricVariable, ValueHistory history, Metric metric) {
     }
     
 }

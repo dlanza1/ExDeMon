@@ -39,6 +39,7 @@ public class MetricVariable extends Variable {
 
     public static final long MAX_SIZE_DEFAULT = 10000;
 
+    @Getter
     private MetricsFilter filter;
 
     @Getter
@@ -116,6 +117,9 @@ public class MetricVariable extends Variable {
 
     @Override
     public boolean test(Metric metric) {
+        if(!aggregation.isFilterEnable())
+            return true;
+        
         return filter.test(metric);
     }
 
@@ -235,6 +239,8 @@ public class MetricVariable extends Variable {
 
             if (aggregateSelectALL || (hash != 1 && hash != 0))
                 aggValues.add(hash, metric.getValue(), metric.getTimestamp(), metric, originalMetric);
+            
+            aggregation.postUpdateStatus(this, aggValues, metric);
         } else {
             if (!(status instanceof ValueHistory.Status))
                 status = initStatus();
@@ -246,6 +252,8 @@ public class MetricVariable extends Variable {
             history.setMax_size(max_aggregation_size);
             history.setMax_lastAggregatedMetrics_size(max_lastAggregatedMetrics_size);
             history.add(metric.getTimestamp(), metric.getValue(), originalMetric);
+            
+            aggregation.postUpdateStatus(this, history, metric);
         }
 
         return status;

@@ -23,7 +23,7 @@ metrics.define.<defined-metric-id>.metrics.attribute.<attribute-name> = <value>
 # Variable that represent an incoming metric
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name> = <value->
-metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.type = <not set|sum|avg|weighted_avg|count|max|min|diff>
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.type = <not set|sum|avg|weighted_avg|count|successive_count|max|min|diff>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.attributes = <not set|ALL|space separated list of attributes> (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.max-size = <maximum-aggregation-size> (default: 10000)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.latest-metrics.max-size = <size> (default: 0)

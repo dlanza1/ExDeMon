@@ -97,4 +97,9 @@ public class AggregationValues extends StatusValue {
             lastAggregatedMetrics.values().removeIf(m -> m.getTimestamp().isBefore(oldestTime));
     }
 
+    public void reset() {
+        values = new LinkedHashMap<>();
+        lastAggregatedMetrics = null;
+    }
+
 }
