@@ -64,7 +64,8 @@ public class HTTPSinkTest {
 		
         String expectedTimestamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(Date.from(instant));
         
-		assertEquals("[{\"analysis_timestamp\":\"" + expectedTimestamp + "\","
+		assertEquals("[{\"timestamp\":\"" + expectedTimestamp  +"\","
+		                + "\"analysis_timestamp\":\"" + expectedTimestamp + "\","
     					+ "\"analysis_params\":{},"
     					+ "\"tags\":{}}]", receivedEntity.getContent());
 	}

@@ -4,9 +4,6 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
 
 import ch.cern.Taggable;
 import ch.cern.spark.metrics.Metric;
@@ -26,8 +23,11 @@ public class AnalysisResult implements Serializable, Taggable {
     @Getter
     private String status_reason;
     
+    @Getter
+    private Instant timestamp; //corresponding to triggering metric
+    
     @Getter @Setter @NonNull
-    private Instant analysis_timestamp;
+    private Instant analysis_timestamp; //object creation
     
     @Getter @NonNull
     private Metric analyzed_metric;
@@ -40,17 +40,19 @@ public class AnalysisResult implements Serializable, Taggable {
     
     public AnalysisResult() {
         analysis_timestamp = Instant.now();
+        timestamp = analysis_timestamp;
         analysis_params = new HashMap<String, Object>();
         tags = new HashMap<>();
     }
 
 	public void setAnalyzedMetric(@NonNull Metric metric) {
-    		if(metric.getValue().getAsException().isPresent()) {
-    			this.status = Status.EXCEPTION;
-    			this.status_reason = metric.getValue().getAsException().get();
-    		}
+        if (metric.getValue().getAsException().isPresent()) {
+            this.status = Status.EXCEPTION;
+            this.status_reason = metric.getValue().getAsException().get();
+        }
     			
         this.analyzed_metric = metric;
+        this.timestamp = metric.getTimestamp();
         
         tags = replaceMetricAttributesInTags(tags);
     }
@@ -102,12 +104,6 @@ public class AnalysisResult implements Serializable, Taggable {
 
 	public Map<String, String> getTags() {    	
     		return tags;
-	}
-    
-	public<R> Optional<R> map(Function<AnalysisResult, ? extends R> mapper) {
-        Objects.requireNonNull(mapper);
-
-        return Optional.ofNullable(mapper.apply(this));
 	}
     
 }

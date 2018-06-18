@@ -97,11 +97,11 @@ public class Monitor {
     }
 
     public Optional<AnalysisResult> process(State<StatusValue> status, Metric metric) {
-    		AnalysisResult result = null;
+    	AnalysisResult result = null;
 
         try{
-        		if(analysis.hasStatus() && status.exists())
-            		((HasStatus) analysis).load(status.get());
+            if(analysis.hasStatus() && status.exists())
+                ((HasStatus) analysis).load(status.get());
         		
             result = analysis.apply(metric);
             
