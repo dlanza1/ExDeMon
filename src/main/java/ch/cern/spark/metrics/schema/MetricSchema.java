@@ -253,7 +253,7 @@ public class MetricSchema implements Serializable {
 
     private Optional<ExceptionValue> raiseException(String value, Exception exception) {
         if(!exceptionsCache.wasRecentlyRaised(id + value, exception)) {
-            LOG.error(exception.getMessage(), exception);
+            LOG.error(id + ": " + exception.getMessage(), exception);
             
             exceptionsCache.raised(id + value, exception);
             
