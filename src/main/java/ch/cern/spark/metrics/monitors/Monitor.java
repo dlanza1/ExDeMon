@@ -76,12 +76,7 @@ public class Monitor {
         		analysis_props.setProperty("type", NoneAnalysis.class.getAnnotation(RegisterComponent.class).value());
     		analysis = ComponentManager.build(Type.ANAYLSIS, analysis_props);
         
-    		Properties triggersProps = properties.getSubset("triggers");
-    		
-        //TODO backward compatibility
-    		Properties notificatorsPropsOld = properties.getSubset("notificator");
-    		triggersProps.putAll(notificatorsPropsOld);
-        //TODO backward compatibility
+    	Properties triggersProps = properties.getSubset("triggers");
         
         Set<String> triggerIds = triggersProps.getIDs();
         triggers = new HashMap<>();
