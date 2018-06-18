@@ -25,21 +25,21 @@ public class ComponentManager {
     
 	@SuppressWarnings("unchecked")
 	private static void registerComponent(Class<?> componentToRegister) {
-    		Class<? extends Component> componentClass;
-    		try {
-    			 componentClass = (Class<? extends Component>) componentToRegister;
-    		}catch(ClassCastException e){
-    			LOG.error("Component " + componentToRegister + " could not be registered, it must extend " + Component.class);
-    			return;
-    		}
+	    Class<? extends Component> componentClass;
+	    try {
+	        componentClass = (Class<? extends Component>) componentToRegister;
+	    }catch(ClassCastException e){
+	        LOG.error("Component " + componentToRegister + " could not be registered, it must extend " + Component.class);
+    		return;
+    	}
     		
-    		ComponentType typeAnnotation = componentClass.getSuperclass().getAnnotation(ComponentType.class);
-    		if(typeAnnotation == null)
-    			typeAnnotation = componentClass.getSuperclass().getSuperclass().getAnnotation(ComponentType.class);
-    		if(typeAnnotation == null) {
-    			LOG.error("Component " + componentToRegister + " could not be registered, it does not extend a class with @ComponentType annotation");
-    			return;
-    		}
+    	ComponentType typeAnnotation = componentClass.getSuperclass().getAnnotation(ComponentType.class);
+    	if(typeAnnotation == null)
+    	    typeAnnotation = componentClass.getSuperclass().getSuperclass().getAnnotation(ComponentType.class);
+    	if(typeAnnotation == null) {
+    	    LOG.error("Component " + componentToRegister + " could not be registered, it does not extend a class with @ComponentType annotation");
+    	    return;
+    	}
     			
         Type type = typeAnnotation.value();
         String name = componentClass.getAnnotation(RegisterComponent.class).value();
