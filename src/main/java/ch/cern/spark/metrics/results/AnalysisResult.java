@@ -24,7 +24,7 @@ public class AnalysisResult implements Serializable, Taggable {
     private String status_reason;
     
     @Getter
-    private Instant timestamp; //corresponding to triggering metric
+    private long timestamp; //corresponding to triggering metric
     
     @Getter @Setter @NonNull
     private Instant analysis_timestamp; //object creation
@@ -40,7 +40,7 @@ public class AnalysisResult implements Serializable, Taggable {
     
     public AnalysisResult() {
         analysis_timestamp = Instant.now();
-        timestamp = analysis_timestamp;
+        timestamp = analysis_timestamp.toEpochMilli();
         analysis_params = new HashMap<String, Object>();
         tags = new HashMap<>();
     }
@@ -52,7 +52,7 @@ public class AnalysisResult implements Serializable, Taggable {
         }
     			
         this.analyzed_metric = metric;
-        this.timestamp = metric.getTimestamp();
+        this.timestamp = metric.getTimestamp().toEpochMilli();
         
         tags = replaceMetricAttributesInTags(tags);
     }
