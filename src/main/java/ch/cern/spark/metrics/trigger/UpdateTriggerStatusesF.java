@@ -2,6 +2,7 @@ package ch.cern.spark.metrics.trigger;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.spark.streaming.State;
@@ -11,6 +12,7 @@ import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.trigger.action.Action;
+import ch.cern.spark.metrics.trigger.action.Template;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.UpdateStatusFunction;
 
@@ -81,6 +83,11 @@ public class UpdateTriggerStatusesF
             a.setTrigger_id(ids.getNotificatorID());
             a.setMetric_attributes(ids.getMetric_attributes());
             a.setCreation_timestamp(result.getAnalyzed_metric().getTimestamp());
+            
+            //Apply template to tags
+            Map<String, String> tags = a.getTags();
+            for (Map.Entry<String, String> tag : tags.entrySet())
+                tags.put(tag.getKey(), Template.apply(tag.getValue(), a));
         });
 
         return actionOpt;

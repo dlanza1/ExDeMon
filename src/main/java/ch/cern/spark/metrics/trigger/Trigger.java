@@ -82,15 +82,15 @@ public abstract class Trigger extends Component implements Function<AnalysisResu
         if(!filter.test(result.getAnalyzed_metric()))
             return Optional.empty();
         
-    		Optional<String> reasonOpt = process(result.getStatus(), result.getAnalyzed_metric().getTimestamp());
+    	Optional<String> reasonOpt = process(result.getStatus(), result.getAnalyzed_metric().getTimestamp());
     		
-    		if(!reasonOpt.isPresent())
-    		    return Optional.empty();
+    	if(!reasonOpt.isPresent())
+    	    return Optional.empty();
     		
-    		HashMap<String, String> triggerTags = new HashMap<>(result.getTags());
+    	HashMap<String, String> triggerTags = new HashMap<>(result.getTags());
         triggerTags.putAll(tags);
     		
-    		return Optional.of(new Action(
+    	return Optional.of(new Action(
     		                            "",
                 		                getId(),
                 		                result.getAnalyzed_metric().getAttributes(),
