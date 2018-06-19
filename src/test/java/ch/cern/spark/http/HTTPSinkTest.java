@@ -54,6 +54,7 @@ public class HTTPSinkTest {
         Instant instant = Instant.now();
 		AnalysisResult analysisResult = new AnalysisResult();
 		analysisResult.setAnalysis_timestamp(instant);
+		analysisResult.setTimestamp(instant.toEpochMilli());
 
         sink.send(Arrays.asList(new JsonPOSTRequest("", JSONParser.parse(analysisResult))).iterator());
 		
@@ -64,7 +65,7 @@ public class HTTPSinkTest {
 		
         String expectedTimestamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(Date.from(instant));
         
-		assertEquals("[{\"timestamp\":\"" + expectedTimestamp  +"\","
+		assertEquals("[{\"timestamp\":" + instant.toEpochMilli() +","
 		                + "\"analysis_timestamp\":\"" + expectedTimestamp + "\","
     					+ "\"analysis_params\":{},"
     					+ "\"tags\":{}}]", receivedEntity.getContent());

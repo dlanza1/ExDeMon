@@ -23,7 +23,7 @@ public class AnalysisResult implements Serializable, Taggable {
     @Getter
     private String status_reason;
     
-    @Getter
+    @Getter @Setter
     private long timestamp; //corresponding to triggering metric
     
     @Getter @Setter @NonNull
