@@ -74,6 +74,9 @@ public abstract class UpdateStatusFunction<K extends StatusKey, V, S extends Sta
     }
     
     private void writeResult(String id, String targetPath, StatusKey key, StatusValue value) throws Exception {
+        if(id.equals("old_remove"))
+            return;
+        
         getClient();
         
         String path = "/id="+id+"/" + targetPath;
