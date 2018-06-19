@@ -1,0 +1,154 @@
+#!/bin/bash
+
+show_help(){
+	echo Arguments:
+	echo -h: help
+	echo -l: list operation
+	echo -r: remove operation
+	echo -s: show operation
+	echo "-e: environment (default: production)"
+	echo "-oi: operation id (default: time and host)"
+	echo "-k: keys, or @/path/to/file (one JSON per line)"
+	echo -id: filter by id
+	echo -p: filter by pattern
+}
+
+op_received_wait(){
+	echo Waiting for operation to be received...
+
+	while ! zookeepercli --servers $ZK_HOST -c exists $OP_PATH/status >/dev/null; do
+	    sleep 1
+	done
+}
+
+op_done_wait(){
+	echo Waiting for operation results...
+
+	RESULT=$(zookeepercli --servers $ZK_HOST -c get $OP_PATH/status)
+	while [ "$RESULT" == "RECEIVED" ]
+	do
+		sleep 1
+		RESULT=$(zookeepercli --servers $ZK_HOST -c get $OP_PATH/status)
+	done
+}
+
+process_args(){
+	NL=$'\n'
+	OPS=""
+	ENV="production"
+
+	POSITIONAL=()
+	while [[ $# -gt 0 ]]
+	do
+	key="$1"
+
+	case $key in
+		-h|--help)
+	    show_help
+	    exit
+		;;
+	    -l|--list)
+		OPS="LIST "
+	    shift
+	    ;;
+	    -r|--remove)
+		OPS="REMOVE $OPS"
+	    shift
+	    ;;
+	    -s|--show)
+		OPS="SHOW $OPS"
+	    shift
+	    ;;
+	    -e|--environment)
+	    ENV=$2
+	    shift
+	    shift
+	    ;;
+	    -oi|--operation-id)
+	    OP_ID=$2
+	    shift
+	    shift
+	    ;;
+	    -k|--keys-path)
+	    KEYS=$2
+	    shift
+	    shift
+	    ;;
+	    -id|--id)
+	    FILTERS=$FILTERS"id $2$NL"
+	    shift
+	    shift
+	    ;;
+	    -p|--pattern)
+	    FILTERS=$FILTERS"pattern .*$2.*$NL"
+	    shift
+	    shift
+	    ;;
+	    *)
+	    echo Unknown option: $1
+	    show_help
+	    exit 1
+	    ;;
+	esac
+	done
+	set -- "${POSITIONAL[@]}"
+}
+
+### MAIN ###
+
+process_args $@
+echo OPS: $OPS
+
+if ! [ -z "$FILTERS" ]
+then
+	echo FILTERS: 
+	echo "$FILTERS"
+fi
+
+ZK_HOST=exdemon-zookeeper-01:2181,exdemon-zookeeper-02:2181,exdemon-zookeeper-03:2181
+if [ -z "$OP_ID" ]
+then
+	OP_ID=$(($(date +%s%N)/1000000))-$(hostname)
+fi
+echo Operation ID: $OP_ID
+OP_PATH=/exdemon/operations/env=$ENV/id=$OP_ID
+
+if ! [ -z $KEYS ]
+then
+	echo KEYS: $KEYS
+
+	if [[ "$KEYS" == @* ]]
+	then
+		zookeepercli --servers $ZK_HOST -c creater $OP_PATH/keys "`cat ${KEYS#"@"}`"
+	else
+		zookeepercli --servers $ZK_HOST -c creater $OP_PATH/keys "$KEYS"
+	fi
+fi
+
+zookeepercli --servers $ZK_HOST -c creater $OP_PATH/filters "$FILTERS"
+zookeepercli --servers $ZK_HOST -c creater $OP_PATH/ops "$OPS"
+
+op_received_wait
+op_done_wait
+
+if [ "$RESULT" == "DONE" ]
+then
+  echo Keys:
+  sleep 5
+  zookeepercli --servers $ZK_HOST -c get $OP_PATH/keys
+  echo Values:
+  zookeepercli --servers $ZK_HOST -c get $OP_PATH/values
+fi
+if [ "$RESULT" == WARNING* ]
+then
+  echo $RESULT
+
+  echo Keys:
+  zookeepercli --servers $ZK_HOST -c get $OP_PATH/keys
+  echo Values:
+  zookeepercli --servers $ZK_HOST -c get $OP_PATH/values
+fi
+if [[ "$RESULT" == ERROR* ]]
+then
+  echo $RESULT
+fi
