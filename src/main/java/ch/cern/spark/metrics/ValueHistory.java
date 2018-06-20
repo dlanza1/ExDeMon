@@ -61,7 +61,6 @@ public class ValueHistory implements Serializable {
     public ValueHistory(long max_size, int max_lastAggregatedMetrics_size, ChronoUnit granularity, Aggregation aggregation){
         this.values = new LinkedList<>();
         this.max_lastAggregatedMetrics_size = (int) Math.min(max_size, max_lastAggregatedMetrics_size);
-        this.lastAggregatedMetrics = new LimitedQueue<>(max_lastAggregatedMetrics_size);
         
         this.max_size = max_size;
         this.granularity = granularity;
@@ -237,7 +236,11 @@ public class ValueHistory implements Serializable {
 
     public void reset() {
         this.values = new LinkedList<>();
-        this.lastAggregatedMetrics = new LimitedQueue<>(max_lastAggregatedMetrics_size);
+        
+        if(max_lastAggregatedMetrics_size > 0)
+            this.lastAggregatedMetrics = new LimitedQueue<>(max_lastAggregatedMetrics_size);
+        else
+            this.lastAggregatedMetrics = null;
     }
 
 }
