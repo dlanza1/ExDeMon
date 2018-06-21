@@ -57,7 +57,7 @@ public class ValueDescriptor implements Serializable{
         if(key == null)
             throw new ConfigurationException(KEY_PARAM + " must be configured");
         
-        String regexString = props.getProperty(REGEX_PARAM );
+        String regexString = props.getProperty(REGEX_PARAM);
         if(regexString != null) {
             regex = Pattern.compile(regexString);
             

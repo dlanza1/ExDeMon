@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import ch.cern.properties.ConfigurationException;
@@ -18,23 +19,36 @@ import ch.cern.spark.json.JSON;
 
 public class TimestampDescriptor {
     
-    public static String FORMAT_PARAM = "format";
-    public static String FORMAT_DEFAULT = "auto";
+    public static final String FORMAT_PARAM = "format";
+    public static final String FORMAT_DEFAULT = "auto";
     public transient DateTimeFormatter format_auto;
     protected String format_pattern;
     
-    private static Pattern INTEGER_NUMBER = Pattern.compile("\\d+");
+    private static final Pattern INTEGER_NUMBER = Pattern.compile("\\d+");
     
     protected transient DateTimeFormatter timestamp_format;
 
-    public static String KEY_PARAM = "key";
+    public static final String KEY_PARAM = "key";
     protected String key;
+    
+    public static final String REGEX_PARAM = "regex";
+    private Pattern regex;
 
     public TimestampDescriptor() {
     }
     
     public void config(Properties properties) throws ConfigurationException {
         key = properties.getProperty(KEY_PARAM);
+        
+        String regexString = properties.getProperty(REGEX_PARAM);
+        if(regexString != null) {
+            regex = Pattern.compile(regexString);
+            
+            if(regex.matcher("").groupCount() != 1)
+                throw new ConfigurationException("Regex expression must contain exactly 1 capture group from which timestamp will be extracted");
+        }else{
+            regex = null;
+        }
         
         format_pattern = properties.getProperty(FORMAT_PARAM, FORMAT_DEFAULT);
         if (!format_pattern.equals("epoch-ms")
@@ -54,6 +68,19 @@ public class TimestampDescriptor {
         if(key != null) {
             String timestamp_string = jsonObject.getProperty(key);
             
+            if (timestamp_string == null || timestamp_string.length() == 0)
+                throw new DateTimeParseException("No data to parse", "", 0);
+            
+            if(regex != null) {
+                Matcher matcher = regex.matcher(timestamp_string);
+                
+                if(matcher.find()) {
+                    timestamp_string = matcher.group(1);
+                }else{
+                    throw new Exception("DateTimeParseException: regex (" + regex + ") did not matched for value (" + timestamp_string + ")");
+                }
+            }
+            
             try {
                 return toDate(timestamp_string);
             } catch (Exception e) {
@@ -69,9 +96,6 @@ public class TimestampDescriptor {
     private Instant toDate(String date_string) throws DateTimeParseException {
         if(format_auto == null)
             format_auto = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd['T'][ ]HH:mm:ss[.SSS][Z]").toFormatter();
-        
-        if (date_string == null || date_string.length() == 0)
-            throw new DateTimeParseException("No data to parse", "", 0);
 
         try {
             if (format_pattern.equals("auto")) {

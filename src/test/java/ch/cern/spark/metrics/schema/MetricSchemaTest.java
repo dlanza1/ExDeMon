@@ -305,6 +305,40 @@ public class MetricSchemaTest {
 
         assertFalse(metrics.hasNext());
     }
+    
+    @Test
+    public void regex() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty("timestamp.key", "time");
+        props.setProperty("timestamp.regex", "aa(\\d+)bb");
+        props.setProperty("value.keys.key", "data");
+        parser.config(props);
+
+        JSON jsonObject = new JSON("{\"time\":\"aa1234bb\", \"data\": 1}");
+        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        assertEquals(1234000, metrics.next().getTimestamp().toEpochMilli());
+
+        assertFalse(metrics.hasNext());
+    }
+    
+    @Test
+    public void regexWrongConfigured() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty("timestamp.key", "time");
+        props.setProperty("timestamp.regex", "aa\\d+bb");
+        props.setProperty("value.keys.key", "data");
+        parser.config(props);
+
+        JSON jsonObject = new JSON("{\"time\":\"aa1234bb\", \"data\": 1}");
+        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
+        Metric metric = metrics.next();
+        assertTrue(metric.getValue().getAsException().isPresent());
+        assertEquals("Regex expression must contain exactly 1 capture group from which timestamp will be extracted", metric.getValue().getAsException().get());
+
+        assertFalse(metrics.hasNext());
+    }
 
     @Test
     public void shouldParseTimestampWithFormatInAuto() throws ParseException, ConfigurationException {
