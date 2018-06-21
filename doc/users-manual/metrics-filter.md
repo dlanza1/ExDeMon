@@ -2,16 +2,19 @@
 
 The filter determine the rules a metric must pass in order to accept the metric.
 
-It acts on the attributes of the metrics. Only configured attributes are checked.
+Optionally, you can specify that metrics with timestamp older than a period (comparing with current time), should not pass the filter.
+```
+filter.timestamp.expire = <period like 1h, 3m or 45s> (default: not set)
+```
 
 For "attribute" parameters, you can negate the condition by placing "!" as first character in the value. That would mean: attribute should not be the specified value or should not match the regular expression.
 
-It can specify a regular expression or an exact value for the attribute:
+You can specify a regular expression or an exact value for the attribute:
 ```
 filter.attribute.<attribute_key> = [!]<regex_or_exact_value>
 ```
 
-You can also specify multi-values (between quotes):
+You can also specify multi-values between quotes (! at the beginning would negate all):
 ```
 filter.attribute.<attribute_key> = [!]"<regex_or_exact_value>" "<regex_or_exact_value>" "<regex_or_exact_value>" ...
 ```
@@ -21,6 +24,7 @@ You can also filter by some meta-attributes:
 filter.attribute.$source = <metric-source-id>
 filter.attribute.$schema = <metric-schema-id>
 filter.attribute.$defined_metric = <defined-metric-id>
+filter.attribute.$monitor = <monitor-id>
 ```
 
 More complex filter can be configured using the "expr" parameter. Regular expressions can be used.
@@ -34,6 +38,8 @@ You can combine "expr" and "attribute" parameters, all attribute parameters are 
 An example:
 
 ```
+# No metrics generated more than 24h ago
+filter.timestamp.expire = 24h
 # CLUSTER must be "cluster1"
 # and HOST must be "host1" or "host2"
 # and NOT_VALID must not be defined

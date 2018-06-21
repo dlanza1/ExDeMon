@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.text.ParseException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +18,20 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 
 public class MetricsFilterTest {
+    
+    @Test
+    public void onTimestamp() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty("timestamp.expire", "24h");
+        props.setProperty("expr", "K1=V1");
+        MetricsFilter filter = MetricsFilter.build(props);
+
+        assertTrue(filter.test(Metric(Instant.now(), 0, "K1=V1")));
+        assertFalse(filter.test(Metric(Instant.now().minus(Duration.ofHours(12)), 0, "K1=V2")));
+        assertTrue(filter.test(Metric(Instant.now().minus(Duration.ofHours(23)), 0, "K1=V1")));
+        assertFalse(filter.test(Metric(Instant.now().minus(Duration.ofHours(25)), 0, "K1=V1")));
+        assertFalse(filter.test(Metric(Instant.now().minus(Duration.ofDays(10)), 0, "K1=V1")));
+    }
 
     @Test
     public void filterOneID() throws ParseException {

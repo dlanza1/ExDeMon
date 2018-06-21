@@ -2,10 +2,13 @@ package ch.cern.spark.metrics.filter;
 
 import java.io.Serializable;
 import java.text.ParseException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,12 +18,17 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.util.function.AndPredicate;
 import ch.cern.util.function.OrPredicate;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @ToString
 public class MetricsFilter implements Predicate<Metric>, Serializable{
     
     private static final long serialVersionUID = 9170996730102744051L;
+
+    @Getter @Setter
+    private Duration timestampExpire = null;
 
     private Predicate<Map<String, String>> attributesPredicate = null;
     
@@ -29,24 +37,29 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
     
     @Override
 	public boolean test(Metric metric) {
-    		if(attributesPredicate == null)
-    			return true;
+        if(attributesPredicate != null
+                && !attributesPredicate.test(metric.getAttributes()))
+               return false;
+        
+        if(timestampExpire != null
+                && !metric.getTimestamp().isAfter(Instant.now().minus(timestampExpire)))
+               return false;
     		
-		return attributesPredicate.test(metric.getAttributes());
+		return true;
 	}
     
     public void addAttributesPredicate(String key, String value) throws ParseException{
-    		if(value.charAt(0) == '!')  		
-    		    addAttributesPredicate(new NotEqualMetricPredicate(key, value.substring(1)));
-    		else
-    		    addAttributesPredicate(new EqualMetricPredicate(key, value));
+        if(value.charAt(0) == '!')  		
+            addAttributesPredicate(new NotEqualMetricPredicate(key, value.substring(1)));
+        else
+            addAttributesPredicate(new EqualMetricPredicate(key, value));
     }
 
     public void addAttributesPredicate(Predicate<Map<String, String>> newPredicate) {
-    		if(attributesPredicate == null)
-    			attributesPredicate = newPredicate;
-    		else
-    			attributesPredicate = new AndPredicate<Map<String, String>>(attributesPredicate, newPredicate);
+        if(attributesPredicate == null)
+            attributesPredicate = newPredicate;
+        else
+            attributesPredicate = new AndPredicate<Map<String, String>>(attributesPredicate, newPredicate);
 	}
 
 	public static MetricsFilter build(Properties props) throws ConfigurationException {
@@ -59,6 +72,10 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
 			} catch (ParseException e) {
 				throw new ConfigurationException("Error when parsing filter expression: " + e.getMessage());
 			}
+        
+        Optional<Duration> timestampExpireOpt = props.getPeriod("timestamp.expire");
+        if(timestampExpireOpt.isPresent())
+            filter.setTimestampExpire(timestampExpireOpt.get());
         
         Properties filterProperties = props.getSubset("attribute");
         
