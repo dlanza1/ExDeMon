@@ -3,15 +3,6 @@ package ch.cern.spark.metrics.schema;
 import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.DateTimeParseException;
-import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,21 +52,15 @@ public class MetricSchema implements Serializable {
 
     public static String VALUES_PARAM = "value";
     protected List<ValueDescriptor> values;
-
-    public static String TIMESTAMP_FORMAT_PARAM = "timestamp.format";
-    public static String TIMESTAMP_FORMAT_DEFAULT = "auto";
-    public transient DateTimeFormatter format_auto;
-    protected String timestamp_format_pattern;
-    protected transient DateTimeFormatter timestamp_format;
-
-    public static String TIMESTAMP_ATTRIBUTE_PARAM = "timestamp.key";
-    protected String timestamp_attribute;
+    
+    public static String TIMESTAMP_PARAM = "timestamp";
+    private TimestampDescriptor timestampDescriptor;    
 
     public static String FILTER_PARAM = "filter";
     protected MetricsFilter filter;
 
     private static transient ExceptionsCache exceptionsCache = new ExceptionsCache(Duration.ofMinutes(1));
-    protected Exception configurationException;    
+    protected Exception configurationException;
 
     public MetricSchema(String id) {
         this.id = id;
@@ -98,20 +83,9 @@ public class MetricSchema implements Serializable {
         if (sourcesValue == null)
             throw new ConfigurationException("sources must be spcified");
         sources = Arrays.asList(sourcesValue.split("\\s"));
-
-        timestamp_attribute = properties.getProperty(TIMESTAMP_ATTRIBUTE_PARAM);
-
-        timestamp_format_pattern = properties.getProperty(TIMESTAMP_FORMAT_PARAM, TIMESTAMP_FORMAT_DEFAULT);
-        if (!timestamp_format_pattern.equals("epoch-ms")
-                && !timestamp_format_pattern.equals("epoch-s")
-                && !timestamp_format_pattern.equals("auto"))
-            try {
-                new DateTimeFormatterBuilder().appendPattern(timestamp_format_pattern).toFormatter()
-                        .withZone(ZoneOffset.systemDefault());
-            } catch (Exception e) {
-                throw new ConfigurationException(TIMESTAMP_FORMAT_PARAM
-                        + " must be epoch-ms, epoch-s or a pattern compatible with DateTimeFormatterBuilder.");
-            }
+        
+        timestampDescriptor = new TimestampDescriptor();
+        timestampDescriptor.config(properties.getSubset(TIMESTAMP_PARAM));
 
         values = new LinkedList<>();
         Properties valuesProps = properties.getSubset(VALUES_PARAM);
@@ -152,7 +126,7 @@ public class MetricSchema implements Serializable {
     }
 
     private boolean isKeyRegex(String value) {
-        return value.contains("*") || value.contains("+") || value.contains("(") || value.contains("*");
+        return value.contains("*") || value.contains("+") || value.contains("(");
     }
 
     public List<Metric> call(JSON jsonObject) {
@@ -202,19 +176,12 @@ public class MetricSchema implements Serializable {
                 return Collections.emptyList();
 
             Exception timestampException = null;
-            Instant timestamp;
-            if(timestamp_attribute != null) {
-                String timestamp_string = jsonObject.getProperty(timestamp_attribute);
-                
-                try {
-                    timestamp = toDate(timestamp_string);
-                } catch (Exception e) {
-                    timestampException = new Exception("DateTimeParseException: " + e.getMessage() + " for key "
-                            + timestamp_attribute + " with value (" + timestamp_string + ")");
+            Instant timestamp = null;
+            try {
+                timestamp = timestampDescriptor.extract(jsonObject);
+            } catch (Exception e) {
+                timestampException = e;
 
-                    timestamp = Instant.now();
-                }
-            }else {
                 timestamp = Instant.now();
             }
             
@@ -265,66 +232,6 @@ public class MetricSchema implements Serializable {
 
     private boolean isFixedValue(String key) {
         return key.startsWith("#");
-    }
-
-    private Instant toDate(String date_string) throws DateTimeParseException {
-        if(format_auto == null)
-            format_auto = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd['T'][ ]HH:mm:ss[.SSS][Z]").toFormatter();
-        
-        if (date_string == null || date_string.length() == 0)
-            throw new DateTimeParseException("No data to parse", "", 0);
-
-        try {
-            if (timestamp_format_pattern.equals("auto")) {
-                try {
-                    long value = Long.valueOf(date_string);
-                    
-                    if(value < Math.pow(10, 10))
-                        return Instant.ofEpochSecond(value);
-                    else
-                        return Instant.ofEpochMilli(value);
-                }catch(Exception e) {}
-                
-                try {
-                    if(date_string.contains("T") && date_string.endsWith("Z"))
-                        return Instant.parse(date_string);
-                }catch(Exception e) {}
-
-                try {
-                    TemporalAccessor temporalAccesor = format_auto.parse(date_string);
-                    
-                    if (temporalAccesor.isSupported(ChronoField.INSTANT_SECONDS))
-                        return Instant.from(temporalAccesor);
-                    else
-                        return LocalTime.from(temporalAccesor).atOffset(OffsetDateTime.now().getOffset()).atDate(LocalDate.from(temporalAccesor)).toInstant();
-                }catch(Exception e) {}
-                
-                throw new DateTimeParseException("Automatic format could not parse time", "", 0);
-            }
-                
-            if (timestamp_format_pattern.equals("epoch-ms"))
-                return Instant.ofEpochMilli(Long.valueOf(date_string));
-
-            if (timestamp_format_pattern.equals("epoch-s"))
-                return Instant.ofEpochSecond(Long.valueOf(date_string));
-        } catch (Exception e) {
-            throw new DateTimeParseException(e.getClass().getName() + ": " + e.getMessage(), date_string, 0);
-        }
-
-        if (timestamp_format == null)
-            timestamp_format = new DateTimeFormatterBuilder()
-                                            .appendPattern(timestamp_format_pattern)
-                                            .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
-                                            .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
-                                            .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
-                                            .toFormatter();
-        
-        TemporalAccessor temporalAccesor = timestamp_format.parse(date_string);
-        
-        if (temporalAccesor.isSupported(ChronoField.INSTANT_SECONDS))
-            return Instant.from(temporalAccesor);
-        else
-            return LocalTime.from(temporalAccesor).atOffset(OffsetDateTime.now().getOffset()).atDate(LocalDate.from(temporalAccesor)).toInstant();
     }
 
     public boolean containsSource(String sourceID) {

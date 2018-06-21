@@ -3,8 +3,9 @@ package ch.cern.spark.metrics.schema;
 import static ch.cern.spark.metrics.schema.MetricSchema.ATTRIBUTES_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.FILTER_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.SOURCES_PARAM;
-import static ch.cern.spark.metrics.schema.MetricSchema.TIMESTAMP_ATTRIBUTE_PARAM;
-import static ch.cern.spark.metrics.schema.MetricSchema.TIMESTAMP_FORMAT_PARAM;
+import static ch.cern.spark.metrics.schema.MetricSchema.TIMESTAMP_PARAM;
+import static ch.cern.spark.metrics.schema.TimestampDescriptor.KEY_PARAM;
+import static ch.cern.spark.metrics.schema.TimestampDescriptor.FORMAT_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.VALUES_PARAM;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -127,8 +128,8 @@ public class MetricSchemaTest {
     public void attributeNullIfNoJsonPrimitive() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-ms");
         props.setProperty("value.keys", "data.payload.WMBS_INFO.thresholds.pending_slots");
 
         String att_name_no_primitive = "data.payload.WMBS_INFO.thresholds";
@@ -154,8 +155,8 @@ public class MetricSchemaTest {
     public void attributeStringFromNumber() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-ms");
         props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
 
         props.setProperty(ATTRIBUTES_PARAM + ".thresholdsGQ2LQ", "data.payload.WMBS_INFO.thresholdsGQ2LQ");
@@ -179,7 +180,7 @@ public class MetricSchemaTest {
     public void severalAttributesWithRegex() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
         props.setProperty("value.test.key", "test");
 
         props.setProperty(ATTRIBUTES_PARAM + ".error_+", "a.b.error-(.*)");
@@ -202,7 +203,7 @@ public class MetricSchemaTest {
     public void severalAttributesWithRegexWithPlus() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
         props.setProperty("value.test.key", "test");
 
         props.setProperty(ATTRIBUTES_PARAM + ".error_+", "a.b.error-([0-9]+)");
@@ -248,7 +249,7 @@ public class MetricSchemaTest {
             throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
         props.setProperty("value.t.key", "test");
 
         props.setProperty(ATTRIBUTES_PARAM + ".error_+", "a.b.error-.*");
@@ -271,7 +272,7 @@ public class MetricSchemaTest {
     public void attributesWithFixedAttributes() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
         props.setProperty("value.test.key", "test");
 
         props.setProperty(ATTRIBUTES_PARAM + ".puppet_environment", "#qa");
@@ -309,8 +310,8 @@ public class MetricSchemaTest {
     public void shouldParseTimestampWithFormatInAuto() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "auto");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "auto");
         props.setProperty("value.data.key", "data");
         parser.config(props);
 
@@ -341,8 +342,8 @@ public class MetricSchemaTest {
     public void shouldParseTimestampWithFormatInMs() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-ms");
         props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
         parser.config(props);
 
@@ -364,8 +365,8 @@ public class MetricSchemaTest {
     public void shouldParseTimestampWithFormatInS() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-s");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-s");
         props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
         parser.config(props);
 
@@ -387,8 +388,8 @@ public class MetricSchemaTest {
     public void shouldParseDateTimeTimestampWithFormatInDateFormat() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy-MM-dd HH:mm:ssZ");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "yyyy-MM-dd HH:mm:ssZ");
         props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
         parser.config(props);
 
@@ -413,8 +414,8 @@ public class MetricSchemaTest {
             throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy-MM-dd HH:mm:ss");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "yyyy-MM-dd HH:mm:ss");
         props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
         parser.config(props);
 
@@ -434,7 +435,7 @@ public class MetricSchemaTest {
         Metric metric = metrics.next();
 
         DateTimeFormatter formatter = new DateTimeFormatterBuilder()
-                                                    .appendPattern(props.getProperty(TIMESTAMP_FORMAT_PARAM))
+                                                    .appendPattern(props.getProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM))
                                                     .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
                                                     .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
                                                     .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
@@ -453,8 +454,8 @@ public class MetricSchemaTest {
     public void shouldParseDateTimestampWithFormatInDateFormat() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy MM dd");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "yyyy MM dd");
         props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
         parser.config(props);
 
@@ -482,8 +483,8 @@ public class MetricSchemaTest {
     public void shouldNotGenerateSameExceptions() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy MM dd");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "yyyy MM dd");
         props.setProperty("value.keys.data.payload.WMBS_INFO.thresholds.pending_slots",
                 "data.payload.WMBS_INFO.thresholds.pending_slots");
         parser.config(props);
@@ -512,8 +513,8 @@ public class MetricSchemaTest {
             throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "yyyy MM dd");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "yyyy MM dd");
         props.setProperty("value.keys.data.payload.WMBS_INFO.thresholds.pending_slots",
                 "data.payload.WMBS_INFO.thresholds.pending_slots");
         parser.config(props);
@@ -537,8 +538,8 @@ public class MetricSchemaTest {
             throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-ms");
         props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
         parser.config(props);
 
@@ -564,8 +565,8 @@ public class MetricSchemaTest {
     public void shouldParseWithMissingAttributes() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-ms");
 
         props.setProperty("value.running_slots.key", "data.payload.WMBS_INFO.thresholds.running_slots");
 
@@ -602,8 +603,8 @@ public class MetricSchemaTest {
     public void shouldGenerateExceptionMetricWithMissingTimestamp() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-ms");
         props.setProperty("attributes.site_name", "data.payload.site_name");
         props.setProperty("attributes.agent_url", "data.payload.agent_url");
         
@@ -650,23 +651,23 @@ public class MetricSchemaTest {
     public void shouldThrowAnExcpetionIfTimestampFormatWrongConfigured() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
         props.setProperty("value.keys", "value");
 
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-ms");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-ms");
         parser.config(props);
 
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "epoch-s");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-s");
         parser.config(props);
 
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "YYYY-MM-DD");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "YYYY-MM-DD");
         parser.config(props);
 
-        props.setProperty(TIMESTAMP_FORMAT_PARAM, "wrong_format");
+        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "wrong_format");
         List<Metric> result = parser.config(props).call(null);
         String resultException = result.get(0).getValue().getAsException().get();
         assertEquals(
-                TIMESTAMP_FORMAT_PARAM
+                TIMESTAMP_PARAM + "." + FORMAT_PARAM
                         + " must be epoch-ms, epoch-s or a pattern compatible with DateTimeFormatterBuilder.",
                 resultException);
     }
@@ -675,7 +676,7 @@ public class MetricSchemaTest {
     public void shouldThrowAnExcpetionIfValueNotConfigured() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_ATTRIBUTE_PARAM, "metadata.timestamp");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
         // props.setProperty("value.keys", "value");
 
         List<Metric> result = parser.config(props).call(null);
