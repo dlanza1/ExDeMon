@@ -1,5 +1,6 @@
 package ch.cern.spark.metrics.schema;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -16,23 +17,26 @@ import java.util.regex.Pattern;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSON;
+import ch.cern.utils.DurationAndTruncate;
 
 public class TimestampDescriptor {
     
-    public static final String FORMAT_PARAM = "format";
-    public static final String FORMAT_DEFAULT = "auto";
-    public transient DateTimeFormatter format_auto;
-    protected String format_pattern;
-    
     private static final Pattern INTEGER_NUMBER = Pattern.compile("\\d+");
-    
-    protected transient DateTimeFormatter timestamp_format;
 
     public static final String KEY_PARAM = "key";
     protected String key;
     
     public static final String REGEX_PARAM = "regex";
     private Pattern regex;
+    
+    public static final String FORMAT_PARAM = "format";
+    public static final String FORMAT_DEFAULT = "auto";
+    public transient DateTimeFormatter format_auto;
+    protected String format_pattern;
+    protected transient DateTimeFormatter timestamp_format;
+    
+    public static final String SHIFT_PARAM = "shift";
+    protected DurationAndTruncate shift;
 
     public TimestampDescriptor() {
     }
@@ -62,6 +66,12 @@ public class TimestampDescriptor {
                         + " must be epoch-ms, epoch-s or a pattern compatible with DateTimeFormatterBuilder.");
             }
         }
+        
+        String shiftString = properties.getProperty(SHIFT_PARAM);
+        if(shiftString != null)
+            shift = DurationAndTruncate.from(shiftString);
+        else
+            shift = new DurationAndTruncate(Duration.ZERO);
     }
 
     public Instant extract(JSON jsonObject) throws Exception {
@@ -82,13 +92,13 @@ public class TimestampDescriptor {
             }
             
             try {
-                return toDate(timestamp_string);
+                return shift.adjustPlus(toDate(timestamp_string));
             } catch (Exception e) {
                 throw new Exception("DateTimeParseException: " + e.getMessage() + " for key "
                                    + key + " with value (" + timestamp_string + ")");
             }
         }else {
-            return Instant.now();
+            return shift.adjustPlus(Instant.now());
         }
     }
     

@@ -16,6 +16,7 @@ metrics.schema.<schema-id>.sources = <space-separated-source-ids>
 metrics.schema.<schema-id>.timestamp.key = <attribute that represent the time|not set>
 metrics.schema.<schema-id>.timestamp.regex = <one-group-regular-expression> (default: not set)
 metrics.schema.<schema-id>.timestamp.format = <timestamp_format> (default: auto)
+metrics.schema.<schema-id>.timestamp.shift = <period like -1h, -3m or 45s[, truncate d, h, m]> (default: not set)
 metrics.schema.<schema-id>.attributes.<alias-1> = <key-to-attribute-1>
 metrics.schema.<schema-id>.attributes.<alias-2> = <key-to-attribute-2>
 metrics.schema.<schema-id>.attributes.<alias-n> = <key-to-attribute-n>
@@ -31,6 +32,8 @@ metrics.schema.<schema-id>.filter.<configs at Metrics filter> = <values>
 With "timestamp.regex", you can extract the timestamp from the text contained in the value of the specified key ("timestamp.key").
 
 "timestamp.format" indicates the format of the timestamp stored in the attribute configured by "timestamp.attribute". If the format is a number that represents epoch in milliseconds, it must be set to "epoch-ms", if seconds "epoch-s". If the JSON document contains a timestamp with wrong format, metric with exception value will be generated, setting the timestamp to current time. By default, it automatically detects epoch-ms, epoch-s, "yyyy-MM-dd HH:mm:ssZ" and "yyyy-MM-dd'T'HH:mm:ssZ" formats.
+
+You can shift and truncate the parsed timestamp with "timestamp.shift". An example to remove 1h and truncate by day: -1h,d
 
 "attributes.&lt;alias>" configure the keys that will be extracted from the JSON document.
 Assigned alias will be used to refer to the attribute in any metric filter.

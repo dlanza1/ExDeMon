@@ -2,7 +2,7 @@
 
 The filter determine the rules a metric must pass in order to accept the metric.
 
-Optionally, you can specify that metrics with timestamp older than a period (comparing with current time), should not pass the filter.
+You can specify that metrics with timestamp older than a period (comparing with current time), should be filtered out.
 ```
 filter.timestamp.expire = <period like 1h, 3m or 45s> (default: not set)
 ```

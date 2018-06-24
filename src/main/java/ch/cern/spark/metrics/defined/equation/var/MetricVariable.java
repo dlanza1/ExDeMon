@@ -180,20 +180,20 @@ public class MetricVariable extends Variable {
             AggregationValues aggValues = ((AggregationValues) status);
 
             if (expire != null)
-                aggValues.purge(expire.adjust(time));
+                aggValues.purge(expire.adjustMinus(time));
 
             values = aggValues.getDatedValues();
         } else if (!isThereSelectedAttributes() && status instanceof ValueHistory.Status) {
             ValueHistory history = ((ValueHistory.Status) status).history;
 
             if (expire != null)
-                history.purge(expire.adjust(time));
+                history.purge(expire.adjustMinus(time));
 
             values = history.getDatedValues();
         }
 
         if (ignore != null) {
-            Instant latestTime = ignore.adjust(time);
+            Instant latestTime = ignore.adjustMinus(time);
 
             values = values.stream().filter(val -> val.getTime().isBefore(latestTime)).collect(Collectors.toList());
         }

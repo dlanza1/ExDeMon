@@ -31,8 +31,12 @@ public class DurationAndTruncate implements Serializable {
         this.truncate = truncate;
     }
     
-    public Instant adjust(Instant inputTime) {
+    public Instant adjustMinus(Instant inputTime) {
         return inputTime.minus(duration).truncatedTo(truncate);
+    }
+    
+    public Instant adjustPlus(Instant inputTime) {
+        return inputTime.plus(duration).truncatedTo(truncate);
     }
     
     public static DurationAndTruncate from(String config) throws ConfigurationException {
