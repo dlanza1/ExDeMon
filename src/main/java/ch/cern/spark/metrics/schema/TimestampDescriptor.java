@@ -87,15 +87,14 @@ public class TimestampDescriptor {
                 if(matcher.find()) {
                     timestamp_string = matcher.group(1);
                 }else{
-                    throw new Exception("DateTimeParseException: regex (" + regex + ") did not matched for value (" + timestamp_string + ")");
+                    throw new DateTimeParseException("regex (" + regex + ") did not matched for value (" + timestamp_string + ")", timestamp_string, 0);
                 }
             }
             
             try {
                 return shift.adjustPlus(toDate(timestamp_string));
             } catch (Exception e) {
-                throw new Exception("DateTimeParseException: " + e.getMessage() + " for key "
-                                   + key + " with value (" + timestamp_string + ")");
+                throw new DateTimeParseException(e.getMessage() + " for key " + key + " with value (" + timestamp_string + ")", timestamp_string, 0);
             }
         }else {
             return shift.adjustPlus(Instant.now());

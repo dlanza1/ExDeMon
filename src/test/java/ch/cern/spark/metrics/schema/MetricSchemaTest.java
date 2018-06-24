@@ -4,9 +4,9 @@ import static ch.cern.spark.metrics.schema.MetricSchema.ATTRIBUTES_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.FILTER_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.SOURCES_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.TIMESTAMP_PARAM;
-import static ch.cern.spark.metrics.schema.TimestampDescriptor.KEY_PARAM;
-import static ch.cern.spark.metrics.schema.TimestampDescriptor.FORMAT_PARAM;
 import static ch.cern.spark.metrics.schema.MetricSchema.VALUES_PARAM;
+import static ch.cern.spark.metrics.schema.TimestampDescriptor.FORMAT_PARAM;
+import static ch.cern.spark.metrics.schema.TimestampDescriptor.KEY_PARAM;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -17,14 +17,6 @@ import java.lang.management.ManagementFactory;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalAccessor;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.LongAccumulator;
@@ -291,227 +283,6 @@ public class MetricSchemaTest {
 
         assertFalse(metrics.hasNext());
     }
-
-    @Test
-    public void shouldParseTimestampToCurrentTimeIfNotConfigured() throws ParseException, ConfigurationException {
-        Properties props = new Properties();
-        props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty("value.keys.data", "data");
-        parser.config(props);
-
-        JSON jsonObject = new JSON("{\"data\": 1}");
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
-        assertEquals(Instant.now().toEpochMilli(), metrics.next().getTimestamp().toEpochMilli(), 10);
-
-        assertFalse(metrics.hasNext());
-    }
-    
-    @Test
-    public void regex() throws ParseException, ConfigurationException {
-        Properties props = new Properties();
-        props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty("timestamp.key", "time");
-        props.setProperty("timestamp.regex", "aa(\\d+)bb");
-        props.setProperty("value.keys.key", "data");
-        parser.config(props);
-
-        JSON jsonObject = new JSON("{\"time\":\"aa1234bb\", \"data\": 1}");
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
-        assertEquals(1234000, metrics.next().getTimestamp().toEpochMilli());
-
-        assertFalse(metrics.hasNext());
-    }
-    
-    @Test
-    public void regexWrongConfigured() throws ParseException, ConfigurationException {
-        Properties props = new Properties();
-        props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty("timestamp.key", "time");
-        props.setProperty("timestamp.regex", "aa\\d+bb");
-        props.setProperty("value.keys.key", "data");
-        parser.config(props);
-
-        JSON jsonObject = new JSON("{\"time\":\"aa1234bb\", \"data\": 1}");
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
-        Metric metric = metrics.next();
-        assertTrue(metric.getValue().getAsException().isPresent());
-        assertEquals("Regex expression must contain exactly 1 capture group from which timestamp will be extracted", metric.getValue().getAsException().get());
-
-        assertFalse(metrics.hasNext());
-    }
-
-    @Test
-    public void shouldParseTimestampWithFormatInAuto() throws ParseException, ConfigurationException {
-        Properties props = new Properties();
-        props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "auto");
-        props.setProperty("value.data.key", "data");
-        parser.config(props);
-
-        JSON jsonObject = new JSON("{\"metadata\":{\"timestamp\":1509520209883 }, \"data\": 1}");
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
-        assertEquals(1509520209883l, metrics.next().getTimestamp().toEpochMilli());
-
-        jsonObject = new JSON("{\"metadata\":{\"timestamp\":1509520209 }, \"data\": 1}");
-        metrics = parser.call(jsonObject).iterator();
-        assertEquals(1509520209000l, metrics.next().getTimestamp().toEpochMilli());
-
-        jsonObject = new JSON("{\"metadata\":{\"timestamp\":\"2017-11-01T08:10:09+0100\" }, \"data\": 1}");
-        metrics = parser.call(jsonObject).iterator();
-        assertEquals(1509520209000l, metrics.next().getTimestamp().toEpochMilli());
-
-        jsonObject = new JSON("{\"metadata\":{\"timestamp\":\"2017-11-01 08:10:09+0100\" }, \"data\": 1}");
-        metrics = parser.call(jsonObject).iterator();
-        assertEquals(1509520209000l, metrics.next().getTimestamp().toEpochMilli());
-        
-        jsonObject = new JSON("{\"metadata\":{\"timestamp\":\"2018-02-12T11:51:13.963Z\" }, \"data\": 1}");
-        metrics = parser.call(jsonObject).iterator();
-        assertEquals(1518436273963l, metrics.next().getTimestamp().toEpochMilli());
-
-        assertFalse(metrics.hasNext());
-    }
-
-    @Test
-    public void shouldParseTimestampWithFormatInMs() throws ParseException, ConfigurationException {
-        Properties props = new Properties();
-        props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-ms");
-        props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
-        parser.config(props);
-
-        String jsonString = "{\"metadata\":{" + "\"timestamp\":1509520209883" + "},\"data\":{" + "\"payload\":{"
-                + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
-                + "}}}";
-        JSON jsonObject = new JSON(jsonString);
-
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
-
-        metrics.hasNext();
-        Metric metric = metrics.next();
-        assertEquals(1509520209883l, metric.getTimestamp().toEpochMilli());
-
-        assertFalse(metrics.hasNext());
-    }
-
-    @Test
-    public void shouldParseTimestampWithFormatInS() throws ParseException, ConfigurationException {
-        Properties props = new Properties();
-        props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-s");
-        props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
-        parser.config(props);
-
-        String jsonString = "{\"metadata\":{" + "\"timestamp\":1509520209" + "},\"data\":{" + "\"payload\":{"
-                + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
-                + "}}}";
-        JSON jsonObject = new JSON(jsonString);
-
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
-
-        metrics.hasNext();
-        Metric metric = metrics.next();
-        assertEquals(1509520209000l, metric.getTimestamp().toEpochMilli());
-
-        assertFalse(metrics.hasNext());
-    }
-
-    @Test
-    public void shouldParseDateTimeTimestampWithFormatInDateFormat() throws ParseException, ConfigurationException {
-        Properties props = new Properties();
-        props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "yyyy-MM-dd HH:mm:ssZ");
-        props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
-        parser.config(props);
-
-        String jsonString = "{\"metadata\":{" + "\"timestamp\":\"2017-10-20 02:00:12+0000\"" + "},\"data\":{"
-                + "\"payload\":{" + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89},"
-                + "\"thresholdsGQ2LQ\":2111.0}" + "}}}";
-        JSON jsonObject = new JSON(jsonString);
-
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
-
-        metrics.hasNext();
-        Metric metric = metrics.next();
-        // Value should be --> Fri Oct 20 2017 00:00:12 UTC
-        Instant timestamp = Instant.parse("2017-10-20T02:00:12.000Z");
-        assertEquals(timestamp.toEpochMilli(), metric.getTimestamp().toEpochMilli());
-
-        assertFalse(metrics.hasNext());
-    }
-
-    @Test
-    public void shouldParseDateTimeTimestampWithFormatInDateFormatWithoutTimeZone()
-            throws ParseException, ConfigurationException {
-        Properties props = new Properties();
-        props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "yyyy-MM-dd HH:mm:ss");
-        props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
-        parser.config(props);
-
-        String jsonString = "{\"metadata\":{" 
-                                + "\"timestamp\":\"2017-12-20 02:00:12\"" 
-                                + "},\"data\":{"
-                                    + "\"payload\":{" 
-                                        + "\"WMBS_INFO\":{" 
-                                            + "\"thresholds\":{" 
-                                                + "\"pending_slots\":2111.89},"
-                                            + "\"thresholdsGQ2LQ\":2111.0}" + "}}}";
-        JSON jsonObject = new JSON(jsonString);
-
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
-
-        metrics.hasNext();
-        Metric metric = metrics.next();
-
-        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
-                                                    .appendPattern(props.getProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM))
-                                                    .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
-                                                    .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
-                                                    .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
-                                                    .toFormatter();
-
-        // Value should be --> Fri Oct 20 2017 00:00:12 UTC
-        TemporalAccessor temporalAccesor = formatter.parse("2017-12-20 02:00:12");
-        Instant timestamp = LocalTime.from(temporalAccesor).atOffset(OffsetDateTime.now().getOffset()).atDate(LocalDate.from(temporalAccesor)).toInstant();
-        
-        assertEquals(timestamp, metric.getTimestamp());
-
-        assertFalse(metrics.hasNext());
-    }
-
-    @Test
-    public void shouldParseDateTimestampWithFormatInDateFormat() throws ParseException, ConfigurationException {
-        Properties props = new Properties();
-        props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "yyyy MM dd");
-        props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
-        parser.config(props);
-
-        String jsonString = "{\"metadata\":{" + "\"timestamp\":\"2017 12 20\"" + "},\"data\":{" + "\"payload\":{"
-                + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
-                + "}}}";
-        JSON jsonObject = new JSON(jsonString);
-
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
-
-        metrics.hasNext();
-        Metric metric = metrics.next();
-
-        DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("yyyy MM dd HH:mm:ss").toFormatter()
-                .withZone(ZoneId.systemDefault());
-
-        TemporalAccessor temporalAccesor = formatter.parse("2017 12 20 00:00:00");
-        Instant timestamp = LocalTime.from(temporalAccesor).atOffset(OffsetDateTime.now().getOffset()).atDate(LocalDate.from(temporalAccesor)).toInstant();
-        assertEquals(timestamp, metric.getTimestamp());
-
-        assertFalse(metrics.hasNext());
-    }
     
     @Test
     public void shouldNotGenerateSameExceptions() throws ParseException, ConfigurationException {
@@ -539,59 +310,6 @@ public class MetricSchemaTest {
         assertFalse(metrics.hasNext());
         
         metrics = parser.call(jsonObject).iterator();
-        assertFalse(metrics.hasNext());
-    }
-
-    @Test
-    public void shouldGenerateExceptionMetricIfTimestampHasWrongFormatInDateFormat()
-            throws ParseException, ConfigurationException {
-        Properties props = new Properties();
-        props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "yyyy MM dd");
-        props.setProperty("value.keys.data.payload.WMBS_INFO.thresholds.pending_slots",
-                "data.payload.WMBS_INFO.thresholds.pending_slots");
-        parser.config(props);
-
-        String jsonString = "{\"metadata\":{" + "\"timestamp\":\"10:20:12\"" + "},\"data\":{" + "\"payload\":{"
-                + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
-                + "}}}";
-        JSON jsonObject = new JSON(jsonString);
-
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
-
-        assertTrue(metrics.hasNext());
-        Metric metric = metrics.next();
-        assertTrue(metric.getValue().getAsException().isPresent());
-
-        assertFalse(metrics.hasNext());
-    }
-
-    @Test
-    public void shouldGenerateExceptionMetricIfTimestampHasWrongFormatInEpoch()
-            throws ParseException, ConfigurationException {
-        Properties props = new Properties();
-        props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
-        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-ms");
-        props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
-        parser.config(props);
-
-        String jsonString = "{\"metadata\":{" + "\"timestamp\":\"10:20:12\"" + "},\"data\":{" + "\"payload\":{"
-                + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
-                + "}}}";
-        JSON jsonObject = new JSON(jsonString);
-
-        Iterator<Metric> metrics = parser.call(jsonObject).iterator();
-
-        assertTrue(metrics.hasNext());
-        Metric metric = metrics.next();
-        assertNotNull(metric.getTimestamp());
-        assertTrue(metric.getValue().getAsException().isPresent());
-        assertEquals(2, metric.getAttributes().size());
-        assertTrue("test", metric.getAttributes().get("$schema").startsWith("test"));
-        assertEquals("pending_slots", metric.getAttributes().get("$value"));
-
         assertFalse(metrics.hasNext());
     }
 
@@ -634,7 +352,18 @@ public class MetricSchemaTest {
     }
 
     @Test
-    public void shouldGenerateExceptionMetricWithMissingTimestamp() throws ParseException, ConfigurationException {
+    public void shouldThrowAnExcpetionIfValueNotConfigured() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
+        // props.setProperty("value.v.key", "value");
+
+        List<Metric> result = parser.config(props).call(null);
+        assertEquals("value must be configured.", result.get(0).getValue().getAsException().get());
+    }
+    
+    @Test
+    public void shouldGenerateExceptionMetricWhenExceptionOcurred() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
         props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
@@ -679,42 +408,6 @@ public class MetricSchemaTest {
         assertEquals("vocms0258.cern.ch", metric.getAttributes().get("agent_url"));
 
         assertFalse(metrics.hasNext());
-    }
-
-    @Test
-    public void shouldThrowAnExcpetionIfTimestampFormatWrongConfigured() throws ParseException, ConfigurationException {
-        Properties props = new Properties();
-        props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
-        props.setProperty("value.keys", "value");
-
-        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-ms");
-        parser.config(props);
-
-        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "epoch-s");
-        parser.config(props);
-
-        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "YYYY-MM-DD");
-        parser.config(props);
-
-        props.setProperty(TIMESTAMP_PARAM + "." + FORMAT_PARAM, "wrong_format");
-        List<Metric> result = parser.config(props).call(null);
-        String resultException = result.get(0).getValue().getAsException().get();
-        assertEquals(
-                TIMESTAMP_PARAM + "." + FORMAT_PARAM
-                        + " must be epoch-ms, epoch-s or a pattern compatible with DateTimeFormatterBuilder.",
-                resultException);
-    }
-
-    @Test
-    public void shouldThrowAnExcpetionIfValueNotConfigured() throws ParseException, ConfigurationException {
-        Properties props = new Properties();
-        props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
-        // props.setProperty("value.keys", "value");
-
-        List<Metric> result = parser.config(props).call(null);
-        assertEquals("value must be configured.", result.get(0).getValue().getAsException().get());
     }
 
 }
