@@ -43,8 +43,6 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
     
     private static final Pattern typePattern = Pattern.compile("/type=([^/]+)/");
     private static final Pattern idPattern = Pattern.compile("/id=([^/]+)/");
-    private static final Pattern envPattern = Pattern.compile("/env=([^/]+)/");
-    private static final Pattern ownerPattern = Pattern.compile("/owner=([^/]+)/");
 
     private static final String CONF_NODE_NAME_DEFAULT = "config";
     private String confNodeName;
@@ -80,9 +78,6 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
         String type = extractProperty(typePattern, path);
         String id = extractProperty(idPattern, path);
         
-        String env = extractProperty(envPattern, path);
-        String owner = extractProperty(ownerPattern, path);
-        
         if(value != null && type == null) {
             LOG.debug("Path not added because is missing type in the path: " + path);
             return;
@@ -100,7 +95,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
         if(value != null && componentProps == null)
             LOG.warn("Not a valid JSON at path " + path + ". Value: " + value);
         
-        String prefix = prefixType + "." + buildId(owner, env, id);
+        String prefix = prefixType + "." + id;
         
         currentProperties.replaceSubset(prefix, componentProps);
     }
@@ -122,9 +117,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
 
     private void removeValue(String path) {
         String type = extractProperty(typePattern, path);
-        String env = extractProperty(envPattern, path);
         String id = extractProperty(idPattern, path);
-        String owner = extractProperty(ownerPattern, path);
         
         if(type == null) {
             LOG.debug("Path not removed because is missing type in the path: " + path);
@@ -138,35 +131,18 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
         
         String prefixType = getPrefixType(type);
         
-        String prefix = prefixType + "." + buildId(owner, env, id);
+        String prefix = prefixType + "." + id;
 
         currentProperties.replaceSubset(prefix, null);
     }
 
-    private static String buildId(String owner, String env, String id) {
-        String full_id = id;
-                
-        if(owner != null || env != null) {
-            if(env != null)
-                full_id = env + "_" + full_id;
-            else
-                full_id = "UNKNOWN_" + full_id;
-            if(owner != null)
-                full_id = owner + "_" + full_id;
-            else
-                full_id = "UNKNOWN_" + full_id;
-        }
-        
-        return full_id;
-    }
-
     private String extractProperty(Pattern pattern, String string) {
-        Matcher typeMatcher = pattern.matcher(string);
+        Matcher matcher = pattern.matcher(string);
         
         String value = null;
         
-        if(typeMatcher.find())
-            value = typeMatcher.group(1);
+        if(matcher.find())
+            value = matcher.group(1);
         
         return value;
     }

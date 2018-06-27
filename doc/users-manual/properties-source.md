@@ -28,7 +28,16 @@ properties.source.path = {path to main configuration file}
 
 ## Zookeeper properties source
 
-This source keeps properties synchronized with Zookeeper.
+This source keeps properties synchronized with Zookeeper. 
+
+It expects JSON documents describing the configuration in nodes with name equal to "conf_node_name". The expected nodes structure is:
+```
+/type=<component_type>/id=<component_id_1>/<name_of_nodes_with_config>
+/type=<component_type>/id=<component_id_2>/<name_of_nodes_with_config>
+...
+```
+
+Where component_type can be one of: schema, metric, monitor or actuator.
 
 Configuration:
 
@@ -37,31 +46,29 @@ properties.source.type = zookeeper
 properties.source.connection_string = <host:port,host:port/path>
 properties.source.initialization_timeout_ms = <milliseconds> (default: 5000)
 properties.source.timeout_ms = <milliseconds> (default: 20000)
-properties.source.asjson = <node_with_json_name> (recommended)
+properties.source.conf_node_name = <name_of_nodes_with_config> (default: config)
 ```
 
-If asjson property is not specified, it expects the following structure in the specified path:
+An example of structure if "conf_node_name" is configured to the default value (config).
 
 ```
-/type=schema/id=spark_batch/attributes/$environment = qa
-/type=schema/id=perf/timestamp/key = data.timestamp
-/type=schema/id=perf/timestamp/format = YYYY-MM-DD HH:MM:SS
+/type=schema/id=storage_logs/config
+/type=monitor/id=overused/config
+/type=actuator/id=api/config
 ```
 
-If asjson property is specified, it expects that nodes in Zookeeper with the configured name contains JSON (recommended). 
-Configured with asjson=json_text, It expects:
+Where a configuration node could contain a JSON. Example of configuration for HTTP actuator:
 
 ```
-/type=schema/id=spark_batch/json_text = { "qa": "$environment" }
-/type=schema/id=perf/json_text = { "timestamp": { "key": "data.timestamp", "format": "YYYY-MM-DD HH:MM:SS" }}
-```
-
-Both would be translated to:
-
-```
-metrics.schema.spark_batch.attributes.$environment = qa
-metrics.schema.perf.timestamp.key = data.timestamp
-metrics.schema.perf.timestamp.format = YYYY-MM-DD HH:MM:SS
+{
+  "type": "http",
+  "url": "http://monit-logs.cern.ch:10012/",
+  "add": {
+    "producer": "tape",
+    "type": "metrics-monitor",
+    "phase": "notifications"
+  }
+}
 ```
 
 ## File properties source

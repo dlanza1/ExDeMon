@@ -99,11 +99,11 @@ public class ZookeeperPropertiesSourceTest {
         String json = "{ \"a\": 12, \"b\": { \"c\": 34 }}";
         
         client.create().creatingParentsIfNeeded()
-            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/config", json.getBytes());
+            .forPath("/exdemon/type=monitor/id=inventory-missing/config", json.getBytes());
         
         Properties props = new Properties();
-        props.setProperty("monitor.db_production_inventory-missing.a", "12");
-        props.setProperty("monitor.db_production_inventory-missing.b.c", "34");
+        props.setProperty("monitor.inventory-missing.a", "12");
+        props.setProperty("monitor.inventory-missing.b.c", "34");
         
         assertEquals(props, source.loadAll());
     }
@@ -119,10 +119,10 @@ public class ZookeeperPropertiesSourceTest {
         String json = "{ \"a\": 12 }";
         
         client.create().creatingParentsIfNeeded()
-            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/configuration_node", json.getBytes());
+            .forPath("/exdemon/type=monitor/id=inventory-missing/configuration_node", json.getBytes());
         
         Properties props = new Properties();
-        props.setProperty("monitor.db_production_inventory-missing.a", "12");
+        props.setProperty("monitor.inventory-missing.a", "12");
         
         assertEquals(props, source.loadAll());
     }
@@ -137,18 +137,18 @@ public class ZookeeperPropertiesSourceTest {
         String json = "{ \"a\": 12, \"b\": { \"c\": 34 }}";
         
         client.create().creatingParentsIfNeeded()
-            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/config", json.getBytes());
+            .forPath("/exdemon/type=monitor/id=inventory-missing/config", json.getBytes());
         
         Properties props = new Properties();
-        props.setProperty("monitor.db_production_inventory-missing.a", "12");
-        props.setProperty("monitor.db_production_inventory-missing.b.c", "34");
+        props.setProperty("monitor.inventory-missing.a", "12");
+        props.setProperty("monitor.inventory-missing.b.c", "34");
         
         json = "{ \"z\": 52, \"b\": 98 }";
-        zk.setData("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/config", json.getBytes(), -1);
+        zk.setData("/exdemon/type=monitor/id=inventory-missing/config", json.getBytes(), -1);
         
         props = new Properties();
-        props.setProperty("monitor.db_production_inventory-missing.b", "98");
-        props.setProperty("monitor.db_production_inventory-missing.z", "52");
+        props.setProperty("monitor.inventory-missing.b", "98");
+        props.setProperty("monitor.inventory-missing.z", "52");
         assertEquals(props, source.loadAll());
     }
     
@@ -162,15 +162,15 @@ public class ZookeeperPropertiesSourceTest {
         String json = "{ \"a\": 12, \"b\": { \"c\": 34 }}";
         
         client.create().creatingParentsIfNeeded()
-            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/config", json.getBytes());
+            .forPath("/exdemon/type=monitor/id=inventory-missing/config", json.getBytes());
         
         Properties props = new Properties();
-        props.setProperty("monitor.db_production_inventory-missing.a", "12");
-        props.setProperty("monitor.db_production_inventory-missing.b.c", "34");
+        props.setProperty("monitor.inventory-missing.a", "12");
+        props.setProperty("monitor.inventory-missing.b.c", "34");
         
         assertEquals(props, source.loadAll());
         
-        zk.delete("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/config", -1);
+        zk.delete("/exdemon/type=monitor/id=inventory-missing/config", -1);
         
         Thread.sleep(100);
         
