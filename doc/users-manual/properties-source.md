@@ -57,7 +57,7 @@ An example of structure if "conf_node_name" is configured to the default value (
 /type=actuator/id=api/config
 ```
 
-Where a configuration node could contain a JSON. Example of configuration for HTTP actuator:
+Where config nodes must contain a JSON document. Example of configuration for HTTP actuator:
 
 ```
 {
