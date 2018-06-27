@@ -90,7 +90,7 @@ public class ZookeeperPropertiesSourceTest {
     }
     
     @Test
-    public void parsePropertiesAsJSON() throws Exception {
+    public void parseProperties() throws Exception {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
         sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
@@ -99,7 +99,7 @@ public class ZookeeperPropertiesSourceTest {
         String json = "{ \"a\": 12, \"b\": { \"c\": 34 }}";
         
         client.create().creatingParentsIfNeeded()
-            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes());
+            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/config", json.getBytes());
         
         Properties props = new Properties();
         props.setProperty("monitor.db_production_inventory-missing.a", "12");
@@ -109,7 +109,26 @@ public class ZookeeperPropertiesSourceTest {
     }
     
     @Test
-    public void updatePropertiesAsJSON() throws Exception {
+    public void diffConfNodeName() throws Exception {
+        ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
+        Properties sourceProperties = new Properties();
+        sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
+        sourceProperties.setProperty("conf_node_name", "configuration_node");
+        source.config(sourceProperties);
+        
+        String json = "{ \"a\": 12 }";
+        
+        client.create().creatingParentsIfNeeded()
+            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/configuration_node", json.getBytes());
+        
+        Properties props = new Properties();
+        props.setProperty("monitor.db_production_inventory-missing.a", "12");
+        
+        assertEquals(props, source.loadAll());
+    }
+    
+    @Test
+    public void updateProperties() throws Exception {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
         sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
@@ -118,14 +137,14 @@ public class ZookeeperPropertiesSourceTest {
         String json = "{ \"a\": 12, \"b\": { \"c\": 34 }}";
         
         client.create().creatingParentsIfNeeded()
-            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes());
+            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/config", json.getBytes());
         
         Properties props = new Properties();
         props.setProperty("monitor.db_production_inventory-missing.a", "12");
         props.setProperty("monitor.db_production_inventory-missing.b.c", "34");
         
         json = "{ \"z\": 52, \"b\": 98 }";
-        zk.setData("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes(), -1);
+        zk.setData("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/config", json.getBytes(), -1);
         
         props = new Properties();
         props.setProperty("monitor.db_production_inventory-missing.b", "98");
@@ -134,7 +153,7 @@ public class ZookeeperPropertiesSourceTest {
     }
     
     @Test
-    public void removePropertiesAsJSON() throws Exception {
+    public void removeProperties() throws Exception {
         ZookeeperPropertiesSource source = new ZookeeperPropertiesSource();
         Properties sourceProperties = new Properties();
         sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
@@ -143,7 +162,7 @@ public class ZookeeperPropertiesSourceTest {
         String json = "{ \"a\": 12, \"b\": { \"c\": 34 }}";
         
         client.create().creatingParentsIfNeeded()
-            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", json.getBytes());
+            .forPath("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/config", json.getBytes());
         
         Properties props = new Properties();
         props.setProperty("monitor.db_production_inventory-missing.a", "12");
@@ -151,7 +170,7 @@ public class ZookeeperPropertiesSourceTest {
         
         assertEquals(props, source.loadAll());
         
-        zk.delete("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/json", -1);
+        zk.delete("/exdemon/owner=db/env=production/id=inventory-missing/type=monitor/config", -1);
         
         Thread.sleep(100);
         

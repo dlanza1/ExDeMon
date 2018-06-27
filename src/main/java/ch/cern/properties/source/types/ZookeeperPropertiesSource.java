@@ -46,13 +46,15 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
     private static final Pattern envPattern = Pattern.compile("/env=([^/]+)/");
     private static final Pattern ownerPattern = Pattern.compile("/owner=([^/]+)/");
 
-    private static final String CONF_NODE_NAME = "/json";
+    private static final String CONF_NODE_NAME_DEFAULT = "config";
+    private String confNodeName;
     
     @Override
     public void configure(Properties properties) throws ConfigurationException {
         zkConnString = properties.getProperty("connection_string");
         initialization_timeout_ms = properties.getLong("initialization_timeout_ms", 5000);
         timeout_ms = (int) properties.getLong("timeout_ms", 20000);
+        confNodeName = "/" + properties.getProperty("conf_node_name", CONF_NODE_NAME_DEFAULT);
         
         properties.confirmAllPropertiesUsed();
     }
@@ -223,7 +225,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
                     
                     if(data != null && data.length > 0) {
                         String path = event.getData().getPath();
-                        if(!path.endsWith(CONF_NODE_NAME))
+                        if(!path.endsWith(confNodeName))
                             return;
                         
                         String value = new String(event.getData().getData());
@@ -239,7 +241,7 @@ public class ZookeeperPropertiesSource extends PropertiesSource {
                 case NODE_UPDATED:
                     if(event.getData().getData() != null) {
                         String path = event.getData().getPath();
-                        if(!path.endsWith(CONF_NODE_NAME))
+                        if(!path.endsWith(confNodeName))
                             return;
                         
                         String value = new String(event.getData().getData());
