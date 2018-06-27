@@ -9,9 +9,9 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.apache.spark.streaming.State;
 
-import ch.cern.components.Component.Type;
+import ch.cern.components.Component;
 import ch.cern.components.ComponentManager;
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -25,16 +25,14 @@ import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.utils.Pair;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 
 @ToString
-public class Monitor {
+public class Monitor extends Component{
     
+    private static final long serialVersionUID = 508898995309159431L;
+
     private final static Logger LOG = Logger.getLogger(Monitor.class.getName());
-    
-    @Getter @Setter
-    protected String id;
     
     @Getter
     private MetricsFilter filter;
@@ -48,19 +46,19 @@ public class Monitor {
 
     private Map<String, String> fixedValueAttributes;
     
-    public Monitor(String id){
-        this.id = id;
+    public Monitor(){
     }
     
-    public Monitor config(Properties properties) {
-    		try {
-			return tryConfig(properties);
+    public Monitor(String id){
+        setId(id);
+    }
+    
+    @Override
+    public void config(Properties properties) {
+    	try {
+			tryConfig(properties);
 		} catch (Exception e) {
-		    LOG.error(id + ": " + e.getMessage(), e);
-		    
-			InErrorMonitor errorMonitor = new InErrorMonitor(id, e);
-			
-			return errorMonitor.config(properties);
+		    LOG.error(getId() + ": " + e.getMessage(), e);
 		}
     }
     
@@ -73,7 +71,7 @@ public class Monitor {
         
         Properties analysis_props = properties.getSubset("analysis");
         if(!analysis_props.isTypeDefined())
-        		analysis_props.setProperty("type", NoneAnalysis.class.getAnnotation(RegisterComponent.class).value());
+        		analysis_props.setProperty("type", NoneAnalysis.class.getAnnotation(RegisterComponentType.class).value());
     		analysis = ComponentManager.build(Type.ANAYLSIS, analysis_props);
         
     	Properties triggersProps = properties.getSubset("triggers");
@@ -105,7 +103,7 @@ public class Monitor {
         		
             result = analysis.apply(metric);
             
-            result.addAnalysisParam("type", analysis.getClass().getAnnotation(RegisterComponent.class).value());
+            result.addAnalysisParam("type", analysis.getClass().getAnnotation(RegisterComponentType.class).value());
             
             if(analysis.hasStatus())
             		analysis.getStatus().ifPresent(s -> status.update(s));
@@ -115,7 +113,7 @@ public class Monitor {
         }
         
         metric.getAttributes().putAll(fixedValueAttributes);
-        result.addAnalysisParam("monitor.name", id);
+        result.addAnalysisParam("monitor.name", getId());
         result.setAnalyzedMetric(metric);
         result.setTags(tags);
 

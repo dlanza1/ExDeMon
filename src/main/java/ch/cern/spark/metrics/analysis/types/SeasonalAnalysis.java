@@ -2,7 +2,7 @@ package ch.cern.spark.metrics.analysis.types;
 
 import java.time.Instant;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.analysis.NumericAnalysis;
@@ -12,7 +12,7 @@ import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
 
-@RegisterComponent("seasonal")
+@RegisterComponentType("seasonal")
 public class SeasonalAnalysis extends NumericAnalysis implements HasStatus{
 
     private static final long serialVersionUID = 6395895250358427351L;

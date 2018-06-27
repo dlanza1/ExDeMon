@@ -1,6 +1,5 @@
 package ch.cern.spark.metrics.schema;
 
-import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -19,6 +18,7 @@ import org.apache.log4j.Logger;
 
 import com.google.gson.JsonElement;
 
+import ch.cern.components.Component;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.json.JSON;
@@ -28,18 +28,14 @@ import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.Value;
 import ch.cern.utils.ExceptionsCache;
 import ch.cern.utils.Pair;
-import lombok.Getter;
 import lombok.ToString;
 
 @ToString
-public class MetricSchema implements Serializable {
+public final class MetricSchema extends Component {
 
     private static final long serialVersionUID = -8885058791228553794L;
 
     private transient final static Logger LOG = Logger.getLogger(MetricSchema.class.getName());
-
-    @Getter
-    private String id;
 
     public static String SOURCES_PARAM = "sources";
     private List<String> sources;
@@ -61,24 +57,26 @@ public class MetricSchema implements Serializable {
 
     private static transient ExceptionsCache exceptionsCache = new ExceptionsCache(Duration.ofMinutes(1));
     protected Exception configurationException;
-
+    
+    public MetricSchema() {
+    }
+    
     public MetricSchema(String id) {
-        this.id = id;
+        setId(id);
     }
 
-    public MetricSchema config(Properties properties) {
+    @Override
+    public void config(Properties properties) throws ConfigurationException {
         try {
             tryConfig(properties);
         } catch (Exception e) {
             configurationException = e;
             
-            LOG.error(id + ": " + e.getMessage(), e);
+            LOG.error(getId() + ": " + e.getMessage(), e);
         }
-
-        return this;
     }
-
-    public MetricSchema tryConfig(Properties properties) throws ConfigurationException {
+    
+    public void tryConfig(Properties properties) throws ConfigurationException {
         String sourcesValue = properties.getProperty(SOURCES_PARAM);
         if (sourcesValue == null)
             throw new ConfigurationException("sources must be spcified");
@@ -101,7 +99,7 @@ public class MetricSchema implements Serializable {
             throw new ConfigurationException(VALUES_PARAM + " must be configured.");
 
         fixedAttributes = new HashMap<>();
-        fixedAttributes.put("$schema", id);
+        fixedAttributes.put("$schema", getId());
         
         attributes = new LinkedList<>();
         attributesPattern = new LinkedList<>();
@@ -121,8 +119,6 @@ public class MetricSchema implements Serializable {
         filter = MetricsFilter.build(properties.getSubset(FILTER_PARAM));
         
         properties.confirmAllPropertiesUsed();
-
-        return this;
     }
 
     private boolean isKeyRegex(String value) {
@@ -219,10 +215,10 @@ public class MetricSchema implements Serializable {
     }
 
     private Optional<ExceptionValue> raiseException(String value, Exception exception) {
-        if(!exceptionsCache.wasRecentlyRaised(id + value, exception)) {
-            LOG.error(id + ": " + exception.getMessage(), exception);
+        if(!exceptionsCache.wasRecentlyRaised(getId() + value, exception)) {
+            LOG.error(getId() + ": " + exception.getMessage(), exception);
             
-            exceptionsCache.raised(id + value, exception);
+            exceptionsCache.raised(getId() + value, exception);
             
             return Optional.of(new ExceptionValue(exception.getMessage()));
         }

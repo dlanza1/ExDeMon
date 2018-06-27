@@ -14,7 +14,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Time;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusKey;
@@ -23,7 +23,7 @@ import ch.cern.spark.status.storage.StatusesStorage;
 import scala.NotImplementedError;
 import scala.Tuple2;
 
-@RegisterComponent("single-file")
+@RegisterComponentType("single-file")
 public class SingleFileStatusesStorage extends StatusesStorage{
 
 	private static final long serialVersionUID = 689960361701601565L;

@@ -19,12 +19,12 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import org.apache.spark.streaming.kafka010.OffsetRange;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.source.MetricsSource;
 
-@RegisterComponent("kafka")
+@RegisterComponentType("kafka")
 public class KafkaMetricsSource extends MetricsSource {
 
     private static final long serialVersionUID = 4110858617715602562L;

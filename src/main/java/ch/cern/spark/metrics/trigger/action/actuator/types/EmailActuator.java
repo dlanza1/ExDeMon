@@ -13,7 +13,7 @@ import javax.mail.internet.MimeMessage;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.trigger.action.Action;
@@ -21,7 +21,7 @@ import ch.cern.spark.metrics.trigger.action.Template;
 import ch.cern.spark.metrics.trigger.action.actuator.Actuator;
 import lombok.ToString;
 
-@RegisterComponent("email")
+@RegisterComponentType("email")
 @ToString(callSuper=false)
 public class EmailActuator extends Actuator {
 

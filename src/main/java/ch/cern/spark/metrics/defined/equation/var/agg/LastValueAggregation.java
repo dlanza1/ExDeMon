@@ -4,12 +4,12 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.Value;
 
-@RegisterComponent("last")
+@RegisterComponentType("last")
 public class LastValueAggregation extends Aggregation {
 
     private static final long serialVersionUID = -2652766061746715818L;

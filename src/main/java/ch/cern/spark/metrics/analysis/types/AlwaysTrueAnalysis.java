@@ -2,12 +2,12 @@ package ch.cern.spark.metrics.analysis.types;
 
 import java.time.Instant;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.spark.metrics.analysis.BooleanAnalysis;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 
-@RegisterComponent("true")
+@RegisterComponentType("true")
 public class AlwaysTrueAnalysis extends BooleanAnalysis {
 
 	private static final long serialVersionUID = -4512609434171905694L;

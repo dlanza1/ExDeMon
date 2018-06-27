@@ -16,7 +16,7 @@ import com.esotericsoftware.minlog.Log;
 
 import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentManager;
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.DatedValue;
@@ -145,7 +145,7 @@ public class MetricVariable extends Variable {
         if (aggValue.getAsException().isPresent())
             aggValue = new ExceptionValue("Variable " + name + ": " + aggValue.getAsException().get());
 
-        String aggName = aggregation.getClass().getAnnotation(RegisterComponent.class).value();
+        String aggName = aggregation.getClass().getAnnotation(RegisterComponentType.class).value();
         aggValue.setSource(aggName.toLowerCase() + "(var(" + name + "))=" + source);
 
         return aggValue;
@@ -285,7 +285,7 @@ public class MetricVariable extends Variable {
 
     @Override
     public String toString() {
-        String aggName = aggregation.getClass().getAnnotation(RegisterComponent.class).value();
+        String aggName = aggregation.getClass().getAnnotation(RegisterComponentType.class).value();
         return aggName + "(time_filter(" + name + ", from:" + expire + ", to:" + ignore + "))";
     }
 

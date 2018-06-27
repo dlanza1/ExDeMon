@@ -17,12 +17,12 @@ import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.properties.source.PropertiesSource;
 
-@RegisterComponent("zookeeper")
+@RegisterComponentType("zookeeper")
 public class ZookeeperPropertiesSource extends PropertiesSource {
 
     private static final long serialVersionUID = -484558653609471794L;

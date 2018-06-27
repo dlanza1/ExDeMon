@@ -1,6 +1,5 @@
 package ch.cern.spark.metrics.defined;
 
-import java.io.Serializable;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Arrays;
@@ -13,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
+import ch.cern.components.Component;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -27,14 +27,11 @@ import lombok.Getter;
 import lombok.ToString;
 
 @ToString
-public class DefinedMetric implements Serializable{
+public final class DefinedMetric extends Component {
 
 	private static final long serialVersionUID = 82179461944060520L;
 	
 	private final static Logger LOG = Logger.getLogger(DefinedMetric.class.getName());
-
-	@Getter
-	private String id;
 
 	private Set<String> metricsGroupBy;
 	
@@ -50,23 +47,25 @@ public class DefinedMetric implements Serializable{
 
     private Map<String, String> fixedValueAttributes;
 
+    public DefinedMetric() {
+    }
+    
 	public DefinedMetric(String id) {
-		this.id = id;
+		setId(id);
 	}
 
-	public DefinedMetric config(Properties properties) {
+	@Override
+	public void config(Properties properties) {
 		try {
-			return tryConfig(properties);
+			tryConfig(properties);
 		} catch (ConfigurationException e) {
-		    LOG.error(id + ": " + e.getMessage(), e);
+		    LOG.error(getId() + ": " + e.getMessage(), e);
 		    
 			configurationException = e;
 			
 			variablesWhen = null; // So that, it is trigger with every batch
 			metricsGroupBy = null;
 			equation = null;
-			
-			return this;
 		}
 	}
 	
@@ -199,7 +198,7 @@ public class DefinedMetric implements Serializable{
 	
 	private Optional<Metric> generate(VariableStatuses stores, Instant time, Map<String, String> groupByMetricIDs) {		
 		Map<String, String> metricIDs = new HashMap<>(groupByMetricIDs);
-		metricIDs.put("$defined_metric", id);
+		metricIDs.put("$defined_metric", getId());
 		metricIDs.putAll(fixedValueAttributes);
 		
 		if(configurationException != null) {

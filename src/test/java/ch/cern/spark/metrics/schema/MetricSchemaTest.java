@@ -358,7 +358,8 @@ public class MetricSchemaTest {
         props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
         // props.setProperty("value.v.key", "value");
 
-        List<Metric> result = parser.config(props).call(null);
+        parser.config(props);
+        List<Metric> result = parser.call(null);
         assertEquals("value must be configured.", result.get(0).getValue().getAsException().get());
     }
     

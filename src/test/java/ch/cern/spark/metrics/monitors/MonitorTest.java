@@ -66,7 +66,8 @@ public class MonitorTest {
         properties.setProperty("analysis.error.lowerbound", "10");
         properties.setProperty("attribute.monitor", "monitor_name");
         properties.setProperty("attribute.other", "other_value");
-        Monitor monitor = new Monitor("test").config(properties);
+        Monitor monitor = new Monitor("test");
+        monitor.config(properties);
 
         State<StatusValue> store = new StateImpl<>();
 
@@ -84,7 +85,8 @@ public class MonitorTest {
         properties.setProperty("analysis.error.lowerbound", "10");
         properties.setProperty("tags.email", "1234@cern.ch");
         properties.setProperty("tags.group", "IT_DB");
-        Monitor monitor = new Monitor("test").config(properties);
+        Monitor monitor = new Monitor("test");
+        monitor.config(properties);
 
         State<StatusValue> store = new StateImpl<>();
 
@@ -108,7 +110,8 @@ public class MonitorTest {
         properties.setProperty("tags.email", "1234@cern.ch");
         properties.setProperty("tags.group", "IT_DB");
         properties.setProperty("tags.sink-conf-id.target", "%target.conf");
-        Monitor monitor = new Monitor("test").config(properties);
+        Monitor monitor = new Monitor("test");
+        monitor.config(properties);
 
         State<StatusValue> store = new StateImpl<>();
 

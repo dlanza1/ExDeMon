@@ -11,6 +11,8 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.Cache;
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentManager;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -18,7 +20,6 @@ import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.spark.status.StateDStream;
 import ch.cern.spark.status.Status;
 import ch.cern.spark.status.StatusOperation;
-import ch.cern.utils.Pair;
 
 public class DefinedMetrics {
 
@@ -35,8 +36,15 @@ public class DefinedMetrics {
 	        Set<String> metricsDefinedNames = properties.getIDs();
 	        
 	        Map<String, DefinedMetric> definedMetrics = metricsDefinedNames.stream()
-	        		.map(id -> new Pair<String, Properties>(id, properties.getSubset(id)))
-	        		.map(info -> new DefinedMetric(info.first).config(info.second))
+	        		.map(id -> {
+                        try {
+                            return (DefinedMetric) ComponentManager.build(Type.METRIC, id, properties.getSubset(id));
+                        } catch (ConfigurationException e) {
+                            LOG.error(e);
+                            
+                            return null;
+                        }
+                    })
 	        		.filter(out -> out != null)
 	        		.collect(Collectors.toMap(DefinedMetric::getId, m -> m));
 	        

@@ -3,12 +3,12 @@ package ch.cern.spark.metrics.defined.equation.var.agg;
 import java.time.Instant;
 import java.util.Collection;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
 
-@RegisterComponent("count")
+@RegisterComponentType("count")
 public class CountAgregation extends Aggregation {
 
     private static final long serialVersionUID = 8274088208286521725L;

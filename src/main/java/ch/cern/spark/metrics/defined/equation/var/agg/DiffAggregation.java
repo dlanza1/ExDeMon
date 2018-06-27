@@ -5,13 +5,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
 
-@RegisterComponent("diff")
+@RegisterComponentType("diff")
 public class DiffAggregation extends Aggregation {
 
     private static final long serialVersionUID = 8713765353223035040L;

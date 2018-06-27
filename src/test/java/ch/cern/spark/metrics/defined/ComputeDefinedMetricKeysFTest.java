@@ -220,7 +220,9 @@ public class ComputeDefinedMetricKeysFTest {
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
-		DefinedMetric definedMetric1 = new DefinedMetric("defM1").config(properties);
+		DefinedMetric definedMetric1 = new DefinedMetric();
+		definedMetric1.setId("defM1");
+		definedMetric1.config(properties);
 		definedMetrics.put(definedMetric1.getId(), definedMetric1);
 		
 		properties = new Properties();
@@ -228,7 +230,9 @@ public class ComputeDefinedMetricKeysFTest {
 		properties.setProperty("metrics.groupby", "INSTANCE_NAME");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
-		DefinedMetric definedMetric2 = new DefinedMetric("defM2").config(properties);
+		DefinedMetric definedMetric2 = new DefinedMetric();
+		definedMetric2.setId("defM2");
+		definedMetric2.config(properties);
 		definedMetrics.put(definedMetric2.getId(), definedMetric2);
 
 		definedMetricsCache.set(definedMetrics);
@@ -246,7 +250,9 @@ public class ComputeDefinedMetricKeysFTest {
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		
 		Map<String, DefinedMetric> definedMetrics = new HashMap<>();
-		DefinedMetric definedMetric = new DefinedMetric("defMAll").config(properties);
+		DefinedMetric definedMetric = new DefinedMetric();
+		definedMetric.setId("defMAll");
+		definedMetric.config(properties);
 		definedMetrics.put(definedMetric.getId(), definedMetric);
 		definedMetricsCache.set(definedMetrics);
 		
@@ -263,7 +269,9 @@ public class ComputeDefinedMetricKeysFTest {
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		
 		Map<String, DefinedMetric> definedMetrics = new HashMap<>();
-		DefinedMetric definedMetric = new DefinedMetric("defMNone").config(properties);
+		DefinedMetric definedMetric = new DefinedMetric();
+		definedMetric.setId("defMNone");
+		definedMetric.config(properties);
 		definedMetrics.put(definedMetric.getId(), definedMetric);
 		definedMetricsCache.set(definedMetrics);
 		

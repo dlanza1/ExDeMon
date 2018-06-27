@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
@@ -13,7 +13,7 @@ import ch.cern.spark.metrics.value.Value;
 import ch.cern.utils.DurationAndTruncate;
 import ch.cern.utils.Pair;
 
-@RegisterComponent("weighted_avg")
+@RegisterComponentType("weighted_avg")
 public class WAvgAggregation extends Aggregation {
 
     private static final long serialVersionUID = 8713765353223035040L;

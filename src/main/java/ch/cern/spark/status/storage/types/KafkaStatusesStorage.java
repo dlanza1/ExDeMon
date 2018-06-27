@@ -35,7 +35,7 @@ import org.apache.spark.streaming.Time;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusKey;
@@ -47,7 +47,7 @@ import ch.cern.spark.status.storage.StatusesStorage;
 import ch.cern.utils.ByteArray;
 import scala.Tuple2;
 
-@RegisterComponent("kafka")
+@RegisterComponentType("kafka")
 public class KafkaStatusesStorage extends StatusesStorage {
 
 	private static final long serialVersionUID = 1194347587683707148L;

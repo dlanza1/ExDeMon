@@ -5,7 +5,7 @@ import java.time.Instant;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.ValueHistory;
@@ -19,7 +19,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 @ToString
-@RegisterComponent("percentile")
+@RegisterComponentType("percentile")
 public class PercentileAnalysis extends NumericAnalysis implements HasStatus{
     
     private static final long serialVersionUID = 5419076430764447352L;

@@ -4,11 +4,11 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.schema.MetricSchemas;
 
-@RegisterComponent("test")
+@RegisterComponentType("test")
 public class PropertiesSourceTest extends PropertiesSource {
 
     private static final long serialVersionUID = 79323351398301182L;

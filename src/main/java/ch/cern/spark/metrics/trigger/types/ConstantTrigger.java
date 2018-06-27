@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
@@ -19,7 +19,7 @@ import ch.cern.utils.TimeUtils;
 import lombok.ToString;
 
 @ToString
-@RegisterComponent("constant")
+@RegisterComponentType("constant")
 public class ConstantTrigger extends Trigger implements HasStatus {
     
     private static final long serialVersionUID = -7890231998987060652L;

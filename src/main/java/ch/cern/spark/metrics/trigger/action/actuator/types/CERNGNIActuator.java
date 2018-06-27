@@ -1,6 +1,6 @@
 package ch.cern.spark.metrics.trigger.action.actuator.types;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.monitoring.gni.GNINotification;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -9,7 +9,7 @@ import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.metrics.trigger.action.actuator.Actuator;
 import lombok.ToString;
 
-@RegisterComponent("cern-gni")
+@RegisterComponentType("cern-gni")
 @ToString(callSuper=false)
 public class CERNGNIActuator extends Actuator {
 

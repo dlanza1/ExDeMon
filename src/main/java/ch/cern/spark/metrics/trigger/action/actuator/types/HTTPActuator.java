@@ -1,6 +1,6 @@
 package ch.cern.spark.metrics.trigger.action.actuator.types;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.http.HTTPSink;
@@ -8,7 +8,7 @@ import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.metrics.trigger.action.actuator.Actuator;
 import lombok.ToString;
 
-@RegisterComponent("http")
+@RegisterComponentType("http")
 @ToString(callSuper=false)
 public class HTTPActuator extends Actuator {
 

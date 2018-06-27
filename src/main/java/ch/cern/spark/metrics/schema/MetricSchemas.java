@@ -8,6 +8,9 @@ import org.apache.log4j.Logger;
 import org.apache.spark.streaming.api.java.JavaDStream;
 
 import ch.cern.Cache;
+import ch.cern.components.Component;
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentManager;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -29,9 +32,17 @@ public class MetricSchemas {
 	        Set<String> metricSchemaIDs = properties.getIDs();
 	        
 	        Map<String, MetricSchema> metricSchemas = metricSchemaIDs.stream()
-	        		.map(id -> new MetricSchema(id).config(properties.getSubset(id)))
+	        		.map(id -> {
+                        try {
+                            return (MetricSchema) ComponentManager.build(Type.SCHEMA, id, properties.getSubset(id));
+                        } catch (ConfigurationException e) {
+                            LOG.error(e);
+                            
+                            return null;
+                        }
+                    })
 	        		.filter(out -> out != null)
-	        		.collect(Collectors.toMap(MetricSchema::getId, m -> m));
+	        		.collect(Collectors.toMap(Component::getId, m -> m));
 	        
 	        LOG.info("Dynamic Metric schemas: " + metricSchemas);
 	        

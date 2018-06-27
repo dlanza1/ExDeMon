@@ -9,12 +9,12 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.log4j.Logger;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.properties.source.PropertiesSource;
 
-@RegisterComponent("file")
+@RegisterComponentType("file")
 public class FilePropertiesSource extends PropertiesSource {
     
     private transient final static Logger LOG = Logger.getLogger(FilePropertiesSource.class.getName());

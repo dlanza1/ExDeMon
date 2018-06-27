@@ -15,16 +15,16 @@ public class ComponentManager {
     
     private final static Logger LOG = Logger.getLogger(ComponentManager.class.getName());
     
-    private static Map<Component.Type, Map<String, Class<? extends Component>>> availableComponents = new HashMap<>();
+    private static Map<Component.Type, Map<String, Class<? extends Component>>> types = new HashMap<>();
     static{
         new Reflections("ch.cern")
-	        		.getTypesAnnotatedWith(RegisterComponent.class)
+	        		.getTypesAnnotatedWith(RegisterComponentType.class)
 	        		.stream()
-	        		.forEach(ComponentManager::registerComponent);
+	        		.forEach(ComponentManager::registerType);
     }
     
 	@SuppressWarnings("unchecked")
-	private static void registerComponent(Class<?> componentToRegister) {
+	private static void registerType(Class<?> componentToRegister) {
 	    Class<? extends Component> componentClass;
 	    try {
 	        componentClass = (Class<? extends Component>) componentToRegister;
@@ -36,31 +36,41 @@ public class ComponentManager {
     	ComponentType typeAnnotation = componentClass.getSuperclass().getAnnotation(ComponentType.class);
     	if(typeAnnotation == null)
     	    typeAnnotation = componentClass.getSuperclass().getSuperclass().getAnnotation(ComponentType.class);
+    	if(typeAnnotation == null)
+            typeAnnotation = componentClass.getAnnotation(ComponentType.class);
     	if(typeAnnotation == null) {
     	    LOG.error("Component " + componentToRegister + " could not be registered, it does not extend a class with @ComponentType annotation");
     	    return;
     	}
-    			
-        Type type = typeAnnotation.value();
-        String name = componentClass.getAnnotation(RegisterComponent.class).value();
-        
-        if(!availableComponents.containsKey(type))
-            availableComponents.put(type, new HashMap<String, Class<? extends Component>>());
-        
-        availableComponents.get(type).put(name, componentClass);
+    	
+    	Type type = typeAnnotation.value();
+    	RegisterComponentType registerAnnotation = componentClass.getAnnotation(RegisterComponentType.class);
+    	
+        String name = registerAnnotation.value();
+            
+        if(!types.containsKey(type))
+                types.put(type, new HashMap<String, Class<? extends Component>>());
+            
+        types.get(type).put(name, componentClass);
     }
 	
-	public static<C extends Component> C build(Component.Type componentType, Properties properties) throws ConfigurationException  {
-		return build(componentType, null, properties);
+	public static<C extends Component> C build(Component.Type componentType, String id, Properties properties) throws ConfigurationException  {
+	    C component = build(componentType, properties);
+	    
+	    component.setId(id);
+	    
+		return component;
 	}
 	
-	public static<C extends Component> C build(Type componentType, String id, Properties properties) throws ConfigurationException {
-        String type = properties.getProperty("type");
+	public static<C extends Component> C build(Type componentType, Properties properties) throws ConfigurationException {
+	    String type = componentType.type();
+	    if(type == null)
+            type = properties.getProperty("type");
         
         if(type == null)
             throw new ConfigurationException(componentType + ": component type cannot be null.");
         
-        C component = buildFromAvailableComponents(componentType, type);
+        C component = buildFromAvailableTypes(componentType, type);
         
         if(component == null){
             try {
@@ -68,39 +78,39 @@ public class ComponentManager {
             } catch (Exception e) {
                 String message = "Component class could not be loaded, type or class (" + type + ") does not exist. ";
                 
-                if(getAvailableComponents(componentType) != null)
-                		message += "It must be a FQCN or one of: " + getAvailableComponents(componentType).keySet();
+                if(getAvailableTypes(componentType) != null)
+                	message += "It must be a FQCN or one of: " + getAvailableTypes(componentType).keySet();
                 else
-                		message += "It must be a FQCN (not built-in components availables)";
+                	message += "It must be a FQCN (not built-in components availables)";
                 
                 LOG.error(message, e);
                 throw new ConfigurationException(componentType + ": " + message);
             }
         }
         
-        component.setId(id);
         component.config(properties);
         
         return component;
     }
 
-    private static<C extends Component> C buildFromAvailableComponents(Type componentType, String type) throws ConfigurationException {
-        Map<String, Class<? extends Component>> availableComponents = getAvailableComponents(componentType);
+    private static<C extends Component> C buildFromAvailableTypes(Type componentType, String type) throws ConfigurationException {
+        Map<String, Class<? extends Component>> availableComponents = getAvailableTypes(componentType);
         
         if(availableComponents == null)
             return null;
         
-        for (Map.Entry<String, Class<? extends Component>> availableComponent : availableComponents.entrySet())
-            if(availableComponent.getKey().equals(type))
-                return getComponentInstance(availableComponent.getValue().getName());
+        Class<? extends Component> component = availableComponents.get(type);
         
-        return null;
+        if(component == null)
+            return null;
+        
+        return getComponentInstance(component.getName());
     }
 
 	private static<C extends Component> C getComponentInstance(String clazzName) throws ConfigurationException {
 		try {
 			@SuppressWarnings("unchecked")
-			Class<C>clazz = (Class<C>) Class.forName(clazzName).asSubclass(Component.class);
+			Class<C> clazz = (Class<C>) Class.forName(clazzName).asSubclass(Component.class);
 			
 			return clazz.newInstance();
 		} catch (Exception e) {
@@ -108,8 +118,8 @@ public class ComponentManager {
 		}
     }
 
-    public static Map<String, Class<? extends Component>> getAvailableComponents(Type componentType){
-        return availableComponents.get(componentType);
+    public static Map<String, Class<? extends Component>> getAvailableTypes(Type componentType){
+        return types.get(componentType);
     }
 
 	public static <C extends Component> Optional<C> buildOptional(Type type, Properties props) throws ConfigurationException  {

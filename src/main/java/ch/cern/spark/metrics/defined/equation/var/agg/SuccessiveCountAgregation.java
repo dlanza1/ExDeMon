@@ -3,7 +3,7 @@ package ch.cern.spark.metrics.defined.equation.var.agg;
 import java.time.Instant;
 import java.util.Collection;
 
-import ch.cern.components.RegisterComponent;
+import ch.cern.components.RegisterComponentType;
 import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.ValueHistory;
@@ -11,7 +11,7 @@ import ch.cern.spark.metrics.defined.equation.var.MetricVariable;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
 
-@RegisterComponent("successive_count")
+@RegisterComponentType("successive_count")
 public class SuccessiveCountAgregation extends Aggregation {
 
     private static final long serialVersionUID = 8274088208286521725L;
