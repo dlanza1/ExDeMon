@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 import org.apache.spark.streaming.State;
 
 import ch.cern.components.Component;
-import ch.cern.components.ComponentManager;
+import ch.cern.components.ComponentTypes;
 import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -72,7 +72,7 @@ public class Monitor extends Component{
         Properties analysis_props = properties.getSubset("analysis");
         if(!analysis_props.isTypeDefined())
         		analysis_props.setProperty("type", NoneAnalysis.class.getAnnotation(RegisterComponentType.class).value());
-    		analysis = ComponentManager.build(Type.ANAYLSIS, analysis_props);
+    		analysis = ComponentTypes.build(Type.ANAYLSIS, analysis_props);
         
     	Properties triggersProps = properties.getSubset("triggers");
         
@@ -84,7 +84,7 @@ public class Monitor extends Component{
         		if(!props.isTypeDefined())
         		    props.setProperty("type", "statuses");
         		
-        		triggers.put(triggerId, ComponentManager.build(Type.TRIGGER, triggerId, props));
+        		triggers.put(triggerId, ComponentTypes.build(Type.TRIGGER, triggerId, props));
 		}
         
         tags = properties.getSubset("tags").toStringMap();

@@ -11,16 +11,16 @@ import ch.cern.components.Component.Type;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 
-public class ComponentManager {
+public class ComponentTypes {
     
-    private final static Logger LOG = Logger.getLogger(ComponentManager.class.getName());
+    private final static Logger LOG = Logger.getLogger(ComponentTypes.class.getName());
     
     private static Map<Component.Type, Map<String, Class<? extends Component>>> types = new HashMap<>();
     static{
         new Reflections("ch.cern")
 	        		.getTypesAnnotatedWith(RegisterComponentType.class)
 	        		.stream()
-	        		.forEach(ComponentManager::registerType);
+	        		.forEach(ComponentTypes::registerType);
     }
     
 	@SuppressWarnings("unchecked")

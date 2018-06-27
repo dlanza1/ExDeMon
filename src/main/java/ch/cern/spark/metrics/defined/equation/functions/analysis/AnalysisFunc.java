@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.HashMap;
 
 import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentManager;
+import ch.cern.components.ComponentTypes;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -42,7 +42,7 @@ public class AnalysisFunc extends Function {
 		Properties props = propsVal.getAsProperties().get();
 		
 		try{
-			analysis = ComponentManager.build(Type.ANAYLSIS, props);
+			analysis = ComponentTypes.build(Type.ANAYLSIS, props);
 			analysis.config(props);
 		}catch(ConfigurationException e) {
 			throw new ParseException(e.getClass().getSimpleName() + e.getMessage(), 0);

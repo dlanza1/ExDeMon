@@ -26,7 +26,7 @@ import com.google.gson.JsonParser;
 
 import ch.cern.Cache;
 import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentManager;
+import ch.cern.components.ComponentTypes;
 import ch.cern.properties.source.PropertiesSource;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.utils.Pair;
@@ -263,7 +263,7 @@ public class Properties extends java.util.Properties {
         public PropertiesCache(Properties propertiesSourceProps) throws ConfigurationException {
             LOG.info("Properties source parameters: " + propertiesSourceProps);
             
-            propertiesSourceOpt = ComponentManager.buildOptional(Type.PROPERTIES_SOURCE, propertiesSourceProps);
+            propertiesSourceOpt = ComponentTypes.buildOptional(Type.PROPERTIES_SOURCE, propertiesSourceProps);
             
             if(!propertiesSourceOpt.isPresent())
                 throw new ConfigurationException("No properties source was configured");

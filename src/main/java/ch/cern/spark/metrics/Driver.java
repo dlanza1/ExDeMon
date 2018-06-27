@@ -18,7 +18,7 @@ import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentManager;
+import ch.cern.components.ComponentTypes;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.properties.source.PropertiesSource;
@@ -97,7 +97,7 @@ public final class Driver {
         Driver driver = new Driver(properties);
 
         Properties propertiesSourceProps = properties.getSubset(PropertiesSource.CONFIGURATION_PREFIX);
-        PropertiesSource propSource = ComponentManager.build(Type.PROPERTIES_SOURCE, propertiesSourceProps);
+        PropertiesSource propSource = ComponentTypes.build(Type.PROPERTIES_SOURCE, propertiesSourceProps);
         propSource.prepareConfig(propertiesSourceProps);
         JavaStreamingContext ssc = driver.createNewStreamingContext(propertiesSourceProps);
 
@@ -182,7 +182,7 @@ public final class Driver {
     private Optional<AnalysisResultsSink> getAnalysisResultsSink(Properties properties) throws Exception {
         Properties analysisResultsSinkProperties = properties.getSubset("results.sink");
 
-        return ComponentManager.buildOptional(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
+        return ComponentTypes.buildOptional(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
     }
 
     private List<MetricsSource> getMetricSources(Properties properties) throws Exception {
@@ -195,7 +195,7 @@ public final class Driver {
         for (String id : ids) {
             Properties props = metricSourcesProperties.getSubset(id);
 
-            MetricsSource source = ComponentManager.build(Type.METRIC_SOURCE, id, props);
+            MetricsSource source = ComponentTypes.build(Type.METRIC_SOURCE, id, props);
             source.setId(id);
 
             metricSources.add(source);

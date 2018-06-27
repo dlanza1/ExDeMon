@@ -12,7 +12,7 @@ import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.Cache;
 import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentManager;
+import ch.cern.components.ComponentTypes;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -44,7 +44,7 @@ public class Monitors {
 	        for (String monitorName : monitorNames) {
 				Properties monitorProps = properties.getSubset(monitorName);
 				
-				Monitor monitor = ComponentManager.build(Type.MONITOR, monitorName, monitorProps);
+				Monitor monitor = ComponentTypes.build(Type.MONITOR, monitorName, monitorProps);
 				
 				monitors.put(monitorName, monitor);
 			}

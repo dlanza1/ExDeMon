@@ -13,7 +13,7 @@ import java.util.function.Function;
 
 import ch.cern.components.Component;
 import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentManager;
+import ch.cern.components.ComponentTypes;
 import ch.cern.components.ComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -75,7 +75,7 @@ public abstract class Trigger extends Component implements Function<AnalysisResu
     		//TODO backward compatibility
     		
     		if(silentPeriodTriggerProps.isTypeDefined())
-    		    silentPeriodTrigger = ComponentManager.build(Type.TRIGGER, "silent-period", silentPeriodTriggerProps);
+    		    silentPeriodTrigger = ComponentTypes.build(Type.TRIGGER, "silent-period", silentPeriodTriggerProps);
     }
     
     public Optional<Action> apply(AnalysisResult result) {

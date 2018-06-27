@@ -31,7 +31,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
 import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentManager;
+import ch.cern.components.ComponentTypes;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.SparkConf;
@@ -325,7 +325,7 @@ public class StatusesManagerCLI {
     }
 
     protected void config(Properties properties, CommandLine cmd) throws ConfigurationException  {
-        storage = ComponentManager.build(Type.STATUS_STORAGE, properties.getSubset(StatusesStorage.STATUS_STORAGE_PARAM));
+        storage = ComponentTypes.build(Type.STATUS_STORAGE, properties.getSubset(StatusesStorage.STATUS_STORAGE_PARAM));
         
         String removalSocket = properties.getProperty(Driver.STATUSES_REMOVAL_SOCKET_PARAM);
         if(removalSocket != null) {

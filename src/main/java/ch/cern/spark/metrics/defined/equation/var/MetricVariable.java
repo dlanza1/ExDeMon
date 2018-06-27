@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import com.esotericsoftware.minlog.Log;
 
 import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentManager;
+import ch.cern.components.ComponentTypes;
 import ch.cern.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -71,7 +71,7 @@ public class MetricVariable extends Variable {
 
         String aggregateVal = properties.getProperty("aggregate.type");
         if (aggregateVal != null) {
-            aggregation = ComponentManager.build(Type.AGGREGATION, properties.getSubset("aggregate"));
+            aggregation = ComponentTypes.build(Type.AGGREGATION, properties.getSubset("aggregate"));
 
             if (aggregation instanceof WAvgAggregation)
                 ((WAvgAggregation) aggregation).setExpire(expire);

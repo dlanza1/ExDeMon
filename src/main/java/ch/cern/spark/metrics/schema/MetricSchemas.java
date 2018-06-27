@@ -10,7 +10,7 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import ch.cern.Cache;
 import ch.cern.components.Component;
 import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentManager;
+import ch.cern.components.ComponentTypes;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -34,7 +34,7 @@ public class MetricSchemas {
 	        Map<String, MetricSchema> metricSchemas = metricSchemaIDs.stream()
 	        		.map(id -> {
                         try {
-                            return (MetricSchema) ComponentManager.build(Type.SCHEMA, id, properties.getSubset(id));
+                            return (MetricSchema) ComponentTypes.build(Type.SCHEMA, id, properties.getSubset(id));
                         } catch (ConfigurationException e) {
                             LOG.error(e);
                             
