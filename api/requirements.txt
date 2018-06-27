@@ -1,6 +1,0 @@
-flask
-psycopg2
-flask-sqlalchemy
-configparser
-flask-marshmallow
-marshmallow-sqlalchemy
