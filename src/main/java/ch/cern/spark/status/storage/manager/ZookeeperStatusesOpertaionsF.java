@@ -82,19 +82,23 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 		}
 	}
 	
-	public void call(Iterator<Tuple2<Tuple2<K, S>, StatusOperation<K, V>>> tuples) throws Exception {
+	public void call(Iterator<Tuple2<Tuple2<K, S>, StatusOperation<K, V>>> tuples) {
 		while (tuples.hasNext()) {
-			Tuple2<Tuple2<K, S>, StatusOperation<K, V>> tuple = tuples.next();
-			
-			@SuppressWarnings("unchecked")
-			Tuple2<StatusKey, StatusValue> keyValue = (Tuple2<StatusKey, StatusValue>) tuple._1;
-			StatusOperation<K, V> op = tuple._2;
-			
-			if(op.getOp().equals(Op.LIST)) {
-				if(op.filter(keyValue)) {
-					writeListResult(op.getId(), keyValue._1);
-				}
-			}
+		    try {
+    			Tuple2<Tuple2<K, S>, StatusOperation<K, V>> tuple = tuples.next();
+    			
+    			@SuppressWarnings("unchecked")
+    			Tuple2<StatusKey, StatusValue> keyValue = (Tuple2<StatusKey, StatusValue>) tuple._1;
+    			StatusOperation<K, V> op = tuple._2;
+    			
+    			if(op.getOp().equals(Op.LIST)) {
+    				if(op.filter(keyValue)) {
+    					writeListResult(op.getId(), keyValue._1);
+    				}
+    			}
+		    } catch (Exception e) {
+                LOG.error(e);
+            }
 		}
 	}
 
