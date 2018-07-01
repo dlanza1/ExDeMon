@@ -17,10 +17,12 @@ import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
 
+import ch.cern.components.RegisterComponentType;
 import ch.cern.components.source.ComponentsSource;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 
+@RegisterComponentType("zookeeper")
 public class ZookeeperComponentsSource extends ComponentsSource {
 
     private static final long serialVersionUID = 8957322536482029694L;
@@ -48,7 +50,7 @@ public class ZookeeperComponentsSource extends ComponentsSource {
     }
     
     @Override
-    public void config(Properties properties) throws ConfigurationException {
+    protected void config(Properties properties) throws ConfigurationException {
         zkConnString = properties.getProperty("connection_string");
         initialization_timeout_ms = properties.getLong("initialization_timeout_ms", 5000);
         timeout_ms = (int) properties.getLong("timeout_ms", 20000);

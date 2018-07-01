@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
@@ -19,12 +18,6 @@ public class PropertiesTest {
         propertiesSource.put("type", "static");
     }
 
-    @Before
-    public void setUp() throws Exception {
-        Properties.initCache(propertiesSource);
-        Properties.getCache().reset();
-    }
-
     @Test
     public void globalParametersNull() {
         Properties prop = new Properties();
@@ -35,16 +28,6 @@ public class PropertiesTest {
 
         Assert.assertEquals(1, subProp.size());
         Assert.assertEquals("val2", subProp.get("prop1"));
-    }
-
-    @Test
-    public void propertiesFromDefaultSource() throws Exception {
-        Properties props = new Properties();
-        props.setProperty("type", "file");
-        props.setProperty("path", "src/test/resources/config.properties");
-        Properties.getCache().set(props);
-
-        assertTrue(Properties.getCache().get().size() > 0);
     }
 
     @Test

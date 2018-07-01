@@ -9,6 +9,8 @@ import java.util.Optional;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.streaming.Time;
 
+import ch.cern.components.ComponentsCatalog;
+import ch.cern.components.Component.Type;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
@@ -29,14 +31,14 @@ public class ComputeBatchDefineMetricsF implements FlatMapFunction<Tuple2<Define
 
 	@Override
 	public Iterator<Metric> call(Tuple2<DefinedMetricStatuskey, VariableStatuses> pair) throws Exception {
-		DefinedMetrics.initCache(propertiesSourceProps);
+		ComponentsCatalog.init(propertiesSourceProps);
 		
         List<Metric> result = new LinkedList<>();
 
         DefinedMetricStatuskey ids = pair._1;
         VariableStatuses store = pair._2;
         
-        Optional<DefinedMetric> definedMetricOpt = Optional.ofNullable(DefinedMetrics.getCache().get().get(ids.getID()));
+        Optional<DefinedMetric> definedMetricOpt = ComponentsCatalog.get(Type.METRIC, ids.getID());
         if(!definedMetricOpt.isPresent())
             return result.iterator();
         DefinedMetric definedMetric = definedMetricOpt.get();

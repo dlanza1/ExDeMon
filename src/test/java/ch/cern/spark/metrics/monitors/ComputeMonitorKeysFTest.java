@@ -10,31 +10,30 @@ import java.util.Iterator;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.Cache;
-import ch.cern.properties.ConfigurationException;
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentsCatalog;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.MetricTest;
-import ch.cern.spark.metrics.defined.DefinedMetrics;
 import scala.Tuple2;
 
 public class ComputeMonitorKeysFTest {
 
     @Before
-    public void reset() throws ConfigurationException {
-        Properties.initCache(null);
-        Monitors.getCache().reset();
-        DefinedMetrics.getCache().reset();
+    public void reset() throws Exception {
+        Properties properties = new Properties();
+        properties.setProperty("type", "test");
+        ComponentsCatalog.init(properties);
+        ComponentsCatalog.reset();
     }
 
     @Test
     public void oneMonitor() throws Exception {
-        Cache<Properties> propertiesCache = Properties.getCache();
         Properties properties = new Properties();
-        properties.setProperty("monitor.ID-1.analysis.type", "true");
-        properties.setProperty("monitor.ID-1.filter.attribute.key1", "val1");
-        properties.setProperty("monitor.ID-1.filter.attribute.key2", "val2");
-        propertiesCache.set(properties);
+        properties.setProperty("analysis.type", "true");
+        properties.setProperty("filter.attribute.key1", "val1");
+        properties.setProperty("filter.attribute.key2", "val2");
+        ComponentsCatalog.register(Type.MONITOR, "ID-1", properties);
 
         Metric metric = MetricTest.build();
 
@@ -47,19 +46,27 @@ public class ComputeMonitorKeysFTest {
 
     @Test
     public void severalMonitors() throws Exception {
-        Cache<Properties> propertiesCache = Properties.getCache();
         Properties properties = new Properties();
-        properties.setProperty("monitor.ID-1.analysis.type", "true");
-        properties.setProperty("monitor.ID-1.filter.attribute.key1", "val1");
-        properties.setProperty("monitor.ID-1.filter.attribute.key2", "val2");
-        properties.setProperty("monitor.ID-2.analysis.type", "true");
-        properties.setProperty("monitor.ID-2.filter.attribute.key1", "val1");
-        properties.setProperty("monitor.ID-3.analysis.type", "true");
-        properties.setProperty("monitor.ID-3.filter.attribute.key2", "val2");
-        properties.setProperty("monitor.ID-3.filter.attribute.key3", "val3");
-        properties.setProperty("monitor.ID-4.analysis.type", "true");
-        properties.setProperty("monitor.ID-4.filter.attribute.key3", "NO");
-        propertiesCache.set(properties);
+        properties.setProperty("analysis.type", "true");
+        properties.setProperty("filter.attribute.key1", "val1");
+        properties.setProperty("filter.attribute.key2", "val2");
+        ComponentsCatalog.register(Type.MONITOR, "ID-1", properties);
+        
+        properties = new Properties();
+        properties.setProperty("analysis.type", "true");
+        properties.setProperty("filter.attribute.key1", "val1");
+        ComponentsCatalog.register(Type.MONITOR, "ID-2", properties);
+        
+        properties = new Properties();
+        properties.setProperty("analysis.type", "true");
+        properties.setProperty("filter.attribute.key2", "val2");
+        properties.setProperty("filter.attribute.key3", "val3");
+        ComponentsCatalog.register(Type.MONITOR, "ID-3", properties);
+        
+        properties = new Properties();
+        properties.setProperty("analysis.type", "true");
+        properties.setProperty("filter.attribute.key3", "NO");
+        ComponentsCatalog.register(Type.MONITOR, "ID-4", properties);
 
         Metric metric = MetricTest.build();
 

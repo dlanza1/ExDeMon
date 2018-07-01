@@ -4,6 +4,8 @@ import java.util.Optional;
 
 import org.apache.spark.streaming.State;
 
+import ch.cern.components.ComponentsCatalog;
+import ch.cern.components.Component.Type;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.results.AnalysisResult;
@@ -14,18 +16,18 @@ public class UpdateMonitorStatusesF extends UpdateStatusFunction<MonitorStatusKe
 
     private static final long serialVersionUID = 3156649511706333348L;
     
-    private Properties propertiesSourceProperties;
+    private Properties componentsSourceProperties;
     
-    public UpdateMonitorStatusesF(Properties propertiesSourceProperties) {
-    		this.propertiesSourceProperties = propertiesSourceProperties;
+    public UpdateMonitorStatusesF(Properties componentsSourceProperties) {
+    		this.componentsSourceProperties = componentsSourceProperties;
     }
     
     @Override
     protected Optional<AnalysisResult> update(MonitorStatusKey ids, Metric metric, State<StatusValue> status)
             throws Exception {
-        Monitors.initCache(propertiesSourceProperties);
+        ComponentsCatalog.init(componentsSourceProperties);
         
-        Optional<Monitor> monitorOpt = Optional.ofNullable(Monitors.getCache().get().get(ids.getID()));
+        Optional<Monitor> monitorOpt = ComponentsCatalog.get(Type.MONITOR, ids.getID());
         if(!monitorOpt.isPresent()) {
             status.remove();
             

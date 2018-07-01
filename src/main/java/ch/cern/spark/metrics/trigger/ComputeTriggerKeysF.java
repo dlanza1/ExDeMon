@@ -5,34 +5,33 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentsCatalog;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.monitors.Monitor;
-import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import ch.cern.spark.metrics.trigger.TriggerStatusKey;
 import scala.Tuple2;
 
 public class ComputeTriggerKeysF implements PairFlatMapFunction<AnalysisResult, TriggerStatusKey, AnalysisResult> {
     
     private static final long serialVersionUID = 8388632785439398988L;
 
-    private Properties propertiesSourceProperties;
+    private Properties componentsSourceProperties;
     
-    public ComputeTriggerKeysF(Properties propertiesSourceProperties) {
-    		this.propertiesSourceProperties = propertiesSourceProperties;
+    public ComputeTriggerKeysF(Properties componentsSourceProperties) {
+    		this.componentsSourceProperties = componentsSourceProperties;
     }
 
     @Override
     public Iterator<Tuple2<TriggerStatusKey, AnalysisResult>> call(AnalysisResult analysis) throws Exception {
-    		Monitors.initCache(propertiesSourceProperties);
+        ComponentsCatalog.init(componentsSourceProperties);
     		
-    		String monitorID = (String) analysis.getAnalysisParams().get("monitor.name");
-    		Optional<Monitor> monitorOpt = Optional.fromNullable(Monitors.getCache().get().get(monitorID));
+    	String monitorID = (String) analysis.getAnalysisParams().get("monitor.name");
+    	java.util.Optional<Monitor> monitorOpt = ComponentsCatalog.get(Type.MONITOR, monitorID);
         if(!monitorOpt.isPresent())
-        		return new LinkedList<Tuple2<TriggerStatusKey, AnalysisResult>>().iterator();
+        	return new LinkedList<Tuple2<TriggerStatusKey, AnalysisResult>>().iterator();
         Monitor monitor = monitorOpt.get();
         
         Map<String, String> metricIDs = monitor.getMetricIDs(analysis.getAnalyzed_metric());

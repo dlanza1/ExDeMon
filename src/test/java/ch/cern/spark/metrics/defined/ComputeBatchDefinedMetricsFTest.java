@@ -13,8 +13,8 @@ import org.apache.spark.streaming.Time;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.Cache;
-import ch.cern.properties.ConfigurationException;
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentsCatalog;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
@@ -23,26 +23,23 @@ import ch.cern.spark.metrics.value.FloatValue;
 import scala.Tuple2;
 
 public class ComputeBatchDefinedMetricsFTest {
-	
-	private Cache<Properties> propertiesCache = Properties.getCache();
-	
+
 	@Before
-	public void reset() throws ConfigurationException {
-		Properties propertiesSourceProps = new Properties();
-		propertiesSourceProps.setProperty("type", "static");
-        Properties.initCache(propertiesSourceProps);
-		propertiesCache = Properties.getCache();
-		propertiesCache.reset();
-		DefinedMetrics.getCache().reset();
+	public void reset() throws Exception {
+        Properties properties = new Properties();
+        properties.setProperty("type", "test");
+        ComponentsCatalog.init(properties);
 	}
 
 	@Test
 	public void aggregateCountUpdate() throws Exception {
-		propertiesCache.get().setProperty("metrics.define.dmID1.metrics.groupby", "DB_NAME METRIC_NAME");
-		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.type", "count_floats");
-		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.aggregate.attributes", "ALL");
-		propertiesCache.get().setProperty("metrics.define.dmID1.variables.value.expire", "5m");
-		propertiesCache.get().setProperty("metrics.define.dmID1.when", "batch");
+	    Properties properties = new Properties();
+		properties.setProperty("metrics.groupby", "DB_NAME METRIC_NAME");
+		properties.setProperty("variables.value.aggregate.type", "count_floats");
+		properties.setProperty("variables.value.aggregate.attributes", "ALL");
+		properties.setProperty("variables.value.expire", "5m");
+		properties.setProperty("when", "batch");
+        ComponentsCatalog.register(Type.METRIC, "dmID1", properties);
 		
 		Instant now = Instant.now();
 		

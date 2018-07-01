@@ -18,15 +18,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.log4j.Logger;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import ch.cern.Cache;
-import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentTypes;
 import ch.cern.properties.source.PropertiesSource;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.utils.Pair;
@@ -36,10 +32,6 @@ import scala.Tuple2;
 public class Properties extends java.util.Properties {
 
     private static transient final long serialVersionUID = 2510326766802151233L;
-
-    private transient final static Logger LOG = Logger.getLogger(Properties.class.getName());
-
-    private static Cache<Properties> cachedProperties = null;
 
     public static Pattern ID_REGEX = Pattern.compile("[a-zA-Z0-9_-]+");
 
@@ -226,27 +218,6 @@ public class Properties extends java.util.Properties {
         return Optional.ofNullable(getPeriod(key, null));
     }
 
-    public static Cache<Properties> getCache() {
-        return cachedProperties;
-    }
-
-    public static void resetCache() {
-        Properties.cachedProperties = null;
-    }
-
-    public static void initCache(Properties propertiesSourceProps) throws ConfigurationException {
-        if (Properties.cachedProperties == null)
-            Properties.cachedProperties = new PropertiesCache(propertiesSourceProps);
-
-        if (propertiesSourceProps != null) {
-            Optional<Duration> expirationPeriod = propertiesSourceProps.getPeriod("expire");
-            if(expirationPeriod.isPresent())
-                getCache().setExpiration(propertiesSourceProps.getPeriod("expire").get());
-            else
-                getCache().setExpiration(null);
-        }
-    }
-
     public void setDefaultPropertiesSource(String propertyFilePath) {
         Properties propertiesSourceProperties = getSubset(PropertiesSource.CONFIGURATION_PREFIX);
 
@@ -254,37 +225,6 @@ public class Properties extends java.util.Properties {
             setProperty(PropertiesSource.CONFIGURATION_PREFIX + ".type", "file");
             setProperty(PropertiesSource.CONFIGURATION_PREFIX + ".path", propertyFilePath);
         }
-    }
-
-    public static class PropertiesCache extends Cache<Properties> {
-
-        private Optional<PropertiesSource> propertiesSourceOpt = null;
-
-        public PropertiesCache(Properties propertiesSourceProps) throws ConfigurationException {
-            LOG.info("Properties source parameters: " + propertiesSourceProps);
-            
-            propertiesSourceOpt = ComponentTypes.buildOptional(Type.PROPERTIES_SOURCE, propertiesSourceProps);
-            
-            if(!propertiesSourceOpt.isPresent())
-                throw new ConfigurationException("No properties source was configured");
-        }
-
-        @Override
-        protected Properties load() throws Exception {
-            if(propertiesSourceOpt.isPresent()) {
-                LOG.info("Loading properties.");
-                
-                return propertiesSourceOpt.get().load();
-            }else {
-                throw new ConfigurationException("No properties source was configured");
-            }
-        }
-        
-        @Override
-        protected boolean inErrorGetPrevious() {
-            return true;
-        }
-
     }
 
     public synchronized void confirmAllPropertiesUsed() throws ConfigurationException {

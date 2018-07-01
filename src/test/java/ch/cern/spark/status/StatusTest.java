@@ -22,7 +22,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.Cache;
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentsCatalog;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Batches;
 import ch.cern.spark.StreamTestHelper;
@@ -47,10 +48,7 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
     
     @Before
     public void startZookeeper() throws Exception {
-    	Properties propertiesSourceProps = new Properties();
-		propertiesSourceProps.setProperty("type", "static");
-        Properties.initCache(propertiesSourceProps);
-		DefinedMetrics.getCache().reset();
+        ComponentsCatalog.reset();
     	
         zkTestServer = new TestingServer(2182);
         
@@ -70,8 +68,6 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
     
 	@Test
 	public void listOperations() throws Exception {
-		DefinedMetrics.getCache().reset();
-		
         addInput(0,    Metric(1, 10f, "HOSTNAME=host1234"));
         addInput(0,    Metric(1, 20f, "HOSTNAME=host4321"));
         addExpected(0, Metric(1, 20f, "HOSTNAME=host4321", "$defined_metric=dm1"));
@@ -85,12 +81,12 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
         filters.add(new ToStringPatternStatusKeyFilter(".*host4321.*"));
 		opBatches.add(0, new StatusOperation<DefinedMetricStatuskey, Metric>("1122", filters));
 		
-        Cache<Properties> propertiesCache = Properties.getCache();
-        propertiesCache.set(new Properties());
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.type", "sum");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.attributes", "ALL");
-        propertiesCache.get().setProperty("metrics.define.dm1.metrics.groupby", "HOSTNAME");
-        propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
+		Properties properties = new Properties();
+        properties.setProperty("variables.a.aggregate.type", "sum");
+        properties.setProperty("variables.a.aggregate.attributes", "ALL");
+        properties.setProperty("metrics.groupby", "HOSTNAME");
+        properties.setProperty("when", "batch");
+        ComponentsCatalog.register(Type.METRIC, "dm1", properties);
 	        
         JavaDStream<Metric> metricsStream = createStream(Metric.class);
 		JavaDStream<StatusOperation<DefinedMetricStatuskey, Metric>> operations = createStream(StatusOperation.class, opBatches);
@@ -106,8 +102,6 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
 	
     @Test
     public void showOperations() throws Exception {
-        DefinedMetrics.getCache().reset();
-        
         addInput(0,    Metric(1, 10f, "HOSTNAME=host1234"));
         addInput(0,    Metric(1, 20f, "HOSTNAME=host4321"));
         addExpected(0, Metric(1, 20f, "HOSTNAME=host4321", "$defined_metric=dm1"));
@@ -123,12 +117,12 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
         client.create().creatingParentsIfNeeded().forPath("/id=1122/keys", serializer.fromKey(key));
         client.create().creatingParentsIfNeeded().forPath("/id=1122/status", "RECEIVED".getBytes());
         
-        Cache<Properties> propertiesCache = Properties.getCache();
-        propertiesCache.set(new Properties());
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.type", "sum");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.attributes", "ALL");
-        propertiesCache.get().setProperty("metrics.define.dm1.metrics.groupby", "HOSTNAME");
-        propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
+        Properties properties = new Properties();
+        properties.setProperty("variables.a.aggregate.type", "sum");
+        properties.setProperty("variables.a.aggregate.attributes", "ALL");
+        properties.setProperty("metrics.groupby", "HOSTNAME");
+        properties.setProperty("when", "batch");
+        ComponentsCatalog.register(Type.METRIC, "dm1", properties);
             
         JavaDStream<Metric> metricsStream = createStream(Metric.class);
         JavaDStream<StatusOperation<DefinedMetricStatuskey, Metric>> operations = createStream(StatusOperation.class, opBatches);

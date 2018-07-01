@@ -43,7 +43,6 @@ public class AnalysisFunc extends Function {
 		
 		try{
 			analysis = ComponentTypes.build(Type.ANAYLSIS, props);
-			analysis.config(props);
 		}catch(ConfigurationException e) {
 			throw new ParseException(e.getClass().getSimpleName() + e.getMessage(), 0);
 		}

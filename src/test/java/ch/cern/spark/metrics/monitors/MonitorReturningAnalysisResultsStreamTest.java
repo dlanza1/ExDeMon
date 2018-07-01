@@ -10,7 +10,8 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.Cache;
+import ch.cern.components.ComponentsCatalog;
+import ch.cern.components.Component.Type;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Batches;
 import ch.cern.spark.StreamTestHelper;
@@ -18,7 +19,6 @@ import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.DefinedMetrics;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
-import ch.cern.spark.metrics.schema.MetricSchemas;
 
 public class MonitorReturningAnalysisResultsStreamTest extends StreamTestHelper<Metric, AnalysisResult> {
 	
@@ -28,25 +28,27 @@ public class MonitorReturningAnalysisResultsStreamTest extends StreamTestHelper<
 	public void setUp() throws Exception {
 		super.setUp();
 		
-		Properties.initCache(null);
-		Monitors.getCache().reset();	
-		DefinedMetrics.getCache().reset();
-		MetricSchemas.getCache().reset();
+		Properties properties = new Properties();
+        properties.setProperty("type", "test");
+        ComponentsCatalog.init(properties);
+        ComponentsCatalog.reset();
 	}
 	
 	@Test
 	public void monitorAndDefinedMetric() throws Exception {
-        Cache<Properties> propertiesCache = Properties.getCache();
         Properties properties = new Properties();
-		properties.setProperty("metrics.define.testdm.value", "analysis(value, ana_props) == \"OK\"");
-		properties.setProperty("metrics.define.testdm.metrics.groupby", "ALL");
-		properties.setProperty("metrics.define.testdm.variables.value.filter.attribute.INSTANCE_NAME", ".*");
-		properties.setProperty("metrics.define.testdm.variables.value.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
-		properties.setProperty("metrics.define.testdm.variables.ana_props.type", "fixed-threshold");
-		properties.setProperty("metrics.define.testdm.variables.ana_props.error.upperbound", "90");
-		properties.setProperty("monitor.mon1.filter.expr", "$defined_metric=testdm");
-		properties.setProperty("monitor.mon1.analysis.type", "true");
-		propertiesCache.set(properties);
+		properties.setProperty("value", "analysis(value, ana_props) == \"OK\"");
+		properties.setProperty("metrics.groupby", "ALL");
+		properties.setProperty("variables.value.filter.attribute.INSTANCE_NAME", ".*");
+		properties.setProperty("variables.value.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
+		properties.setProperty("variables.ana_props.type", "fixed-threshold");
+		properties.setProperty("variables.ana_props.error.upperbound", "90");
+		ComponentsCatalog.register(Type.METRIC, "testdm", properties);
+		
+		properties = new Properties();
+		properties.setProperty("filter.expr", "$defined_metric=testdm");
+		properties.setProperty("analysis.type", "true");
+		ComponentsCatalog.register(Type.MONITOR, "mon1", properties);
 		
 		addInput(0,    Metric(0, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
 		addInput(1,    Metric(0, 91f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));

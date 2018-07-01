@@ -1,8 +1,12 @@
 package ch.cern.spark.metrics.trigger.action.actuator;
 
+import java.util.Optional;
+
 import org.apache.log4j.Logger;
 import org.apache.spark.api.java.function.VoidFunction;
 
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentsCatalog;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.trigger.action.Action;
 
@@ -12,22 +16,22 @@ public class RunActuatorsF implements VoidFunction<Action> {
     
     private transient final static Logger LOG = Logger.getLogger(RunActuatorsF.class.getName());
     
-    private Properties propertiesSourceProps;
+    private Properties componentsSourceProperties;
 
-    public RunActuatorsF(Properties propertiesSourceProps) {
-        this.propertiesSourceProps = propertiesSourceProps;
+    public RunActuatorsF(Properties componentsSourceProperties) {
+        this.componentsSourceProperties = componentsSourceProperties;
     }
 
     @Override
     public void call(Action action) throws Exception {
-        Actuators.initCache(propertiesSourceProps);
+        ComponentsCatalog.init(componentsSourceProperties);
         
         action.getActuatorIDs().stream().forEach(actuatorID -> {
             try {
-                Actuator actuator = Actuators.getCache().get().get(actuatorID);
+                Optional<Actuator> actuatorOpt = ComponentsCatalog.get(Type.ACTUATOR, actuatorID);
                 
-                if(actuator != null)
-                    actuator.run(action);
+                if(actuatorOpt.isPresent())
+                    actuatorOpt.get().run(action);
                 else
                     LOG.error("Action " + action + " could not be run because actuator with id " + actuatorID + " does not exist.");
             } catch (Exception e) {

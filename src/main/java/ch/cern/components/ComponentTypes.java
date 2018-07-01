@@ -20,11 +20,11 @@ public class ComponentTypes {
         new Reflections("ch.cern")
 	        		.getTypesAnnotatedWith(RegisterComponentType.class)
 	        		.stream()
-	        		.forEach(ComponentTypes::registerType);
+	        		.forEach(ComponentTypes::register);
     }
     
 	@SuppressWarnings("unchecked")
-	private static void registerType(Class<?> componentToRegister) {
+	private static void register(Class<?> componentToRegister) {
 	    Class<? extends Component> componentClass;
 	    try {
 	        componentClass = (Class<? extends Component>) componentToRegister;
@@ -74,7 +74,7 @@ public class ComponentTypes {
         
         if(component == null){
             try {
-                component = getComponentInstance(type);
+                component = getInstance(type);
             } catch (Exception e) {
                 String message = "Component class could not be loaded, type or class (" + type + ") does not exist. ";
                 
@@ -88,7 +88,7 @@ public class ComponentTypes {
             }
         }
         
-        component.config(properties);
+        component.buildConfig(properties);
         
         return component;
     }
@@ -104,10 +104,10 @@ public class ComponentTypes {
         if(component == null)
             return null;
         
-        return getComponentInstance(component.getName());
+        return getInstance(component.getName());
     }
 
-	private static<C extends Component> C getComponentInstance(String clazzName) throws ConfigurationException {
+	private static<C extends Component> C getInstance(String clazzName) throws ConfigurationException {
 		try {
 			@SuppressWarnings("unchecked")
 			Class<C> clazz = (Class<C>) Class.forName(clazzName).asSubclass(Component.class);

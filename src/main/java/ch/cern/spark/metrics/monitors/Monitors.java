@@ -1,18 +1,11 @@
 package ch.cern.spark.metrics.monitors;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
-import ch.cern.Cache;
-import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentTypes;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -27,37 +20,10 @@ import ch.cern.spark.status.StatusOperation;
 import ch.cern.spark.status.StatusValue;
 
 public class Monitors {
-
-	private transient final static Logger LOG = Logger.getLogger(Monitors.class.getName());
-
-    public static final String PARAM = "monitor";
 	
-	private static Cache<Map<String, Monitor>> cachedMonitors = new Cache<Map<String,Monitor>>() {
-		
-		@Override
-		protected Map<String, Monitor> load() throws Exception {
-	        Properties properties = Properties.getCache().get().getSubset(PARAM);
-	        
-	        Set<String> monitorNames = properties.getIDs();
-	        
-	        Map<String, Monitor> monitors = new HashMap<>();
-	        for (String monitorName : monitorNames) {
-				Properties monitorProps = properties.getSubset(monitorName);
-				
-				Monitor monitor = ComponentTypes.build(Type.MONITOR, monitorName, monitorProps);
-				
-				monitors.put(monitorName, monitor);
-			}
+	public static final String PARAM = "monitors";
 
-	        LOG.info("Monitors updated");
-            for (Map.Entry<String, Monitor> definedMetric : monitors.entrySet())
-                LOG.info(definedMetric.getKey() + ": " + definedMetric.getValue());
-	        
-	        return monitors;
-		}
-	};
-	
-	public static JavaDStream<AnalysisResult> analyze(
+    public static JavaDStream<AnalysisResult> analyze(
 	        JavaDStream<Metric> metrics, 
 	        Properties propertiesSourceProps, 
 	        Optional<JavaDStream<StatusOperation<MonitorStatusKey, Metric>>> operationsOpt) 
@@ -95,16 +61,6 @@ public class Monitors {
 	                    TriggerStatus.class, 
 	                    operations, 
                         new UpdateTriggerStatusesF(propertiesSourceProps)).values();
-	}
-	
-	public static Cache<Map<String, Monitor>> getCache() {
-		return cachedMonitors;
-	}
-
-	public static void initCache(Properties propertiesSourceProps) throws ConfigurationException {
-		Properties.initCache(propertiesSourceProps);
-		
-		getCache().setExpiration(Properties.getCache().getExpirationPeriod());
 	}
 
 }

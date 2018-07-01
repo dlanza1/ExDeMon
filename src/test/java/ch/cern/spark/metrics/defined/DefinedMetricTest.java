@@ -11,26 +11,17 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.spark.streaming.Time;
 import org.junit.Test;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.properties.source.StaticPropertiesSource;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
-import scala.Tuple2;
 
 public class DefinedMetricTest {
-	
-	Properties propertiesSource = new Properties();
-	{
-		propertiesSource.put("type", "static");
-	}
 	
 	@Test
 	public void configNotValid() {
@@ -73,69 +64,6 @@ public class DefinedMetricTest {
 		assertEquals("ConfigurationException: Variable count returns type FloatValue because of its aggregation operation, "
 						+ "but in the equation there is a function that uses it as type StringValue", result.get().getValue().getAsException().get());
 		
-	}
-	
-	@Test
-	public void shouldGenerateExceptionValueOnePerBacthWithWrongConfig() throws Exception {
-		Properties properties = new Properties();
-		properties.setProperty("metrics.define.error.value", "x");
-		StaticPropertiesSource.properties = properties;
-		Properties.resetCache();
-		DefinedMetrics.getCache().reset();
-		
-		ComputeDefinedMetricKeysF computeIDsForDefinedMetricsF = new ComputeDefinedMetricKeysF(propertiesSource);
-		VariableStatuses store = new VariableStatuses();
-		
-		//First batch
-		ComputeBatchDefineMetricsF computeBatchDefineMetricsF = new ComputeBatchDefineMetricsF(new Time(0), null);
-		Metric metric = Metric(0, 0, "HOST=host2131423");
-		Iterator<Tuple2<DefinedMetricStatuskey, Metric>> ids = computeIDsForDefinedMetricsF.call(metric);
-		ids.hasNext();
-		Tuple2<DefinedMetricStatuskey, VariableStatuses> pair = new Tuple2<DefinedMetricStatuskey, VariableStatuses>(ids.next()._1, store);
-		Iterator<Metric> definedMetrics = computeBatchDefineMetricsF.call(pair);
-		definedMetrics.hasNext();
-		Metric definedMetric = definedMetrics.next();
-		
-		assertEquals("ConfigurationException: Problem parsing value: Unknown variable: x", definedMetric.getValue().getAsException().get());
-		assertEquals(1, definedMetric.getAttributes().size());
-		assertEquals(0, definedMetric.getTimestamp().toEpochMilli());
-		assertEquals("error", definedMetric.getAttributes().get("$defined_metric"));
-		
-		metric = Metric(3, 0);
-		ids = computeIDsForDefinedMetricsF.call(metric);
-		ids.hasNext();
-		pair = new Tuple2<DefinedMetricStatuskey, VariableStatuses>(ids.next()._1, store);
-		definedMetrics = computeBatchDefineMetricsF.call(pair);
-		assertFalse(definedMetrics.hasNext());
-		
-		metric = Metric(4, 0, "HOST=host1");
-		ids = computeIDsForDefinedMetricsF.call(metric);
-		ids.hasNext();
-		pair = new Tuple2<DefinedMetricStatuskey, VariableStatuses>(ids.next()._1, store);
-		definedMetrics = computeBatchDefineMetricsF.call(pair);
-		assertFalse(definedMetrics.hasNext());
-		
-		//Second batch
-		computeBatchDefineMetricsF = new ComputeBatchDefineMetricsF(new Time(5), null);
-		metric = Metric(6, 0, "HOST=host234234");
-		ids = computeIDsForDefinedMetricsF.call(metric);
-		ids.hasNext();
-		pair = new Tuple2<DefinedMetricStatuskey, VariableStatuses>(ids.next()._1, store);
-		definedMetrics = computeBatchDefineMetricsF.call(pair);
-		definedMetrics.hasNext();
-		definedMetric = definedMetrics.next();
-		
-		assertEquals("ConfigurationException: Problem parsing value: Unknown variable: x", definedMetric.getValue().getAsException().get());
-		assertEquals(5, definedMetric.getTimestamp().toEpochMilli());
-		assertTrue(definedMetric.getAttributes().size() == 1);
-		assertEquals("error", definedMetric.getAttributes().get("$defined_metric"));
-		
-		metric = Metric(10, 0);
-		ids = computeIDsForDefinedMetricsF.call(metric);
-		ids.hasNext();
-		pair = new Tuple2<DefinedMetricStatuskey, VariableStatuses>(ids.next()._1, store);
-		definedMetrics = computeBatchDefineMetricsF.call(pair);
-		assertFalse(definedMetrics.hasNext());
 	}
 
 	@Test

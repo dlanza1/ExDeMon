@@ -13,23 +13,20 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.Cache;
-import ch.cern.properties.ConfigurationException;
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentsCatalog;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import scala.Tuple2;
 
 public class ComputeDefinedMetricKeysFTest {
 	
-	private Cache<Map<String, DefinedMetric>> definedMetricsCache = DefinedMetrics.getCache();
-	
 	@Before
-	public void reset() throws ConfigurationException {
-		Properties propertiesSourceProps = new Properties();
-		propertiesSourceProps.setProperty("type", "static");
-        Properties.initCache(propertiesSourceProps);
-		Properties.getCache().reset();
-		definedMetricsCache.reset();
+	public void reset() throws Exception {
+	    Properties properties = new Properties();
+        properties.setProperty("type", "test");
+        ComponentsCatalog.init(properties);
+        ComponentsCatalog.reset();
 	}
 
 	@Test
@@ -211,33 +208,25 @@ public class ComputeDefinedMetricKeysFTest {
 	}
 
 	private ComputeDefinedMetricKeysF getTwoDefinedMetricsWithOneGroupByAttribute() throws Exception {
-		Map<String, DefinedMetric> definedMetrics = new HashMap<>();
-		
 		Properties properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 		properties.setProperty("metrics.groupby", "INSTANCE_NAME");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
-		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
-		DefinedMetric definedMetric1 = new DefinedMetric();
-		definedMetric1.setId("defM1");
-		definedMetric1.config(properties);
-		definedMetrics.put(definedMetric1.getId(), definedMetric1);
+		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");		
+		ComponentsCatalog.register(Type.METRIC, "defM1", properties);
 		
 		properties = new Properties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 		properties.setProperty("metrics.groupby", "INSTANCE_NAME");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
-		DefinedMetric definedMetric2 = new DefinedMetric();
-		definedMetric2.setId("defM2");
-		definedMetric2.config(properties);
-		definedMetrics.put(definedMetric2.getId(), definedMetric2);
-
-		definedMetricsCache.set(definedMetrics);
+		ComponentsCatalog.register(Type.METRIC, "defM2", properties);
 		
-		return new ComputeDefinedMetricKeysF(null);
+		Properties componentSourceMetrics = new Properties();
+		componentSourceMetrics.setProperty("type", "test");
+		return new ComputeDefinedMetricKeysF(componentSourceMetrics);
 	}
 	
 	private ComputeDefinedMetricKeysF getGroupByAll() throws Exception {
@@ -249,14 +238,11 @@ public class ComputeDefinedMetricKeysFTest {
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		
-		Map<String, DefinedMetric> definedMetrics = new HashMap<>();
-		DefinedMetric definedMetric = new DefinedMetric();
-		definedMetric.setId("defMAll");
-		definedMetric.config(properties);
-		definedMetrics.put(definedMetric.getId(), definedMetric);
-		definedMetricsCache.set(definedMetrics);
+		ComponentsCatalog.register(Type.METRIC, "defMAll", properties);
 		
-		return new ComputeDefinedMetricKeysF(null);
+		Properties componentSourceMetrics = new Properties();
+        componentSourceMetrics.setProperty("type", "test");
+		return new ComputeDefinedMetricKeysF(componentSourceMetrics);
 	}
 	
 	private ComputeDefinedMetricKeysF getGroupByNone() throws Exception {
@@ -268,14 +254,11 @@ public class ComputeDefinedMetricKeysFTest {
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
 		
-		Map<String, DefinedMetric> definedMetrics = new HashMap<>();
-		DefinedMetric definedMetric = new DefinedMetric();
-		definedMetric.setId("defMNone");
-		definedMetric.config(properties);
-		definedMetrics.put(definedMetric.getId(), definedMetric);
-		definedMetricsCache.set(definedMetrics);
+		ComponentsCatalog.register(Type.METRIC, "defMNone", properties);
 		
-		return new ComputeDefinedMetricKeysF(null);
+		Properties componentSourceMetrics = new Properties();
+        componentSourceMetrics.setProperty("type", "test");
+        return new ComputeDefinedMetricKeysF(componentSourceMetrics);
 	}
 	
 }

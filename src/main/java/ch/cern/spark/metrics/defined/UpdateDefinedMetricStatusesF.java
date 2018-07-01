@@ -1,11 +1,12 @@
 package ch.cern.spark.metrics.defined;
 
-import java.util.Map;
 import java.util.Optional;
 
 import org.apache.log4j.Logger;
 import org.apache.spark.streaming.State;
 
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentsCatalog;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
@@ -59,11 +60,9 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
     }
 
 	protected Optional<DefinedMetric> getDefinedMetric(String id) throws Exception {
-	    DefinedMetrics.initCache(propertiesSourceProps);
+	    ComponentsCatalog.init(propertiesSourceProps);
 	    
-        Map<String, DefinedMetric> definedMetrics = DefinedMetrics.getCache().get();
-        
-        return Optional.ofNullable(definedMetrics.get(id));
+        return ComponentsCatalog.get(Type.METRIC, id);
     }
 
     private VariableStatuses getStore(State<VariableStatuses> status) {

@@ -10,6 +10,7 @@ import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.schema.MetricSchema;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
+import lombok.Getter;
 
 public abstract class Component implements Serializable {
 
@@ -33,6 +34,9 @@ public abstract class Component implements Serializable {
     };
 
     private String id;
+    
+    @Getter
+    private int propertiesHash;
 
     public String getId() {
         return id;
@@ -42,7 +46,13 @@ public abstract class Component implements Serializable {
         this.id = id;
     }
 
-    public void config(Properties properties) throws ConfigurationException {
+    protected final void buildConfig(Properties properties) throws ConfigurationException {
+        propertiesHash = properties.hashCode();
+        
+        config(properties);
+    }
+
+    protected void config(Properties properties) throws ConfigurationException {   
     }
 
     public boolean hasStatus() {

@@ -7,9 +7,10 @@ import java.util.Optional;
 
 import org.apache.spark.streaming.State;
 
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentsCatalog;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.monitors.Monitor;
-import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.trigger.action.Action;
 import ch.cern.spark.metrics.trigger.action.Template;
@@ -21,10 +22,10 @@ public class UpdateTriggerStatusesF
 
     private static final long serialVersionUID = 1540971922358997509L;
 
-    private Properties propertiesSourceProperties;
+    private Properties componentsSourceProperties;
 
-    public UpdateTriggerStatusesF(Properties propertiesSourceProps) {
-        this.propertiesSourceProperties = propertiesSourceProps;
+    public UpdateTriggerStatusesF(Properties componentsSourceProperties) {
+        this.componentsSourceProperties = componentsSourceProperties;
     }
 
     @Override
@@ -102,9 +103,9 @@ public class UpdateTriggerStatusesF
     }
 
     protected Optional<Monitor> getMonitor(String monitor_id) throws Exception {
-        Monitors.initCache(propertiesSourceProperties);
+        ComponentsCatalog.init(componentsSourceProperties);
         
-        return Optional.ofNullable(Monitors.getCache().get().get(monitor_id));
+        return ComponentsCatalog.get(Type.MONITOR, monitor_id);
     }
 
 }

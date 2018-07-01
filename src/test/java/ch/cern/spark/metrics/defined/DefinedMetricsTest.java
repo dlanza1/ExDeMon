@@ -1,18 +1,15 @@
 package ch.cern.spark.metrics.defined;
 
 import static ch.cern.spark.metrics.MetricTest.Metric;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
 
-import java.time.Duration;
-import java.util.Map;
 import java.util.Optional;
 
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.Cache;
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentsCatalog;
 import ch.cern.properties.Properties;
 import ch.cern.spark.StreamTestHelper;
 import ch.cern.spark.metrics.Metric;
@@ -24,42 +21,14 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
 	@Before
 	public void reset() throws Exception {
 		super.setUp();
-		Properties propertiesSourceProps = new Properties();
-		propertiesSourceProps.setProperty("type", "static");
-        Properties.initCache(propertiesSourceProps);
-		DefinedMetrics.getCache().reset();
-	}
-
-	@Test
-	public void definedMetricsCacheShouldExpire() throws Exception {
-		DefinedMetrics.initCache(null);
 		
-		Cache<Map<String, DefinedMetric>> definedMetricsCache = DefinedMetrics.getCache();
-				
-		Properties.getCache().reset();
-		definedMetricsCache.setExpiration(Duration.ofSeconds(1));
-		
-		//First load
-		Map<String, DefinedMetric> original = definedMetricsCache.get();
-		
-		Map<String, DefinedMetric> returned = definedMetricsCache.get();
-		assertSame(original, returned);
-		
-		Thread.sleep(Duration.ofMillis(100).toMillis());
-		
-		returned = definedMetricsCache.get();
-		assertSame(original, returned);
-		
-		Thread.sleep(Duration.ofSeconds(1).toMillis());
-		
-		returned = definedMetricsCache.get();
-		assertNotSame(original, returned);
+		Properties properties = new Properties();
+		properties.setProperty("type", "test");
+        ComponentsCatalog.init(properties);
 	}
 
 	@Test
 	public void shouldGenerateMetrics() throws Exception {
-		DefinedMetrics.getCache().reset();
-		
         addInput(0,    Metric(1, 10f, "HOSTNAME=host1"));
         addInput(0,    Metric(1, 20f, "HOSTNAME=host2"));
         addExpected(0, Metric(1, 30f, "$defined_metric=dm1"));
@@ -68,11 +37,11 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
         addInput(1,    Metric(2, 30f, "HOSTNAME=host2"));
         addExpected(1, Metric(2, 50f, "$defined_metric=dm1"));
 		
-        Cache<Properties> propertiesCache = Properties.getCache();
-        propertiesCache.set(new Properties());
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.type", "sum");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.attributes", "ALL");
-        propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
+        Properties properties = new Properties();
+        properties.setProperty("variables.a.aggregate.type", "sum");
+        properties.setProperty("variables.a.aggregate.attributes", "ALL");
+        properties.setProperty("when", "batch");
+        ComponentsCatalog.register(Type.METRIC, "dm1", properties);
 	        
         JavaDStream<Metric> metricsStream = createStream(Metric.class);
         
@@ -83,8 +52,6 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
 	
 	@Test
 	public void shouldApplyDefinedMetricFilter() throws Exception {
-		DefinedMetrics.getCache().reset();
-		
         addInput(0,    Metric(1, 10f, "CLUSTER=c1", "HOSTNAME=host1"));
         addInput(0,    Metric(1, 20f, "CLUSTER=c1", "HOSTNAME=host2"));
         addExpected(0, Metric(1, 30f, "$defined_metric=dm1"));
@@ -96,14 +63,14 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
         addInput(2,    Metric(3, 20f, "CLUSTER=c1", "HOSTNAME=host1"));
         addInput(2,    Metric(3, 30f, "CLUSTER=c1", "HOSTNAME=host2"));
         addExpected(2, Metric(3, 50f, "$defined_metric=dm1"));
-		
-        Cache<Properties> propertiesCache = Properties.getCache();
-        propertiesCache.set(new Properties());
-        propertiesCache.get().setProperty("metrics.define.dm1.metrics.filter.attribute.CLUSTER", "c1");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.filter.attribute.HOSTNAME", ".*");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.type", "sum");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate.attributes", "ALL");
-        propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
+        
+        Properties properties = new Properties();
+        properties.setProperty("metrics.filter.attribute.CLUSTER", "c1");
+        properties.setProperty("variables.a.filter.attribute.HOSTNAME", ".*");
+        properties.setProperty("variables.a.aggregate.type", "sum");
+        properties.setProperty("variables.a.aggregate.attributes", "ALL");
+        properties.setProperty("when", "batch");
+        ComponentsCatalog.register(Type.METRIC, "dm1", properties);
 	        
         JavaDStream<Metric> metricsStream = createStream(Metric.class);
         
@@ -114,8 +81,6 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
     
 	@Test
 	public void shouldGenerateMetricsWithComplexEquation() throws Exception {
-		DefinedMetrics.getCache().reset();
-		
         addInput(0,    Metric(1, true, 		"TYPE=DirReport", "$value_attribute=monitor_enable"));
         addInput(0,    Metric(1, " /tmp/  ", "TYPE=DirReport", "$value_attribute=path"));
         addInput(0,    Metric(1, 100, 		"TYPE=DirReport", "$value_attribute=used_bytes"));
@@ -137,16 +102,16 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
         // false || (true)
         // true
         addExpected(1, Metric(2, true, 		"$defined_metric=dm1"));
-		
-        Cache<Properties> propertiesCache = Properties.getCache();
-        propertiesCache.set(new Properties());
-        propertiesCache.get().setProperty("metrics.define.dm1.metrics.filter.attribute.TYPE", "DirReport");
-        propertiesCache.get().setProperty("metrics.define.dm1.value", "!shouldBeMonitored || ((trim(dir) == \"/tmp/\") && (abs(used / capacity) > 0.8))");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.shouldBeMonitored.filter.attribute.$value_attribute", "monitor_enable");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.dir.filter.attribute.$value_attribute", "path");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.used.filter.attribute.$value_attribute", "used_bytes");
-        propertiesCache.get().setProperty("metrics.define.dm1.variables.capacity.filter.attribute.$value_attribute", "capacity_bytes");
-        propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
+        
+        Properties properties = new Properties();
+        properties.setProperty("metrics.filter.attribute.TYPE", "DirReport");
+        properties.setProperty("value", "!shouldBeMonitored || ((trim(dir) == \"/tmp/\") && (abs(used / capacity) > 0.8))");
+        properties.setProperty("variables.shouldBeMonitored.filter.attribute.$value_attribute", "monitor_enable");
+        properties.setProperty("variables.dir.filter.attribute.$value_attribute", "path");
+        properties.setProperty("variables.used.filter.attribute.$value_attribute", "used_bytes");
+        properties.setProperty("variables.capacity.filter.attribute.$value_attribute", "capacity_bytes");
+        properties.setProperty("when", "batch");
+        ComponentsCatalog.register(Type.METRIC, "dm1", properties);
 	        
         JavaDStream<Metric> metricsStream = createStream(Metric.class);
         

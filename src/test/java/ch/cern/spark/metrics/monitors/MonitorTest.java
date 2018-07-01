@@ -1,10 +1,7 @@
 package ch.cern.spark.metrics.monitors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,47 +11,17 @@ import org.apache.spark.streaming.StateImpl;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.Cache;
+import ch.cern.components.ComponentsCatalog;
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.defined.DefinedMetrics;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import ch.cern.spark.metrics.schema.MetricSchemas;
 import ch.cern.spark.status.StatusValue;
 
 public class MonitorTest {
 
     @Before
     public void setUp() throws Exception {
-        Properties.initCache(null);
-        Monitors.getCache().reset();
-        DefinedMetrics.getCache().reset();
-        MetricSchemas.getCache().reset();
-    }
-
-    @Test
-    public void shouldUpdateMonitors() throws Exception {
-        Monitors.initCache(null);
-        Cache<Map<String, Monitor>> monitorsCache = Monitors.getCache();
-
-        Properties.getCache().reset();
-        monitorsCache.setExpiration(Duration.ofSeconds(1));
-
-        // First load
-        Map<String, Monitor> originalMonitors = monitorsCache.get();
-
-        Map<String, Monitor> returnedMonitors = monitorsCache.get();
-        assertSame(originalMonitors, returnedMonitors);
-
-        Thread.sleep(Duration.ofMillis(100).toMillis());
-
-        returnedMonitors = monitorsCache.get();
-        assertSame(originalMonitors, returnedMonitors);
-
-        Thread.sleep(Duration.ofSeconds(1).toMillis());
-
-        returnedMonitors = monitorsCache.get();
-        assertNotSame(originalMonitors, returnedMonitors);
+        ComponentsCatalog.reset();
     }
 
     @Test
