@@ -19,9 +19,9 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentTypes;
+import ch.cern.components.source.ComponentsSource;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.properties.source.PropertiesSource;
 import ch.cern.spark.SparkConf;
 import ch.cern.spark.ZookeeperJobListener;
 import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
@@ -87,19 +87,18 @@ public final class Driver {
     public static void main(String[] args) throws Exception {
 
         if (args.length != 1)
-            throw new ConfigurationException(
-                    "A single argument must be specified with the path to the configuration file.");
+            throw new ConfigurationException("A single argument must be specified with the path to the configuration file.");
 
         String propertyFilePath = args[0];
         Properties properties = Properties.fromFile(propertyFilePath);
-        properties.setDefaultPropertiesSource(propertyFilePath);
 
         Driver driver = new Driver(properties);
 
-        Properties propertiesSourceProps = properties.getSubset(PropertiesSource.CONFIGURATION_PREFIX);
-        PropertiesSource propSource = ComponentTypes.build(Type.PROPERTIES_SOURCE, propertiesSourceProps);
-        propSource.prepareConfig(propertiesSourceProps);
-        JavaStreamingContext ssc = driver.createNewStreamingContext(propertiesSourceProps);
+        Properties componentsSourceProps = properties.getSubset(ComponentsSource.PARAM);
+        //TODO deprecated
+        componentsSourceProps.putAll(properties.getSubset("properties.source"));
+        //TODO deprecated
+        JavaStreamingContext ssc = driver.createNewStreamingContext(componentsSourceProps);
 
         // Start the computation
         ssc.start();
@@ -122,7 +121,7 @@ public final class Driver {
             fs.delete(path, true);
     }
 
-    protected JavaStreamingContext createNewStreamingContext(Properties propertiesSourceProps) throws Exception {
+    protected JavaStreamingContext createNewStreamingContext(Properties componentsSourceProps) throws Exception {
 
         Optional<JavaDStream<StatusOperation<StatusKey, ?>>> statusesOperationsOpt = getStatusesOperarions();
         Optional<JavaDStream<StatusOperation<DefinedMetricStatuskey, Metric>>> metricsStatusesOperationsOpt = Optional.empty();
@@ -134,17 +133,17 @@ public final class Driver {
             monitorsStatusesOperationsOpt = filterOperations(statusesOperationsOpt, TriggerStatusKey.class);
         }
         
-        JavaDStream<Metric> metrics = getMetricStream(propertiesSourceProps);
+        JavaDStream<Metric> metrics = getMetricStream(componentsSourceProps);
         
-        metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps, metricsStatusesOperationsOpt));
+        metrics = metrics.union(DefinedMetrics.generate(metrics, componentsSourceProps, metricsStatusesOperationsOpt));
 
-        JavaDStream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps, analysisStatusesOperationsOpt);
+        JavaDStream<AnalysisResult> results = Monitors.analyze(metrics, componentsSourceProps, analysisStatusesOperationsOpt);
 
         analysisResultsSink.ifPresent(sink -> sink.sink(results));
 
-        JavaDStream<Action> actions = Monitors.applyTriggers(results, propertiesSourceProps, monitorsStatusesOperationsOpt);
+        JavaDStream<Action> actions = Monitors.applyTriggers(results, componentsSourceProps, monitorsStatusesOperationsOpt);
 
-        Actuators.run(actions, propertiesSourceProps);
+        Actuators.run(actions, componentsSourceProps);
 
         return ssc;
     }

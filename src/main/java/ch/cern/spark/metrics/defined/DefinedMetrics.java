@@ -16,8 +16,6 @@ import ch.cern.spark.status.StatusOperation;
 
 public class DefinedMetrics {
 
-    public static final String PARAM = "metrics.define";
-	
 	public static JavaDStream<Metric> generate(
 	        JavaDStream<Metric> metrics, 
 	        Properties propertiesSourceProps, 

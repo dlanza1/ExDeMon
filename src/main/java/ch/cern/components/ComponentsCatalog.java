@@ -83,7 +83,10 @@ public class ComponentsCatalog {
     }
     
     public static void remove(Type componentType, String id) {
-        get(componentType).remove(id);
+        if(!components.containsKey(componentType))
+            throw new IllegalArgumentException(componentType + " type cannot be in the catalog");
+        
+        components.get(componentType).remove(id);
     }
 
     public static void reset() {

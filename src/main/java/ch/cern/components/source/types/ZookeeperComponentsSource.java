@@ -50,7 +50,7 @@ public class ZookeeperComponentsSource extends ComponentsSource {
     }
     
     @Override
-    protected void config(Properties properties) throws ConfigurationException {
+    protected void configure(Properties properties) throws ConfigurationException {
         zkConnString = properties.getProperty("connection_string");
         initialization_timeout_ms = properties.getLong("initialization_timeout_ms", 5000);
         timeout_ms = (int) properties.getLong("timeout_ms", 20000);

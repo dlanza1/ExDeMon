@@ -34,7 +34,7 @@ public class ComponentTypes {
     	}
     		
     	ComponentType typeAnnotation = componentClass.getSuperclass().getAnnotation(ComponentType.class);
-    	if(typeAnnotation == null)
+    	if(typeAnnotation == null && componentClass.getSuperclass().getSuperclass() != null)
     	    typeAnnotation = componentClass.getSuperclass().getSuperclass().getAnnotation(ComponentType.class);
     	if(typeAnnotation == null)
             typeAnnotation = componentClass.getAnnotation(ComponentType.class);

@@ -12,8 +12,6 @@ public class MetricSchemas {
 	
 	private static final int JSON_MAX_SIZE = 64000;
 
-    public static final String PARAM = "metrics.schema";
-
 	public static JavaDStream<Metric> generate(JavaDStream<String> jsons, Properties propertiesSourceProps, String sourceId) {
 	    jsons = jsons.filter(string -> {
                 	        if(string.length() > JSON_MAX_SIZE) {

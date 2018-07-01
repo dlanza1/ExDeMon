@@ -23,7 +23,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import ch.cern.properties.source.PropertiesSource;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.utils.Pair;
 import ch.cern.utils.TimeUtils;
@@ -216,15 +215,6 @@ public class Properties extends java.util.Properties {
 
     public Optional<Duration> getPeriod(String key) throws ConfigurationException {
         return Optional.ofNullable(getPeriod(key, null));
-    }
-
-    public void setDefaultPropertiesSource(String propertyFilePath) {
-        Properties propertiesSourceProperties = getSubset(PropertiesSource.CONFIGURATION_PREFIX);
-
-        if (!propertiesSourceProperties.containsKey("type")) {
-            setProperty(PropertiesSource.CONFIGURATION_PREFIX + ".type", "file");
-            setProperty(PropertiesSource.CONFIGURATION_PREFIX + ".path", propertyFilePath);
-        }
     }
 
     public synchronized void confirmAllPropertiesUsed() throws ConfigurationException {

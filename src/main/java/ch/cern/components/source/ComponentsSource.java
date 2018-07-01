@@ -1,5 +1,10 @@
 package ch.cern.components.source;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 import org.apache.log4j.Logger;
 
 import ch.cern.components.Component;
@@ -15,12 +20,43 @@ public abstract class ComponentsSource extends Component {
     private static final long serialVersionUID = -7276957377600776486L;
     
     private final static Logger LOG = Logger.getLogger(ComponentsSource.class.getName());
+
+    public static String PARAM = "components.source";
+    
+    private List<Pattern> id_filters = new LinkedList<>();
+
+    private Properties staticProperties;
     
     public ComponentsSource() {
     }
     
+    @Override
+    protected final void config(Properties properties) throws ConfigurationException {
+        Properties filtersProps = properties.getSubset("id.filters");
+        if(filtersProps.size() > 0) {
+            id_filters = new LinkedList<>();
+            for (String id : filtersProps.getIDs())
+                id_filters.add(Pattern.compile(filtersProps.getProperty(id)));
+        }else{
+            id_filters = Arrays.asList(Properties.ID_REGEX);
+        }
+        
+        staticProperties = properties.getSubset("static");
+        
+        configure(properties);
+    }
+    
+    protected void configure(Properties properties) throws ConfigurationException {
+    }
+
     public final void register(Type componentType, String id, Properties properties) {
         try {
+            boolean filter = filterID(id);
+            if(!filter)
+                return;
+            
+            properties.setStaticProperties(staticProperties);
+            
             Component component = ComponentsCatalog.register(componentType, id, properties);
             
             registerConfigurationOK(componentType, id, component);
@@ -29,6 +65,14 @@ public abstract class ComponentsSource extends Component {
         }
     }
     
+    private boolean filterID(String id) {
+        for (Pattern id_filter : id_filters)
+            if(id_filter.matcher(id).matches())
+                return true;
+        
+        return false;
+    }
+
     protected final void remove(Type componentType, String id) {
         ComponentsCatalog.remove(componentType, id);
     }

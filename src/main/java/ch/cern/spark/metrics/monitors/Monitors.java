@@ -20,8 +20,6 @@ import ch.cern.spark.status.StatusOperation;
 import ch.cern.spark.status.StatusValue;
 
 public class Monitors {
-	
-	public static final String PARAM = "monitors";
 
     public static JavaDStream<AnalysisResult> analyze(
 	        JavaDStream<Metric> metrics, 
