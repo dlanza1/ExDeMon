@@ -54,15 +54,7 @@ public class Monitor extends Component{
     }
     
     @Override
-    public void config(Properties properties) {
-    	try {
-			tryConfig(properties);
-		} catch (Exception e) {
-		    LOG.error(getId() + ": " + e.getMessage(), e);
-		}
-    }
-    
-	public Monitor tryConfig(Properties properties) throws ConfigurationException {
+    public void config(Properties properties) throws ConfigurationException {
         filter = MetricsFilter.build(properties.getSubset("filter"));
         
         fixedValueAttributes = properties.getSubset("attribute").entrySet().stream()
@@ -90,8 +82,6 @@ public class Monitor extends Component{
         tags = properties.getSubset("tags").toStringMap();
         
         properties.confirmAllPropertiesUsed();
-        
-        return this;
     }
 
     public Optional<AnalysisResult> process(State<StatusValue> status, Metric metric) {

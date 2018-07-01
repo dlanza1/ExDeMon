@@ -3,6 +3,7 @@ package ch.cern.components.source;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
@@ -49,19 +50,23 @@ public abstract class ComponentsSource extends Component {
     protected void configure(Properties properties) throws ConfigurationException {
     }
 
-    public final void register(Type componentType, String id, Properties properties) {
+    public final Optional<Component> register(Type componentType, String id, Properties properties) {
         try {
             boolean filter = filterID(id);
             if(!filter)
-                return;
+                return Optional.empty();
             
             properties.setStaticProperties(staticProperties);
             
             Component component = ComponentsCatalog.register(componentType, id, properties);
             
             registerConfigurationOK(componentType, id, component);
+            
+            return Optional.of(component);
         } catch (ConfigurationException e) {
             registerConfigurationError(componentType, id, e);
+            
+            return Optional.empty();
         }
     }
     

@@ -24,7 +24,7 @@ public class ComponentsCatalogTest {
     @Test
     public void register() throws Exception {        
         Properties properties = new Properties();
-        properties.setProperty("metrics.filter.dummy", "dummy");
+        properties.setProperty("filter.attribute.dummy", "dummy");
         Component component = ComponentsCatalog.register(Type.MONITOR, "id", properties);
 
         Optional<Component> secondComponentOpt = ComponentsCatalog.get(Type.MONITOR, "id");
@@ -36,7 +36,7 @@ public class ComponentsCatalogTest {
     @Test
     public void remove() throws Exception {
         Properties properties = new Properties();
-        properties.setProperty("metrics.filter.dummy", "dummy");
+        properties.setProperty("filter.attribute.dummy", "dummy");
         ComponentsCatalog.register(Type.MONITOR, "id", properties);
 
         ComponentsCatalog.remove(Type.MONITOR, "id");
@@ -46,7 +46,7 @@ public class ComponentsCatalogTest {
     @Test
     public void reset() throws Exception {
         Properties properties = new Properties();
-        properties.setProperty("metrics.filter.dummy", "dummy");
+        properties.setProperty("filter.attribute.dummy", "dummy");
         ComponentsCatalog.register(Type.MONITOR, "id", properties);
 
         ComponentsCatalog.reset();
@@ -56,7 +56,7 @@ public class ComponentsCatalogTest {
     @Test
     public void sameComponentIfSameProperties() throws Exception {
         Properties properties = new Properties();
-        properties.setProperty("metrics.filter.dummy", "dummy");
+        properties.setProperty("filter.attribute.dummy", "dummy");
         Component component = ComponentsCatalog.register(Type.MONITOR, "id", properties);
         
         Component secondRegistration = ComponentsCatalog.register(Type.MONITOR, "id", properties);
