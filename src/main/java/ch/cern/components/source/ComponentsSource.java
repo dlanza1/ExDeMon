@@ -32,7 +32,7 @@ public abstract class ComponentsSource extends Component {
     }
     
     @Override
-    protected final void config(Properties properties) throws ConfigurationException {
+    public final void config(Properties properties) throws ConfigurationException {
         Properties filtersProps = properties.getSubset("id.filters");
         if(filtersProps.size() > 0) {
             id_filters = new LinkedList<>();
@@ -73,9 +73,6 @@ public abstract class ComponentsSource extends Component {
     }
     
     private boolean filterID(String id) {
-        if(id_filters.isEmpty())
-            return true;
-        
         for (Pattern id_filter : id_filters)
             if(id_filter.matcher(id).matches())
                 return true;

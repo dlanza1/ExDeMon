@@ -47,17 +47,17 @@ public class ZookeeperComponentsSourceTests {
         ZookeeperComponentsSource source = new ZookeeperComponentsSource();
         Properties sourceProperties = new Properties();
         sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
-        source.configure(sourceProperties);
+        source.config(sourceProperties);
         source.initialize();
         
         String json = "{ \"filter.attribute.dummy\": \"dummy\"}";
         
         client.create().creatingParentsIfNeeded()
-            .forPath("/exdemon/id=id-test/type=monitor/config", json.getBytes());
+            .forPath("/exdemon/id=id_test/type=monitor/config", json.getBytes());
         
         Thread.sleep(100);
         
-        Optional<Component> componentOpt = ComponentsCatalog.get(Type.MONITOR, "id-test");
+        Optional<Component> componentOpt = ComponentsCatalog.get(Type.MONITOR, "id_test");
         
         assertTrue(componentOpt.isPresent());
     }
