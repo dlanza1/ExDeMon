@@ -64,6 +64,8 @@ public abstract class ComponentsSource extends Component {
             
             return Optional.of(component);
         } catch (ConfigurationException e) {
+            ComponentsCatalog.remove(componentType, id);
+            
             registerConfigurationError(componentType, id, e);
             
             return Optional.empty();
@@ -71,6 +73,9 @@ public abstract class ComponentsSource extends Component {
     }
     
     private boolean filterID(String id) {
+        if(id_filters.isEmpty())
+            return true;
+        
         for (Pattern id_filter : id_filters)
             if(id_filter.matcher(id).matches())
                 return true;

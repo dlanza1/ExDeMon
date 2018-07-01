@@ -79,6 +79,7 @@ public class ComponentsSourceTests {
         Optional<Component> componentOpt = source.register(Type.MONITOR, "id", properties);
         
         assertFalse(componentOpt.isPresent());
+        assertFalse(ComponentsCatalog.get(Type.MONITOR, "id").isPresent());
         verify(source).registerConfigurationError(eq(Type.MONITOR), eq("id"), any());
     }
     

@@ -96,4 +96,8 @@ public class ComponentsCatalog {
         components.put(Type.ACTUATOR, new ConcurrentHashMap<>());
     }
 
+    public static void resetSource() {
+        source = null;
+    }
+
 }

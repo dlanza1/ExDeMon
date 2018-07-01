@@ -39,8 +39,6 @@ public class FileComponentsSource extends ComponentsSource {
     public void configure(Properties properties) throws ConfigurationException {
         path = properties.getProperty("path");
         
-        properties.confirmAllPropertiesUsed();
-        
         try {
             fs = FileSystem.get(new Configuration());
             if (path.startsWith("file:/"))
@@ -50,6 +48,8 @@ public class FileComponentsSource extends ComponentsSource {
         }
         
         refreshPeriod = properties.getPeriod("expire", Duration.ofMinutes(5));
+        
+        properties.confirmAllPropertiesUsed();
     }
     
     @Override
@@ -71,8 +71,8 @@ public class FileComponentsSource extends ComponentsSource {
         Properties newProperties = loadProperties();
         
         synchronize(Type.SCHEMA, newProperties.getSubset("metrics.schema"));
-        synchronize(Type.MONITOR, newProperties.getSubset("monitors"));
         synchronize(Type.METRIC, newProperties.getSubset("metrics.define"));
+        synchronize(Type.MONITOR, newProperties.getSubset("monitors"));
         synchronize(Type.ACTUATOR, newProperties.getSubset("actuators"));
     }
     
@@ -86,7 +86,7 @@ public class FileComponentsSource extends ComponentsSource {
                 remove(componentType, existingId);
         });
         
-        //Add/update components
+        // Add/update components
         newIds.stream().forEach(id -> {
             Properties componentProps = properties.getSubset(id);
             
