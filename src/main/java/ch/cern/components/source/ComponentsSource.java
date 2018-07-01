@@ -73,6 +73,9 @@ public abstract class ComponentsSource extends Component {
     }
     
     private boolean filterID(String id) {
+        if(id_filters == null || id_filters.isEmpty())
+            return true;
+        
         for (Pattern id_filter : id_filters)
             if(id_filter.matcher(id).matches())
                 return true;
