@@ -1,5 +1,8 @@
 package ch.cern.components.source.types;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -60,6 +63,59 @@ public class ZookeeperComponentsSourceTests {
         Optional<Component> componentOpt = ComponentsCatalog.get(Type.MONITOR, "id_test");
         
         assertTrue(componentOpt.isPresent());
+    }
+    
+    @Test
+    public void update() throws Exception {
+        ZookeeperComponentsSource source = new ZookeeperComponentsSource();
+        Properties sourceProperties = new Properties();
+        sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
+        source.config(sourceProperties);
+        source.initialize();
+        
+        //Create
+        String json = "{ \"filter.attribute.dummy\": \"dummy\"}";
+        int propertiesHash = Properties.fromJson(json).hashCode();
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/id=id_test/type=monitor/config", json.getBytes());
+        Thread.sleep(100);
+        Optional<Component> componentOpt = ComponentsCatalog.get(Type.MONITOR, "id_test");
+        assertTrue(componentOpt.isPresent());
+        assertEquals(propertiesHash, componentOpt.get().getPropertiesHash());
+        
+        //Update
+        String updatingJson = "{ \"filter.attribute.dummy2\": \"dummy2\"}";
+        int updatingPropertiesHash = Properties.fromJson(updatingJson).hashCode();
+        client.setData().forPath("/exdemon/id=id_test/type=monitor/config", updatingJson.getBytes());
+        Thread.sleep(100);
+        Optional<Component> componentUpdatedOpt = ComponentsCatalog.get(Type.MONITOR, "id_test");
+        assertTrue(componentUpdatedOpt.isPresent());
+        assertEquals(updatingPropertiesHash, componentUpdatedOpt.get().getPropertiesHash());
+        
+        //Ensure different
+        assertNotEquals(componentOpt.get(), componentUpdatedOpt.get());
+        assertNotEquals(propertiesHash, updatingPropertiesHash);
+    }
+    
+    @Test
+    public void remove() throws Exception {
+        ZookeeperComponentsSource source = new ZookeeperComponentsSource();
+        Properties sourceProperties = new Properties();
+        sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
+        source.config(sourceProperties);
+        source.initialize();
+        
+        //Create
+        String json = "{ \"filter.attribute.dummy\": \"dummy\"}";
+        client.create().creatingParentsIfNeeded().forPath("/exdemon/id=id_test/type=monitor/config", json.getBytes());
+        Thread.sleep(100);
+        Optional<Component> componentOpt = ComponentsCatalog.get(Type.MONITOR, "id_test");
+        assertTrue(componentOpt.isPresent());
+        
+        //Remove
+        client.delete().forPath("/exdemon/id=id_test/type=monitor/config");
+        Thread.sleep(100);
+        
+        assertFalse(ComponentsCatalog.get(Type.MONITOR, "id_test").isPresent());
     }
     
     @After
