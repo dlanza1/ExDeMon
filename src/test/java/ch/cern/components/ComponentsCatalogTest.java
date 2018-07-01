@@ -3,6 +3,7 @@ package ch.cern.components;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Optional;
 
@@ -10,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ch.cern.components.Component.Type;
+import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 
 public class ComponentsCatalogTest {
@@ -40,6 +42,24 @@ public class ComponentsCatalogTest {
         ComponentsCatalog.register(Type.MONITOR, "id", properties);
 
         ComponentsCatalog.remove(Type.MONITOR, "id");
+        assertFalse(ComponentsCatalog.get(Type.MONITOR, "id").isPresent());
+    }
+    
+    @Test
+    public void removeIfConfigurationError() throws Exception {
+        Properties properties = new Properties();
+        properties.setProperty("filter.attribute.dummy", "dummy");
+        ComponentsCatalog.register(Type.MONITOR, "id", properties);
+        assertTrue(ComponentsCatalog.get(Type.MONITOR, "id").isPresent());
+        
+        Properties wrongProperties = new Properties();
+        wrongProperties.setProperty("filter..dummy", "dummy");
+        try {
+            ComponentsCatalog.register(Type.MONITOR, "id", wrongProperties);
+            
+            fail();
+        } catch (ConfigurationException e) {}
+        
         assertFalse(ComponentsCatalog.get(Type.MONITOR, "id").isPresent());
     }
     

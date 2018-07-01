@@ -59,7 +59,14 @@ public class ComponentsCatalog {
                 return existingComponent;
         }
         
-        Component component = ComponentTypes.build(componentType, id, properties);
+        Component component = null;
+        try {
+            component = ComponentTypes.build(componentType, id, properties);
+        } catch (ConfigurationException e) {
+            remove(componentType, id);
+            
+            throw e;
+        }
         
         components.get(componentType).put(id, component);
         

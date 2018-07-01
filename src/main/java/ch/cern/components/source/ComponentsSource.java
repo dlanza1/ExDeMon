@@ -64,8 +64,6 @@ public abstract class ComponentsSource extends Component {
             
             return Optional.of(component);
         } catch (ConfigurationException e) {
-            ComponentsCatalog.remove(componentType, id);
-            
             registerConfigurationError(componentType, id, e);
             
             return Optional.empty();
