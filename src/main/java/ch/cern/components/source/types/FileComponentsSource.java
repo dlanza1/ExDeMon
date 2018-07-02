@@ -121,4 +121,8 @@ public class FileComponentsSource extends ComponentsSource {
         return props;
     }
 
+    @Override
+    public void close() {
+        scheduler.shutdown();
+    }
 }
