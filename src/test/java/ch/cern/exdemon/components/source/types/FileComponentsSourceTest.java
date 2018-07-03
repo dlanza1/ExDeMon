@@ -17,7 +17,7 @@ import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.components.source.types.FileComponentsSource;
 import ch.cern.properties.Properties;
 
-public class FileComponentsSourceTests {
+public class FileComponentsSourceTest {
     
     @Before
     public void clear() {

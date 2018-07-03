@@ -22,7 +22,7 @@ import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.components.source.types.ZookeeperComponentsSource;
 import ch.cern.properties.Properties;
 
-public class ZookeeperComponentsSourceTests {
+public class ZookeeperComponentsSourceTest {
 
     private TestingServer zkTestServer;
     private CuratorFramework client;

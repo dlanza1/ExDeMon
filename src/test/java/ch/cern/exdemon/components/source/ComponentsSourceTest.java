@@ -16,7 +16,7 @@ import ch.cern.exdemon.components.source.types.TestComponentsSource;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 
-public class ComponentsSourceTests {
+public class ComponentsSourceTest {
     
     @Before
     public void setUp() throws Exception {
