@@ -13,11 +13,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
 import ch.cern.exdemon.metrics.Metric;
-import ch.cern.exdemon.metrics.defined.DefinedMetric;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -83,11 +83,13 @@ public class DefinedMetricTest {
 		assertNotNull(metric.getEquation());
 		assertNotNull(metric.getEquation().getVariables().get("DBCPUUsagePerSec"));
 		assertNotNull(metric.getEquation().getVariables().get("HostCPUUsagePerSec"));
-		assertEquals(new HashSet<String>(Arrays.asList("DBCPUUsagePerSec", "HostCPUUsagePerSec")), metric.getVariablesWhen());
+		assertEquals(new HashSet<String>(Arrays.asList("DBCPUUsagePerSec", "HostCPUUsagePerSec")), 
+		             metric.getWhen().getVariables().stream().map(v -> v.getName()).collect(Collectors.toSet()));
 		
 		properties.setProperty("when", "DBCPUUsagePerSec HostCPUUsagePerSec");
 		metric.config(properties);
-		assertEquals(new HashSet<String>(Arrays.asList("HostCPUUsagePerSec", "DBCPUUsagePerSec")), metric.getVariablesWhen());
+		assertEquals(new HashSet<String>(Arrays.asList("HostCPUUsagePerSec", "DBCPUUsagePerSec")), 
+		             metric.getWhen().getVariables().stream().map(v -> v.getName()).collect(Collectors.toSet()));
 	}
 	
 	@Test
@@ -106,11 +108,13 @@ public class DefinedMetricTest {
 		assertNotNull(metric.getEquation());
 		assertNotNull(metric.getEquation().getVariables().get("DBCPUUsagePerSec"));
 		assertNotNull(metric.getEquation().getVariables().get("HostCPUUsagePerSec"));
-		assertEquals(new HashSet<String>(Arrays.asList("DBCPUUsagePerSec", "HostCPUUsagePerSec")), metric.getVariablesWhen());
+		assertEquals(new HashSet<String>(Arrays.asList("DBCPUUsagePerSec", "HostCPUUsagePerSec")), 
+		             metric.getWhen().getVariables().stream().map(v -> v.getName()).collect(Collectors.toSet()));
 		
 		properties.setProperty("when", "DBCPUUsagePerSec HostCPUUsagePerSec");
 		metric.config(properties);
-		assertEquals(new HashSet<String>(Arrays.asList("HostCPUUsagePerSec", "DBCPUUsagePerSec")), metric.getVariablesWhen());
+		assertEquals(new HashSet<String>(Arrays.asList("HostCPUUsagePerSec", "DBCPUUsagePerSec")), 
+		             metric.getWhen().getVariables().stream().map(v -> v.getName()).collect(Collectors.toSet()));
 	}
 	
 	@Test

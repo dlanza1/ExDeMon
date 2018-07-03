@@ -4,7 +4,6 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -16,6 +15,7 @@ import ch.cern.exdemon.components.Component;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.Equation;
 import ch.cern.exdemon.metrics.defined.equation.var.MetricVariable;
+import ch.cern.exdemon.metrics.defined.equation.var.Variable;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
 import ch.cern.exdemon.metrics.value.ExceptionValue;
@@ -36,7 +36,7 @@ public final class DefinedMetric extends Component {
 	private Set<String> metricsGroupBy;
 	
 	@Getter
-	private Set<String> variablesWhen;
+	private When when;
 	
 	@Getter
 	private Equation equation;
@@ -63,7 +63,9 @@ public final class DefinedMetric extends Component {
 		    
 			configurationException = e;
 			
-			variablesWhen = null; // So that, it is trigger with every batch
+			try {
+                when = When.from("1m");
+            } catch (ConfigurationException e1) {}
 			metricsGroupBy = null;
 			equation = null;
 		}
@@ -95,31 +97,19 @@ public final class DefinedMetric extends Component {
 			throw new ConfigurationException("Problem parsing value: " + e.getMessage());
 		}
 		
-		variablesWhen = new HashSet<String>();
-		String whenValue = properties.getProperty("when", "ANY");
-		if(whenValue != null && whenValue.toUpperCase().equals("ANY"))
-			variablesWhen.addAll(variableNames);
-		else if(whenValue != null && whenValue.toUpperCase().equals("BATCH"))
-			variablesWhen = null;
-		else if(whenValue != null) {			
-			variablesWhen.addAll(Arrays.stream(whenValue.split(" ")).map(String::trim).collect(Collectors.toSet()));
-		}
-		if(variablesWhen != null) {
-			for (String variableWhen : variablesWhen) {
-				if(!equation.getVariables().containsKey(variableWhen)) {
-					MetricVariable trigger = new MetricVariable(variableWhen);
-					trigger.config(variablesProperties.getSubset(variableWhen), Optional.empty());
-					
-					equation.getVariables().put(variableWhen, trigger);
-				}
-			
-				if(!variableNames.contains(variableWhen))
-					throw new ConfigurationException("Variables listed in when parameter must be declared.");
-			}
-		}
-		if(whenValue == null) {
-			variablesWhen.add(equation.getMetricVariables().keySet().stream().sorted().findFirst().get());
-		}
+		Map<String, Variable> allVariables = new HashMap<>(equation.getVariables());
+		//Parse variables that were not used in the equation
+		for (String variableName : variableNames) {
+		    if(allVariables.containsKey(variableName))
+		        continue;
+		    
+            MetricVariable variable = new MetricVariable(variableName);
+            variable.config(variablesProperties.getSubset(variableName), Optional.empty());
+            
+            allVariables.put(variableName, variable);
+        }
+		
+		when = When.from(allVariables, properties.getProperty("when", "ANY"));		
 		
 		variablesProperties.confirmAllPropertiesUsed();
 		properties.confirmAllPropertiesUsed();
@@ -147,24 +137,6 @@ public final class DefinedMetric extends Component {
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 
-	public boolean shouldBeTrigeredByUpdate(Metric metric) {
-		if(isTriggerOnEveryBatch())
-			return false;
-		
-		if(!filter.test(metric))
-			return false;
-		
-		return equation.getVariables().entrySet().stream()
-				.filter(entry -> variablesWhen.contains(entry.getKey()))
-				.map(entry -> entry.getValue())
-				.filter(variable -> variable.test(metric))
-				.count() > 0;
-	}
-	
-	private boolean isTriggerOnEveryBatch() {
-		return variablesWhen == null;
-	}
-
 	public void updateStore(VariableStatuses stores, Metric metric, Set<String> groupByKeys) throws CloneNotSupportedException {
 		if(configurationException != null)
 			return;
@@ -183,17 +155,20 @@ public final class DefinedMetric extends Component {
 	}
 
 	public Optional<Metric> generateByUpdate(VariableStatuses stores, Metric metric, Map<String, String> groupByMetricIDs) {
-		if(!shouldBeTrigeredByUpdate(metric))
-			return Optional.empty();
+	    if(!filter.test(metric))
+            return Optional.empty();
+	    
+		if(when.isTriggerBy(metric))
+			return generate(stores, metric.getTimestamp(), groupByMetricIDs);
 		
-		return generate(stores, metric.getTimestamp(), groupByMetricIDs);
+		return Optional.empty();
 	}
 	
-	public Optional<Metric> generateByBatch(VariableStatuses stores, Instant time, Map<String, String> groupByMetricIDs) {
-		if(!isTriggerOnEveryBatch())
-			return Optional.empty();
+	public Optional<Metric> generateByBatch(VariableStatuses stores, Instant batchTime, Map<String, String> groupByMetricIDs) {
+		if(when.isTriggerAt(batchTime))
+			return generate(stores, batchTime, groupByMetricIDs);
 		
-		return generate(stores, time, groupByMetricIDs);
+		return Optional.empty();
 	}
 	
 	private Optional<Metric> generate(VariableStatuses stores, Instant time, Map<String, String> groupByMetricIDs) {		

@@ -26,6 +26,7 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
 		Properties properties = new Properties();
 		properties.setProperty("type", "test");
         ComponentsCatalog.init(properties);
+        ComponentsCatalog.reset();
 	}
 
 	@Test
