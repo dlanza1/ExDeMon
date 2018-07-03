@@ -43,7 +43,8 @@ public class ZookeeperComponentsSourceTest {
         ComponentsCatalog.resetSource();
         Properties sourceProperties = new Properties();
         sourceProperties.setProperty("type", "test");
-        ComponentsCatalog.init(sourceProperties );
+        ComponentsCatalog.init(sourceProperties);
+        ComponentsCatalog.reset();
     }
     
     @Test

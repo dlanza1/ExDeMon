@@ -24,6 +24,7 @@ public class ComponentsSourceTest {
         componentsSourceProperties.setProperty("type", "test");
         ComponentsCatalog.init(componentsSourceProperties);
         ComponentsCatalog.reset();
+        ComponentsCatalog.resetSource();
     }
     
     @Test

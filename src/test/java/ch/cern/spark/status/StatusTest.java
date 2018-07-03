@@ -48,6 +48,10 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
     
     @Before
     public void startZookeeper() throws Exception {
+        ComponentsCatalog.resetSource();
+        Properties sourceProperties = new Properties();
+        sourceProperties.setProperty("type", "test");
+        ComponentsCatalog.init(sourceProperties);
         ComponentsCatalog.reset();
     	
         zkTestServer = new TestingServer(2182);
