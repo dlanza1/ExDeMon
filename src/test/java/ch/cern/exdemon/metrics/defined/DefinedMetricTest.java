@@ -23,10 +23,18 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 
 public class DefinedMetricTest {
+    
+    public static Properties newProperties() {
+        Properties props = new Properties();
+        
+        props.setProperty("spark.batch.time", "1m");
+        
+        return props;
+    }
 	
 	@Test
-	public void configNotValid() {
-		Properties props = new Properties();
+	public void configNotValid() throws ConfigurationException {
+		Properties props = newProperties();
 		
 		Map<String, String> groupByMetricIDs = new HashMap<>();
 		
@@ -36,7 +44,7 @@ public class DefinedMetricTest {
 		Optional<Metric> result = metric.generateByBatch(new VariableStatuses(), Instant.now(), groupByMetricIDs);
 		assertEquals("ConfigurationException: Value must be specified.", result.get().getValue().getAsException().get());
 		
-		props = new Properties();
+		props = newProperties();
 		props.setProperty("value", "x * 10");
 		props.setProperty("variables.y.filter.attribute.AA", "metricAA");
 		metric = new DefinedMetric("test");
@@ -45,7 +53,7 @@ public class DefinedMetricTest {
 		result = metric.generateByBatch(new VariableStatuses(), Instant.now(), groupByMetricIDs);
 		assertEquals("ConfigurationException: Problem parsing value: Unknown variable: x", result.get().getValue().getAsException().get());
 		
-		props = new Properties();
+		props = newProperties();
 		props.setProperty("value", "x * 10");
 		props.setProperty("when", "y");
 		props.setProperty("variables.x.filter.attribute.AA", "metricAA");
@@ -55,7 +63,7 @@ public class DefinedMetricTest {
 		result = metric.generateByBatch(new VariableStatuses(), Instant.now(), groupByMetricIDs);
 		assertEquals("ConfigurationException: Variables listed in when parameter must be declared.", result.get().getValue().getAsException().get());
 		
-		props = new Properties();
+		props = newProperties();
 		props.setProperty("value", "trim(count)");
 		props.setProperty("variables.count.aggregate.type", "count_strings");
 		metric = new DefinedMetric("test");
@@ -67,11 +75,11 @@ public class DefinedMetricTest {
 		
 	}
 
-	@Test
+    @Test
 	public void config() throws ConfigurationException {
 		DefinedMetric metric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", ".*");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
@@ -96,7 +104,7 @@ public class DefinedMetricTest {
 	public void configAggregaate() throws ConfigurationException {
 		DefinedMetric metric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", ".*");
 		properties.setProperty("variables.DBCPUUsagePerSec.aggregate", "sum");
@@ -121,7 +129,7 @@ public class DefinedMetricTest {
 	public void testIfApplyForAnyVariable() throws ConfigurationException {
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", ".*");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
@@ -143,7 +151,7 @@ public class DefinedMetricTest {
 	public void testIfApplyForAnyVariableOneWithAggregation() throws ConfigurationException {
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("variables.DBCPUUsagePerSec.aggreagtion", "sum");
 		definedMetric.config(properties);
 
@@ -156,7 +164,7 @@ public class DefinedMetricTest {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
 		properties.setProperty("variables.HostCPUUsagePerSec.filter.attribute.METRIC_NAME", "Host CPU Usage Per Sec");
@@ -215,7 +223,7 @@ public class DefinedMetricTest {
     public void fixedValueAttributes() throws ConfigurationException, CloneNotSupportedException {
         DefinedMetric definedMetric = new DefinedMetric("A");
         
-        Properties properties = new Properties();
+        Properties properties = newProperties();
         properties.setProperty("metrics.attribute.A", "A1");
         properties.setProperty("metrics.attribute.B", "B2");
         properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
@@ -235,7 +243,7 @@ public class DefinedMetricTest {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("value", "running_count");
 		properties.setProperty("when", "trigger");
 		properties.setProperty("variables.running_count.filter.attribute.TYPE", "Running");
@@ -278,7 +286,7 @@ public class DefinedMetricTest {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("when", "batch");
 		properties.setProperty("variables.running_count.filter.attribute.TYPE", "Running");
 		properties.setProperty("variables.running_count.aggregate.type", "count_floats");
@@ -320,7 +328,7 @@ public class DefinedMetricTest {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("when", "batch");
 		properties.setProperty("variables.running_count.aggregate.type", "count_floats");
 		properties.setProperty("variables.running_count.aggregate.attributes", "HOSTNAME");
@@ -364,7 +372,7 @@ public class DefinedMetricTest {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("when", "batch");
 		properties.setProperty("variables.running_count.aggregate.type", "count_floats");
 		properties.setProperty("variables.running_count.aggregate.attributes", "ALL");
@@ -416,7 +424,7 @@ public class DefinedMetricTest {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("variables.readbytestotal.filter.attribute.TYPE", "Read Bytes");
 		properties.setProperty("variables.readbytestotal.aggregate.type", "sum");
 		properties.setProperty("variables.readbytestotal.aggregate.attributes", "ALL");
@@ -447,7 +455,7 @@ public class DefinedMetricTest {
         
         DefinedMetric definedMetric = new DefinedMetric("A");
         
-        Properties properties = new Properties();
+        Properties properties = newProperties();
         properties.setProperty("variables.readbytestotal.aggregate.type", "count_floats");
         properties.setProperty("variables.readbytestotal.ignore", "0h,h");
         properties.setProperty("variables.readbytestotal.expire", "1h,h");
@@ -483,7 +491,7 @@ public class DefinedMetricTest {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("value", "readbytestotal + writebytestotal");
 		properties.setProperty("when", "ANY");
 		properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
@@ -522,7 +530,7 @@ public class DefinedMetricTest {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("value", "readbytestotal + writebytestotal");
 		properties.setProperty("when", "ANY");
 		properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
@@ -573,7 +581,7 @@ public class DefinedMetricTest {
 
         DefinedMetric definedMetric = new DefinedMetric("A");
 
-        Properties properties = new Properties();
+        Properties properties = newProperties();
         properties.setProperty("value", "readbytestotal + writebytestotal");
         properties.setProperty("when", "ANY");
         properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
@@ -615,7 +623,7 @@ public class DefinedMetricTest {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
 		properties.setProperty("variables.readbytestotal.aggregate.type", "sum");
 		properties.setProperty("variables.readbytestotal.aggregate.attributes", "ALL");
@@ -655,7 +663,7 @@ public class DefinedMetricTest {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("variables.readbytestotal.aggregate.type", "sum");
 		properties.setProperty("variables.readbytestotal.aggregate.attributes", "ALL");
 		definedMetric.config(properties);
@@ -685,7 +693,7 @@ public class DefinedMetricTest {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
-		Properties properties = new Properties();
+		Properties properties = newProperties();
 		properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
 		definedMetric.config(properties);
 		

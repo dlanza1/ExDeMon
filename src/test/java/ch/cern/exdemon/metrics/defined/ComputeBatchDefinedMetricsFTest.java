@@ -36,6 +36,7 @@ public class ComputeBatchDefinedMetricsFTest {
 	@Test
 	public void aggregateCountUpdate() throws Exception {
 	    Properties properties = new Properties();
+	    properties.setProperty("spark.batch.time", "1m");
 		properties.setProperty("metrics.groupby", "DB_NAME METRIC_NAME");
 		properties.setProperty("variables.value.aggregate.type", "count_floats");
 		properties.setProperty("variables.value.aggregate.attributes", "ALL");

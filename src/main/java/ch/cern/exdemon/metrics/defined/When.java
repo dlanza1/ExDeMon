@@ -12,10 +12,15 @@ import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.var.Variable;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.utils.TimeUtils;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
+@ToString(callSuper=false)
+@EqualsAndHashCode(callSuper=false)
 public class When {
 
+    private Duration batchDuration;
     private Duration period;
 
     @Getter
@@ -26,16 +31,17 @@ public class When {
         this.variables = null;
     }
     
-    public static When from(String config) throws ConfigurationException {
-        return from(null, config);
+    public static When from(Duration batchDuration, String config) throws ConfigurationException {
+        return from(batchDuration, null, config);
     }
     
-    public static When from(Map<String, Variable> variables, String config) throws ConfigurationException {
+    public static When from(Duration batchDuration, Map<String, Variable> variables, String config) throws ConfigurationException {
         When when = new When();
+        when.batchDuration = batchDuration;
         
         //TODO DEPRECATED
         if(config.toUpperCase().equals("BATCH"))
-            return from("1m");
+            return from(batchDuration, "1m");
         //TODO DEPRECATED
             
         if(config.toUpperCase().equals("ANY")) {

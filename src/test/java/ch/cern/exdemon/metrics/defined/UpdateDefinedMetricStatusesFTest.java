@@ -23,7 +23,7 @@ public class UpdateDefinedMetricStatusesFTest {
 
     @Test
     public void shouldGenerateWhenUpdatingVariable() throws Exception {
-        Properties dmProps = new Properties();
+        Properties dmProps = DefinedMetricTest.newProperties();
         dmProps.setProperty("metrics.groupby", "DB_NAME, METRIC_NAME");
         dmProps.setProperty("variables.value.aggregate.type", "count_floats");
         dmProps.setProperty("variables.value.aggregate.attributes", "ALL");
@@ -56,10 +56,10 @@ public class UpdateDefinedMetricStatusesFTest {
     
     @Test
     public void shouldAggregateAlongTime() throws Exception {
-        Properties dmProps = new Properties();
-    		dmProps.setProperty("metrics.groupby", "INSTANCE_NAME");
-    		dmProps.setProperty("variables.value.aggregate.type", "count_floats");
-    		dmProps.setProperty("variables.value.expire", "5s");
+        Properties dmProps = DefinedMetricTest.newProperties();
+    	dmProps.setProperty("metrics.groupby", "INSTANCE_NAME");
+    	dmProps.setProperty("variables.value.aggregate.type", "count_floats");
+    	dmProps.setProperty("variables.value.expire", "5s");
         DefinedMetric dm = new DefinedMetric("dmID1");
         dm.config(dmProps);
         
@@ -90,11 +90,11 @@ public class UpdateDefinedMetricStatusesFTest {
 
     @Test
     public void shouldExpireValuesWhenGroupByIncludeAllAttributes() throws Exception {
-        Properties dmProps = new Properties();
+        Properties dmProps = DefinedMetricTest.newProperties();
         dmProps.setProperty("metrics.groupby", "INSTANCE_NAME");
         dmProps.setProperty("variables.value.aggregate.type", "count_floats");
         dmProps.setProperty("variables.value.expire", "5s");
-    		DefinedMetric dm = new DefinedMetric("dmID1");
+    	DefinedMetric dm = new DefinedMetric("dmID1");
         dm.config(dmProps);
         
         UpdateDefinedMetricStatusesF func = new UpdateDefinedMetricStatusesFWithDefinedMetric(dm);

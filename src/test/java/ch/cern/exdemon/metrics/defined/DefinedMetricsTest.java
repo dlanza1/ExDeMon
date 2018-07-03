@@ -39,7 +39,7 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
         addInput(1,    Metric(2, 30f, "HOSTNAME=host2"));
         addExpected(1, Metric(2, 50f, "$defined_metric=dm1"));
 		
-        Properties properties = new Properties();
+        Properties properties = DefinedMetricTest.newProperties();
         properties.setProperty("variables.a.aggregate.type", "sum");
         properties.setProperty("variables.a.aggregate.attributes", "ALL");
         properties.setProperty("when", "batch");
@@ -66,7 +66,7 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
         addInput(2,    Metric(3, 30f, "CLUSTER=c1", "HOSTNAME=host2"));
         addExpected(2, Metric(3, 50f, "$defined_metric=dm1"));
         
-        Properties properties = new Properties();
+        Properties properties = DefinedMetricTest.newProperties();
         properties.setProperty("metrics.filter.attribute.CLUSTER", "c1");
         properties.setProperty("variables.a.filter.attribute.HOSTNAME", ".*");
         properties.setProperty("variables.a.aggregate.type", "sum");
@@ -105,7 +105,7 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
         // true
         addExpected(1, Metric(2, true, 		"$defined_metric=dm1"));
         
-        Properties properties = new Properties();
+        Properties properties = DefinedMetricTest.newProperties();
         properties.setProperty("metrics.filter.attribute.TYPE", "DirReport");
         properties.setProperty("value", "!shouldBeMonitored || ((trim(dir) == \"/tmp/\") && (abs(used / capacity) > 0.8))");
         properties.setProperty("variables.shouldBeMonitored.filter.attribute.$value_attribute", "monitor_enable");

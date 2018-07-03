@@ -38,6 +38,7 @@ public class MonitorReturningAnalysisResultsStreamTest extends StreamTestHelper<
 	@Test
 	public void monitorAndDefinedMetric() throws Exception {
         Properties properties = new Properties();
+        properties.setProperty("spark.batch.time", "1m");
 		properties.setProperty("value", "analysis(value, ana_props) == \"OK\"");
 		properties.setProperty("metrics.groupby", "ALL");
 		properties.setProperty("variables.value.filter.attribute.INSTANCE_NAME", ".*");

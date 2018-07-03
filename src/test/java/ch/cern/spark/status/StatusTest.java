@@ -82,6 +82,7 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
 		opBatches.add(0, new StatusOperation<DefinedMetricStatuskey, Metric>("1122", filters));
 		
 		Properties properties = new Properties();
+		properties.setProperty("spark.batch.time", "1m");
         properties.setProperty("variables.a.aggregate.type", "sum");
         properties.setProperty("variables.a.aggregate.attributes", "ALL");
         properties.setProperty("metrics.groupby", "HOSTNAME");
@@ -118,6 +119,7 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
         client.create().creatingParentsIfNeeded().forPath("/id=1122/status", "RECEIVED".getBytes());
         
         Properties properties = new Properties();
+        properties.setProperty("spark.batch.time", "1m");
         properties.setProperty("variables.a.aggregate.type", "sum");
         properties.setProperty("variables.a.aggregate.attributes", "ALL");
         properties.setProperty("metrics.groupby", "HOSTNAME");

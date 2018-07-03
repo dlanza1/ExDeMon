@@ -23,6 +23,7 @@ public class SuccessiveCountAgregationTest {
         DefinedMetric definedMetric = new DefinedMetric("A");
         
         Properties properties = new Properties();
+        properties.setProperty("spark.batch.time", "1m");
         properties.setProperty("metrics.filter.attribute.HOSTNAME", "host1");
         properties.setProperty("metrics.groupby", "HOSTNAME");
         properties.setProperty("variables.var.filter.attribute.TYPE", "Read Bytes");

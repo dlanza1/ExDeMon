@@ -26,6 +26,8 @@ public class AnalysisFuncTest {
 	public void setUp() {
 		definedMetric = new DefinedMetric("A");
 		properties = new Properties();
+		properties.setProperty("spark.batch.time", "1m");
+		
 		stores = new VariableStatuses();
 		store = new ValueHistory.Status();
 		

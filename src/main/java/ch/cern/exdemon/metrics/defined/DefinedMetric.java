@@ -1,6 +1,7 @@
 package ch.cern.exdemon.metrics.defined;
 
 import java.text.ParseException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
+import ch.cern.exdemon.Driver;
 import ch.cern.exdemon.components.Component;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.Equation;
@@ -63,9 +65,17 @@ public final class DefinedMetric extends Component {
 		    
 			configurationException = e;
 			
-			try {
-                when = When.from("1m");
-            } catch (ConfigurationException e1) {}
+            try {
+                Optional<Duration> batchDurationOpt = properties.getPeriod(Driver.BATCH_INTERVAL_PARAM);
+                
+                if(!batchDurationOpt.isPresent())
+                    throw new RuntimeException("spark.batch.duration must be configured");
+                
+                when = When.from(batchDurationOpt.get(), "1m");
+            } catch (ConfigurationException e1) {
+                LOG.error(e1);
+            }
+
 			metricsGroupBy = null;
 			equation = null;
 		}
@@ -109,7 +119,11 @@ public final class DefinedMetric extends Component {
             allVariables.put(variableName, variable);
         }
 		
-		when = When.from(allVariables, properties.getProperty("when", "ANY"));		
+		Optional<Duration> batchDurationOpt = properties.getPeriod(Driver.BATCH_INTERVAL_PARAM);
+        if(!batchDurationOpt.isPresent())
+            throw new RuntimeException(Driver.BATCH_INTERVAL_PARAM + " must be configured");
+        
+		when = When.from(batchDurationOpt.get(), allVariables, properties.getProperty("when", "ANY"));		
 		
 		variablesProperties.confirmAllPropertiesUsed();
 		properties.confirmAllPropertiesUsed();

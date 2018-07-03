@@ -211,6 +211,7 @@ public class ComputeDefinedMetricKeysFTest {
 
 	private ComputeDefinedMetricKeysF getTwoDefinedMetricsWithOneGroupByAttribute() throws Exception {
 		Properties properties = new Properties();
+		properties.setProperty("spark.batch.time", "1m");
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 		properties.setProperty("metrics.groupby", "INSTANCE_NAME");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
@@ -220,6 +221,7 @@ public class ComputeDefinedMetricKeysFTest {
 		ComponentsCatalog.register(Type.METRIC, "defM1", properties);
 		
 		properties = new Properties();
+		properties.setProperty("spark.batch.time", "1m");
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 		properties.setProperty("metrics.groupby", "INSTANCE_NAME");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
@@ -233,6 +235,7 @@ public class ComputeDefinedMetricKeysFTest {
 	
 	private ComputeDefinedMetricKeysF getGroupByAll() throws Exception {
 		Properties properties = new Properties();
+		properties.setProperty("spark.batch.time", "1m");
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 		properties.setProperty("metrics.groupby", "ALL");
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
@@ -249,6 +252,7 @@ public class ComputeDefinedMetricKeysFTest {
 	
 	private ComputeDefinedMetricKeysF getGroupByNone() throws Exception {
 		Properties properties = new Properties();
+		properties.setProperty("spark.batch.time", "1m");
 		properties.setProperty("value", "DBCPUUsagePerSec - HostCPUUsagePerSec");
 //		properties.setProperty("metric.groupby", null);
 		properties.setProperty("variables.DBCPUUsagePerSec.filter.attribute.INSTANCE_NAME", "prod-.*");
