@@ -23,7 +23,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import ch.cern.spark.json.JSONParser;
+import ch.cern.exdemon.json.JSONParser;
 import ch.cern.utils.Pair;
 import ch.cern.utils.TimeUtils;
 import scala.Tuple2;

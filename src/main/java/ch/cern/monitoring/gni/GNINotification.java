@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import ch.cern.exdemon.monitor.trigger.action.Action;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.trigger.action.Action;
 import lombok.Getter;
 import lombok.ToString;
 

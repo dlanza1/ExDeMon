@@ -18,9 +18,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import ch.cern.exdemon.metrics.Metric;
+import ch.cern.exdemon.monitor.MonitorStatusKey;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.monitors.MonitorStatusKey;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusOperation;
 import ch.cern.spark.status.StatusValue;

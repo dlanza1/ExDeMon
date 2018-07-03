@@ -8,9 +8,9 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
-import ch.cern.spark.metrics.monitors.MonitorStatusKey;
-import ch.cern.spark.metrics.trigger.TriggerStatusKey;
+import ch.cern.exdemon.metrics.defined.DefinedMetricStatuskey;
+import ch.cern.exdemon.monitor.MonitorStatusKey;
+import ch.cern.exdemon.monitor.trigger.TriggerStatusKey;
 import ch.cern.spark.status.TestStatus;
 import scala.Tuple2;
 

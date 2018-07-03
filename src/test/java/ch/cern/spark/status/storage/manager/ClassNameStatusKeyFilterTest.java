@@ -7,9 +7,9 @@ import java.util.HashMap;
 
 import org.junit.Test;
 
-import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
-import ch.cern.spark.metrics.monitors.MonitorStatusKey;
-import ch.cern.spark.metrics.trigger.TriggerStatusKey;
+import ch.cern.exdemon.metrics.defined.DefinedMetricStatuskey;
+import ch.cern.exdemon.monitor.MonitorStatusKey;
+import ch.cern.exdemon.monitor.trigger.TriggerStatusKey;
 import ch.cern.spark.status.TestStatus;
 import scala.Tuple2;
 
@@ -17,7 +17,7 @@ public class ClassNameStatusKeyFilterTest {
 
     @Test
     public void filterByClassName() throws Exception {
-        ClassNameStatusKeyFilter filter = new ClassNameStatusKeyFilter("ch.cern.spark.metrics.defined.DefinedMetricStatuskey");
+        ClassNameStatusKeyFilter filter = new ClassNameStatusKeyFilter(DefinedMetricStatuskey.class.getName());
         
         assertTrue(filter.call(new Tuple2<>(new DefinedMetricStatuskey("dm1", new HashMap<>()), new TestStatus(1))));
         assertTrue(filter.call(new Tuple2<>(new DefinedMetricStatuskey("dm2", new HashMap<>()), new TestStatus(1))));

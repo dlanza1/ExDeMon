@@ -14,7 +14,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Time;
 
-import ch.cern.components.RegisterComponentType;
+import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusKey;

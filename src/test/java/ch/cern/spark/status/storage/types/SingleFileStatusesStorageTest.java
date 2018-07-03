@@ -18,11 +18,11 @@ import org.apache.spark.streaming.Time;
 import org.junit.Before;
 import org.junit.Test;
 
+import ch.cern.exdemon.metrics.defined.DefinedMetricStatuskey;
+import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
+import ch.cern.exdemon.monitor.MonitorStatusKey;
 import ch.cern.properties.Properties;
 import ch.cern.spark.SparkConf;
-import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
-import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
-import ch.cern.spark.metrics.monitors.MonitorStatusKey;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.TestStatus;

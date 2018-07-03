@@ -30,12 +30,12 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
-import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentTypes;
+import ch.cern.exdemon.Driver;
+import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentTypes;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.SparkConf;
-import ch.cern.spark.metrics.Driver;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.JSONStatusSerializer;

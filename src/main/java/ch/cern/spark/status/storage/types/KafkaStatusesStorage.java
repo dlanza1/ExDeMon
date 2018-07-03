@@ -35,7 +35,7 @@ import org.apache.spark.streaming.Time;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 
-import ch.cern.components.RegisterComponentType;
+import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusKey;

@@ -8,9 +8,9 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Time;
 
-import ch.cern.components.Component;
-import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentType;
+import ch.cern.exdemon.components.Component;
+import ch.cern.exdemon.components.ComponentType;
+import ch.cern.exdemon.components.Component.Type;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;

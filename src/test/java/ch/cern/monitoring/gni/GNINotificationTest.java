@@ -15,10 +15,10 @@ import org.junit.Test;
 
 import com.google.gson.JsonParser;
 
+import ch.cern.exdemon.monitor.trigger.action.Action;
+import ch.cern.exdemon.monitor.trigger.action.ActionTest;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.trigger.action.Action;
-import ch.cern.spark.metrics.trigger.action.ActionTest;
 
 public class GNINotificationTest {
 	

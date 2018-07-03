@@ -40,15 +40,15 @@ $SPARK_CMD \
 		--driver-memory 4G \
 		--executor-memory 2G \
 		--executor-cores 1 \
-		--class ch.cern.spark.metrics.Driver \
+		--class ch.cern.exdemon.Driver \
 		--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:$SPARK_VERSION,org.reflections:reflections:0.9.9,org.apache.curator:curator-recipes:2.7.1,com.sun.mail:javax.mail:1.6.1 \
 		--jars $JARS \
 		--files "$HOME/conf/exdemon.properties,$HOME/conf/log4j.properties" \
 		--conf spark.yarn.submit.waitAppCompletion=false \
 		--conf spark.driver.extraJavaOptions='-Dlog4j.configuration=log4j.properties -Djava.security.krb5.conf=/etc/krb5.conf' \
-	    	--conf spark.driver.extraClassPath="$HTTP_LOG4J_JAR_NAME" \
-    		--conf spark.executor.extraJavaOptions='-Dlog4j.configuration=log4j.properties -Djava.security.krb5.conf=/etc/krb5.conf -XX:+UseG1GC' \
-    		--conf spark.executor.extraClassPath="$HTTP_LOG4J_JAR_NAME" \
+	    --conf spark.driver.extraClassPath="$HTTP_LOG4J_JAR_NAME" \
+    	--conf spark.executor.extraJavaOptions='-Dlog4j.configuration=log4j.properties -Djava.security.krb5.conf=/etc/krb5.conf -XX:+UseG1GC' \
+    	--conf spark.executor.extraClassPath="$HTTP_LOG4J_JAR_NAME" \
 		$SPARK_EXTRA_ARGS \
 		$HOME/lib/exdemon-*.jar \
 		classpath:/exdemon.properties

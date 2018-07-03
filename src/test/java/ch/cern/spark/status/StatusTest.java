@@ -1,6 +1,6 @@
 package ch.cern.spark.status;
 
-import static ch.cern.spark.metrics.MetricTest.Metric;
+import static ch.cern.exdemon.metrics.MetricTest.Metric;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -22,14 +22,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentsCatalog;
+import ch.cern.exdemon.components.ComponentsCatalog;
+import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.metrics.Metric;
+import ch.cern.exdemon.metrics.defined.DefinedMetricStatuskey;
+import ch.cern.exdemon.metrics.defined.DefinedMetrics;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Batches;
 import ch.cern.spark.StreamTestHelper;
-import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
-import ch.cern.spark.metrics.defined.DefinedMetrics;
 import ch.cern.spark.status.StatusOperation.Op;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
 import ch.cern.spark.status.storage.manager.ToStringPatternStatusKeyFilter;

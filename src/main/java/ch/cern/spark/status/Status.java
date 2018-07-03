@@ -12,8 +12,8 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaMapWithStateDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
-import ch.cern.components.Component.Type;
-import ch.cern.components.ComponentTypes;
+import ch.cern.exdemon.components.ComponentTypes;
+import ch.cern.exdemon.components.Component.Type;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusOperation.Op;

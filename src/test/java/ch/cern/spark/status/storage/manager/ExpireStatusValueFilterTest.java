@@ -11,7 +11,7 @@ import org.apache.spark.streaming.StateImpl;
 import org.apache.spark.streaming.Time;
 import org.junit.Test;
 
-import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
+import ch.cern.exdemon.metrics.defined.DefinedMetricStatuskey;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.TestStatus;
 import scala.Tuple2;

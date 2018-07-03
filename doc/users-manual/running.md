@@ -17,8 +17,8 @@ You will find the project JAR at target/metrics-monitor-VERSION.jar
 This project is based in [Apache Spark](https://spark.apache.org/), so you need the binaries.
 You may have it installed or it can be downloaded from https://spark.apache.org/downloads.html.
 
-The project is developed based on the version 2.11 of Spark, so we recommend to use this version.
-You can download it from [here](https://archive.apache.org/dist/spark/spark-2.1.1/spark-2.1.1-bin-hadoop2.7.tgz).
+The project is developed based on the version 2.3.0 of Spark, so we recommend to use this version.
+You can download it from [here](https://archive.apache.org/dist/spark/spark-2.3.0/spark-2.3.0-bin-hadoop2.7.tgz).
 
 ## Running
 
@@ -30,7 +30,7 @@ To run this applications you can use the following command:
 $SPARK_HOME/bin/spark-submit \
 			--repositories https://repository.cloudera.com/artifactory/cloudera-repos/ \
 			--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.1.0,org.reflections:reflections:0.9.9 \
-			--class ch.cern.spark.metrics.Driver \
+			--class ch.cern.exdemon.Driver \
 			target/metrics-monitor-VERSION.jar \
 			<path_to_conf_file>
 ```

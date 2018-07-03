@@ -11,17 +11,17 @@ import org.apache.spark.streaming.StateImpl;
 import org.apache.spark.streaming.Time;
 import org.junit.Test;
 
+import ch.cern.exdemon.metrics.ValueHistory;
+import ch.cern.exdemon.metrics.ValueHistory.Status;
+import ch.cern.exdemon.metrics.defined.equation.var.agg.AggregationValues;
+import ch.cern.exdemon.metrics.defined.equation.var.agg.CountAgregation;
+import ch.cern.exdemon.metrics.value.AggregatedValue;
+import ch.cern.exdemon.metrics.value.BooleanValue;
+import ch.cern.exdemon.metrics.value.ExceptionValue;
+import ch.cern.exdemon.metrics.value.FloatValue;
+import ch.cern.exdemon.metrics.value.PropertiesValue;
+import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.properties.Properties;
-import ch.cern.spark.metrics.ValueHistory;
-import ch.cern.spark.metrics.ValueHistory.Status;
-import ch.cern.spark.metrics.defined.equation.var.agg.AggregationValues;
-import ch.cern.spark.metrics.defined.equation.var.agg.CountAgregation;
-import ch.cern.spark.metrics.value.AggregatedValue;
-import ch.cern.spark.metrics.value.BooleanValue;
-import ch.cern.spark.metrics.value.ExceptionValue;
-import ch.cern.spark.metrics.value.FloatValue;
-import ch.cern.spark.metrics.value.PropertiesValue;
-import ch.cern.spark.metrics.value.StringValue;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
 
