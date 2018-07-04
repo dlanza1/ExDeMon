@@ -60,7 +60,7 @@ public class ZookeeperComponentsSourceTest {
         client.create().creatingParentsIfNeeded()
             .forPath("/exdemon/id=id_test/type=monitor/config", json.getBytes());
         
-        Thread.sleep(100);
+        Thread.sleep(500);
         
         Optional<Component> componentOpt = ComponentsCatalog.get(Type.MONITOR, "id_test");
         
@@ -79,7 +79,7 @@ public class ZookeeperComponentsSourceTest {
         String json = "{ \"filter.attribute.dummy\": \"dummy\"}";
         int propertiesHash = Properties.fromJson(json).hashCode();
         client.create().creatingParentsIfNeeded().forPath("/exdemon/id=id_test/type=monitor/config", json.getBytes());
-        Thread.sleep(100);
+        Thread.sleep(500);
         Optional<Component> componentOpt = ComponentsCatalog.get(Type.MONITOR, "id_test");
         assertTrue(componentOpt.isPresent());
         assertEquals(propertiesHash, componentOpt.get().getPropertiesHash());
@@ -88,7 +88,7 @@ public class ZookeeperComponentsSourceTest {
         String updatingJson = "{ \"filter.attribute.dummy2\": \"dummy2\"}";
         int updatingPropertiesHash = Properties.fromJson(updatingJson).hashCode();
         client.setData().forPath("/exdemon/id=id_test/type=monitor/config", updatingJson.getBytes());
-        Thread.sleep(100);
+        Thread.sleep(500);
         Optional<Component> componentUpdatedOpt = ComponentsCatalog.get(Type.MONITOR, "id_test");
         assertTrue(componentUpdatedOpt.isPresent());
         assertEquals(updatingPropertiesHash, componentUpdatedOpt.get().getPropertiesHash());
@@ -109,13 +109,13 @@ public class ZookeeperComponentsSourceTest {
         //Create
         String json = "{ \"filter.attribute.dummy\": \"dummy\"}";
         client.create().creatingParentsIfNeeded().forPath("/exdemon/id=id_test/type=monitor/config", json.getBytes());
-        Thread.sleep(100);
+        Thread.sleep(500);
         Optional<Component> componentOpt = ComponentsCatalog.get(Type.MONITOR, "id_test");
         assertTrue(componentOpt.isPresent());
         
         //Remove
         client.delete().forPath("/exdemon/id=id_test/type=monitor/config");
-        Thread.sleep(100);
+        Thread.sleep(500);
         
         assertFalse(ComponentsCatalog.get(Type.MONITOR, "id_test").isPresent());
     }
