@@ -4,42 +4,25 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import java.io.IOException;
 import java.util.Optional;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.curator.test.TestingServer;
-import org.junit.After;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.junit.Before;
 import org.junit.Test;
 
 import ch.cern.exdemon.components.Component;
-import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.components.Component.Type;
-import ch.cern.exdemon.components.source.types.ZookeeperComponentsSource;
+import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.properties.Properties;
 
 public class ZookeeperComponentsSourceTest {
 
-    private TestingServer zkTestServer;
-    private CuratorFramework client;
-    
     @Before
     public void startZookeeper() throws Exception {
-        zkTestServer = new TestingServer(2182);
-        
-        client = CuratorFrameworkFactory.builder()
-                .connectString(zkTestServer.getConnectString())
-                .retryPolicy(new ExponentialBackoffRetry(1000, 3))
-                .sessionTimeoutMs(20000)
-                .build();
-        client.start();
-        
-        client.create().creatingParentsIfNeeded().forPath("/exdemon");
-        
         ComponentsCatalog.resetSource();
         Properties sourceProperties = new Properties();
         sourceProperties.setProperty("type", "test");
@@ -53,14 +36,10 @@ public class ZookeeperComponentsSourceTest {
         Properties sourceProperties = new Properties();
         sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
         source.config(sourceProperties);
-        source.initialize();
         
+        String path = "/exdemon/id=id_test/type=monitor/config";
         String json = "{ \"filter.attribute.dummy\": \"dummy\"}";
-        
-        client.create().creatingParentsIfNeeded()
-            .forPath("/exdemon/id=id_test/type=monitor/config", json.getBytes());
-        
-        Thread.sleep(500);
+        source.applyEvent(null, zookeeperEvent(TreeCacheEvent.Type.NODE_ADDED, path, json));
         
         Optional<Component> componentOpt = ComponentsCatalog.get(Type.MONITOR, "id_test");
         
@@ -73,13 +52,13 @@ public class ZookeeperComponentsSourceTest {
         Properties sourceProperties = new Properties();
         sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
         source.config(sourceProperties);
-        source.initialize();
+        
+        String path = "/exdemon/id=id_test/type=monitor/config";
         
         //Create
         String json = "{ \"filter.attribute.dummy\": \"dummy\"}";
         int propertiesHash = Properties.fromJson(json).hashCode();
-        client.create().creatingParentsIfNeeded().forPath("/exdemon/id=id_test/type=monitor/config", json.getBytes());
-        Thread.sleep(500);
+        source.applyEvent(null, zookeeperEvent(TreeCacheEvent.Type.NODE_ADDED, path, json));
         Optional<Component> componentOpt = ComponentsCatalog.get(Type.MONITOR, "id_test");
         assertTrue(componentOpt.isPresent());
         assertEquals(propertiesHash, componentOpt.get().getPropertiesHash());
@@ -87,8 +66,7 @@ public class ZookeeperComponentsSourceTest {
         //Update
         String updatingJson = "{ \"filter.attribute.dummy2\": \"dummy2\"}";
         int updatingPropertiesHash = Properties.fromJson(updatingJson).hashCode();
-        client.setData().forPath("/exdemon/id=id_test/type=monitor/config", updatingJson.getBytes());
-        Thread.sleep(500);
+        source.applyEvent(null, zookeeperEvent(TreeCacheEvent.Type.NODE_UPDATED, path, updatingJson));
         Optional<Component> componentUpdatedOpt = ComponentsCatalog.get(Type.MONITOR, "id_test");
         assertTrue(componentUpdatedOpt.isPresent());
         assertEquals(updatingPropertiesHash, componentUpdatedOpt.get().getPropertiesHash());
@@ -104,27 +82,34 @@ public class ZookeeperComponentsSourceTest {
         Properties sourceProperties = new Properties();
         sourceProperties.setProperty("connection_string", "localhost:2182/exdemon");
         source.config(sourceProperties);
-        source.initialize();
+        
+        String path = "/exdemon/id=id_test/type=monitor/config";
         
         //Create
         String json = "{ \"filter.attribute.dummy\": \"dummy\"}";
-        client.create().creatingParentsIfNeeded().forPath("/exdemon/id=id_test/type=monitor/config", json.getBytes());
-        Thread.sleep(500);
+        source.applyEvent(null, zookeeperEvent(TreeCacheEvent.Type.NODE_ADDED, path, json));
         Optional<Component> componentOpt = ComponentsCatalog.get(Type.MONITOR, "id_test");
         assertTrue(componentOpt.isPresent());
         
         //Remove
-        client.delete().forPath("/exdemon/id=id_test/type=monitor/config");
-        Thread.sleep(500);
+        source.applyEvent(null, zookeeperEvent(TreeCacheEvent.Type.NODE_REMOVED, path, null));
         
         assertFalse(ComponentsCatalog.get(Type.MONITOR, "id_test").isPresent());
     }
     
-    @After
-    public void shutDown() throws IOException, InterruptedException {
-        if(zkTestServer != null)
-            zkTestServer.close();
-        client.close();
+    private TreeCacheEvent zookeeperEvent(TreeCacheEvent.Type eventType, String path, String value) {
+        TreeCacheEvent eventMocked = mock(TreeCacheEvent.class);
+        when(eventMocked.getType()).thenReturn(eventType);
+        
+        ChildData childData = mock(ChildData.class);
+        when(childData.getPath()).thenReturn(path);
+        
+        if(value != null)
+            when(childData.getData()).thenReturn(value.getBytes());
+        
+        when(eventMocked.getData()).thenReturn(childData);
+        
+        return eventMocked;
     }
     
 }

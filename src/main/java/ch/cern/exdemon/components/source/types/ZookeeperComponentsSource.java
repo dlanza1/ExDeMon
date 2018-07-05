@@ -17,6 +17,8 @@ import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.components.source.ComponentsSource;
 import ch.cern.properties.ConfigurationException;
@@ -124,6 +126,57 @@ public class ZookeeperComponentsSource extends ComponentsSource {
             initialiceCache();
         }
     }
+    
+    @VisibleForTesting
+    protected final void applyEvent(Semaphore sem, TreeCacheEvent event) {
+        switch (event.getType()) {
+        case INITIALIZED:
+            LOG.info("TreeCache initialized");
+            sem.release();
+            break;
+        case CONNECTION_LOST:
+            LOG.error("Conection lost");
+            break;
+        case CONNECTION_RECONNECTED:
+            LOG.warn("Conection reconnected");
+            break;
+        case CONNECTION_SUSPENDED:
+            LOG.error("Conection suspended");
+            break;
+        case NODE_ADDED:
+            byte[] data = event.getData().getData();
+            
+            if(data != null && data.length > 0) {
+                String path = event.getData().getPath();
+                if(!path.endsWith(confNodeName))
+                    return;
+                
+                String value = new String(event.getData().getData());
+                insertComponent(path, value);
+                
+                LOG.debug("Node with data added to the tree: " + path + "=" + value);
+            }
+            break;
+        case NODE_REMOVED:
+            removeComponent(event.getData().getPath());
+            LOG.info("Node removed from the tree: " + event.getData().getPath());
+            break;
+        case NODE_UPDATED:
+            if(event.getData().getData() != null) {
+                String path = event.getData().getPath();
+                if(!path.endsWith(confNodeName))
+                    return;
+                
+                String value = new String(event.getData().getData());
+                insertComponent(path, value);
+                
+                LOG.debug("Node with data updated in the tree: " + path + "=" + value);
+            }
+            break;
+        default:
+            break;
+        }
+    }
 
     private void initialiceCache() throws Exception {
         Semaphore sem = new Semaphore(0);
@@ -135,60 +188,10 @@ public class ZookeeperComponentsSource extends ComponentsSource {
             @Override
             public void childEvent(CuratorFramework curatorFramework, TreeCacheEvent event) throws Exception {
                 try {
-                    tryApply(event);
+                    applyEvent(sem, event);
                 }catch(Exception e) {
                     LOG.error("Error when applying tree event", e);
                     close();
-                }
-            }
-
-            private void tryApply(TreeCacheEvent event) {
-                switch (event.getType()) {
-                case INITIALIZED:
-                    LOG.info("TreeCache initialized");
-                    sem.release();
-                    break;
-                case CONNECTION_LOST:
-                    LOG.error("Conection lost");
-                    break;
-                case CONNECTION_RECONNECTED:
-                    LOG.warn("Conection reconnected");
-                    break;
-                case CONNECTION_SUSPENDED:
-                    LOG.error("Conection suspended");
-                    break;
-                case NODE_ADDED:
-                    byte[] data = event.getData().getData();
-                    
-                    if(data != null && data.length > 0) {
-                        String path = event.getData().getPath();
-                        if(!path.endsWith(confNodeName))
-                            return;
-                        
-                        String value = new String(event.getData().getData());
-                        insertComponent(path, value);
-                        
-                        LOG.debug("Node with data added to the tree: " + path + "=" + value);
-                    }
-                    break;
-                case NODE_REMOVED:
-                    removeComponent(event.getData().getPath());
-                    LOG.info("Node removed from the tree: " + event.getData().getPath());
-                    break;
-                case NODE_UPDATED:
-                    if(event.getData().getData() != null) {
-                        String path = event.getData().getPath();
-                        if(!path.endsWith(confNodeName))
-                            return;
-                        
-                        String value = new String(event.getData().getData());
-                        insertComponent(path, value);
-                        
-                        LOG.debug("Node with data updated in the tree: " + path + "=" + value);
-                    }
-                    break;
-                default:
-                    break;
                 }
             }
         };
