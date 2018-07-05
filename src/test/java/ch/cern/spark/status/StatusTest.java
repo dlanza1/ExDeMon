@@ -22,10 +22,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.DefinedMetricStatuskey;
+import ch.cern.exdemon.metrics.defined.DefinedMetricTest;
 import ch.cern.exdemon.metrics.defined.DefinedMetrics;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Batches;
@@ -85,8 +86,7 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
         filters.add(new ToStringPatternStatusKeyFilter(".*host4321.*"));
 		opBatches.add(0, new StatusOperation<DefinedMetricStatuskey, Metric>("1122", filters));
 		
-		Properties properties = new Properties();
-		properties.setProperty("spark.batch.time", "1m");
+		Properties properties = DefinedMetricTest.newProperties();
         properties.setProperty("variables.a.aggregate.type", "sum");
         properties.setProperty("variables.a.aggregate.attributes", "ALL");
         properties.setProperty("metrics.groupby", "HOSTNAME");
@@ -122,8 +122,7 @@ public class StatusTest extends StreamTestHelper<Metric, Metric> {
         client.create().creatingParentsIfNeeded().forPath("/id=1122/keys", serializer.fromKey(key));
         client.create().creatingParentsIfNeeded().forPath("/id=1122/status", "RECEIVED".getBytes());
         
-        Properties properties = new Properties();
-        properties.setProperty("spark.batch.time", "1m");
+        Properties properties = DefinedMetricTest.newProperties();
         properties.setProperty("variables.a.aggregate.type", "sum");
         properties.setProperty("variables.a.aggregate.attributes", "ALL");
         properties.setProperty("metrics.groupby", "HOSTNAME");
