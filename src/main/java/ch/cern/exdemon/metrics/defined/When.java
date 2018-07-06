@@ -39,10 +39,8 @@ public class When {
         When when = new When();
         when.batchDuration = batchDuration;
         
-        //TODO DEPRECATED
         if(config.toUpperCase().equals("BATCH"))
-            return from(batchDuration, "1m");
-        //TODO DEPRECATED
+            return from(batchDuration, String.valueOf(batchDuration.getSeconds()));
             
         if(config.toUpperCase().equals("ANY")) {
             when.variables = variables.values();
@@ -72,7 +70,32 @@ public class When {
     }
 
     public boolean isTriggerAt(Instant batchTime) {
-        return period != null;
+        if(period == null)
+            return false;
+        
+        Instant lastTriggerTime = getLastTriggerTime(batchTime);    
+        if(isInBatch(batchTime, lastTriggerTime))
+            return true;
+        
+        Instant nextTriggerTime = lastTriggerTime.plus(period);
+        if(isInBatch(batchTime, nextTriggerTime))
+            return true;
+        
+        return false;
+    }
+
+    private Instant getLastTriggerTime(Instant batchTime) {
+        long offset = batchTime.getEpochSecond() % period.getSeconds();
+        
+        Instant lastTriggerTime = Instant.ofEpochSecond(batchTime.getEpochSecond() - offset);
+        
+        return lastTriggerTime;
+    }
+
+    private boolean isInBatch(Instant batchTime, Instant time) {
+        Instant nextBatchTime = batchTime.plus(batchDuration);
+        
+        return batchTime.equals(time) || (time.isAfter(batchTime) && time.isBefore(nextBatchTime));
     }
 
     public boolean isTriggerBy(Metric metric) {

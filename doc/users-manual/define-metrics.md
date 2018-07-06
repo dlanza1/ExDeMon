@@ -13,7 +13,7 @@ Configuration:
 
 ```
 metrics.define.<defined-metric-id>.value = <equation containing <variable-ids>> (default: <variable-id> if only one variable has been declared)
-metrics.define.<defined-metric-id>.when = <ANY|BATCH|space separated list of metric variable-ids> (default: ANY)
+metrics.define.<defined-metric-id>.when = <ANY|space separated list of metric variable-ids|BATCH|period like 1m, 10h or 3d> (default: ANY)
 metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/space separated attribute names> (default: not set)
 # General filter for all metrics that update the variables (optional)
 metrics.define.<defined-metric-id>.metrics.filter.expr = <predicate with () | & = !=>
@@ -106,7 +106,7 @@ You can make variables to never expire configuring "expire" parameter to "never"
 If a variable expires and the variable is used for the computation, no metrics will be produced. For aggregations, individual values are removed from the aggregation if they are not updated after such period. 
 In the case all the values for a given aggregated variable expire, count is 0.
 You can also ignore recent metrics by specifying an "ignore" period . Metrics will be taken into account once they pass the ignore period.
-Ignore and expire can be truncate by minute (m), hour (h) or day (d), so that a variable could take, for example, only data of the previuos minute:
+Ignore and expire can be truncate by minute (m), hour (h) or day (d), so that a variable could take, for example, only data of the previous minute:
 
 ```
 # Variable only take into account metrics of the previous minute
@@ -146,7 +146,7 @@ For example, if the granularity is configured to hour, the maximum number of met
 
 ## When they are generated 
 
-The computation and further generation of a new metric will be trigger when the variables listed in the "when" parameter are updated. You can set "when" to ANY, it will trigger the generation when any of the variables is updated (default). You can also set "when" to BATCH, so the generation will be triggered not by any variable updated but in every Spark Streaming batch.
+The computation and further generation of a new metric will be trigger when the variables listed in the "when" parameter are updated. You can set "when" to ANY, it will trigger the generation when any of the variables is updated (default). You can also set "when" to BATCH or a period like 1h, 3d or 10m, so the generation will be triggered not by any variable updated but in every Spark Streaming batch or period specified.
 
 > TIP for a defined metric which aggregates with count to return 0. 
 > ``` 
@@ -162,10 +162,10 @@ The computation and further generation of a new metric will be trigger when the 
 > metrics.define.machines-running.when = trigger
 > metrics.define.machines-running.variables.trigger.filter.attribute.TYPE = "other"
 > ``` 
-> 2. "when" parameter is set to BATCH, so every Spark Streaming batch the computation and generation is triggered.
+> 2. "when" parameter is set to a period, so that every 5 minutes the computation is triggered.
 > ``` 
 > # to add
-> metrics.define.machines-running.when = BATCH
+> metrics.define.machines-running.when = 5m
 > ```
 
 ## Grouping by metric attributes
