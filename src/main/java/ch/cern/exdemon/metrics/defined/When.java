@@ -52,9 +52,13 @@ public class When {
         
         try {
             when.period = TimeUtils.parsePeriod(config);
+        }catch(Exception e) {}
+        if(when.period != null) {
+            if(batchDuration == null)
+                throw new ConfigurationException("batchDuration cannot be null if period is specified");
             
             return when;
-        }catch(Exception e) {}
+        }
         
         Set<String> variableIDs = Arrays.stream(config.split(" ")).map(String::trim).collect(Collectors.toSet());
         when.variables = variables.values().stream()
