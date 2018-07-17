@@ -23,7 +23,9 @@ import com.google.gson.JsonSerializer;
 
 import ch.cern.exdemon.metrics.defined.equation.var.agg.Aggregation;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.CountAgregation;
+import ch.cern.exdemon.metrics.defined.equation.var.agg.CountFloatsAgregation;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.LastValueAggregation;
+import ch.cern.exdemon.metrics.defined.equation.var.agg.SuccessiveCountAgregation;
 import ch.cern.exdemon.metrics.value.AggregatedValue;
 import ch.cern.exdemon.metrics.value.BooleanValue;
 import ch.cern.exdemon.metrics.value.ExceptionValue;
@@ -137,6 +139,8 @@ public class JSONStatusSerializer implements StatusSerializer {
         {
             classNameChanged.put("ch.cern.spark.metrics.defined.equation.var.agg.LastValueAggregation", LastValueAggregation.class);
             classNameChanged.put("ch.cern.spark.metrics.defined.equation.var.agg.CountAgregation", CountAgregation.class);
+            classNameChanged.put("ch.cern.spark.metrics.defined.equation.var.agg.SuccessiveCountAgregation", SuccessiveCountAgregation.class);
+            classNameChanged.put("ch.cern.spark.metrics.defined.equation.var.agg.CountFloatsAgregation", CountFloatsAgregation.class);
         }
         
         private static Set<String> deprecatedAliases = new HashSet<>();
