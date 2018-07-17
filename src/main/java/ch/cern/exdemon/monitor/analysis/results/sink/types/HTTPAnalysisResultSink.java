@@ -21,6 +21,7 @@ public class HTTPAnalysisResultSink extends AnalysisResultsSink {
 		super.config(properties);
 		
 		properties.setPropertyIfAbsent(HTTPSink.PARALLELIZATION_PARAM, "5");
+		properties.setPropertyIfAbsent(HTTPSink.RETRIES_PARAM, "5");
 		sink.config(properties);
 	}
 	
