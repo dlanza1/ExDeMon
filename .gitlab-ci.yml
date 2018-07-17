@@ -7,7 +7,7 @@ stages:
   - deploy_stable
   
 variables:
-  DOCKER_IMAGE: docker-0.2.1
+  DOCKER_IMAGE: docker-0.2.0
   
 before_script:
   - if [[ "$CI_COMMIT_TAG" == rpm-* ]] ; then export RPM_VERSION=${CI_COMMIT_TAG#rpm-}; else export RPM_VERSION=test${CI_PIPELINE_ID}git${CI_COMMIT_SHA:0:8}; fi
