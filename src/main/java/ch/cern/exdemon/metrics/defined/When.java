@@ -22,6 +22,7 @@ public class When {
 
     private Duration batchDuration;
     private Duration period;
+    private Duration delay;
 
     @Getter
     private Collection<Variable> variables;
@@ -49,7 +50,18 @@ public class When {
         }
         
         try {
-            when.period = TimeUtils.parsePeriod(config);
+            int splitterIndex = Math.max(config.indexOf("+"), config.indexOf("-"));
+            
+            if(splitterIndex < 1) {
+                when.period = TimeUtils.parsePeriod(config);
+                when.delay = Duration.ZERO;
+            }else {
+                String periodConfig = config.substring(0, splitterIndex);
+                when.period = TimeUtils.parsePeriod(periodConfig);
+                
+                String delayConfig = config.substring(splitterIndex);
+                when.delay = TimeUtils.parsePeriod(delayConfig);
+            }
         }catch(Exception e) {}
         if(when.period != null) {
             if(batchDuration == null)
@@ -89,6 +101,8 @@ public class When {
     }
 
     private boolean isInBatch(Instant batchTime, Instant time) {
+        batchTime = batchTime.minus(delay);
+        
         Instant nextBatchTime = batchTime.plus(batchDuration);
         
         return batchTime.equals(time) || (time.isAfter(batchTime) && time.isBefore(nextBatchTime));

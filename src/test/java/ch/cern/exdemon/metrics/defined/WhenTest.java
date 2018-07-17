@@ -96,6 +96,23 @@ public class WhenTest {
     }
     
     @Test
+    public void periodAndPositiveDelay() throws ConfigurationException {
+        When when = When.from(Duration.ofMinutes(1), "10m+3m");
+
+        Instant time = Instant.parse("2007-12-03T10:00:00.00Z");
+        
+        assertFalse(when.isTriggerAt(time));
+        
+        assertFalse(when.isTriggerAt(time.plus(Duration.ofMinutes(2))));
+        assertTrue( when.isTriggerAt(time.plus(Duration.ofMinutes(3))));
+        assertFalse(when.isTriggerAt(time.plus(Duration.ofMinutes(4))));
+        
+        assertFalse(when.isTriggerAt(time.plus(Duration.ofMinutes(12))));
+        assertTrue( when.isTriggerAt(time.plus(Duration.ofMinutes(13))));
+        assertFalse(when.isTriggerAt(time.plus(Duration.ofMinutes(14))));
+    }
+    
+    @Test
     public void notTriggerByTimeIfVariable() throws ConfigurationException {
         Map<String, Variable> variables = new HashMap<>();
         variables.put("var", mock(Variable.class));
