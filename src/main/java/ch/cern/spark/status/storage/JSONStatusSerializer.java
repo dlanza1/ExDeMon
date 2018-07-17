@@ -22,6 +22,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 import ch.cern.exdemon.metrics.defined.equation.var.agg.Aggregation;
+import ch.cern.exdemon.metrics.defined.equation.var.agg.LastValueAggregation;
 import ch.cern.exdemon.metrics.value.AggregatedValue;
 import ch.cern.exdemon.metrics.value.BooleanValue;
 import ch.cern.exdemon.metrics.value.ExceptionValue;
@@ -131,6 +132,11 @@ public class JSONStatusSerializer implements StatusSerializer {
             nameChangedAliases.put("percentage-trigger", PercentageTrigger.Status_.class);
         }
         
+        private static Map<String, Class<?>> classNameChanged = new HashMap<>();
+        {
+            classNameChanged.put("ch.cern.spark.metrics.defined.equation.var.agg.LastValueAggregation", LastValueAggregation.class);
+        }
+        
         private static Set<String> deprecatedAliases = new HashSet<>();
         {
             deprecatedAliases.add("statuses-notificator");
@@ -163,13 +169,17 @@ public class JSONStatusSerializer implements StatusSerializer {
             if (klass == null) {
                 JsonElement FQCNelement = jsonObject.get(KEY_TYPE);
                 if (FQCNelement == null || !FQCNelement.isJsonPrimitive() || !((JsonPrimitive) FQCNelement).isString())
-                    throw new JsonParseException(
-                            KEY_TYPE + " or " + KEY_ALIAS_TYPE + " is not contained in the document as string.");
+                    throw new JsonParseException(KEY_TYPE + " or " + KEY_ALIAS_TYPE + " is not contained in the document as string.");
 
+                String fqcn = FQCNelement.getAsString();
+                
                 try {
-                    klass = (Class<?>) Class.forName(FQCNelement.getAsString());
+                    klass = (Class<?>) Class.forName(fqcn);
                 } catch (ClassNotFoundException e) {
-                    throw new JsonParseException(e);
+                    if(classNameChanged.containsKey(fqcn))
+                        klass = classNameChanged.get(fqcn);
+                    else
+                        throw new JsonParseException("No class for " + fqcn, e);
                 }
                 jsonObject.remove(KEY_TYPE);
             }
