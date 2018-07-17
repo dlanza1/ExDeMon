@@ -112,7 +112,7 @@ public class ZookeeperComponentsSource extends ComponentsSource {
     }
 
     @Override
-    public void initialize() throws Exception {
+    public synchronized void initialize() throws Exception {
         if(client == null){
             client = CuratorFrameworkFactory.builder()
                                                 .connectString(zkConnString)
