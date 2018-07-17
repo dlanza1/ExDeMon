@@ -10,8 +10,10 @@ import org.apache.log4j.Logger;
 import org.apache.spark.streaming.State;
 
 import ch.cern.exdemon.components.Component;
+import ch.cern.exdemon.components.ComponentType;
 import ch.cern.exdemon.components.ComponentTypes;
 import ch.cern.exdemon.components.RegisterComponentType;
+import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
 import ch.cern.exdemon.monitor.analysis.Analysis;
@@ -28,6 +30,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 @ToString
+@ComponentType(Type.MONITOR)
 public class Monitor extends Component{
     
     private static final long serialVersionUID = 508898995309159431L;

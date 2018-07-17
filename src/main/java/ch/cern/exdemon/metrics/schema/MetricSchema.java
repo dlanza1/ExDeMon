@@ -19,6 +19,8 @@ import org.apache.log4j.Logger;
 import com.google.gson.JsonElement;
 
 import ch.cern.exdemon.components.Component;
+import ch.cern.exdemon.components.ComponentType;
+import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.json.JSON;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
@@ -31,6 +33,7 @@ import ch.cern.utils.Pair;
 import lombok.ToString;
 
 @ToString
+@ComponentType(Type.SCHEMA)
 public final class MetricSchema extends Component {
 
     private static final long serialVersionUID = -8885058791228553794L;

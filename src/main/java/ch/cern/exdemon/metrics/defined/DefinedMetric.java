@@ -14,6 +14,8 @@ import org.apache.log4j.Logger;
 
 import ch.cern.exdemon.Driver;
 import ch.cern.exdemon.components.Component;
+import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentType;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.Equation;
 import ch.cern.exdemon.metrics.defined.equation.var.MetricVariable;
@@ -29,6 +31,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 @ToString
+@ComponentType(Type.METRIC)
 public final class DefinedMetric extends Component {
 
 	private static final long serialVersionUID = 82179461944060520L;

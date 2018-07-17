@@ -18,7 +18,10 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+import ch.cern.exdemon.components.ComponentRegistrationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.components.source.ComponentsSource;
 import ch.cern.properties.ConfigurationException;
@@ -46,6 +49,11 @@ public class ZookeeperComponentsSource extends ComponentsSource {
 
     private static final String CONF_NODE_NAME_DEFAULT = "config";
     private String confNodeName;
+    
+    private static final String CONF_RESULT_NODE_NAME = "config.result";
+    private static final String STATS_NODE_NAME = "stats";
+    
+    private static final Gson jsonParser = new GsonBuilder().setPrettyPrinting().create();
     
     public ZookeeperComponentsSource() {
         super();
@@ -81,6 +89,8 @@ public class ZookeeperComponentsSource extends ComponentsSource {
             LOG.warn("Not a valid JSON at path " + path + ". Value: " + value);
         
         register(Type.valueOf(type.toUpperCase()), id, componentProps);
+        
+        clean(path);
     }
 
     private void removeComponent(String path) {
@@ -98,6 +108,22 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         }
         
         remove(Type.valueOf(type.toUpperCase()), id);
+        
+        clean(path);
+    }
+    
+    private void clean(String path) {
+        String rootPath = path.replace("/" + confNodeName, "/");
+        
+        try {
+            if(client.checkExists().forPath(rootPath + CONF_RESULT_NODE_NAME) != null)
+                client.delete().forPath(rootPath + CONF_RESULT_NODE_NAME);
+            
+            if(client.checkExists().forPath(rootPath + STATS_NODE_NAME) != null)
+                client.delete().forPath(rootPath + STATS_NODE_NAME);
+        } catch (Exception e) {
+            LOG.error("Error when cleaning component node", e);
+        }
     }
 
     private String extractProperty(Pattern pattern, String string) {
@@ -213,6 +239,25 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         
         if(currentChildren == null)
             throw new IOException("Initialization timed-out, connection string is wrong or nodes/port are not reachable?");
+    }
+    
+    @Override
+    protected void pushComponentRegistrationResult(ComponentRegistrationResult componentRegistrationResult) {
+        super.pushComponentRegistrationResult(componentRegistrationResult);
+        
+        try {
+            String path = "/id=" + componentRegistrationResult.getComponentId() 
+                        + "/type=" + componentRegistrationResult.getComponentType().toString().toLowerCase() 
+                        + "/" + CONF_RESULT_NODE_NAME;
+            String prettryJson = jsonParser.toJson(componentRegistrationResult).toString();
+        
+            if(client.checkExists().forPath(path) == null)
+                client.create().forPath(path, prettryJson.getBytes());
+            else
+                client.setData().forPath(path, prettryJson.getBytes());
+        } catch (Exception e) {
+            LOG.error("Error when updating configuration result", e);
+        }
     }
     
     @Override
