@@ -22,6 +22,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 import ch.cern.exdemon.metrics.defined.equation.var.agg.Aggregation;
+import ch.cern.exdemon.metrics.defined.equation.var.agg.CountAgregation;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.LastValueAggregation;
 import ch.cern.exdemon.metrics.value.AggregatedValue;
 import ch.cern.exdemon.metrics.value.BooleanValue;
@@ -135,6 +136,7 @@ public class JSONStatusSerializer implements StatusSerializer {
         private static Map<String, Class<?>> classNameChanged = new HashMap<>();
         {
             classNameChanged.put("ch.cern.spark.metrics.defined.equation.var.agg.LastValueAggregation", LastValueAggregation.class);
+            classNameChanged.put("ch.cern.spark.metrics.defined.equation.var.agg.CountAgregation", CountAgregation.class);
         }
         
         private static Set<String> deprecatedAliases = new HashSet<>();
