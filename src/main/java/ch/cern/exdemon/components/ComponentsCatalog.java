@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentRegistrationResult.Status;
 import ch.cern.exdemon.components.source.ComponentsSource;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -45,7 +46,7 @@ public class ComponentsCatalog {
         }
     }
     
-    public static Component register(Type componentType, String id, Properties properties) throws ConfigurationException {
+    public static ComponentRegistrationResult register(Type componentType, String id, Properties properties) {
         Map<String, Component> componentsOfType = get(componentType);
         
         //Do not build and register component if it exists and has same configuration
@@ -56,7 +57,7 @@ public class ComponentsCatalog {
             int propertiesHash = properties.hashCode();
             
             if(propertiesHash == existingPropertiesHash)
-                return existingComponent;
+                return ComponentRegistrationResult.from(existingComponent, Status.EXISTING);
         }
         
         Component component = null;
@@ -65,12 +66,12 @@ public class ComponentsCatalog {
         } catch (ConfigurationException e) {
             remove(componentType, id);
             
-            throw e;
+            return ComponentRegistrationResult.from(componentType, id, e);
         }
         
         components.get(componentType).put(id, component);
         
-        return component;
+        return ComponentRegistrationResult.from(component);
     }
     
     @SuppressWarnings("unchecked")

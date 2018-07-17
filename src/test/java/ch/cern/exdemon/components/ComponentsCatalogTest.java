@@ -1,19 +1,17 @@
 package ch.cern.exdemon.components;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.exdemon.components.Component;
-import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.components.Component.Type;
-import ch.cern.properties.ConfigurationException;
+import ch.cern.exdemon.components.ComponentRegistrationResult.Status;
 import ch.cern.properties.Properties;
 
 public class ComponentsCatalogTest {
@@ -29,12 +27,12 @@ public class ComponentsCatalogTest {
     public void register() throws Exception {        
         Properties properties = new Properties();
         properties.setProperty("filter.attribute.dummy", "dummy");
-        Component component = ComponentsCatalog.register(Type.MONITOR, "id", properties);
+        ComponentRegistrationResult componentRegistrationResult = ComponentsCatalog.register(Type.MONITOR, "id", properties);
 
         Optional<Component> secondComponentOpt = ComponentsCatalog.get(Type.MONITOR, "id");
         
         assertTrue(secondComponentOpt.isPresent());
-        assertSame(component, secondComponentOpt.get());
+        assertSame(componentRegistrationResult.getComponent().get(), secondComponentOpt.get());
     }
     
     @Test
@@ -56,12 +54,10 @@ public class ComponentsCatalogTest {
         
         Properties wrongProperties = new Properties();
         wrongProperties.setProperty("filter..dummy", "dummy");
-        try {
-            ComponentsCatalog.register(Type.MONITOR, "id", wrongProperties);
-            
-            fail();
-        } catch (ConfigurationException e) {}
         
+        ComponentRegistrationResult componentRegistrationResult = ComponentsCatalog.register(Type.MONITOR, "id", wrongProperties);
+
+        assertEquals(Status.ERROR, componentRegistrationResult.getStatus());
         assertFalse(ComponentsCatalog.get(Type.MONITOR, "id").isPresent());
     }
     
@@ -79,11 +75,12 @@ public class ComponentsCatalogTest {
     public void sameComponentIfSameProperties() throws Exception {
         Properties properties = new Properties();
         properties.setProperty("filter.attribute.dummy", "dummy");
-        Component component = ComponentsCatalog.register(Type.MONITOR, "id", properties);
+        ComponentRegistrationResult componentRegistrationResult = ComponentsCatalog.register(Type.MONITOR, "id", properties);
         
-        Component secondRegistration = ComponentsCatalog.register(Type.MONITOR, "id", properties);
+        ComponentRegistrationResult componentRegistrationResult2 = ComponentsCatalog.register(Type.MONITOR, "id", properties);
         
-        assertSame(component, secondRegistration);
+        assertEquals(Status.EXISTING, componentRegistrationResult2.getStatus());
+        assertSame(componentRegistrationResult.getComponent().get(), componentRegistrationResult2.getComponent().get());
     }
     
 }

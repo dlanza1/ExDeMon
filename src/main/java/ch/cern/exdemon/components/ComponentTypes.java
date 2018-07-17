@@ -32,18 +32,13 @@ public class ComponentTypes {
 	        LOG.error("Component " + componentToRegister + " could not be registered, it must extend " + Component.class);
     		return;
     	}
-    		
-    	ComponentType typeAnnotation = componentClass.getSuperclass().getAnnotation(ComponentType.class);
-    	if(typeAnnotation == null && componentClass.getSuperclass().getSuperclass() != null)
-    	    typeAnnotation = componentClass.getSuperclass().getSuperclass().getAnnotation(ComponentType.class);
-    	if(typeAnnotation == null)
-            typeAnnotation = componentClass.getAnnotation(ComponentType.class);
-    	if(typeAnnotation == null) {
+    	
+    	Type type = getType(componentClass);
+    	if(type == null) {
     	    LOG.error("Component " + componentToRegister + " could not be registered, it does not extend a class with @ComponentType annotation");
     	    return;
     	}
     	
-    	Type type = typeAnnotation.value();
     	RegisterComponentType registerAnnotation = componentClass.getAnnotation(RegisterComponentType.class);
     	
         String name = registerAnnotation.value();
@@ -52,6 +47,21 @@ public class ComponentTypes {
                 types.put(type, new HashMap<String, Class<? extends Component>>());
             
         types.get(type).put(name, componentClass);
+    }
+
+    public static Type getType(Class<? extends Component> componentClass) {
+        ComponentType typeAnnotation = componentClass.getSuperclass().getAnnotation(ComponentType.class);
+    	
+        if(typeAnnotation == null && componentClass.getSuperclass().getSuperclass() != null)
+    	    typeAnnotation = componentClass.getSuperclass().getSuperclass().getAnnotation(ComponentType.class);
+    	
+    	if(typeAnnotation == null)
+            typeAnnotation = componentClass.getAnnotation(ComponentType.class);
+    	
+    	if(typeAnnotation == null)
+    	    return null;
+    	
+        return typeAnnotation.value();
     }
 	
 	public static<C extends Component> C build(Component.Type componentType, String id, Properties properties) throws ConfigurationException  {

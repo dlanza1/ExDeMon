@@ -12,6 +12,7 @@ import ch.cern.exdemon.components.Component;
 import ch.cern.exdemon.components.ComponentType;
 import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentRegistrationResult;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 
@@ -50,26 +51,20 @@ public abstract class ComponentsSource extends Component {
     protected void configure(Properties properties) throws ConfigurationException {
     }
 
-    public final Optional<Component> register(Type componentType, String id, Properties properties) {
-        try {
-            boolean filter = filterID(id);
-            if(!filter)
-                return Optional.empty();
-            
-            properties.setStaticProperties(staticProperties);
-            
-            Component component = ComponentsCatalog.register(componentType, id, properties);
-            
-            registerConfigurationOK(componentType, id, component);
-            
-            return Optional.of(component);
-        } catch (ConfigurationException e) {
-            registerConfigurationError(componentType, id, e);
-            
+    public final Optional<ComponentRegistrationResult> register(Type componentType, String id, Properties properties) {
+        boolean filter = filterID(id);
+        if(!filter)
             return Optional.empty();
-        }
+        
+        properties.setStaticProperties(staticProperties);
+        
+        ComponentRegistrationResult componentRegistrationResult = ComponentsCatalog.register(componentType, id, properties);
+        
+        pushComponentRegistrationResult(componentRegistrationResult);
+        
+        return Optional.of(componentRegistrationResult);
     }
-    
+
     private boolean filterID(String id) {
         if(id_filters == null || id_filters.isEmpty())
             return true;
@@ -85,12 +80,21 @@ public abstract class ComponentsSource extends Component {
         ComponentsCatalog.remove(componentType, id);
     }
     
-    protected void registerConfigurationOK(Type componentType, String id, Component component) {
-        LOG.info("Configuration OK for component of type="+componentType+" id="+id+" component="+component);
-    }
-
-    protected void registerConfigurationError(Type componentType, String id, ConfigurationException e) {
-        LOG.error("Error for component of type="+componentType+" id="+id+" message="+e.getMessage(), e);
+    protected void pushComponentRegistrationResult(ComponentRegistrationResult componentRegistration) {
+        switch(componentRegistration.getStatus()) {
+        case OK:
+            LOG.info(componentRegistration);
+            break;
+        case WARNING:
+            LOG.warn(componentRegistration);
+            break;
+        case ERROR:
+            LOG.error(componentRegistration);
+            break;
+        case EXISTING:
+            LOG.debug(componentRegistration);
+            break;
+        }
     }
 
     public void initialize() throws Exception {

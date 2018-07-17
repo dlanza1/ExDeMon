@@ -1,17 +1,18 @@
 package ch.cern.exdemon.components.source;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Before;
-import org.junit.Test;
-import static org.mockito.Mockito.*;
-
 import java.util.Optional;
 
-import ch.cern.exdemon.components.Component;
-import ch.cern.exdemon.components.ComponentsCatalog;
+import org.junit.Before;
+import org.junit.Test;
+
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentRegistrationResult;
+import ch.cern.exdemon.components.ComponentRegistrationResult.Status;
+import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.components.source.types.TestComponentsSource;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -59,30 +60,28 @@ public class ComponentsSourceTest {
     
     @Test
     public void okConfiguration() throws ConfigurationException {
-        TestComponentsSource source = spy(new TestComponentsSource());
+        TestComponentsSource source = new TestComponentsSource();
         Properties sourceProps = new Properties();
         source.config(sourceProps);
         
         Properties properties = new Properties();
         properties.setProperty("filter.attribute.dummy", "dummy");
-        Optional<Component> componentOpt = source.register(Type.MONITOR, "id", properties);
+        Optional<ComponentRegistrationResult> componentRegistrationResult = source.register(Type.MONITOR, "id", properties);
         
-        verify(source).registerConfigurationOK(eq(Type.MONITOR), eq("id"), same(componentOpt.get()));
+        assertEquals(Status.OK, componentRegistrationResult.get().getStatus());
     }
     
     @Test
     public void errorConfiguration() throws ConfigurationException {
-        TestComponentsSource source = spy(new TestComponentsSource());
+        TestComponentsSource source = new TestComponentsSource();
         Properties sourceProps = new Properties();
         source.config(sourceProps);
         
         Properties properties = new Properties();
         properties.setProperty("analysis.type", "no-exist");
-        Optional<Component> componentOpt = source.register(Type.MONITOR, "id", properties);
+        Optional<ComponentRegistrationResult> componentRegistrationResult = source.register(Type.MONITOR, "id", properties);
         
-        assertFalse(componentOpt.isPresent());
-        assertFalse(ComponentsCatalog.get(Type.MONITOR, "id").isPresent());
-        verify(source).registerConfigurationError(eq(Type.MONITOR), eq("id"), any());
+        assertEquals(Status.ERROR, componentRegistrationResult.get().getStatus());
     }
     
     @Test
