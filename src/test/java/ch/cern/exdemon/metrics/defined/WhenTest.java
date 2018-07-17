@@ -26,9 +26,11 @@ public class WhenTest {
     public void everyBatch() throws ConfigurationException {
         When when = When.from(Duration.ofMinutes(1), "batch");
 
-        assertTrue(when.isTriggerAt(Instant.now()));
-        assertTrue(when.isTriggerAt(Instant.now().plus(Duration.ofMinutes(1))));
-        assertTrue(when.isTriggerAt(Instant.now().plus(Duration.ofMinutes(2))));
+        Instant batchTime = Instant.parse("2017-12-03T10:15:00.00Z");
+        
+        assertTrue(when.isTriggerAt(batchTime));
+        assertTrue(when.isTriggerAt(batchTime.plus(Duration.ofMinutes(1))));
+        assertTrue(when.isTriggerAt(batchTime.plus(Duration.ofMinutes(2))));
     }
     
     @Test

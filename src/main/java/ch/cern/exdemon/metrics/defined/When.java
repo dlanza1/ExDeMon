@@ -77,10 +77,6 @@ public class When {
         if(isInBatch(batchTime, lastTriggerTime))
             return true;
         
-        Instant nextTriggerTime = lastTriggerTime.plus(period);
-        if(isInBatch(batchTime, nextTriggerTime))
-            return true;
-        
         return false;
     }
 

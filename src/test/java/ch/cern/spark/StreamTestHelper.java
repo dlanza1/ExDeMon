@@ -56,7 +56,7 @@ public class StreamTestHelper<IN, OUT> implements Serializable {
 			sparkConf.set(e.getKey(), e.getValue());
         
         if(batchDuration == null)
-    			batchDuration = Durations.seconds(1);
+            batchDuration = Durations.seconds(1);
         
         sc = new JavaStreamingContext(sparkConf, batchDuration);
         sc.checkpoint(checkpointPath.toString());
@@ -69,7 +69,7 @@ public class StreamTestHelper<IN, OUT> implements Serializable {
     }
     
     public void setBatchDuration(int seconds) {
-    		this.batchDuration = Durations.seconds(seconds);
+    	this.batchDuration = Durations.seconds(seconds);
     }
     
     public void addInput(int batch, IN element) {
