@@ -32,21 +32,7 @@ public class WhenTest {
         assertTrue(when.isTriggerAt(batchTime.plus(Duration.ofMinutes(1))));
         assertTrue(when.isTriggerAt(batchTime.plus(Duration.ofMinutes(2))));
     }
-    
-    @Test
-    public void batchDurationLessThanPeriod() throws ConfigurationException {
-        When when = When.from(Duration.ofMinutes(10), "1m");
 
-        Instant time = Instant.parse("2007-12-03T10:00:00.00Z");
-        
-        assertTrue(when.isTriggerAt(time.plus(Duration.ofMinutes(1))));
-        assertTrue(when.isTriggerAt(time.plus(Duration.ofMinutes(2))));
-        assertTrue(when.isTriggerAt(time.plus(Duration.ofMinutes(9))));
-        assertTrue(when.isTriggerAt(time.plus(Duration.ofMinutes(10))));
-        assertTrue(when.isTriggerAt(time.plus(Duration.ofMinutes(11))));
-        assertTrue(when.isTriggerAt(time.plus(Duration.ofMinutes(12))));
-    }
-    
     @Test
     public void periodInMinutes() throws ConfigurationException {
         When when = When.from(Duration.ofMinutes(1), "10m");
@@ -119,6 +105,20 @@ public class WhenTest {
         When when = When.from(null, variables, "var");
         
         assertFalse(when.isTriggerAt(Instant.now()));
+    }
+    
+    @Test(expected=ConfigurationException.class)
+    public void periodNotMultiple() throws ConfigurationException {
+        Duration batchDuration = Duration.ofMinutes(5);
+        
+        When.from(batchDuration, "3m");
+    }
+    
+    @Test(expected=ConfigurationException.class)
+    public void delayNotMultiple() throws ConfigurationException {
+        Duration batchDuration = Duration.ofMinutes(5);
+        
+        When.from(batchDuration, "5m+7m");
     }
     
     @Test(expected=ConfigurationException.class)

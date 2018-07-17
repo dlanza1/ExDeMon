@@ -67,6 +67,12 @@ public class When {
             if(batchDuration == null)
                 throw new ConfigurationException("batchDuration cannot be null if period is specified");
             
+            if(when.period.getSeconds() % batchDuration.getSeconds() != 0)
+                throw new ConfigurationException("period ("+when.period+") must be a multiple of batch duration ("+batchDuration+")");
+            
+            if(when.delay.getSeconds() % batchDuration.getSeconds() != 0)
+                throw new ConfigurationException("delay ("+when.delay+") must be a multiple of batch duration ("+batchDuration+")");
+            
             return when;
         }
         
