@@ -18,8 +18,6 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import ch.cern.exdemon.components.ComponentRegistrationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
@@ -52,8 +50,6 @@ public class ZookeeperComponentsSource extends ComponentsSource {
     
     private static final String CONF_RESULT_NODE_NAME = "config.result";
     private static final String STATS_NODE_NAME = "stats";
-    
-    private static final Gson jsonParser = new GsonBuilder().setPrettyPrinting().create();
     
     public ZookeeperComponentsSource() {
         super();
@@ -249,7 +245,7 @@ public class ZookeeperComponentsSource extends ComponentsSource {
             String path = "/type=" + componentRegistrationResult.getComponentType().toString().toLowerCase() 
                         + "/id=" + componentRegistrationResult.getComponentId()
                         + "/" + CONF_RESULT_NODE_NAME;
-            String prettryJson = jsonParser.toJson(componentRegistrationResult).toString();
+            String prettryJson = componentRegistrationResult.toJsonString();
         
             if(client.checkExists().forPath(path) == null)
                 client.create().forPath(path, prettryJson.getBytes());
