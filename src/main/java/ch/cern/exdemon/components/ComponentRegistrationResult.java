@@ -22,6 +22,7 @@ import lombok.ToString;
 public class ComponentRegistrationResult {
     
     private final transient static Gson jsonParser = new GsonBuilder()
+            .setPrettyPrinting()
             .registerTypeAdapter(Instant.class, new JsonSerializer<Instant>() {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ");
             
