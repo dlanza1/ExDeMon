@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -68,10 +69,10 @@ public class When {
                 throw new ConfigurationException("batchDuration cannot be null if period is specified");
             
             if(when.period.getSeconds() % batchDuration.getSeconds() != 0)
-                throw new ConfigurationException("period ("+when.period+") must be a multiple of batch duration ("+batchDuration+")");
+                throw new ConfigurationException("period ("+TimeUtils.toString(when.period)+") must be a multiple of batch duration ("+TimeUtils.toString(batchDuration)+")");
             
             if(when.delay.getSeconds() % batchDuration.getSeconds() != 0)
-                throw new ConfigurationException("delay ("+when.delay+") must be a multiple of batch duration ("+batchDuration+")");
+                throw new ConfigurationException("delay ("+TimeUtils.toString(when.delay)+") must be a multiple of batch duration ("+TimeUtils.toString(batchDuration)+")");
             
             return when;
         }
@@ -81,8 +82,9 @@ public class When {
                                             .filter(var -> variableIDs.contains(var.getName()))
                                             .collect(Collectors.toList());
         
-        if(variableIDs.stream().filter(id -> !variables.keySet().contains(id)).count() > 0)
-            throw new ConfigurationException("Variables listed in when parameter must be declared.");
+        List<String> missignDeclarations = variableIDs.stream().filter(id -> !variables.keySet().contains(id)).collect(Collectors.toList());
+        if(missignDeclarations.size() > 0)
+            throw new ConfigurationException("Variables listed in when parameter must be declared (missing: "+missignDeclarations+").");
         
         return when;
     }
