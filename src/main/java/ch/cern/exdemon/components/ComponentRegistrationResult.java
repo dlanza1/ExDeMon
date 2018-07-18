@@ -25,7 +25,7 @@ public class ComponentRegistrationResult {
     @Getter
     private Status status;
     
-    private Component component;
+    private transient Component component;
 
     public static ComponentRegistrationResult from(Component existingComponent) {
         return from(existingComponent, Status.OK);
