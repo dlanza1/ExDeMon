@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import com.google.common.annotations.VisibleForTesting;
 
 import ch.cern.exdemon.components.ComponentRegistrationResult;
+import ch.cern.exdemon.components.ComponentRegistrationResult.Status;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.components.source.ComponentsSource;
 import ch.cern.properties.ConfigurationException;
@@ -240,6 +241,9 @@ public class ZookeeperComponentsSource extends ComponentsSource {
     @Override
     protected void pushComponentRegistrationResult(ComponentRegistrationResult componentRegistrationResult) {
         super.pushComponentRegistrationResult(componentRegistrationResult);
+        
+        if(componentRegistrationResult.getStatus().equals(Status.EXISTING))
+            return;
         
         try {
             String path = "/type=" + componentRegistrationResult.getComponentType().toString().toLowerCase() 
