@@ -63,7 +63,7 @@ public class DefinedMetricTest {
 		metric.config(props);
 		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
 		result = metric.generateByBatch(new VariableStatuses(), batchTime, groupByMetricIDs);
-		assertEquals("ConfigurationException: Variables listed in when parameter must be declared.", result.get().getValue().getAsException().get());
+		assertEquals("ConfigurationException: Variables listed in when parameter must be declared (missing: [y]).", result.get().getValue().getAsException().get());
 		
 		props = newProperties();
 		props.setProperty("value", "trim(count)");
