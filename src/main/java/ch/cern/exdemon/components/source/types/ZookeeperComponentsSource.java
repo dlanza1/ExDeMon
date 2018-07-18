@@ -246,8 +246,8 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         super.pushComponentRegistrationResult(componentRegistrationResult);
         
         try {
-            String path = "/id=" + componentRegistrationResult.getComponentId() 
-                        + "/type=" + componentRegistrationResult.getComponentType().toString().toLowerCase() 
+            String path = "/type=" + componentRegistrationResult.getComponentType().toString().toLowerCase() 
+                        + "/id=" + componentRegistrationResult.getComponentId()
                         + "/" + CONF_RESULT_NODE_NAME;
             String prettryJson = jsonParser.toJson(componentRegistrationResult).toString();
         
