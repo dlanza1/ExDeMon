@@ -61,7 +61,7 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         zkConnString = properties.getProperty("connection_string");
         initialization_timeout_ms = properties.getLong("initialization_timeout_ms", 5000);
         timeout_ms = (int) properties.getLong("timeout_ms", 20000);
-        confNodeName = "/" + properties.getProperty("conf_node_name", CONF_NODE_NAME_DEFAULT);
+        confNodeName = properties.getProperty("conf_node_name", CONF_NODE_NAME_DEFAULT);
         
         properties.confirmAllPropertiesUsed();
     }
@@ -171,7 +171,7 @@ public class ZookeeperComponentsSource extends ComponentsSource {
             
             if(data != null && data.length > 0) {
                 String path = event.getData().getPath();
-                if(!path.endsWith(confNodeName))
+                if(!isConfigurationNode(path))
                     return;
                 
                 String value = new String(event.getData().getData());
@@ -187,7 +187,7 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         case NODE_UPDATED:
             if(event.getData().getData() != null) {
                 String path = event.getData().getPath();
-                if(!path.endsWith(confNodeName))
+                if(!isConfigurationNode(path))
                     return;
                 
                 String value = new String(event.getData().getData());
@@ -199,6 +199,10 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         default:
             break;
         }
+    }
+
+    private boolean isConfigurationNode(String path) {
+        return path.endsWith("/" + confNodeName);
     }
 
     private void initialiceCache() throws Exception {
