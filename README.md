@@ -6,12 +6,12 @@ Metrics can come from several sources like Kafka, results and actions can be sun
 
 This tool was introduced at Spark Summit 2017 conference, you can watch the talk [here](https://www.youtube.com/watch?v=1IsMMmug5q0&feature=youtu.be&t=11m17s).
 
-[User's manual](doc/users-manual/users-manual.md)
+[User's manual](./doc/users-manual/users-manual.md)
 
 An example of a monitored metric can be observed in the following image. As it can be observed, thresholds around the value are calculated and statuses are generated if analyzed value exceed these limits. 
 Action can be triggered if certain statuses like error or warning are maintained during some time.    
 
-![Example of monitored metric](/doc/img/example-monitored-metric.png)
+![Example of monitored metric](./doc/img/example-monitored-metric.png)
 
 ### Key features
 
@@ -29,7 +29,7 @@ Action can be triggered if certain statuses like error or warning are maintained
 - Detection of missing metrics.
 
 An image that describes some of the previous concepts and shows the data flow in the streaming job can be seen here.  
-![Data flow](/doc/img/dataflow.png)
+![Data flow](./doc/img/dataflow.png)
 
 ## Define new metrics
 
@@ -74,7 +74,7 @@ Results from analysis can be sunk to external storages and actions are processed
 
 They are considered parts of the processing pipeline that can be easily replaced by other built-in components or by an externally developed component.
 
-If you are willing to develop any component, look at the [developers guide](doc/developers-guide.md).
+If you are willing to develop any component, look at the [developers guide](./doc/developers-guide.md).
 
 ### Properties source
 
