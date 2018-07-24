@@ -8,7 +8,7 @@ variables:
   DOCKER_IMAGE: docker-0.2.1
   
 before_script:
-  - if [[ "$CI_COMMIT_TAG" == rpm-* ]] ; then export RPM_VERSION=${CI_COMMIT_TAG#rpm-}; else export RPM_VERSION=test${CI_PIPELINE_ID}git${CI_COMMIT_SHA:0:8}; fi
+  - if [[ "$CI_COMMIT_TAG" == release-* ]] ; then export RELEASE_VERSION=${CI_COMMIT_TAG#release-}; else export RELEASE_VERSION=test${CI_PIPELINE_ID}git${CI_COMMIT_SHA:0:8}; fi
   
 create_dockerimage:
   stage: dockerimage
@@ -27,7 +27,7 @@ exdemon_package:
   stage: package
   image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
   script:
-    - mvn versions:set -DnewVersion=$RPM_VERSION
+    - mvn versions:set -DnewVersion=$RELEASE_VERSION
     - mvn clean test package
   artifacts:
     expire_in: 30 days
