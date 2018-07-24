@@ -86,6 +86,8 @@ public class ZookeeperComponentsSource extends ComponentsSource {
             LOG.warn("Not a valid JSON at path " + path + ". Value: " + value);
         
         register(Type.valueOf(type.toUpperCase()), id, componentProps);
+        
+        cleanStats(path);
     }
 
     private void removeComponent(String path) {
@@ -108,15 +110,19 @@ public class ZookeeperComponentsSource extends ComponentsSource {
     }
     
     private void clean(String path) {
-        String rootPath = path.replace("/" + confNodeName, "/");
+        String rootPath = path.replace("/" + confNodeName, "");
         
         try {
-            if(client.checkExists().forPath(rootPath + CONF_RESULT_NODE_NAME) != null)
-                client.delete().forPath(rootPath + CONF_RESULT_NODE_NAME);
+            if(client.checkExists().forPath(rootPath) != null)
+                client.delete().deletingChildrenIfNeeded().forPath(rootPath);
         } catch (Exception e) {
-            LOG.error("Error when removing: " + rootPath + CONF_RESULT_NODE_NAME, e);
+            LOG.error("Error when cleaning compoent from Zookeeper: " + rootPath, e);
         }
-        
+    }
+    
+    private void cleanStats(String path) {
+        String rootPath = path.replace("/" + confNodeName, "/");
+
         try {
             if(client.checkExists().forPath(rootPath + STATS_NODE_NAME) != null)
                 client.delete().forPath(rootPath + STATS_NODE_NAME);
