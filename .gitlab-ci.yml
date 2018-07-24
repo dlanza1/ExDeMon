@@ -34,7 +34,7 @@ exdemon_package:
     - mvn versions:set -DnewVersion=$RPM_VERSION
     - mvn clean test package
   artifacts:
-    expire_in: 5 mins
+    expire_in: 30 days
     paths:
       - target/
       
