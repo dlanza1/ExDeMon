@@ -71,12 +71,12 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         String id = extractProperty(idPattern, path);
         
         if(value != null && type == null) {
-            LOG.debug("Path not added because is missing type in the path: " + path);
+            LOG.debug("Component not added because is missing type in the path: " + path);
             return;
         }
         
         if(value != null && id == null) {
-            LOG.debug("Path not added because is missing id in the path: " + path);
+            LOG.debug("Component not added because is missing id in the path: " + path);
             return;
         }
         
@@ -85,9 +85,9 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         if(value != null && componentProps == null)
             LOG.warn("Not a valid JSON at path " + path + ". Value: " + value);
         
-        register(Type.valueOf(type.toUpperCase()), id, componentProps);
-        
         clean(path);
+        
+        register(Type.valueOf(type.toUpperCase()), id, componentProps);
     }
 
     private void removeComponent(String path) {
@@ -95,12 +95,12 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         String id = extractProperty(idPattern, path);
         
         if(type == null) {
-            LOG.debug("Path not removed because is missing type in the path: " + path);
+            LOG.error("Component not removed because is missing type in the path: " + path);
             return;
         }
         
         if(id == null) {
-            LOG.debug("Path not removed because is missing id in the path: " + path);
+            LOG.error("Component not removed because is missing id in the path: " + path);
             return;
         }
         
