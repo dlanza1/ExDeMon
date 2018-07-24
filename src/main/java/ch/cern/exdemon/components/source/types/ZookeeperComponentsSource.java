@@ -85,8 +85,6 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         if(value != null && componentProps == null)
             LOG.warn("Not a valid JSON at path " + path + ". Value: " + value);
         
-        clean(path);
-        
         register(Type.valueOf(type.toUpperCase()), id, componentProps);
     }
 
@@ -115,11 +113,15 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         try {
             if(client.checkExists().forPath(rootPath + CONF_RESULT_NODE_NAME) != null)
                 client.delete().forPath(rootPath + CONF_RESULT_NODE_NAME);
-            
+        } catch (Exception e) {
+            LOG.error("Error when removing: " + rootPath + CONF_RESULT_NODE_NAME, e);
+        }
+        
+        try {
             if(client.checkExists().forPath(rootPath + STATS_NODE_NAME) != null)
                 client.delete().forPath(rootPath + STATS_NODE_NAME);
         } catch (Exception e) {
-            LOG.error("Error when cleaning component node", e);
+            LOG.error("Error when removing: " + rootPath + STATS_NODE_NAME, e);
         }
     }
 
@@ -249,18 +251,18 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         if(componentRegistrationResult.getStatus().equals(Status.EXISTING))
             return;
         
+        String path = "/type=" + componentRegistrationResult.getComponentType().toString().toLowerCase() 
+                    + "/id=" + componentRegistrationResult.getComponentId()
+                    + "/" + CONF_RESULT_NODE_NAME;
+        String prettryJson = componentRegistrationResult.toJsonString();
+    
         try {
-            String path = "/type=" + componentRegistrationResult.getComponentType().toString().toLowerCase() 
-                        + "/id=" + componentRegistrationResult.getComponentId()
-                        + "/" + CONF_RESULT_NODE_NAME;
-            String prettryJson = componentRegistrationResult.toJsonString();
-        
             if(client.checkExists().forPath(path) == null)
                 client.create().forPath(path, prettryJson.getBytes());
             else
                 client.setData().forPath(path, prettryJson.getBytes());
         } catch (Exception e) {
-            LOG.error("Error when updating configuration result", e);
+            LOG.error("Error when updating configuration result at: " + path, e);
         }
     }
     
