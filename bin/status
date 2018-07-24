@@ -27,15 +27,10 @@ if [ ! -z "${HADOOP_YARN_HOME}" ]; then
 	YARN_CMD=$HADOOP_YARN_HOME/bin/$YARN_CMD
 fi
 
-ZOOCLI_CMD=zookeeper-client
-if [ ! -z "${ZOOKEEPER_HOME}" ]; then
-	ZOOCLI_CMD=$ZOOKEEPER_HOME/bin/$ZOOCLI_CMD
-fi
-
 ZOOCNX=`sed -n 's/^spark.streaming.listener.connection_string[ ]=//p' $HOME/conf/exdemon.properties`
 ZOOPTH=`sed -n 's/^spark.streaming.listener.path[ ]=//p' $HOME/conf/exdemon.properties`
 
-APPID=`$ZOOCLI_CMD -server $ZOOCNX get $ZOOPTH/id 2>/tmp/exdemon_status_zk.err | grep application_`
+APPID=`zookeepercli -servers $ZOOCNX -c get $ZOOPTH/id 2>/tmp/exdemon_status_zk.err | grep application_`
 RESULT=$?
 if [ $RESULT -ne 0 ]; then
     echo Error when getting application ID from Zookeeper
