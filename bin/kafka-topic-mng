@@ -1,12 +1,14 @@
-[root@monit-kafka-dev-714ebf7283 ~]# 
+[root@monit-kafkax-dev-e0d4b64eae ~]# 
+
+export KAFKA_OPTS=-Djava.security.auth.login.config=/opt/kafka/config/server_jaas.conf
 
 /opt/kafka/bin/kafka-topics.sh \
-    --zookeeper monit-zookeeper-dev-ab5bcc5450:2181,monit-zookeeper-dev-af7ea987bd:2181,monit-zookeeper-dev-c50f381e22:2181/kafka/monit \
+    --zookeeper monit-zookeeper-dev-ab5bcc5450:2181,monit-zookeeper-dev-af7ea987bd:2181,monit-zookeeper-dev-c50f381e22:2181/kafkax/monit \
     --delete \
     --topic metrics_monitor_checkpoint_qa
 
 /opt/kafka/bin/kafka-topics.sh \
-    --zookeeper monit-zookeeper-dev-ab5bcc5450:2181,monit-zookeeper-dev-af7ea987bd:2181,monit-zookeeper-dev-c50f381e22:2181/kafka/monit \
+    --zookeeper monit-zookeeper-dev-ab5bcc5450:2181,monit-zookeeper-dev-af7ea987bd:2181,monit-zookeeper-dev-c50f381e22:2181/kafkax/monit \
     --config cleanup.policy=compact \
     --config segment.ms=240000 \
     --topic metrics_monitor_checkpoint_qa \
