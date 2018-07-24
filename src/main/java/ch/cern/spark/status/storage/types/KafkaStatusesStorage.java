@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.atomic.LongAccumulator;
+import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -113,7 +114,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
         consumer.subscribe(Sets.newHashSet(topic));
     }
 
-    private List<ConsumerRecordSer> getAllRecords() {
+    protected List<ConsumerRecordSer> getAllRecords() {
         setUpConsumer();
         
         Map<Bytes, ConsumerRecordSer> latestRecords = new HashMap<>();
@@ -126,6 +127,11 @@ public class KafkaStatusesStorage extends StatusesStorage {
         for (int i = 0; i < processed_records_count.length; i++)
             processed_records_count[i] = new LongAccumulator((x,  y) -> x + y, 0L);
 
+        consumer.poll(timeout.toMillis());
+        
+        List<TopicPartition> partitions = consumer.partitionsFor(topic).stream().map(part -> new TopicPartition(topic, part.partition())).collect(Collectors.toList());
+        consumer.seekToBeginning(partitions);
+        
         ConsumerRecords<Bytes, Bytes> records = consumer.poll(timeout.toMillis());
         while(!records.isEmpty()) {
             records.forEach(r -> {
