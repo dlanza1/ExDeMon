@@ -5,6 +5,8 @@ stages:
   - release
   - deploy_qa
   - deploy_stable
+  - submit_qa
+  - submit_stable
   
 variables:
   DOCKER_IMAGE: docker-0.2.1
@@ -88,3 +90,16 @@ tag_stable:
   allow_failure: false
   dependencies:
     - tag_qa
+    
+submit_qa:
+  stage: submit_qa
+  image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
+  when: manual
+  script:
+    - hadoop-set-default-conf.sh hadoop-qa
+    - sed -i s/\<environment\>/qa/g conf/exdemon.properties
+    - sed -i s/\<exdemon_password\>/$EXDEMON_PASS/g conf/exdemon.properties
+    - echo $SUBMIT_PASS | kinit $SUBMIT_USER
+    - bin/restart
+  dependencies:
+    - exdemon_package
