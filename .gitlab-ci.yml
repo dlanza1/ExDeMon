@@ -1,12 +1,8 @@
 stages:
   - dockerimage
-  - test
-  - build
-  - release
-  - deploy_qa
-  - deploy_stable
+  - package
   - submit_qa
-  - submit_stable
+  - submit_production
   
 variables:
   DOCKER_IMAGE: docker-0.2.1
@@ -28,7 +24,7 @@ create_dockerimage:
   # DOCKER_LOGIN_USERNAME and DOCKER_LOGIN_PASSWORD should be provided as secure variables from gitlab web interface
   
 exdemon_package:
-  stage: test
+  stage: package
   image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
   script:
     - mvn versions:set -DnewVersion=$RPM_VERSION
@@ -37,63 +33,12 @@ exdemon_package:
     expire_in: 30 days
     paths:
       - target/
-      
-exdemon_rpm:
-  stage: build
-  image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
-  script:
-    - mkdir -p RPM/bin
-    - cp bin/* RPM/bin/
-    - mkdir -p RPM/lib
-    - cp target/*.jar RPM/lib/
-    - cp lib/*.jar RPM/lib/
-    - cd RPM
-    - make build
-  dependencies:
-    - exdemon_package
-  artifacts:
-    expire_in: 7 days
-    paths:
-      - RPM/build
-
-exdemon_release:
-  stage: release
-  only:
-    - /^rpm-.*$/
-  image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
-  script:
-    - echo "$KOJI_PASSWORD" | kinit $KOJI_USER
-    - koji build --wait tapemon7 RPM/build/*.src.rpm
-  dependencies:
-    - exdemon_rpm 
-    
-tag_qa:
-  stage: deploy_qa
-  image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
-  when: manual
-  only:
-    - /^rpm-.*$/
-  script:
-    - echo "$KOJI_PASSWORD" | kinit $KOJI_USER
-    - koji tag-build tapemon7-qa exdemon-$RPM_VERSION-1.0
-  allow_failure: false
-
-tag_stable:
-  stage: deploy_stable
-  image: gitlab-registry.cern.ch/tapeanalytics/exdemon:$DOCKER_IMAGE
-  when: manual
-  only:
-    - /^rpm-.*$/
-  script:
-    - echo "$KOJI_PASSWORD" | kinit $KOJI_USER
-    - koji tag-build tapemon7-stable exdemon-$RPM_VERSION-1.0
-  allow_failure: false
-  dependencies:
-    - tag_qa
     
 submit_qa:
   stage: submit_qa
   image: gitlab-registry.cern.ch/db/cerndb-infra-hadoop-conf:hadoop-config-playground
+  only:
+    - /^release-.*$/
   when: manual
   script:
     - hadoop-set-default-conf.sh hadoop-qa
@@ -104,4 +49,22 @@ submit_qa:
     - sed -i s/\<exdemon_password\>/$EXDEMON_PASS/g conf/exdemon.properties
     - bin/restart
   dependencies:
+    - exdemon_package
+    
+submit_production:
+  stage: submit_production
+  image: gitlab-registry.cern.ch/db/cerndb-infra-hadoop-conf:hadoop-config-playground
+  only:
+    - /^release-.*$/
+  when: manual
+  script:
+    - hadoop-set-default-conf.sh analytix
+    - echo $SUBMIT_PASS | kinit $SUBMIT_USER
+    - cp target/exdemon-* lib/
+    - yum -y install lib/zookeepercli-1.0.12-1.x86_64.rpm
+    - sed -i s/\<environment\>/production/g conf/exdemon.properties
+    - sed -i s/\<exdemon_password\>/$EXDEMON_PASS/g conf/exdemon.properties
+    - bin/restart
+  dependencies:
+    - submit_qa
     - exdemon_package
