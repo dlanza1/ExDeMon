@@ -66,7 +66,7 @@ submit_production:
     - rm -f /usr/hdp/spark/jars/curator-*
     - yum -y install lib/zookeepercli-1.0.12-1.x86_64.rpm
     - sed -i s/\<environment\>/production/g conf/exdemon.properties
-    - sed -i s/\<environment\>/qa/g conf/log4j.properties
+    - sed -i s/\<environment\>/production/g conf/log4j.properties
     - sed -i s/\<exdemon_password\>/$EXDEMON_PASS/g conf/exdemon.properties
     - bin/restart
   dependencies:
