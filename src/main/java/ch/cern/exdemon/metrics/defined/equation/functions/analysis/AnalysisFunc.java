@@ -4,8 +4,9 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.util.HashMap;
 
-import ch.cern.exdemon.components.ComponentTypes;
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentBuildResult;
+import ch.cern.exdemon.components.ComponentTypes;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.ValueComputable;
 import ch.cern.exdemon.metrics.defined.equation.functions.Function;
@@ -41,11 +42,15 @@ public class AnalysisFunc extends Function {
 		propsVal = (PropertiesValue) arguments[1].compute(null, null);
 		Properties props = propsVal.getAsProperties().get();
 		
-		try{
-			analysis = ComponentTypes.build(Type.ANAYLSIS, props);
-		}catch(ConfigurationException e) {
-			throw new ParseException(e.getClass().getSimpleName() + e.getMessage(), 0);
-		}
+	    ComponentBuildResult<Analysis> analysisBuildResult = ComponentTypes.build(Type.ANAYLSIS, props);
+	    
+	    if(analysisBuildResult.getException().isPresent()) {
+	        ConfigurationException exception = analysisBuildResult.getException().get();
+	        
+	        throw new ParseException(exception.getClass().getSimpleName() + exception.getMessage(), 0);
+	    }
+	    
+		analysis = analysisBuildResult.getComponent().get();
 	}
 
 	@Override

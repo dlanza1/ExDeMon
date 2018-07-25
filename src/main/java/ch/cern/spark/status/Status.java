@@ -12,8 +12,9 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaMapWithStateDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
-import ch.cern.exdemon.components.ComponentTypes;
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentBuildResult;
+import ch.cern.exdemon.components.ComponentTypes;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusOperation.Op;
@@ -92,13 +93,18 @@ public class Status {
 		    return Option.empty();
 	}
 
-	private static java.util.Optional<StatusesStorage> getStorage(JavaSparkContext context) throws ConfigurationException {
+	private static Optional<StatusesStorage> getStorage(JavaSparkContext context) throws ConfigurationException {
 		Properties sparkConf = Properties.from(context.getConf().getAll());
 		Properties storageConfig = sparkConf.getSubset(StatusesStorage.STATUS_STORAGE_PARAM);
 		
-		java.util.Optional<StatusesStorage> storage = ComponentTypes.buildOptional(Type.STATUS_STORAGE, storageConfig);
-		
-		return storage;
+		if(storageConfig.isTypeDefined()) {
+		    ComponentBuildResult<StatusesStorage> storageBuildResult = ComponentTypes.build(Type.STATUS_STORAGE, storageConfig);
+		    storageBuildResult.throwExceptionIfPresent();
+		    
+		    return storageBuildResult.getComponent();
+		}else {
+		    return Optional.empty();
+		}
 	}
 
     public static void configSpark(SparkConf sparkConf, String checkpointDir) {

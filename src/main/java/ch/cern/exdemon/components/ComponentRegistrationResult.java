@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 
 import com.google.gson.Gson;
@@ -52,8 +53,35 @@ public class ComponentRegistrationResult {
     
     private transient Component component;
     
+    private ConfigurationException exception;
+    
+    private List<String> warnings;
+    
     private ComponentRegistrationResult() {
         this.timestamp = Instant.now();
+    }
+    
+    public static ComponentRegistrationResult from(ComponentBuildResult<Component> componentBuildResult) {
+        ComponentRegistrationResult componentRegistration = new ComponentRegistrationResult();
+        
+        componentRegistration.componentId = componentBuildResult.getComponentId();
+        componentRegistration.componentType = componentBuildResult.getComponentType();
+        
+        componentBuildResult.getComponent().ifPresent(c -> {
+            componentRegistration.component = c;
+        });
+        
+        if(componentBuildResult.getException().isPresent())
+            componentRegistration.status = Status.ERROR;
+        else if (!componentBuildResult.getWarnings().isEmpty())
+            componentRegistration.status = Status.WARNING;
+        else
+            componentRegistration.status = Status.OK;
+        
+        componentBuildResult.getException().ifPresent(e -> {componentRegistration.exception = e;});
+        componentRegistration.warnings = componentBuildResult.getWarnings();
+        
+        return componentRegistration;
     }
 
     public static ComponentRegistrationResult from(Component existingComponent) {

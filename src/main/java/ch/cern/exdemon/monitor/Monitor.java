@@ -14,6 +14,7 @@ import ch.cern.exdemon.components.ComponentType;
 import ch.cern.exdemon.components.ComponentTypes;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentBuildResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
 import ch.cern.exdemon.monitor.analysis.Analysis;
@@ -66,20 +67,25 @@ public class Monitor extends Component{
         
         Properties analysis_props = properties.getSubset("analysis");
         if(!analysis_props.isTypeDefined())
-        		analysis_props.setProperty("type", NoneAnalysis.class.getAnnotation(RegisterComponentType.class).value());
-    		analysis = ComponentTypes.build(Type.ANAYLSIS, analysis_props);
+            analysis_props.setProperty("type", NoneAnalysis.class.getAnnotation(RegisterComponentType.class).value());
+    	
+        ComponentBuildResult<Analysis> analysisBuildResult = ComponentTypes.build(Type.ANAYLSIS, analysis_props);
+        analysisBuildResult.throwExceptionIfPresent();
+        analysis = analysisBuildResult.getComponent().get();
         
     	Properties triggersProps = properties.getSubset("triggers");
         
         Set<String> triggerIds = triggersProps.getIDs();
         triggers = new HashMap<>();
         for (String triggerId : triggerIds) {
-        		Properties props = triggersProps.getSubset(triggerId);
+            Properties props = triggersProps.getSubset(triggerId);
         		
-        		if(!props.isTypeDefined())
-        		    props.setProperty("type", "statuses");
-        		
-        		triggers.put(triggerId, ComponentTypes.build(Type.TRIGGER, triggerId, props));
+    		if(!props.isTypeDefined())
+    		    props.setProperty("type", "statuses");
+    		
+    		ComponentBuildResult<Trigger> triggerBuildResult = ComponentTypes.build(Type.TRIGGER, triggerId, props);
+    		triggerBuildResult.throwExceptionIfPresent();
+    		triggers.put(triggerId, triggerBuildResult.getComponent().get());
 		}
         
         tags = properties.getSubset("tags").toStringMap();

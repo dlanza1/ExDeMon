@@ -17,8 +17,9 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
-import ch.cern.exdemon.components.ComponentTypes;
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentBuildResult;
+import ch.cern.exdemon.components.ComponentTypes;
 import ch.cern.exdemon.components.source.ComponentsSource;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.ValueHistory;
@@ -185,7 +186,14 @@ public final class Driver {
     private Optional<AnalysisResultsSink> getAnalysisResultsSink(Properties properties) throws Exception {
         Properties analysisResultsSinkProperties = properties.getSubset("results.sink");
 
-        return ComponentTypes.buildOptional(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
+        if(analysisResultsSinkProperties.isTypeDefined()) {
+            ComponentBuildResult<AnalysisResultsSink> analysisResultsSinkBuildResult = ComponentTypes.build(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
+            analysisResultsSinkBuildResult.throwExceptionIfPresent();
+            
+            return analysisResultsSinkBuildResult.getComponent();
+        }else {
+            return Optional.empty();
+        }
     }
 
     private List<MetricsSource> getMetricSources(Properties properties) throws Exception {
@@ -198,10 +206,10 @@ public final class Driver {
         for (String id : ids) {
             Properties props = metricSourcesProperties.getSubset(id);
 
-            MetricsSource source = ComponentTypes.build(Type.METRIC_SOURCE, id, props);
-            source.setId(id);
+            ComponentBuildResult<MetricsSource> sourceBuildResult = ComponentTypes.build(Type.METRIC_SOURCE, id, props);
+            sourceBuildResult.throwExceptionIfPresent();
 
-            metricSources.add(source);
+            metricSources.add(sourceBuildResult.getComponent().get());
         }
 
         if (metricSources.size() < 1)

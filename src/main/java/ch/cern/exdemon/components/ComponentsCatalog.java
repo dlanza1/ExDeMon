@@ -10,7 +10,6 @@ import org.apache.log4j.Logger;
 import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.components.ComponentRegistrationResult.Status;
 import ch.cern.exdemon.components.source.ComponentsSource;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 
 public class ComponentsCatalog {
@@ -28,7 +27,10 @@ public class ComponentsCatalog {
         if(source != null)
             return;
         
-        source = ComponentTypes.build(Type.COMPONENTS_SOURCE, properties);
+        ComponentBuildResult<ComponentsSource> sourceBuildResult = ComponentTypes.build(Type.COMPONENTS_SOURCE, properties);
+        sourceBuildResult.throwExceptionIfPresent();
+        
+        source = sourceBuildResult.getComponent().get();
         
         reset();
         
@@ -60,18 +62,17 @@ public class ComponentsCatalog {
                 return ComponentRegistrationResult.from(existingComponent, Status.EXISTING);
         }
         
-        Component component = null;
-        try {
-            component = ComponentTypes.build(componentType, id, properties);
-        } catch (ConfigurationException e) {
+        ComponentBuildResult<Component> componentBuildResult = ComponentTypes.build(componentType, id, properties);
+        
+        componentBuildResult.getComponent().ifPresent(c -> {
+            components.get(componentType).put(id, c);
+        });
+        
+        componentBuildResult.getException().ifPresent(e -> {
             remove(componentType, id);
-            
-            return ComponentRegistrationResult.from(componentType, id, e);
-        }
+        });
         
-        components.get(componentType).put(id, component);
-        
-        return ComponentRegistrationResult.from(component);
+        return ComponentRegistrationResult.from(componentBuildResult);
     }
     
     @SuppressWarnings("unchecked")
