@@ -3,16 +3,19 @@ package ch.cern.exdemon.components;
 import java.io.Serializable;
 import java.util.Optional;
 
+import org.apache.log4j.Logger;
+
 import ch.cern.exdemon.metrics.defined.DefinedMetric;
 import ch.cern.exdemon.metrics.schema.MetricSchema;
 import ch.cern.exdemon.monitor.Monitor;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
 import lombok.Getter;
 
 public abstract class Component implements Serializable {
+    
+    private transient final static Logger LOG = Logger.getLogger(Component.class.getName());
 
     private static final long serialVersionUID = -2299173239147440553L;
 
@@ -45,10 +48,16 @@ public abstract class Component implements Serializable {
         this.id = id;
     }
 
-    protected final ConfigurationResult buildConfig(Properties properties) throws ConfigurationException {
+    protected final ConfigurationResult buildConfig(Properties properties) {
         propertiesHash = properties.hashCode();
         
-        return config(properties);
+        try {
+            return config(properties);
+        }catch(Throwable e) {
+            LOG.error("Exception not processed by component", e);
+            
+            return ConfigurationResult.SUCCESSFUL().withError("NO_PROCESSED_BY_COMPONENT", e.getClass().getSimpleName() + ": " + e.getMessage());
+        }
     }
 
     protected ConfigurationResult config(Properties properties) {   
