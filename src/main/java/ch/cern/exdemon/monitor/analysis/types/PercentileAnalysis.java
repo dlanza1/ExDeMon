@@ -5,6 +5,7 @@ import java.time.Instant;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.metrics.ValueHistory;
 import ch.cern.exdemon.metrics.value.FloatValue;
@@ -68,28 +69,48 @@ public class PercentileAnalysis extends NumericAnalysis implements HasStatus{
     private float warn_ratio;
 
     @Override
-    public void config(Properties properties) throws ConfigurationException {
-        super.config(properties);
+    public ConfigurationResult config(Properties properties) {
+        ConfigurationResult configResult = ConfigurationResult.SUCCESSFUL();
         
-        error_upperbound = properties.getBoolean(ERROR_UPPERBOUND_PARAM);
-        warning_upperbound = properties.getBoolean(WARNING_UPPERBOUND_PARAM);
-        warning_lowerbound = properties.getBoolean(WARNING_LOWERBOUND_PARAM);
-        error_lowerbound = properties.getBoolean(ERROR_LOWERBOUND_PARAM);
+        try {
+            error_upperbound = properties.getBoolean(ERROR_UPPERBOUND_PARAM);
+        } catch (ConfigurationException e) {
+            configResult.withError(null, e);
+        }
+        try {
+            warning_upperbound = properties.getBoolean(WARNING_UPPERBOUND_PARAM);
+        } catch (ConfigurationException e) {
+            configResult.withError(null, e);
+        }
+        try {
+            warning_lowerbound = properties.getBoolean(WARNING_LOWERBOUND_PARAM);
+        } catch (ConfigurationException e) {
+            configResult.withError(null, e);
+        }
+        try {
+            error_lowerbound = properties.getBoolean(ERROR_LOWERBOUND_PARAM);
+        } catch (ConfigurationException e) {
+            configResult.withError(null, e);
+        }
         
         error_percentile = properties.getFloat(ERROR_PERCENTILE_PARAM, ERROR_PERCENTILE_DEFAULT);
         if(error_percentile > 100 || error_percentile <=50)
-            throw new ConfigurationException(ERROR_PERCENTILE_PARAM + " must be between 50 and 100");
+            configResult.withError(ERROR_PERCENTILE_PARAM, " must be between 50 and 100");
         warn_percentile = properties.getFloat(WARN_PERCENTILE_PARAM, WARN_PERCENTILE_DEFAULT);
         if(warn_percentile > 100 || warn_percentile <=50)
-            throw new ConfigurationException(WARN_PERCENTILE_PARAM + " must be between 50 and 100");
+            configResult.withError(WARN_PERCENTILE_PARAM, " must be between 50 and 100");
         
         error_ratio = properties.getFloat(ERROR_RATIO_PARAM, ERROR_RATIO_DEFAULT);
         warn_ratio = properties.getFloat(WARN_RATIO_PARAM, WARN_RATIO_DEFAULT);
         
-        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
+        try {
+            period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
+        } catch (ConfigurationException e) {
+            configResult.withError(null, e);
+        }
         history = new ValueHistory();
         
-        properties.confirmAllPropertiesUsed();
+        return configResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }
     
     @Override

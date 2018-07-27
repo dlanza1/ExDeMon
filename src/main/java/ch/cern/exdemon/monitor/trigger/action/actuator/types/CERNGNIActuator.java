@@ -1,11 +1,11 @@
 package ch.cern.exdemon.monitor.trigger.action.actuator.types;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.http.HTTPSink;
 import ch.cern.exdemon.monitor.trigger.action.Action;
 import ch.cern.exdemon.monitor.trigger.action.actuator.Actuator;
 import ch.cern.monitoring.gni.GNINotification;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import lombok.ToString;
 
@@ -20,13 +20,12 @@ public class CERNGNIActuator extends Actuator {
 	private HTTPSink sink = new HTTPSink();
 
 	@Override
-	public void config(Properties properties) throws ConfigurationException {
-		super.config(properties);
+	public ConfigurationResult config(Properties properties) {
+		contentProperties = properties.getSubset("content");
 		
 		properties.setPropertyIfAbsent(HTTPSink.RETRIES_PARAM, "5");
-		sink.config(properties);
 		
-		contentProperties = properties.getSubset("content");
+		return sink.config(properties);
 	}
 	
 	@Override

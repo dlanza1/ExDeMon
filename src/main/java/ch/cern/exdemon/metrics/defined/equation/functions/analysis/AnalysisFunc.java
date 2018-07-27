@@ -43,12 +43,11 @@ public class AnalysisFunc extends Function {
 		Properties props = propsVal.getAsProperties().get();
 		
 	    ComponentBuildResult<Analysis> analysisBuildResult = ComponentTypes.build(Type.ANAYLSIS, props);
-	    
-	    if(analysisBuildResult.getException().isPresent()) {
-	        ConfigurationException exception = analysisBuildResult.getException().get();
-	        
-	        throw new ParseException(exception.getClass().getSimpleName() + exception.getMessage(), 0);
-	    }
+	    try {
+            analysisBuildResult.throwExceptionsIfPresent();
+        } catch (ConfigurationException e) {
+            throw new ParseException(e.getClass().getSimpleName() + ": " + e.getMessage(), 0);
+        }
 	    
 		analysis = analysisBuildResult.getComponent().get();
 	}

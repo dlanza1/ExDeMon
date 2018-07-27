@@ -90,7 +90,7 @@ public final class Driver {
     public static void main(String[] args) throws Exception {
 
         if (args.length != 1)
-            throw new ConfigurationException("A single argument must be specified with the path to the configuration file.");
+            throw new ConfigurationException("[ARGUMENTS]", "A single argument must be specified with the path to the configuration file.");
 
         String propertyFilePath = args[0];
         Properties properties = Properties.fromFile(propertyFilePath);
@@ -188,7 +188,7 @@ public final class Driver {
 
         if(analysisResultsSinkProperties.isTypeDefined()) {
             ComponentBuildResult<AnalysisResultsSink> analysisResultsSinkBuildResult = ComponentTypes.build(Type.ANALYSIS_RESULTS_SINK, analysisResultsSinkProperties);
-            analysisResultsSinkBuildResult.throwExceptionIfPresent();
+            analysisResultsSinkBuildResult.throwExceptionsIfPresent();
             
             return analysisResultsSinkBuildResult.getComponent();
         }else {
@@ -207,13 +207,13 @@ public final class Driver {
             Properties props = metricSourcesProperties.getSubset(id);
 
             ComponentBuildResult<MetricsSource> sourceBuildResult = ComponentTypes.build(Type.METRIC_SOURCE, id, props);
-            sourceBuildResult.throwExceptionIfPresent();
+            sourceBuildResult.throwExceptionsIfPresent();
 
             metricSources.add(sourceBuildResult.getComponent().get());
         }
 
         if (metricSources.size() < 1)
-            throw new ConfigurationException("At least one metric source must be configured");
+            throw new ConfigurationException("Metric sources", "At least one metric source must be configured");
 
         return metricSources;
     }

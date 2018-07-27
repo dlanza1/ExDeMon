@@ -45,7 +45,7 @@ public class TimeUtils {
             case 's':
                 return Duration.ofSeconds(number);
             default:
-                throw new ConfigurationException("Unit " + unit.get() + " not available.");
+                throw new ConfigurationException(null, "unit " + unit.get() + " not available.");
             }
         }
 
@@ -111,7 +111,7 @@ public class TimeUtils {
         case "ms":
             return ChronoUnit.MILLIS;
         default:
-            throw new ConfigurationException("Granularity is configured to an incompatible value.");
+            throw new ConfigurationException(null, "granularity is configured to an incompatible value.");
         }
     }
 

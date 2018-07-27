@@ -19,9 +19,9 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import org.apache.spark.streaming.kafka010.OffsetRange;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.metrics.source.MetricsSource;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 
 @RegisterComponentType("kafka")
@@ -33,13 +33,13 @@ public class KafkaMetricsSource extends MetricsSource {
     private Set<String> kafkaTopics;
 
     @Override
-    public void config(Properties properties) throws ConfigurationException {
-    		super.config(properties);
+    public ConfigurationResult config(Properties properties) {
+    	ConfigurationResult confResult = super.config(properties);
     		
         kafkaParams = getKafkaConsumerParams(properties);
         kafkaTopics = new HashSet<String>(Arrays.asList(properties.getProperty("topics").split(",")));
         
-        properties.confirmAllPropertiesUsed();
+        return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }
     
     @Override

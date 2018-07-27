@@ -14,6 +14,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Time;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -36,10 +37,10 @@ public class SingleFileStatusesStorage extends StatusesStorage{
 	}
 
 	@Override
-	public void config(Properties properties) throws ConfigurationException {
-		super.config(properties);
-		
+	public ConfigurationResult config(Properties properties) {
 		path = properties.getProperty("path", "/tmp/metrics-monitor-statuses/");
+		
+		return ConfigurationResult.SUCCESSFUL();
 	}
 	
 	@Override

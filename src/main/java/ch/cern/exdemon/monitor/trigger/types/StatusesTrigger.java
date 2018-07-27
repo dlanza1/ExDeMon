@@ -6,10 +6,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult.Status;
 import ch.cern.exdemon.monitor.trigger.Trigger;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import lombok.ToString;
 
@@ -23,8 +23,8 @@ public class StatusesTrigger extends Trigger {
     private Set<Status> expectedStatuses;
 
     @Override
-    public void config(Properties properties) throws ConfigurationException {
-        super.config(properties);
+    public ConfigurationResult config(Properties properties) {
+        ConfigurationResult configResult = super.config(properties);
         
         expectedStatuses = Stream.of(properties.getProperty(STATUSES_PARAM).split("\\s"))
 					        		.map(String::trim)
@@ -32,7 +32,7 @@ public class StatusesTrigger extends Trigger {
 					        		.map(Status::valueOf)
 					        		.collect(Collectors.toSet());
         
-        properties.confirmAllPropertiesUsed();
+        return configResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }
 
     @Override

@@ -15,6 +15,7 @@ import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.log4j.Logger;
 
 import ch.cern.exdemon.components.ComponentsCatalog;
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.components.source.ComponentsSource;
 import ch.cern.properties.ConfigurationException;
@@ -36,7 +37,9 @@ public class FileComponentsSource extends ComponentsSource {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     
     @Override
-    public void configure(Properties properties) throws ConfigurationException {
+    public ConfigurationResult configure(Properties properties) {
+        ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+        
         path = properties.getProperty("path");
         
         try {
@@ -44,12 +47,16 @@ public class FileComponentsSource extends ComponentsSource {
             if (path.startsWith("file:/"))
                 fs = FileSystem.getLocal(new Configuration()).getRawFileSystem();
         } catch (IOException e) {
-            throw new ConfigurationException(e);
+            return confResult.withError("path", e);
         }
         
-        refreshPeriod = properties.getPeriod("expire", Duration.ofMinutes(5));
+        try {
+            refreshPeriod = properties.getPeriod("expire", Duration.ofMinutes(5));
+        } catch (ConfigurationException e) {
+            return confResult.withError("expire", e);
+        }
         
-        properties.confirmAllPropertiesUsed();
+        return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }
     
     @Override

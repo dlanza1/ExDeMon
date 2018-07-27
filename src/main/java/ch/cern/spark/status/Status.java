@@ -1,7 +1,6 @@
 package ch.cern.spark.status;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -37,10 +36,7 @@ public class Status {
 		
 		JavaSparkContext context = JavaSparkContext.fromSparkContext(operations.context().sparkContext());
 		
-		Optional<StatusesStorage> storageOpt = getStorage(context);
-		if(!storageOpt.isPresent())
-			throw new ConfigurationException("Storage needs to be configured");
-		StatusesStorage storage = storageOpt.get();
+		StatusesStorage storage = getStorage(context);
 
         JavaDStream<StatusOperation<K, V>> opsWithKey = operations.filter(op -> op.getOp().equals(Op.UPDATE) 
                                                                              || op.getOp().equals(Op.REMOVE)
@@ -93,17 +89,17 @@ public class Status {
 		    return Option.empty();
 	}
 
-	private static Optional<StatusesStorage> getStorage(JavaSparkContext context) throws ConfigurationException {
+	private static StatusesStorage getStorage(JavaSparkContext context) throws ConfigurationException {
 		Properties sparkConf = Properties.from(context.getConf().getAll());
 		Properties storageConfig = sparkConf.getSubset(StatusesStorage.STATUS_STORAGE_PARAM);
 		
 		if(storageConfig.isTypeDefined()) {
 		    ComponentBuildResult<StatusesStorage> storageBuildResult = ComponentTypes.build(Type.STATUS_STORAGE, storageConfig);
-		    storageBuildResult.throwExceptionIfPresent();
+		    storageBuildResult.throwExceptionsIfPresent();
 		    
-		    return storageBuildResult.getComponent();
+		    return storageBuildResult.getComponent().get();
 		}else {
-		    return Optional.empty();
+		    throw new ConfigurationException(StatusesStorage.STATUS_STORAGE_PARAM, "storage needs to be configured");
 		}
 	}
 

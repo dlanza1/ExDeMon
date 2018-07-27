@@ -26,6 +26,7 @@ import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.struct.Metric;
 import ch.cern.exdemon.struct.filter.MetricsFilter;
 import ch.cern.properties.ConfigurationException;
@@ -65,11 +66,14 @@ public class MetricSchema {
         this.id = id;
     }
     
-    public void config(Properties properties) throws ConfigurationException{
+    public ConfigurationResult config(Properties properties){
+        ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+        
         String sourcesValue = properties.getProperty(SOURCES_PARAM);
         if (sourcesValue == null)
-            throw new ConfigurationException("sources must be spcified");
-        sourceNames = Arrays.asList(sourcesValue.split("\\s"));
+            confResult.withMustBeConfigured(SOURCES_PARAM);
+        else
+            sourceNames = Arrays.asList(sourcesValue.split("\\s"));
 
         timestamp_key = properties.getProperty(TIMESTAMP_KEY_PARAM);
         timestamp_format_pattern = properties.getProperty(TIMESTAMP_FORMAT_PARAM, TIMESTAMP_FORMAT_DEFAULT);
@@ -80,12 +84,12 @@ public class MetricSchema {
         Set<String> valueIDs = valuesProps.getIDs();
         for (String valueId : valueIDs) {
             ValueDescriptor descriptor = new ValueDescriptor(valueId);
-            descriptor.config(valuesProps.getSubset(valueId));
+            confResult.merge(VALUES_PARAM + valueId, descriptor.config(valuesProps.getSubset(valueId)));
             
             values.add(descriptor);
         }
         if (values.isEmpty())
-            throw new ConfigurationException(VALUES_PARAM + " must be configured.");
+            confResult.withMustBeConfigured(VALUES_PARAM);
 
         fixedAttributes = new HashMap<>();
         fixedAttributes.put("$schema", id);
@@ -102,13 +106,13 @@ public class MetricSchema {
         filter = new MetricsFilter();
         filter.config(properties.getSubset(FILTER_PARAM));
         
-        properties.confirmAllPropertiesUsed();
-        
         try {
             jsonSchema = getJsonSchema();
         } catch (ParseException e) {
-            throw new ConfigurationException(e);
+            confResult.withError(null, e);
         }
+        
+        return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }
     
     public Optional<Dataset<Metric>> apply(Map<String, Dataset<String>> sourcesMap) throws ConfigurationException{

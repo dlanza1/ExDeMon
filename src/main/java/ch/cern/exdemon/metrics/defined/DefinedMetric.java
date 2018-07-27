@@ -1,6 +1,5 @@
 package ch.cern.exdemon.metrics.defined;
 
-import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -10,12 +9,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.log4j.Logger;
-
 import ch.cern.exdemon.Driver;
 import ch.cern.exdemon.components.Component;
 import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.components.ComponentType;
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.Equation;
 import ch.cern.exdemon.metrics.defined.equation.var.MetricVariable;
@@ -35,8 +33,6 @@ import lombok.ToString;
 public final class DefinedMetric extends Component {
 
 	private static final long serialVersionUID = 82179461944060520L;
-	
-	private final static Logger LOG = Logger.getLogger(DefinedMetric.class.getName());
 
 	private Set<String> metricsGroupBy;
 	
@@ -60,36 +56,18 @@ public final class DefinedMetric extends Component {
 	}
 
 	@Override
-	public void config(Properties properties) {
-		try {
-			tryConfig(properties);
-		} catch (ConfigurationException e) {
-		    LOG.error(getId() + ": " + e.getMessage(), e);
-		    
-			configurationException = e;
-			
-            try {
-                Optional<Duration> batchDurationOpt = properties.getPeriod(Driver.BATCH_INTERVAL_PARAM);
-                
-                if(!batchDurationOpt.isPresent())
-                    throw new RuntimeException("spark.batch.duration must be configured");
-                
-                when = When.from(batchDurationOpt.get(), "1m");
-            } catch (ConfigurationException e1) {
-                LOG.error(e1);
-            }
-
-			metricsGroupBy = null;
-			equation = null;
-		}
-	}
-	
-	public DefinedMetric tryConfig(Properties properties) throws ConfigurationException {		
+	public ConfigurationResult config(Properties properties) {	
+	    ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+	    
 		String groupByVal = properties.getProperty("metrics.groupby");
 		if(groupByVal != null)
 			metricsGroupBy = Arrays.stream(groupByVal.split(" ")).map(String::trim).collect(Collectors.toSet());
 		
-		filter = MetricsFilter.build(properties.getSubset("metrics.filter"));
+		try {
+            filter = MetricsFilter.build(properties.getSubset("metrics.filter"));
+        } catch (ConfigurationException e) {
+            confResult.withError("metrics.filter", e);
+        }
 		
 		fixedValueAttributes = properties.getSubset("metrics.attribute").entrySet().stream()
 		                            .map(entry -> new Pair<String, String>(entry.getKey().toString(), entry.getValue().toString()))
@@ -103,11 +81,11 @@ public final class DefinedMetric extends Component {
 			if(equationString == null && variableNames.size() == 1)	
 				equation = new Equation(variableNames.iterator().next(), variablesProperties);
 			else if(equationString == null)
-				throw new ConfigurationException("Value must be specified.");
+			    return confResult.withMustBeConfigured("value");
 			else
 				equation = new Equation(equationString, variablesProperties);
-		} catch (ParseException e) {
-			throw new ConfigurationException("Problem parsing value: " + e.getMessage());
+		} catch (Exception e) {
+			return confResult.withError("value", e);
 		}
 		
 		Map<String, Variable> allVariables = new HashMap<>(equation.getVariables());
@@ -117,23 +95,24 @@ public final class DefinedMetric extends Component {
 		        continue;
 		    
             MetricVariable variable = new MetricVariable(variableName);
-            variable.config(variablesProperties.getSubset(variableName), Optional.empty());
+            ConfigurationResult varConfResult = variable.config(variablesProperties.getSubset(variableName), Optional.empty());
+            confResult.merge("variables."+variableName, varConfResult);
             
             allVariables.put(variableName, variable);
         }
 		
-		Optional<Duration> batchDurationOpt = properties.getPeriod(Driver.BATCH_INTERVAL_PARAM);
-        if(!batchDurationOpt.isPresent())
-            throw new RuntimeException(Driver.BATCH_INTERVAL_PARAM + " must be configured");
-        
-		when = When.from(batchDurationOpt.get(), allVariables, properties.getProperty("when", "ANY"));		
+        try {
+            Optional<Duration> batchDurationOpt = properties.getPeriod(Driver.BATCH_INTERVAL_PARAM);
+            
+            if(!batchDurationOpt.isPresent())
+                throw new RuntimeException(Driver.BATCH_INTERVAL_PARAM + " must be configured");
+
+            when = When.from(batchDurationOpt.get(), allVariables, properties.getProperty("when", "ANY"));
+        } catch (ConfigurationException e) {
+            confResult.withError(null, e);
+        }
 		
-		variablesProperties.confirmAllPropertiesUsed();
-		properties.confirmAllPropertiesUsed();
-		
-		configurationException = null;
-		
-		return this;
+		return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
 	}
 
 	public boolean testIfApplyForAnyVariable(Metric metric) {

@@ -23,6 +23,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.json.JSONParser;
 import ch.cern.utils.Pair;
 import ch.cern.utils.TimeUtils;
@@ -182,8 +183,7 @@ public class Properties extends java.util.Properties {
         else if (value.toLowerCase().equals("false"))
             return false;
         else
-            throw new ConfigurationException(
-                    key + " expects boolean value (true or false). \"" + value + "\" could not be parsed");
+            throw new ConfigurationException(key, "expects boolean value (true or false). \"" + value + "\" could not be parsed");
     }
 
     public synchronized void setPropertyIfAbsent(String key, String value) {
@@ -209,7 +209,7 @@ public class Properties extends java.util.Properties {
         try {
             return TimeUtils.parsePeriod(value);
         } catch (NumberFormatException e) {
-            throw new ConfigurationException("For key=" + key + ": " + e.getMessage());
+            throw new ConfigurationException(key, e);
         }
     }
 
@@ -217,12 +217,16 @@ public class Properties extends java.util.Properties {
         return Optional.ofNullable(getPeriod(key, null));
     }
 
-    public synchronized void confirmAllPropertiesUsed() throws ConfigurationException {
+    public synchronized ConfigurationResult warningsIfNotAllPropertiesUsed() {
         HashSet<Object> leftKeys = new HashSet<>(keySet());
         leftKeys.removeAll(usedKeys);
+        
+        ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
 
-        if (!leftKeys.isEmpty())
-            throw new ConfigurationException("Some configuration parameters (" + leftKeys + ") were not used.");
+        for (Object key : leftKeys)
+            confResult.withWarning((String)key, "parameter not used");
+        
+        return confResult;
     }
 
     public Map<String, String> toStringMap() {

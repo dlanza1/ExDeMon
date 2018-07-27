@@ -11,11 +11,32 @@ import org.junit.Test;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import ch.cern.exdemon.components.ConfigurationResult;
+
 public class PropertiesTest {
     
     Properties propertiesSource = new Properties();
     {
         propertiesSource.put("type", "static");
+    }
+    
+    @Test
+    public void notUsedProperties() {
+        Properties prop = new Properties();
+        prop.setProperty("a", "a");
+        prop.setProperty("b", "b");
+        prop.setProperty("c", "c");
+
+        prop.getProperty("a");
+        
+        ConfigurationResult confResult = prop.warningsIfNotAllPropertiesUsed();
+        assertEquals(2, confResult.getWarnings().size());
+        
+        prop.getProperty("b");
+        prop.getProperty("c");
+        
+        confResult = prop.warningsIfNotAllPropertiesUsed();
+        assertEquals(0, confResult.getWarnings().size());
     }
 
     @Test

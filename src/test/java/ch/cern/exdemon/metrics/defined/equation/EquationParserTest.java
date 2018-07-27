@@ -68,7 +68,7 @@ public class EquationParserTest {
 			new Equation("trim(varFloat)", props);
 			fail();
 		}catch(ParseException | ConfigurationException e) {
-			assertEquals("Variable varFloat returns type FloatValue because of its aggregation operation, but in the equation there is a function that uses it as type StringValue", e.getMessage());
+			assertEquals("variable varFloat returns type FloatValue because of its aggregation operation, but in the equation there is a function that uses it as type StringValue", e.getMessage());
 		}
 	}
 	

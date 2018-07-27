@@ -21,9 +21,9 @@ import com.google.common.annotations.VisibleForTesting;
 
 import ch.cern.exdemon.components.ComponentRegistrationResult;
 import ch.cern.exdemon.components.ComponentRegistrationResult.Status;
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.components.source.ComponentsSource;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 
 @RegisterComponentType("zookeeper")
@@ -57,13 +57,13 @@ public class ZookeeperComponentsSource extends ComponentsSource {
     }
     
     @Override
-    protected void configure(Properties properties) throws ConfigurationException {
+    protected ConfigurationResult configure(Properties properties) {
         zkConnString = properties.getProperty("connection_string");
         initialization_timeout_ms = properties.getLong("initialization_timeout_ms", 5000);
         timeout_ms = (int) properties.getLong("timeout_ms", 20000);
         confNodeName = properties.getProperty("conf_node_name", CONF_NODE_NAME_DEFAULT);
         
-        properties.confirmAllPropertiesUsed();
+        return properties.warningsIfNotAllPropertiesUsed();
     }
 
     private void insertComponent(String path, String value) {

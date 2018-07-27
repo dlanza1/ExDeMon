@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import org.junit.Test;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.properties.ConfigurationException;
@@ -36,44 +37,32 @@ public class DefinedMetricTest {
 	public void configNotValid() throws ConfigurationException {
 		Properties props = newProperties();
 		
-		Map<String, String> groupByMetricIDs = new HashMap<>();
-		
-		Instant batchTime = Instant.parse("2017-12-03T10:15:00.00Z");
-		
 		DefinedMetric metric = new DefinedMetric("test");
-		metric.config(props);
-		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
-        Optional<Metric> result = metric.generateByBatch(new VariableStatuses(), batchTime, groupByMetricIDs);
-		assertEquals("ConfigurationException: Value must be specified.", result.get().getValue().getAsException().get());
+		ConfigurationResult configResult = metric.config(props);
+		assertEquals("value: must be configured", configResult.getErrors().get(0).toString());
 		
 		props = newProperties();
 		props.setProperty("value", "x * 10");
 		props.setProperty("variables.y.filter.attribute.AA", "metricAA");
 		metric = new DefinedMetric("test");
-		metric.config(props);
-		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
-		result = metric.generateByBatch(new VariableStatuses(), batchTime, groupByMetricIDs);
-		assertEquals("ConfigurationException: Problem parsing value: Unknown variable: x", result.get().getValue().getAsException().get());
+		configResult = metric.config(props);
+		assertEquals("value: java.text.ParseException: Unknown variable: x", configResult.getErrors().get(0).toString());
 		
 		props = newProperties();
 		props.setProperty("value", "x * 10");
 		props.setProperty("when", "y");
 		props.setProperty("variables.x.filter.attribute.AA", "metricAA");
 		metric = new DefinedMetric("test");
-		metric.config(props);
-		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
-		result = metric.generateByBatch(new VariableStatuses(), batchTime, groupByMetricIDs);
-		assertEquals("ConfigurationException: Variables listed in when parameter must be declared (missing: [y]).", result.get().getValue().getAsException().get());
+		configResult = metric.config(props);
+		assertEquals("when: Variables listed in when parameter must be declared (missing: [y]).", configResult.getErrors().get(0).toString());
 		
 		props = newProperties();
 		props.setProperty("value", "trim(count)");
 		props.setProperty("variables.count.aggregate.type", "count_strings");
 		metric = new DefinedMetric("test");
-		metric.config(props);
-		assertFalse(metric.generateByUpdate(null, null, null).isPresent());
-		result = metric.generateByBatch(new VariableStatuses(), batchTime, groupByMetricIDs);
-		assertEquals("ConfigurationException: Variable count returns type FloatValue because of its aggregation operation, "
-						+ "but in the equation there is a function that uses it as type StringValue", result.get().getValue().getAsException().get());
+		configResult = metric.config(props);
+		assertEquals("value.count: variable count returns type FloatValue because of its aggregation operation, "
+						+ "but in the equation there is a function that uses it as type StringValue", configResult.getErrors().get(0).toString());
 		
 	}
 

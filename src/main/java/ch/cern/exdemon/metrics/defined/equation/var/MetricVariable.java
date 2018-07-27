@@ -12,11 +12,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.esotericsoftware.minlog.Log;
-
 import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.components.ComponentBuildResult;
 import ch.cern.exdemon.components.ComponentTypes;
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.metrics.DatedValue;
 import ch.cern.exdemon.metrics.Metric;
@@ -61,29 +60,41 @@ public class MetricVariable extends Variable {
         super(name);
     }
 
-    public MetricVariable config(Properties properties, Optional<Class<? extends Value>> typeOpt)
-            throws ConfigurationException {
-        filter = MetricsFilter.build(properties.getSubset("filter"));
+    public ConfigurationResult config(Properties properties, Optional<Class<? extends Value>> typeOpt) {
+        ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+        
+        try {
+            filter = MetricsFilter.build(properties.getSubset("filter"));
+        } catch (ConfigurationException e) {
+            confResult.withError("filter", e);
+        }
 
         if (properties.containsKey("expire") && properties.getProperty("expire").toLowerCase().equals("never"))
             expire = null;
         else
-            expire = DurationAndTruncate.from(properties.getProperty("expire", "10m"));
+            try {
+                expire = DurationAndTruncate.from(properties.getProperty("expire", "10m"));
+            } catch (ConfigurationException e) {
+                confResult.withError("expire", e);
+            }
 
         String aggregateVal = properties.getProperty("aggregate.type");
         if (aggregateVal != null) {
             ComponentBuildResult<Aggregation> aggregationBuildResult = ComponentTypes.build(Type.AGGREGATION, properties.getSubset("aggregate"));
-            aggregationBuildResult.throwExceptionIfPresent();
-            aggregation = aggregationBuildResult.getComponent().get();
+            confResult.merge("aggregate", aggregationBuildResult.getConfigurationResult());
+            
+            if(aggregationBuildResult.getComponent().isPresent()) {
+                aggregation = aggregationBuildResult.getComponent().get();
 
-            if (aggregation instanceof WAvgAggregation)
-                ((WAvgAggregation) aggregation).setExpire(expire);
+                if (aggregation instanceof WAvgAggregation)
+                    ((WAvgAggregation) aggregation).setExpire(expire);
 
-            if (typeOpt.isPresent() && !aggregation.returnType().equals(typeOpt.get()))
-                throw new ConfigurationException("Variable " + name + " returns type "
-                        + aggregation.returnType().getSimpleName() + " because of its aggregation operation, "
-                        + "but in the equation there is a function that uses it as type "
-                        + typeOpt.get().getSimpleName());
+                if (typeOpt.isPresent() && !aggregation.returnType().equals(typeOpt.get()))
+                    confResult.withError(name, "variable " + name + " returns type "
+                            + aggregation.returnType().getSimpleName() + " because of its aggregation operation, "
+                            + "but in the equation there is a function that uses it as type "
+                            + typeOpt.get().getSimpleName());
+            }
         } else {
             if (typeOpt.isPresent())
                 aggregation = new LastValueAggregation(typeOpt.get());
@@ -94,11 +105,19 @@ public class MetricVariable extends Variable {
         if (!properties.containsKey("ignore"))
             ignore = null;
         else
-            ignore = DurationAndTruncate.from(properties.getProperty("ignore"));
+            try {
+                ignore = DurationAndTruncate.from(properties.getProperty("ignore"));
+            } catch (ConfigurationException e) {
+                confResult.withError("ignore", e);
+            }
 
         String granularityString = properties.getProperty("aggregate.history.granularity");
         if (granularityString != null)
-            granularity = TimeUtils.parseGranularity(granularityString);
+            try {
+                granularity = TimeUtils.parseGranularity(granularityString);
+            } catch (ConfigurationException e) {
+                confResult.withError("aggregate.history.granularity", e);
+            }
 
         String aggregateSelect = properties.getProperty("aggregate.attributes");
         if (aggregateSelect != null && aggregateSelect.equals("ALL"))
@@ -110,12 +129,12 @@ public class MetricVariable extends Variable {
 
         max_lastAggregatedMetrics_size = (int) properties.getFloat("aggregate.latest-metrics.max-size", 0);
         if(max_lastAggregatedMetrics_size > 100) {
-            Log.warn("aggregate.latest-metrics.max-size can be maximun 100, new value = 100");
+            confResult.withWarning("aggregate.latest-metrics.max-size", "can be maximun 100, new value = 100");
             
             max_lastAggregatedMetrics_size = 100;
         }
 
-        return this;
+        return confResult;
     }
 
     @Override

@@ -20,6 +20,7 @@ import com.google.gson.JsonElement;
 
 import ch.cern.exdemon.components.Component;
 import ch.cern.exdemon.components.ComponentType;
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.json.JSON;
 import ch.cern.exdemon.metrics.Metric;
@@ -59,7 +60,6 @@ public final class MetricSchema extends Component {
     protected MetricsFilter filter;
 
     private static transient ExceptionsCache exceptionsCache = new ExceptionsCache(Duration.ofMinutes(1));
-    protected Exception configurationException;
     
     public MetricSchema() {
     }
@@ -69,24 +69,16 @@ public final class MetricSchema extends Component {
     }
 
     @Override
-    public void config(Properties properties) throws ConfigurationException {
-        try {
-            tryConfig(properties);
-        } catch (Exception e) {
-            configurationException = e;
-            
-            LOG.error(getId() + ": " + e.getMessage(), e);
-        }
-    }
-    
-    public void tryConfig(Properties properties) throws ConfigurationException {
+    public ConfigurationResult config(Properties properties) {
+        ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+        
         String sourcesValue = properties.getProperty(SOURCES_PARAM);
         if (sourcesValue == null)
-            throw new ConfigurationException("sources must be spcified");
+            confResult.withError(SOURCES_PARAM, ConfigurationResult.MUST_BE_CONFIGURED_MSG);
         sources = Arrays.asList(sourcesValue.split("\\s"));
         
         timestampDescriptor = new TimestampDescriptor();
-        timestampDescriptor.config(properties.getSubset(TIMESTAMP_PARAM));
+        confResult.merge(TIMESTAMP_PARAM, timestampDescriptor.config(properties.getSubset(TIMESTAMP_PARAM)));
 
         values = new LinkedList<>();
         Properties valuesProps = properties.getSubset(VALUES_PARAM);
@@ -94,12 +86,12 @@ public final class MetricSchema extends Component {
         Set<String> valueIDs = valuesProps.getIDs();
         for (String valueId : valueIDs) {
             ValueDescriptor descriptor = new ValueDescriptor(valueId);
-            descriptor.config(valuesProps.getSubset(valueId));
+            confResult.merge(VALUES_PARAM + valueId, descriptor.config(valuesProps.getSubset(valueId)));
             
             values.add(descriptor);
         }
         if (values.isEmpty())
-            throw new ConfigurationException(VALUES_PARAM + " must be configured.");
+            confResult.withError(VALUES_PARAM , ConfigurationResult.MUST_BE_CONFIGURED_MSG);
 
         fixedAttributes = new HashMap<>();
         fixedAttributes.put("$schema", getId());
@@ -119,25 +111,20 @@ public final class MetricSchema extends Component {
                 attributesPattern.add(new Pair<String, Pattern>(alias, Pattern.compile(key)));
         }
 
-        filter = MetricsFilter.build(properties.getSubset(FILTER_PARAM));
+        try {
+            filter = MetricsFilter.build(properties.getSubset(FILTER_PARAM));
+        } catch (ConfigurationException e) {
+            confResult.withError(FILTER_PARAM, e);
+        }
         
-        properties.confirmAllPropertiesUsed();
+        return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }
 
     private boolean isKeyRegex(String value) {
         return value.contains("*") || value.contains("+") || value.contains("(");
     }
 
-    public List<Metric> call(JSON jsonObject) {
-        if (configurationException != null) {
-            Optional<ExceptionValue> exceptionValueOpt = raiseException(null, configurationException);
-
-            if(exceptionValueOpt.isPresent())
-                return Collections.singletonList(new Metric(Instant.now(), exceptionValueOpt.get(), fixedAttributes));
-            else
-                return Collections.emptyList();
-        }
-        
+    public List<Metric> call(JSON jsonObject) {        
         try {
             Map<String, String> attributesForMetric = new HashMap<>(fixedAttributes);
             for (Pair<String, String> attribute : attributes) {

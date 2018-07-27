@@ -226,7 +226,7 @@ public class EquationParser {
 				variables.get(variableName).config(variablesProperties.getSubset(variableName), argumentTypeOpt);
 			}else if(argumentTypeOpt.isPresent() && !previousVariable.returnType().equals(argumentTypeOpt.get())) {
 			    if(previousVariable instanceof MetricVariable && !(((MetricVariable) previousVariable).getAggregation() instanceof LastValueAggregation))
-			        throw new ConfigurationException("Variable "+variableName+" returns type "+previousVariable.returnType().getSimpleName()+" because of its aggregation operation, "
+			        throw new ConfigurationException(variableName, "variable "+variableName+" returns type "+previousVariable.returnType().getSimpleName()+" because of its aggregation operation, "
 		                                                            + "but in the equation there is a function that uses it as type " + argumentTypeOpt.get().getSimpleName());
 			    else
 			        throw new ParseException("Variable "+variableName+" is used by functions that expect it as different types "

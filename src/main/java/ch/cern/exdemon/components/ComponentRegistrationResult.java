@@ -4,12 +4,13 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Optional;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
@@ -32,6 +33,32 @@ public class ComponentRegistrationResult {
                         return new JsonPrimitive(ZonedDateTime.ofInstant(instant , ZoneOffset.systemDefault()).format(formatter));
                     }
                 })
+            .registerTypeAdapter(ConfigurationResult.class, new JsonSerializer<ConfigurationResult>() {
+                @Override
+                public JsonElement serialize(ConfigurationResult confgiResult, java.lang.reflect.Type type, JsonSerializationContext context) {
+                    JsonObject object = new JsonObject();
+                    
+                    JsonArray errors = new JsonArray();
+                    for (ConfigurationException excep : confgiResult.getErrors()) {
+                        JsonObject excepJson = new JsonObject();
+                        excepJson.addProperty("parameter", excep.getParameter());
+                        excepJson.addProperty("message", excep.getMessage());
+                        errors.add(excepJson);
+                    }
+                    object.add("errors", errors);
+                    
+                    JsonArray warninigs = new JsonArray();
+                    for (ConfigurationException warn : confgiResult.getWarnings()) {
+                        JsonObject excepJson = new JsonObject();
+                        excepJson.addProperty("parameter", warn.getParameter());
+                        excepJson.addProperty("message", warn.getMessage());
+                        warninigs.add(excepJson);
+                    }
+                    object.add("warnings", warninigs);
+                    
+                    return object;
+                }
+            })
             .create();
     
     private Instant timestamp;
@@ -52,10 +79,8 @@ public class ComponentRegistrationResult {
     private Status status;
     
     private transient Component component;
-    
-    private ConfigurationException exception;
-    
-    private List<String> warnings;
+
+    private ConfigurationResult configurationResult;
     
     private ComponentRegistrationResult() {
         this.timestamp = Instant.now();
@@ -66,20 +91,18 @@ public class ComponentRegistrationResult {
         
         componentRegistration.componentId = componentBuildResult.getComponentId();
         componentRegistration.componentType = componentBuildResult.getComponentType();
+        componentRegistration.configurationResult = componentBuildResult.getConfigurationResult();
         
         componentBuildResult.getComponent().ifPresent(c -> {
             componentRegistration.component = c;
         });
         
-        if(componentBuildResult.getException().isPresent())
+        if(!componentBuildResult.getConfigurationResult().getErrors().isEmpty())
             componentRegistration.status = Status.ERROR;
-        else if (!componentBuildResult.getWarnings().isEmpty())
+        else if (!componentBuildResult.getConfigurationResult().getWarnings().isEmpty())
             componentRegistration.status = Status.WARNING;
         else
             componentRegistration.status = Status.OK;
-        
-        componentBuildResult.getException().ifPresent(e -> {componentRegistration.exception = e;});
-        componentRegistration.warnings = componentBuildResult.getWarnings();
         
         return componentRegistration;
     }

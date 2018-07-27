@@ -53,7 +53,7 @@ public class ComponentsCatalogTest {
         assertTrue(ComponentsCatalog.get(Type.MONITOR, "id").isPresent());
         
         Properties wrongProperties = new Properties();
-        wrongProperties.setProperty("filter..dummy", "dummy");
+        wrongProperties.setProperty("filter.expr", "dummy");
         
         ComponentRegistrationResult componentRegistrationResult = ComponentsCatalog.register(Type.MONITOR, "id", wrongProperties);
 

@@ -1,6 +1,11 @@
 package ch.cern.exdemon.struct.schema;
 
-import static org.apache.spark.sql.functions.*;
+import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.lit;
+import static org.apache.spark.sql.functions.lower;
+import static org.apache.spark.sql.functions.regexp_extract;
+import static org.apache.spark.sql.functions.struct;
+import static org.apache.spark.sql.functions.when;
 
 import java.io.Serializable;
 import java.util.regex.Pattern;
@@ -8,7 +13,7 @@ import java.util.regex.Pattern;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.types.DataTypes;
 
-import ch.cern.properties.ConfigurationException;
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.properties.Properties;
 import lombok.Getter;
 import lombok.ToString;
@@ -38,15 +43,17 @@ public class ValueDescriptor implements Serializable{
         this.id = id;
     }
     
-    public void config(Properties props) throws ConfigurationException {
+    public ConfigurationResult config(Properties props) {
+        ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+        
         key = props.getProperty(KEY_PARAM);
         if(key == null)
-            throw new ConfigurationException(KEY_PARAM + " must be configured");
+            confResult.withMustBeConfigured(KEY_PARAM);
         
         regex = props.getProperty(REGEX_PARAM);
         if(regex != null) {
             if(Pattern.compile(regex).matcher("").groupCount() != 1)
-                throw new ConfigurationException("Regex expression must contain exactly 1 capture group from which value will be extracted");
+                confResult.withError(REGEX_PARAM, "regex expression must contain exactly 1 capture group from which value will be extracted");
         }
         
         String typeString = props.getProperty(TYPE_PARAM);
@@ -55,7 +62,7 @@ public class ValueDescriptor implements Serializable{
         else
             type = Type.AUTO;
         
-        props.confirmAllPropertiesUsed();
+        return confResult.merge(null, props.warningsIfNotAllPropertiesUsed());
     }
 
     public Column getColum() {

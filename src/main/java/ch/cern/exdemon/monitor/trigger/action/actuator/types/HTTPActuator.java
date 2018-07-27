@@ -1,10 +1,10 @@
 package ch.cern.exdemon.monitor.trigger.action.actuator.types;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.http.HTTPSink;
 import ch.cern.exdemon.monitor.trigger.action.Action;
 import ch.cern.exdemon.monitor.trigger.action.actuator.Actuator;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import lombok.ToString;
 
@@ -17,11 +17,10 @@ public class HTTPActuator extends Actuator {
 	private HTTPSink sink = new HTTPSink();
 
 	@Override
-	public void config(Properties properties) throws ConfigurationException {
-		super.config(properties);
-		
+	public ConfigurationResult config(Properties properties) {
 		properties.setPropertyIfAbsent(HTTPSink.RETRIES_PARAM, "5");
-		sink.config(properties);
+		
+		return sink.config(properties);
 	}
 
 	@Override

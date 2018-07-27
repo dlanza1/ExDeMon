@@ -9,11 +9,11 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 import ch.cern.exdemon.components.Component;
-import ch.cern.exdemon.components.ComponentType;
-import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.components.ComponentRegistrationResult;
-import ch.cern.properties.ConfigurationException;
+import ch.cern.exdemon.components.ComponentType;
+import ch.cern.exdemon.components.ComponentsCatalog;
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.properties.Properties;
 
 @ComponentType(Type.COMPONENTS_SOURCE)
@@ -33,7 +33,7 @@ public abstract class ComponentsSource extends Component {
     }
     
     @Override
-    public final void config(Properties properties) throws ConfigurationException {
+    public final ConfigurationResult config(Properties properties) {
         Properties filtersProps = properties.getSubset("id.filters");
         if(filtersProps.size() > 0) {
             id_filters = new LinkedList<>();
@@ -45,10 +45,11 @@ public abstract class ComponentsSource extends Component {
         
         staticProperties = properties.getSubset("static");
         
-        configure(properties);
+        return configure(properties);
     }
     
-    protected void configure(Properties properties) throws ConfigurationException {
+    protected ConfigurationResult configure(Properties properties) {
+        return ConfigurationResult.SUCCESSFUL();
     }
 
     public final Optional<ComponentRegistrationResult> register(Type componentType, String id, Properties properties) {

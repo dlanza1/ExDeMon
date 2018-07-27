@@ -74,13 +74,15 @@ public class TimestampDescriptorTest {
         assertEquals(1234000, result.toEpochMilli());
     }
     
-    @Test(expected=ConfigurationException.class)
+    @Test
     public void regexWrongConfigured() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(REGEX_PARAM, "aa\\d+bb");
         
         TimestampDescriptor descriptor = new TimestampDescriptor();
-        descriptor.config(props);
+        
+        assertEquals("regex expression must contain exactly 1 capture group from which timestamp will be extracted", 
+                      descriptor.config(props).getErrors().get(0).getMessage());
     }
 
     @Test
@@ -234,13 +236,15 @@ public class TimestampDescriptorTest {
         descriptor.extract(new JSON(jsonObject));
     }
 
-    @Test(expected=ConfigurationException.class)
+    @Test
     public void foramtWrongConfigured() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(KEY_PARAM, "time");
         props.setProperty(FORMAT_PARAM, "wrong_format");
         TimestampDescriptor descriptor = new TimestampDescriptor();
-        descriptor.config(props);
+        
+        assertEquals("must be epoch-ms, epoch-s or a pattern compatible with DateTimeFormatterBuilder.", 
+                descriptor.config(props).getErrors().get(0).getMessage());
     }
     
 }

@@ -70,7 +70,7 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
 			try {
 				filter.addAttributesPredicate(AttributesPredicateParser.parse(expression));
 			} catch (ParseException e) {
-				throw new ConfigurationException("Error when parsing filter expression: " + e.getMessage());
+				throw new ConfigurationException("expr", "Error when parsing filter expression: " + e.getMessage());
 			}
         
         Optional<Duration> timestampExpireOpt = props.getPeriod("timestamp.expire");
@@ -86,11 +86,11 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
                 
                 List<String> values = getValues(valueString);
                 if(values.size() == 0) {
-            			try {
-            				filter.addAttributesPredicate(key, valueString);
-            			} catch (ParseException e) {
-            				throw new ConfigurationException("Error when parsing filter (" + key + ") value expression (" + valueString + "): " + e.getMessage());
-            			}
+        			try {
+        				filter.addAttributesPredicate(key, valueString);
+        			} catch (ParseException e) {
+        				throw new ConfigurationException("attribute."+key, "Error when parsing filter value expression (" + valueString + "): " + e.getMessage());
+        			}
                 }else {
                     boolean negate = valueString.startsWith("!");
                     
@@ -111,9 +111,9 @@ public class MetricsFilter implements Predicate<Metric>, Serializable{
                 }
             }
         
-			props.confirmAllPropertiesUsed();
+			props.warningsIfNotAllPropertiesUsed();
 		} catch (ConfigurationException|ParseException e) {
-		    throw new ConfigurationException("Error when parsing filter: " + e.getMessage());
+		    throw new ConfigurationException("attribute", "error when parsing attributes in filter: " + e.getMessage());
         }
         
         return filter;

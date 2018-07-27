@@ -45,13 +45,14 @@ public abstract class Component implements Serializable {
         this.id = id;
     }
 
-    protected final void buildConfig(Properties properties) throws ConfigurationException {
+    protected final ConfigurationResult buildConfig(Properties properties) throws ConfigurationException {
         propertiesHash = properties.hashCode();
         
-        config(properties);
+        return config(properties);
     }
 
-    protected void config(Properties properties) throws ConfigurationException {   
+    protected ConfigurationResult config(Properties properties) {   
+        return ConfigurationResult.SUCCESSFUL();
     }
 
     public boolean hasStatus() {

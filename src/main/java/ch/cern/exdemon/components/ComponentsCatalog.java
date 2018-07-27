@@ -28,7 +28,7 @@ public class ComponentsCatalog {
             return;
         
         ComponentBuildResult<ComponentsSource> sourceBuildResult = ComponentTypes.build(Type.COMPONENTS_SOURCE, properties);
-        sourceBuildResult.throwExceptionIfPresent();
+        sourceBuildResult.throwExceptionsIfPresent();
         
         source = sourceBuildResult.getComponent().get();
         
@@ -68,9 +68,8 @@ public class ComponentsCatalog {
             components.get(componentType).put(id, c);
         });
         
-        componentBuildResult.getException().ifPresent(e -> {
+        if(!componentBuildResult.getConfigurationResult().getErrors().isEmpty())
             remove(componentType, id);
-        });
         
         return ComponentRegistrationResult.from(componentBuildResult);
     }

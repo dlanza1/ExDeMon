@@ -2,12 +2,12 @@ package ch.cern.exdemon.monitor.analysis.types;
 
 import java.time.Instant;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.metrics.predictor.LearningRatioValuePredictor;
 import ch.cern.exdemon.metrics.predictor.Prediction;
 import ch.cern.exdemon.monitor.analysis.NumericAnalysis;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
@@ -35,8 +35,8 @@ public class SeasonalAnalysis extends NumericAnalysis implements HasStatus{
     public static Float WARNING_RATIO_DEFAULT = 2f;
     private Float warning_ratio;
 
-    public void config(Properties properties) throws ConfigurationException {
-        super.config(properties);
+    public ConfigurationResult config(Properties properties) {
+        ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
         
         learning_ratio = properties.getFloat(LEARNING_RATIO_PARAM, LEARNING_RATIO_DEFAULT);
         season = properties.getProperty(SEASON_PARAM, SEASON_DEFAULT).toUpperCase();    
@@ -46,7 +46,7 @@ public class SeasonalAnalysis extends NumericAnalysis implements HasStatus{
         error_ratio = properties.getFloat(ERROR_RATIO_PARAM, ERROR_RATIO_DEFAULT);
         warning_ratio = properties.getFloat(WARNING_RATIO_PARAM, WARNING_RATIO_DEFAULT);
         
-        properties.confirmAllPropertiesUsed();
+        return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }
     
     @Override

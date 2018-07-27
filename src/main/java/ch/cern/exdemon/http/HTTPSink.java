@@ -28,6 +28,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
 
 import ch.cern.Taggable;
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.json.JSON;
 import ch.cern.exdemon.json.JSONParser;
 import ch.cern.exdemon.monitor.trigger.action.Action;
@@ -74,18 +75,28 @@ public class HTTPSink implements Serializable{
 
     private boolean addAction;
 
-	public void config(Properties properties) throws ConfigurationException {
+	public ConfigurationResult config(Properties properties) {
+	    ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+	    
 		url = properties.getProperty(URL_PARAM);
 		if(url == null)
-		    throw new ConfigurationException("URL must be specified");
+		    confResult.withMustBeConfigured(URL_PARAM);
 		
 		retries = (int) properties.getFloat(RETRIES_PARAM, 1);
 		timeout_ms = (int) properties.getFloat(TIMEOUT_PARAM, 2000);
 		parallelization = (int) properties.getFloat(PARALLELIZATION_PARAM, 1);
 		batch_size = (int) properties.getFloat(BATCH_SIZE_PARAM, 100);
-		as_array = properties.getBoolean(AS_ARRAY_PARAM, true);
+		try {
+            as_array = properties.getBoolean(AS_ARRAY_PARAM, true);
+        } catch (ConfigurationException e) {
+            confResult.withError(null, e);
+        }
 		
-		addAction = properties.getBoolean("add.$action", true);
+		try {
+            addAction = properties.getBoolean("add.$action", true);
+        } catch (ConfigurationException e) {
+            confResult.withError(null, e);
+        }
 		
 		propertiesToAdd = properties.getSubset("add").toStringMap();
 		propertiesToAdd.remove("$action");
@@ -100,13 +111,15 @@ public class HTTPSink implements Serializable{
                 
                 authHeader = new Header("Authorization", "Basic " + encoding);
             } catch (UnsupportedEncodingException e) {
-                throw new ConfigurationException("Problem when creating authentication header");
+                confResult.withError(AUTH_PARAM, "problem when creating authentication header");
             }
         }else if(authenticationType.equals("disabled")){
         	authHeader = null;
         }else {
-        	throw new ConfigurationException("Authentication type \"" + authenticationType + "\" is not available.");
+            confResult.withError(AUTH_TYPE_PARAM, "authentication type \"" + authenticationType + "\" is not available");
         }
+        
+        return confResult;
 	}
 	
 	public void sink(JavaDStream<?> outputStream) {
@@ -210,7 +223,7 @@ public class HTTPSink implements Serializable{
             thrownExceptions.add(thrownException);
         
         if(!thrownExceptions.isEmpty())
-            LOG.error(new IOException("Same batches could not be sent. Exceptions: " + thrownExceptions));
+            LOG.error(new IOException("Some batches could not be sent. Exceptions: " + thrownExceptions));
     }
 
     public Exception sendBatch(List<JsonPOSTRequest> requests) {

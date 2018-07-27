@@ -7,11 +7,11 @@ import java.util.Map.Entry;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.elasticsearch.spark.streaming.api.java.JavaEsSparkStreaming;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.json.JSONParser;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import ch.cern.exdemon.monitor.analysis.results.sink.AnalysisResultsSink;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 
 @RegisterComponentType("elastic")
@@ -24,12 +24,12 @@ public class ElasticAnalysisResultsSink extends AnalysisResultsSink {
     private Map<String, String> elasticConfig;
 
     @Override
-    public void config(Properties properties) throws ConfigurationException {
-        super.config(properties);
-        
+    public ConfigurationResult config(Properties properties) {
         indexName = properties.getProperty("index");
         
         elasticConfig = getElasticConfig(properties);
+        
+        return ConfigurationResult.SUCCESSFUL();
     }
     
     private Map<String, String> getElasticConfig(Properties properties) {

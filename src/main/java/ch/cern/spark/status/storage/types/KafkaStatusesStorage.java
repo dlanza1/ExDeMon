@@ -36,6 +36,7 @@ import org.apache.spark.streaming.Time;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -68,13 +69,21 @@ public class KafkaStatusesStorage extends StatusesStorage {
 
     private Duration timeout;
 	
-	public void config(Properties properties) throws ConfigurationException {
+	public ConfigurationResult config(Properties properties) {
+	    ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+	    
 		kafkaProducerParams = getKafkaProducerParams(properties);
 		kafkaConsumerParams = getKafkaConsumerParams(properties);
         
 		topic = properties.getProperty("topic");
+		if(topic == null)
+		    confResult.withMustBeConfigured("topic");
 		
-		timeout = properties.getPeriod("timeout", Duration.ofSeconds(2));
+		try {
+            timeout = properties.getPeriod("timeout", Duration.ofSeconds(2));
+        } catch (ConfigurationException e) {
+            confResult.withError("timeout", e);
+        }
 		
 		String serializationType = properties.getProperty("serialization", "json");
 		switch (serializationType) {
@@ -85,10 +94,10 @@ public class KafkaStatusesStorage extends StatusesStorage {
 			serializer = new JavaStatusSerializer();
 			break;
 		default:
-			throw new ConfigurationException("Serialization type " + serializationType + " is not available.");
+		    confResult.withError("serialization", "serialization type " + serializationType + " is not available.");
 		}
         
-		properties.confirmAllPropertiesUsed();
+		return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
 	}
 	
 	@Override

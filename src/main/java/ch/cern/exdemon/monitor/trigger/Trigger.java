@@ -14,6 +14,7 @@ import java.util.function.Function;
 import ch.cern.exdemon.components.Component;
 import ch.cern.exdemon.components.ComponentType;
 import ch.cern.exdemon.components.ComponentTypes;
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.components.ComponentBuildResult;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
@@ -51,7 +52,9 @@ public abstract class Trigger extends Component implements Function<AnalysisResu
     }
 
     @Override
-    public void config(Properties properties) throws ConfigurationException {
+    public ConfigurationResult config(Properties properties) {
+        ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+        
         String actuatorIDsString = properties.getProperty("actuators");
 
         if (actuatorIDsString != null)
@@ -61,17 +64,28 @@ public abstract class Trigger extends Component implements Function<AnalysisResu
 
         tags = properties.getSubset("tags").toStringMap();
 
-        filter = MetricsFilter.build(properties.getSubset("filter"));
+        try {
+            filter = MetricsFilter.build(properties.getSubset("filter"));
+        } catch (ConfigurationException e) {
+            confResult.withError("filter", e);
+        }
 
-        silentPeriod = properties.getPeriod(SILENT_PERIOD_PARAM, Duration.ofSeconds(0));
+        try {
+            silentPeriod = properties.getPeriod(SILENT_PERIOD_PARAM, Duration.ofSeconds(0));
+        } catch (ConfigurationException e) {
+            confResult.withError(null, e);
+        }
 
         Properties silentPeriodTriggerProps = properties.getSubset(SILENT_TRIGGER_PARAM);
 
         if (silentPeriodTriggerProps.isTypeDefined()) {
             ComponentBuildResult<Trigger> silentPeriodTriggerBuildResult = ComponentTypes.build(Type.TRIGGER, "silent-period", silentPeriodTriggerProps);
-            silentPeriodTriggerBuildResult.throwExceptionIfPresent();
+            confResult.merge(SILENT_TRIGGER_PARAM, silentPeriodTriggerBuildResult.getConfigurationResult());
+            
             silentPeriodTrigger = silentPeriodTriggerBuildResult.getComponent().get();
         }
+        
+        return confResult;
     }
 
     public Optional<Action> apply(AnalysisResult result) {

@@ -3,6 +3,7 @@ package ch.cern.exdemon.metrics.defined.equation.var;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.ValueComputable;
 import ch.cern.exdemon.metrics.value.Value;
@@ -21,8 +22,8 @@ public abstract class Variable implements ValueComputable, Predicate<Metric> {
 		return name;
 	}
 
-	public Variable config(Properties properties, Optional<Class<? extends Value>> typeOpt) throws ConfigurationException {
-		return this;
+	public ConfigurationResult config(Properties properties, Optional<Class<? extends Value>> typeOpt) throws ConfigurationException {
+		return ConfigurationResult.SUCCESSFUL();
 	}
 	
 }

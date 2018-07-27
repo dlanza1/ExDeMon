@@ -5,6 +5,7 @@ import java.time.Instant;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.metrics.ValueHistory;
 import ch.cern.exdemon.metrics.value.FloatValue;
@@ -73,13 +74,29 @@ public class RecentActivityAnalysis extends NumericAnalysis implements HasStatus
     private long count = 0;
 
     @Override
-    public void config(Properties properties) throws ConfigurationException {
-        super.config(properties);
+    public ConfigurationResult config(Properties properties) {
+        ConfigurationResult configResult = ConfigurationResult.SUCCESSFUL();
 
-        error_upperbound = properties.getBoolean(ERROR_UPPERBOUND_PARAM);
-        warning_upperbound = properties.getBoolean(WARNING_UPPERBOUND_PARAM);
-        warning_lowerbound = properties.getBoolean(WARNING_LOWERBOUND_PARAM);
-        error_lowerbound = properties.getBoolean(ERROR_LOWERBOUND_PARAM);
+        try {
+            error_upperbound = properties.getBoolean(ERROR_UPPERBOUND_PARAM);
+        } catch (ConfigurationException e) {
+            configResult.withError(null, e);
+        }
+        try {
+            warning_upperbound = properties.getBoolean(WARNING_UPPERBOUND_PARAM);
+        } catch (ConfigurationException e) {
+            configResult.withError(null, e);
+        }
+        try {
+            warning_lowerbound = properties.getBoolean(WARNING_LOWERBOUND_PARAM);
+        } catch (ConfigurationException e) {
+            configResult.withError(null, e);
+        }
+        try {
+            error_lowerbound = properties.getBoolean(ERROR_LOWERBOUND_PARAM);
+        } catch (ConfigurationException e) {
+            configResult.withError(null, e);
+        }
 
         learning_ratio = properties.getFloat(LEARNING_RATIO_PARAM);
         
@@ -89,10 +106,14 @@ public class RecentActivityAnalysis extends NumericAnalysis implements HasStatus
         learning_upperbound_ratio = properties.getFloat(LEARNING_UPPERBOUND_RATIO_PARAM);
         learning_lowerbound_ratio = properties.getFloat(LEARNING_LOWERBOUND_RATIO_PARAM);
 
-        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
+        try {
+            period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
+        } catch (ConfigurationException e) {
+            configResult.withError(null, e);
+        }
         history = new ValueHistory();
 
-        properties.confirmAllPropertiesUsed();
+        return configResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }
 
     @Override

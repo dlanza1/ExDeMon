@@ -18,12 +18,12 @@ import org.apache.spark.sql.types.DataTypes;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.json.JSON;
 import ch.cern.exdemon.metrics.value.BooleanValue;
 import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.exdemon.metrics.value.Value;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import lombok.Getter;
 import lombok.ToString;
@@ -52,17 +52,19 @@ public class ValueDescriptor implements Serializable{
         this.id = id;
     }
     
-    public void config(Properties props) throws ConfigurationException {
+    public ConfigurationResult config(Properties props) {
+        ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+        
         key = props.getProperty(KEY_PARAM);
         if(key == null)
-            throw new ConfigurationException(KEY_PARAM + " must be configured");
+            confResult.withMustBeConfigured(KEY_PARAM);
         
         String regexString = props.getProperty(REGEX_PARAM);
         if(regexString != null) {
             regex = Pattern.compile(regexString);
             
             if(regex.matcher("").groupCount() != 1)
-                throw new ConfigurationException("Regex expression must contain exactly 1 capture group from which value will be extracted");
+                confResult.withError(REGEX_PARAM, "regex expression must contain exactly 1 capture group from which value will be extracted");
         }else{
             regex = null;
         }
@@ -73,7 +75,7 @@ public class ValueDescriptor implements Serializable{
         else
             type = Type.AUTO;
         
-        props.confirmAllPropertiesUsed();
+        return confResult.merge(null, props.warningsIfNotAllPropertiesUsed());
     }
 
     public Optional<Value> extract(JSON jsonObject) throws ParseException {

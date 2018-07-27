@@ -2,6 +2,7 @@ package ch.cern.exdemon.components;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.log4j.Logger;
 import org.reflections.Reflections;
@@ -15,6 +16,7 @@ public class ComponentTypes {
     private final static Logger LOG = Logger.getLogger(ComponentTypes.class.getName());
     
     private static Map<Component.Type, Map<String, Class<? extends Component>>> types = new HashMap<>();
+
     static{
         new Reflections("ch.cern")
 	        		.getTypesAnnotatedWith(RegisterComponentType.class)
@@ -77,7 +79,8 @@ public class ComponentTypes {
             type = properties.getProperty("type");
         
         if(type == null)
-            return ComponentBuildResult.fromException(componentType, "component type cannot be null.");
+            return ComponentBuildResult.from(componentType, 
+                                             ConfigurationResult.SUCCESSFUL().withMustBeConfigured("type"));
         
         C component = null;
         
@@ -95,16 +98,16 @@ public class ComponentTypes {
                     else
                     	message += "It must be a FQCN (not built-in components availables)";
                     
-                    return ComponentBuildResult.fromException(componentType, message);
+                    return ComponentBuildResult.from(componentType, ConfigurationResult.SUCCESSFUL().withError("type", message));
                 }
             }
         
-            component.buildConfig(properties);
-        } catch (ConfigurationException e) {
-            return ComponentBuildResult.from(componentType, e);
+            ConfigurationResult configResult = component.buildConfig(properties);
+            
+            return ComponentBuildResult.from(componentType, null, Optional.of(component), configResult);
+        } catch (Exception e) {
+            return ComponentBuildResult.from(componentType, ConfigurationResult.SUCCESSFUL().withError(null, e));
         }
-        
-        return ComponentBuildResult.from(componentType, component);
     }
 
     private static<C extends Component> C buildFromAvailableTypes(Type componentType, String type) throws ConfigurationException {
@@ -128,7 +131,7 @@ public class ComponentTypes {
 			
 			return clazz.newInstance();
 		} catch (Exception e) {
-			throw new ConfigurationException("Class with name " + clazzName + " could not be instanciated: " + e.getMessage());
+			throw new ConfigurationException(null, "Class with name " + clazzName + " could not be instanciated: " + e.getMessage());
 		}
     }
 

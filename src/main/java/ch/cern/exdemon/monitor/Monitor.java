@@ -12,6 +12,7 @@ import org.apache.spark.streaming.State;
 import ch.cern.exdemon.components.Component;
 import ch.cern.exdemon.components.ComponentType;
 import ch.cern.exdemon.components.ComponentTypes;
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.components.ComponentBuildResult;
@@ -58,8 +59,14 @@ public class Monitor extends Component{
     }
     
     @Override
-    public void config(Properties properties) throws ConfigurationException {
-        filter = MetricsFilter.build(properties.getSubset("filter"));
+    public ConfigurationResult config(Properties properties) {
+        ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+        
+        try {
+            filter = MetricsFilter.build(properties.getSubset("filter"));
+        } catch (ConfigurationException e) {
+            confResult.withError("filter", e);
+        }
         
         fixedValueAttributes = properties.getSubset("attribute").entrySet().stream()
                 .map(entry -> new Pair<String, String>(entry.getKey().toString(), entry.getValue().toString()))
@@ -70,8 +77,8 @@ public class Monitor extends Component{
             analysis_props.setProperty("type", NoneAnalysis.class.getAnnotation(RegisterComponentType.class).value());
     	
         ComponentBuildResult<Analysis> analysisBuildResult = ComponentTypes.build(Type.ANAYLSIS, analysis_props);
-        analysisBuildResult.throwExceptionIfPresent();
-        analysis = analysisBuildResult.getComponent().get();
+        confResult.merge("analysis", analysisBuildResult.getConfigurationResult());
+        analysisBuildResult.getComponent().ifPresent(c -> analysis = c);
         
     	Properties triggersProps = properties.getSubset("triggers");
         
@@ -84,13 +91,13 @@ public class Monitor extends Component{
     		    props.setProperty("type", "statuses");
     		
     		ComponentBuildResult<Trigger> triggerBuildResult = ComponentTypes.build(Type.TRIGGER, triggerId, props);
-    		triggerBuildResult.throwExceptionIfPresent();
-    		triggers.put(triggerId, triggerBuildResult.getComponent().get());
+    		confResult.merge("triggers." + triggerId, triggerBuildResult.getConfigurationResult());
+    		triggerBuildResult.getComponent().ifPresent(c -> triggers.put(triggerId, c));
 		}
         
         tags = properties.getSubset("tags").toStringMap();
         
-        properties.confirmAllPropertiesUsed();
+        return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }
 
     public Optional<AnalysisResult> process(State<StatusValue> status, Metric metric) {

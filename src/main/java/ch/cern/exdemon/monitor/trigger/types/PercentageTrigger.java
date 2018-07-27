@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult.Status;
 import ch.cern.exdemon.monitor.trigger.Trigger;
@@ -46,8 +47,8 @@ public class PercentageTrigger extends Trigger implements HasStatus {
     }
 
     @Override
-    public void config(Properties properties) throws ConfigurationException {
-        super.config(properties);
+    public ConfigurationResult config(Properties properties) {
+        ConfigurationResult configResult = super.config(properties);
         
         expectedStatuses = Stream.of(properties.getProperty(STATUSES_PARAM).split("\\s"))
 									        		.map(String::trim)
@@ -55,12 +56,16 @@ public class PercentageTrigger extends Trigger implements HasStatus {
 									        		.map(Status::valueOf)
 									        		.collect(Collectors.toSet());
         
-        period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
+        try {
+            period = properties.getPeriod(PERIOD_PARAM, PERIOD_DEFAULT);
+        } catch (ConfigurationException e) {
+            configResult.withError(null, e);
+        }
         
         String percentage_s = properties.getProperty(PERCENTAGE_PARAM, PERCENTAGE_DEFAULT);
         percentage = Float.valueOf(percentage_s);
         
-        properties.confirmAllPropertiesUsed();
+        return configResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }
     
     @Override

@@ -14,6 +14,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.json.JSON;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -41,7 +42,9 @@ public class TimestampDescriptor {
     public TimestampDescriptor() {
     }
     
-    public void config(Properties properties) throws ConfigurationException {
+    public ConfigurationResult config(Properties properties) {
+        ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+        
         key = properties.getProperty(KEY_PARAM);
         
         String regexString = properties.getProperty(REGEX_PARAM);
@@ -49,7 +52,7 @@ public class TimestampDescriptor {
             regex = Pattern.compile(regexString);
             
             if(regex.matcher("").groupCount() != 1)
-                throw new ConfigurationException("Regex expression must contain exactly 1 capture group from which timestamp will be extracted");
+                confResult.withError(REGEX_PARAM, "regex expression must contain exactly 1 capture group from which timestamp will be extracted");
         }else{
             regex = null;
         }
@@ -62,16 +65,22 @@ public class TimestampDescriptor {
                 new DateTimeFormatterBuilder().appendPattern(format_pattern).toFormatter()
                         .withZone(ZoneOffset.systemDefault());
             } catch (Exception e) {
-                throw new ConfigurationException(MetricSchema.TIMESTAMP_PARAM + "." + FORMAT_PARAM
-                        + " must be epoch-ms, epoch-s or a pattern compatible with DateTimeFormatterBuilder.");
+                confResult.withError(MetricSchema.TIMESTAMP_PARAM + "." + FORMAT_PARAM,
+                                "must be epoch-ms, epoch-s or a pattern compatible with DateTimeFormatterBuilder.");
             }
         }
         
         String shiftString = properties.getProperty(SHIFT_PARAM);
         if(shiftString != null)
-            shift = DurationAndTruncate.from(shiftString);
+            try {
+                shift = DurationAndTruncate.from(shiftString);
+            } catch (ConfigurationException e) {
+                confResult.withError(SHIFT_PARAM, e);
+            }
         else
             shift = new DurationAndTruncate(Duration.ZERO);
+        
+        return confResult;
     }
 
     public Instant extract(JSON jsonObject) throws Exception {

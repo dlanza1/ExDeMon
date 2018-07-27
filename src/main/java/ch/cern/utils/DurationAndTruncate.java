@@ -65,7 +65,7 @@ public class DurationAndTruncate implements Serializable {
                 truncate = ChronoUnit.MINUTES;
                 break;
             default:
-                throw new ConfigurationException("Truncation " + trancConf + " not available.");
+                throw new ConfigurationException(null, "Truncation " + trancConf + " not available.");
             }
         }
         

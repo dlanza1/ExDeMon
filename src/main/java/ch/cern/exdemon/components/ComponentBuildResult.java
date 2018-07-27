@@ -1,7 +1,5 @@
 package ch.cern.exdemon.components;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Optional;
 
 import ch.cern.exdemon.components.Component.Type;
@@ -20,32 +18,34 @@ public class ComponentBuildResult<C extends Component> {
     
     private C component;
     
-    private ConfigurationException exception;
-    
     @Getter
-    private List<String> warnings = new LinkedList<>();
+    private ConfigurationResult configurationResult;
     
     private ComponentBuildResult() {
     }
-
-    public static<C extends Component> ComponentBuildResult<C> from(Type componentType, C component) {
+    
+    public static<C extends Component> ComponentBuildResult<C> from(
+            Type componentType, 
+            String componentId,
+            Optional<C> component,
+            ConfigurationResult configurationResult) {
+        
         ComponentBuildResult<C> result = new ComponentBuildResult<>();
         
         result.componentType = componentType;
-        result.component = component;
+        result.componentId = componentId;
+        result.configurationResult = configurationResult;
+        
+        component.ifPresent(c -> result.component = c);
         
         return result;
     }
     
-    public static<C extends Component> ComponentBuildResult<C> fromException(Type componentType, String message) {
-        return from(componentType, new ConfigurationException(message));
-    }
-    
-    public static<C extends Component> ComponentBuildResult<C> from(Type componentType, ConfigurationException exception) {
+    public static<C extends Component> ComponentBuildResult<C> from(Type componentType, ConfigurationResult configurationResult) {
         ComponentBuildResult<C> result = new ComponentBuildResult<>();
         
         result.componentType = componentType;
-        result.exception = exception;
+        result.configurationResult = configurationResult;
         
         return result;
     }
@@ -54,20 +54,22 @@ public class ComponentBuildResult<C extends Component> {
         return Optional.ofNullable(component);
     }
     
-    public Optional<ConfigurationException> getException() {
-        return Optional.ofNullable(exception);
-    }
-
-    public void throwExceptionIfPresent() throws ConfigurationException {
-        if(exception != null)
-            throw exception;
-    }
-    
     public void setComponentId(String id){
         componentId = id;
         
         if(component != null)
             component.setId(id);
+    }
+
+    public void throwExceptionsIfPresent() throws ConfigurationException{
+        if(configurationResult.getErrors().isEmpty())
+            return;
+        
+        String message = configurationResult.getErrors().stream()
+                                                .map(ConfigurationException::toString)
+                                                .reduce("", (a,b) -> a.concat(b).concat(" - "));
+        
+        throw new ConfigurationException(null, message);
     }
 
 }

@@ -2,10 +2,10 @@ package ch.cern.exdemon.monitor.analysis.types;
 
 import java.time.Instant;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.monitor.analysis.NumericAnalysis;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 
 @RegisterComponentType("fixed-threshold")
@@ -25,13 +25,13 @@ public class FixedThresholdAnalysis extends NumericAnalysis {
     public static String ERROR_LOWERBOUND_PARAM = "error.lowerbound";
     private Float error_lowerbound;
 
-    public void config(Properties properties) throws ConfigurationException {
+    public ConfigurationResult config(Properties properties) {
         error_upperbound = properties.getFloat(ERROR_UPPERBOUND_PARAM);
         warning_upperbound = properties.getFloat(WARNING_UPPERBOUND_PARAM);
         warning_lowerbound = properties.getFloat(WARNING_LOWERBOUND_PARAM);
         error_lowerbound = properties.getFloat(ERROR_LOWERBOUND_PARAM);
         
-        properties.confirmAllPropertiesUsed();
+        return properties.warningsIfNotAllPropertiesUsed();
     }
     
     @Override

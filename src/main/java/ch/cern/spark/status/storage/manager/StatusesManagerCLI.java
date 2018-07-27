@@ -152,7 +152,7 @@ public class StatusesManagerCLI {
         String configuredName = InetAddress.getByName(statuses_removal_socket_host).getHostName();
         
         if(!actualHostname.equals(configuredName))
-            throw new ConfigurationException("Job is listening on " + configuredName + ", but this command is being run on " + actualHostname);
+            throw new ConfigurationException(null, "job is listening on " + configuredName + ", but this command is being run on " + actualHostname);
         
         @SuppressWarnings("resource")
         Socket socket = new ServerSocket(statuses_removal_socket_port).accept();
@@ -255,7 +255,7 @@ public class StatusesManagerCLI {
 
     private void printKeys(Map<Integer, StatusKey> indexedKeys) throws IOException, ConfigurationException {
         if(serializer == null)
-            throw new ConfigurationException("Several keys has been found but not print option has been specified, so they cannot be listed.");
+            throw new ConfigurationException(null, "several keys has been found but not print option has been specified, so they cannot be listed.");
         
         System.out.println("List of found keys:");
         
@@ -327,7 +327,7 @@ public class StatusesManagerCLI {
 
     protected void config(Properties properties, CommandLine cmd) throws ConfigurationException  {
         ComponentBuildResult<StatusesStorage> storageBuildResult = ComponentTypes.build(Type.STATUS_STORAGE, properties.getSubset(StatusesStorage.STATUS_STORAGE_PARAM));
-        storageBuildResult.throwExceptionIfPresent();
+        storageBuildResult.throwExceptionsIfPresent();
         storage = storageBuildResult.getComponent().get();
         
         String removalSocket = properties.getProperty(Driver.STATUSES_REMOVAL_SOCKET_PARAM);
@@ -354,7 +354,7 @@ public class StatusesManagerCLI {
         else if(cmd.getOptionValue("print").equals("json"))
             serializer = new JSONStatusSerializer();
         else
-            throw new ConfigurationException("Print option " + cmd.getOptionValue("print") + " is not available");
+            throw new ConfigurationException(null, "print option " + cmd.getOptionValue("print") + " is not available");
         
         saving_path = cmd.getOptionValue("save");
         

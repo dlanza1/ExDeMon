@@ -3,10 +3,10 @@ package ch.cern.exdemon.metrics.defined.equation.var;
 import java.time.Instant;
 import java.util.Optional;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.value.PropertiesValue;
 import ch.cern.exdemon.metrics.value.Value;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 
 public class PropertiesVariable extends Variable {
@@ -18,10 +18,10 @@ public class PropertiesVariable extends Variable {
 	}
 	
 	@Override
-	public Variable config(Properties properties, Optional<Class<? extends Value>> type) throws ConfigurationException {
+	public ConfigurationResult config(Properties properties, Optional<Class<? extends Value>> type) {
 		this.properties = properties;
 		
-		return this;
+		return ConfigurationResult.SUCCESSFUL();
 	}
 
 	@Override

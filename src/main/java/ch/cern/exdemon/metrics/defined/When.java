@@ -66,13 +66,13 @@ public class When {
         }catch(Exception e) {}
         if(when.period != null) {
             if(batchDuration == null)
-                throw new ConfigurationException("batchDuration cannot be null if period is specified");
+                throw new ConfigurationException("batchDuration", "batchDuration cannot be null if period is specified");
             
             if(when.period.getSeconds() % batchDuration.getSeconds() != 0)
-                throw new ConfigurationException("period ("+TimeUtils.toString(when.period)+") must be a multiple of batch duration ("+TimeUtils.toString(batchDuration)+")");
+                throw new ConfigurationException("period", "period ("+TimeUtils.toString(when.period)+") must be a multiple of batch duration ("+TimeUtils.toString(batchDuration)+")");
             
             if(when.delay.getSeconds() % batchDuration.getSeconds() != 0)
-                throw new ConfigurationException("delay ("+TimeUtils.toString(when.delay)+") must be a multiple of batch duration ("+TimeUtils.toString(batchDuration)+")");
+                throw new ConfigurationException("delay", "delay ("+TimeUtils.toString(when.delay)+") must be a multiple of batch duration ("+TimeUtils.toString(batchDuration)+")");
             
             return when;
         }
@@ -84,7 +84,7 @@ public class When {
         
         List<String> missignDeclarations = variableIDs.stream().filter(id -> !variables.keySet().contains(id)).collect(Collectors.toList());
         if(missignDeclarations.size() > 0)
-            throw new ConfigurationException("Variables listed in when parameter must be declared (missing: "+missignDeclarations+").");
+            throw new ConfigurationException("when", "Variables listed in when parameter must be declared (missing: "+missignDeclarations+").");
         
         return when;
     }

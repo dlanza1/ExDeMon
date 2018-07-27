@@ -13,11 +13,11 @@ import javax.mail.internet.MimeMessage;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.monitor.trigger.action.Action;
 import ch.cern.exdemon.monitor.trigger.action.Template;
 import ch.cern.exdemon.monitor.trigger.action.actuator.Actuator;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import lombok.ToString;
 
@@ -41,20 +41,22 @@ public class EmailActuator extends Actuator {
     private String textProp;
 
     @Override
-	public void config(Properties properties) throws ConfigurationException {
-		super.config(properties);
+	public ConfigurationResult config(Properties properties) {
+		ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
 		
 		sessionPoperties = properties.getSubset("session");
 		
 		username = properties.getProperty("username");
 		if(username == null)
-		    throw new ConfigurationException("Username must be specified.");
+		    confResult.withMustBeConfigured("username");
 		
 		password = properties.getProperty("password");
 		
 		toProp = properties.getProperty("to", "<tags:email.to>");
 		subjectProp = properties.getProperty("subject", "<tags:email.subject>");
 		textProp = properties.getProperty("text", "<tags:email.text>");
+		
+		return confResult;
 	}
 
     @Override
