@@ -291,7 +291,7 @@ public class HTTPSink implements Serializable{
         } catch (IOException e) {
             postMethod.releaseConnection();
             
-            throw new HttpException("Unable to POST to url=" + request.getUrl() + " " +responseToString(response)+". JSON: " + request.getJson(), e);
+            throw new HttpException("Unable to POST to url=" + request.getUrl() + ". JSON: " + request.getJson(), e);
         }
 		
 		if(postMethod.isAborted())
