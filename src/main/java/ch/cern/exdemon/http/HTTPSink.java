@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Iterator;
@@ -290,7 +291,15 @@ public class HTTPSink implements Serializable{
         };
         new Timer(true).schedule(task, timeout_ms);
         
-		int statusCode = httpClient.executeMethod(postMethod);
+		int statusCode = -1;
+        try {
+            statusCode = httpClient.executeMethod(postMethod);
+        } catch (IOException e) {
+            postMethod.releaseConnection();
+            httpClient.getHttpConnectionManager().closeIdleConnections(1);
+            
+            throw new HttpException("Unable to POST to url=" + request.getUrl() + " " +responseToString(postMethod)+". JSON: " + request.getJson(), e);
+        }
 		
 		if(postMethod.isAborted())
 			throw new HttpException("Request has timmed out after " + TimeUtils.toString(Duration.ofMillis(timeout_ms)));
@@ -298,11 +307,24 @@ public class HTTPSink implements Serializable{
         if (statusCode == 201 || statusCode == 200) {
             LOG.trace("JSON: " + request.getJson() + " sent to " + request.getUrl());
         } else {
-            throw new HttpException("Unable to POST to url=" + request.getUrl() + " with status code=" + statusCode + ". JSON: " + request.getJson());
+            throw new HttpException("Unable to POST to url=" + request.getUrl() + " with status code=" + statusCode + " "+responseToString(postMethod)+". JSON: " + request.getJson());
         }
 	}
 
-	private List<JsonPOSTRequest> buildJSONArrays(List<JsonPOSTRequest> elements) {
+	private String responseToString(PostMethod postMethod) {
+	    String responseBody = null;
+        try {
+            responseBody = postMethod.getResponseBodyAsString();
+        } catch (IOException e2) {
+            LOG.error("Error getting response body", e2);
+        }
+        
+        return "response.headers=" + Arrays.toString(postMethod.getResponseHeaders())
+             + " response.body=" + responseBody
+             + " response.footers=" + Arrays.toString(postMethod.getResponseFooters());
+    }
+
+    private List<JsonPOSTRequest> buildJSONArrays(List<JsonPOSTRequest> elements) {
 	    Map<String, List<JsonPOSTRequest>> groupedByUrl = elements.stream().collect(Collectors.groupingBy(JsonPOSTRequest::getUrl));
 	    
 	    return groupedByUrl.entrySet().stream().map(entry -> {
