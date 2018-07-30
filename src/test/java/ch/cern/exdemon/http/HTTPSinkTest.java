@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -20,10 +21,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpException;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -44,7 +47,11 @@ public class HTTPSinkTest {
 	@Test
 	public void send() throws ConfigurationException, HttpException, IOException {
 		HttpClient httpClient = mock(HttpClient.class, withSettings().serializable());
-		when(httpClient.executeMethod(anyObject())).thenReturn(201);
+		HttpResponse response = mock(HttpResponse.class, withSettings().serializable());
+		StatusLine statusLine = mock(StatusLine.class, withSettings().serializable());
+		when(statusLine.getStatusCode()).thenReturn(201);
+        when(response.getStatusLine()).thenReturn(statusLine);
+        when(httpClient.execute(anyObject())).thenReturn(response);
 		
 		HTTPSink.setHTTPClient(httpClient);
         
@@ -60,17 +67,17 @@ public class HTTPSinkTest {
 
         sink.send(Arrays.asList(new JsonPOSTRequest("", JSONParser.parse(analysisResult))).iterator());
 		
-		ArgumentCaptor<PostMethod> methodCaptor = ArgumentCaptor.forClass(PostMethod.class);
-		verify(httpClient, times(1)).executeMethod(methodCaptor.capture());
+		ArgumentCaptor<HttpPost> methodCaptor = ArgumentCaptor.forClass(HttpPost.class);
+		verify(httpClient, times(1)).execute(methodCaptor.capture());
                 
-		StringRequestEntity receivedEntity = (StringRequestEntity) methodCaptor.getAllValues().get(0).getRequestEntity();
+		HttpPost receivedEntity = methodCaptor.getAllValues().get(0);
 		
         String expectedTimestamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(Date.from(instant));
         
 		assertEquals("[{\"timestamp\":" + instant.toEpochMilli() +","
 		                + "\"analysis_timestamp\":\"" + expectedTimestamp + "\","
     					+ "\"analysis_params\":{},"
-    					+ "\"tags\":{}}]", receivedEntity.getContent());
+    					+ "\"tags\":{}}]", IOUtils.toString(receivedEntity.getEntity().getContent(), StandardCharsets.UTF_8));
 	}
 	
     @Test

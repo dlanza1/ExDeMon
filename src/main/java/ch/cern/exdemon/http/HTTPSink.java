@@ -2,11 +2,8 @@ package ch.cern.exdemon.http;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -17,10 +14,13 @@ import java.util.TimerTask;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.http.HttpException;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.spark.streaming.api.java.JavaDStream;
@@ -67,7 +67,7 @@ public class HTTPSink implements Serializable{
 	public static final String AUTH_TYPE_PARAM = AUTH_PARAM + ".type";
     public static final String AUTH_USERNAME_PARAM = AUTH_PARAM + ".user";
     public static final String AUTH_PASSWORD_PARAM = AUTH_PARAM + ".password";
-    private Header authHeader;
+    private UsernamePasswordCredentials authCredentials;
     
 	private Map<String, String> propertiesToAdd;
 	
@@ -107,15 +107,9 @@ public class HTTPSink implements Serializable{
             String username = properties.getProperty(AUTH_USERNAME_PARAM);
             String password = properties.getProperty(AUTH_PASSWORD_PARAM);
             
-            try {
-                String encoding = Base64.getEncoder().encodeToString((username+":"+password).getBytes("UTF-8"));
-                
-                authHeader = new Header("Authorization", "Basic " + encoding);
-            } catch (UnsupportedEncodingException e) {
-                confResult.withError(AUTH_PARAM, "problem when creating authentication header");
-            }
+            authCredentials = new UsernamePasswordCredentials(username, password);
         }else if(authenticationType.equals("disabled")){
-        	authHeader = null;
+            authCredentials = null;
         }else {
             confResult.withError(AUTH_TYPE_PARAM, "authentication type \"" + authenticationType + "\" is not available");
         }
@@ -242,7 +236,7 @@ public class HTTPSink implements Serializable{
     }
 
     private static HttpClient getHTTPClient() {
-		return HTTPSink.httpClient == null ? new HttpClient() : HTTPSink.httpClient;
+		return HTTPSink.httpClient == null ? HttpClients.createDefault() : HTTPSink.httpClient;
 	}
 	
 	public static HttpClient setHTTPClient(HttpClient httpClient) {
@@ -277,10 +271,10 @@ public class HTTPSink implements Serializable{
 	}
 	
 	private void trySend(HttpClient httpClient, JsonPOSTRequest request) throws HttpException, IOException {
-        PostMethod postMethod = request.toPostMethod();
+        HttpPost postMethod = request.toPostMethod();
         
-        if(authHeader != null)
-            postMethod.setRequestHeader(authHeader);
+        if(authCredentials != null)
+            postMethod.addHeader(new BasicScheme().authenticate(authCredentials, postMethod, null));
         
         TimerTask task = new TimerTask() {
             @Override
@@ -291,37 +285,28 @@ public class HTTPSink implements Serializable{
         };
         new Timer(true).schedule(task, timeout_ms);
         
-		int statusCode = -1;
+		HttpResponse response = null;
         try {
-            statusCode = httpClient.executeMethod(postMethod);
+            response = httpClient.execute(postMethod);
         } catch (IOException e) {
             postMethod.releaseConnection();
-            httpClient.getHttpConnectionManager().closeIdleConnections(1);
             
-            throw new HttpException("Unable to POST to url=" + request.getUrl() + " " +responseToString(postMethod)+". JSON: " + request.getJson(), e);
+            throw new HttpException("Unable to POST to url=" + request.getUrl() + " " +responseToString(response)+". JSON: " + request.getJson(), e);
         }
 		
 		if(postMethod.isAborted())
 			throw new HttpException("Request has timmed out after " + TimeUtils.toString(Duration.ofMillis(timeout_ms)));
 		
+		int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode == 201 || statusCode == 200) {
             LOG.trace("JSON: " + request.getJson() + " sent to " + request.getUrl());
         } else {
-            throw new HttpException("Unable to POST to url=" + request.getUrl() + " with status code=" + statusCode + " "+responseToString(postMethod)+". JSON: " + request.getJson());
+            throw new HttpException("Unable to POST to url=" + request.getUrl() + " with status code=" + statusCode + " "+responseToString(response)+". JSON: " + request.getJson());
         }
 	}
 
-	private String responseToString(PostMethod postMethod) {
-	    String responseBody = null;
-        try {
-            responseBody = postMethod.getResponseBodyAsString();
-        } catch (IOException e2) {
-            LOG.error("Error getting response body", e2);
-        }
-        
-        return "response.headers=" + Arrays.toString(postMethod.getResponseHeaders())
-             + " response.body=" + responseBody
-             + " response.footers=" + Arrays.toString(postMethod.getResponseFooters());
+	private String responseToString(HttpResponse httpResponse) {        
+        return httpResponse.toString();
     }
 
     private List<JsonPOSTRequest> buildJSONArrays(List<JsonPOSTRequest> elements) {

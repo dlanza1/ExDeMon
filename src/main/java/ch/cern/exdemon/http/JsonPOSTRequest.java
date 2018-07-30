@@ -3,8 +3,8 @@ package ch.cern.exdemon.http;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 
 import ch.cern.exdemon.json.JSON;
 import lombok.EqualsAndHashCode;
@@ -30,13 +30,14 @@ public class JsonPOSTRequest {
         json.setProperty(key, value);
     }
 
-    public PostMethod toPostMethod() throws UnsupportedEncodingException {
-        StringRequestEntity requestEntity = new StringRequestEntity(json.toString(), "application/json", "UTF-8");
+    public HttpPost toPostMethod() throws UnsupportedEncodingException {
+        HttpPost httpPost = new HttpPost(url);
         
-        PostMethod postMethod = new PostMethod(url);
-        postMethod.setRequestEntity(requestEntity);
+        httpPost.setEntity(new StringEntity(json.toString()));
+        httpPost.setHeader("Accept", "application/json");
+        httpPost.setHeader("Content-type", "application/json");
         
-        return postMethod;
+        return httpPost;
     }
 
 }
