@@ -33,7 +33,7 @@ public class TemplateTest {
         tags.put("email.text", "Hello <tags:email.to>!");
         tags.put("cluster", "cluster1");
         action.setTags(tags);
-        action.setCreation_timestamp(Instant.now());
+        action.setCreation_timestamp(Instant.parse("2018-07-30T12:08:58Z"));
         action.setMonitor_id("MONITOR_ID");
         action.setTrigger_id("NOTIFICATOR_ID");
         action.setReason("In ERROR for 3 hours");
@@ -42,7 +42,10 @@ public class TemplateTest {
         metric_attributes.put("b", "2");
         action.setMetric_attributes(metric_attributes);
         
-        assertEquals("Hello daniel.lanza@cern.ch!", Template.apply("<tags:email.text>", action));
+        assertEquals("Hello daniel.lanza@cern.ch! "
+                  + "2018-07-30 02:08:58 "
+                  + "2018-07-30T12:08:58Z "
+                  + "1532866138000", Template.apply("<tags:email.text> <datetime> <datetime:utc> <datetime:ms:-24h>", action));
     }
     
     @Test

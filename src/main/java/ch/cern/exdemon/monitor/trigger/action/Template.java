@@ -1,5 +1,7 @@
 package ch.cern.exdemon.monitor.trigger.action;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -10,8 +12,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.esotericsoftware.minlog.Log;
+
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
+import ch.cern.utils.TimeUtils;
 import lombok.NonNull;
 
 public class Template {
@@ -139,6 +144,34 @@ public class Template {
         }
         
         text = text.replaceAll("<datetime>", dateFormatter.format(action.getCreation_timestamp()));
+        Matcher datetimeMatcher = Pattern.compile("\\<datetime:([^>]+)\\>").matcher(text);        
+        while (datetimeMatcher.find()) {
+            String paramsAsString = datetimeMatcher.group(1);
+            String[] params = paramsAsString.split(":");
+            String format = params[0];
+            
+            Instant time = action.getCreation_timestamp();
+            if(params.length > 1) {
+                try {
+                    Duration period = TimeUtils.parsePeriod(params[1]);
+                    
+                    time = time.plus(period);
+                } catch (Exception e) {
+                    Log.error("When parsing period for <datetime:" + paramsAsString + ">", e);
+                }
+            }
+            
+            String value = null;
+            
+            if(format.equals("utc"))
+                value = String.valueOf(time);
+            if(format.equals("ms"))
+                value = String.valueOf(time.toEpochMilli());
+            else
+                value = String.valueOf(time);
+            
+            text = text.replaceAll("<datetime:"+Pattern.quote(paramsAsString)+">", String.valueOf(value));
+        }
         
         return text;
     }
