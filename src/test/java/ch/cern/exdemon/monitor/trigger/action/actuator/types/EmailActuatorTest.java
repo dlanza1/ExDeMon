@@ -15,6 +15,7 @@ import org.junit.Test;
 
 import ch.cern.exdemon.monitor.trigger.action.Action;
 import ch.cern.exdemon.monitor.trigger.action.ActionTest;
+import ch.cern.exdemon.monitor.trigger.action.Template;
 import ch.cern.exdemon.monitor.trigger.action.actuator.types.EmailActuator;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -86,7 +87,7 @@ public class EmailActuatorTest {
                         "\ta = 1\n" + 
                         "\tb = 2\n" + 
                         "\n" + 
-                        "At: " + action.getCreation_timestamp() + "\n" + 
+                        "At: " + Template.dateFormatter.format(action.getCreation_timestamp()) + "\n" + 
                         "\n" + 
                         "Reason: In ERROR for 3 hours\n" + 
                         "\n" + 

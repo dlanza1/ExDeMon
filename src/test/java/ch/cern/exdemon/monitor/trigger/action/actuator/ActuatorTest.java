@@ -73,7 +73,7 @@ public class ActuatorTest {
                 + "\n\ta = a1" 
                 + "\n\tb = b2 "
                 + "a1 "
-                + "2007-12-03T10:15:30Z "
+                + "2007-12-03 11:15:30 "
                 + "reason_action " 
                 + "\n\ta = a_tag" 
                 + "\n\tb = b_tag "
