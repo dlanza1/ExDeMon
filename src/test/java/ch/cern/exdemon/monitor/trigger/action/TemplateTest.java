@@ -79,7 +79,7 @@ public class TemplateTest {
         				+ "\n\ta1 = 21"
                         + "\n\ta2 = 22"
         				+ "\nOther text.", 
-        		Template.apply("Some text:<agg_metrics> <datetime>:A1(=<attribute:a1>), A2(=<attribute:a2>):value=<value>:<attributes:a.+>\n</agg_metrics>Other text.", action));
+        		Template.apply("Some text:<agg_metrics> <datetime>:A1(=<attribute_value:a1>), A2(=<attribute_value:a2>):value=<value>:<attributes:a.+>\n</agg_metrics>Other text.", action));
     }
     
     @Test

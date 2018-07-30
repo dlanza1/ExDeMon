@@ -11,12 +11,12 @@ In some of the parameters of the actuators, marked with &lt;template&gt;, templa
 The following strings will be replaced by the action corresponding information:
 * &lt;monitor_id&gt;
 * &lt;trigger_id&gt;
-* &lt;metric_attributes&gt; (will be replaced by a list)
-* &lt;metric_attributes:key&gt; (will be replaced by the value of the specified attribute key)
+* &lt;attribute_value:key&gt; (will be replaced by the value of the specified attribute key)
+* &lt;attributes:keys_regex&gt; (will be replaced by a list, key = value)
 * &lt;datetime&gt;
 * &lt;reason&gt;
-* &lt;triggering_value&gt;
-* &lt;agg\_metrics&gt; &lt;attribute:key&gt; &lt;value&gt; &lt;datetime&gt; &lt;/agg\_metrics&gt; (max size parameter: aggregate.latest-metrics.max-size)
+* &lt;triggering\_value&gt;
+* &lt;agg\_metrics&gt; &lt;attribute\_value:key&gt; &lt;attributes:key\_regex&gt; &lt;value&gt; &lt;datetime&gt; &lt;/agg\_metrics&gt; (max size parameter: aggregate.latest-metrics.max-size)
 * &lt;tags&gt; (will be replaced by the tag list)
 * &lt;tags:key&gt; (will be replaced by the value of the specified tag key)
 * &lt;analysis_param:key&gt; (will be replaced by the value of the specified analysis parameter key)
