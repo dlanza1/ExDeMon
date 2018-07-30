@@ -1,16 +1,22 @@
 package ch.cern.exdemon.monitor.trigger.action;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import lombok.NonNull;
 
 public class Template {
+    
+    private static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("YYYY-MM-dd hh:mm:ss").withZone(ZoneId.systemDefault());
     
     public static String apply(String template, @NonNull Action action) {
         if(template == null)
@@ -30,7 +36,7 @@ public class Template {
         if(attributes.size() != 0)
             text = text.replaceAll("<metric_attributes>", metric_attributes);
         else
-            text = text.replaceAll("<metric_attributes>", "(empty)");
+            text = text.replaceAll("<metric_attributes>", "(no attributes)");
         
         Matcher attMatcher = Pattern.compile("\\<metric_attributes:([^>]+)\\>").matcher(text);        
         while (attMatcher.find()) {
@@ -74,47 +80,7 @@ public class Template {
         
         text = text.replaceAll("<triggering_value>", String.valueOf(triggeringResult.getAnalyzed_metric().getValue()));
         
-        int startAggMetrics = text.indexOf("<agg_metrics>");
-        while (startAggMetrics > -1){
-        	int endAggMetrics = text.indexOf("</agg_metrics>", startAggMetrics);
-        	
-        	String preText = text.substring(0, startAggMetrics);
-        	String metricTemplate = text.substring(startAggMetrics + 13, endAggMetrics);
-        	String postText = text.substring(endAggMetrics + 14);
-        	
-        	List<Metric> lastSourceMetrics = triggeringResult.getAnalyzed_metric().getValue().getLastSourceMetrics();
-        	if(lastSourceMetrics == null || lastSourceMetrics.isEmpty()) {
-        		text = preText + "No aggregated metrics." + postText;
-        		break;
-        	}
-        		
-        	String metricsText = "";
-        	for (Metric metric : lastSourceMetrics) {
-        		String metricText = metricTemplate;
-        		
-        		Matcher analysisParamMatcher = Pattern.compile("\\<attribute:([^>]+)\\>").matcher(metricText);        
-                while (analysisParamMatcher.find()) {
-                    for (int j = 1; j <= analysisParamMatcher.groupCount(); j++) {
-                        String key = analysisParamMatcher.group(j);
-                        
-                        String value = String.valueOf(metric.getAttributes().get(key));
-                        
-                        metricText = metricText.replaceAll("<attribute:"+key+">", value);
-                        
-                        j++;
-                    }
-                }
-        		
-        		metricText = metricText.replaceAll("<datetime>", String.valueOf(metric.getTimestamp()));
-        		metricText = metricText.replaceAll("<value>", String.valueOf(metric.getValue()));
-        		
-        		metricsText += metricText;
-			}
-
-			text = preText + metricsText + postText;
-
-        	startAggMetrics = text.indexOf("<agg_metrics>", endAggMetrics);
-        }
+        text = aggregatedMetrics(text, triggeringResult);
         
         text = text.replaceAll("<analysis_status>", String.valueOf(triggeringResult.getStatus().toString().toLowerCase()));
         
@@ -132,9 +98,83 @@ public class Template {
             }
         }
         
-        text = text.replaceAll("<datetime>", String.valueOf(action.getCreation_timestamp()));
+        text = text.replaceAll("<datetime>", dateFormatter.format(action.getCreation_timestamp()));
         
         return text;
+    }
+
+    private static String aggregatedMetrics(String template, AnalysisResult triggeringResult) {
+        int startAggMetrics = template.indexOf("<agg_metrics>");
+        
+        while (startAggMetrics > -1){
+        	int endAggMetrics = template.indexOf("</agg_metrics>", startAggMetrics);
+        	
+        	String preText = template.substring(0, startAggMetrics);
+        	String metricTemplate = template.substring(startAggMetrics + 13, endAggMetrics);
+        	String postText = template.substring(endAggMetrics + 14);
+        	
+        	List<Metric> lastSourceMetrics = triggeringResult.getAnalyzed_metric().getValue().getLastSourceMetrics();
+        	if(lastSourceMetrics == null || lastSourceMetrics.isEmpty()) {
+        		template = preText + "No aggregated metrics." + postText;
+        		break;
+        	}
+        		
+        	String metricsText = "";
+        	for (Metric metric : lastSourceMetrics) {
+        		String metricText = metricTemplate;
+        		
+        		Matcher attributeMatcher = Pattern.compile("\\<attribute:([^>]+)\\>").matcher(metricText);        
+                while (attributeMatcher.find()) {
+                    for (int j = 1; j <= attributeMatcher.groupCount(); j++) {
+                        String key = attributeMatcher.group(j);
+                        
+                        String value = String.valueOf(metric.getAttributes().get(key));
+                        
+                        metricText = metricText.replaceAll("<attribute:"+key+">", value);
+                        
+                        j++;
+                    }
+                }
+                
+                Matcher attributesMatcher = Pattern.compile("\\<attributes:([^>]+)\\>").matcher(metricText);        
+                while (attributesMatcher.find()) {
+                    for (int j = 1; j <= attributesMatcher.groupCount(); j++) {
+                        String keyPatternAsString = attributesMatcher.group(j);
+                        Pattern keyPattern = Pattern.compile(keyPatternAsString);
+                        
+                        List<Entry<String, String>> matchingAttributes = metric.getAttributes().entrySet().stream()
+                                                                                    .filter(entry -> keyPattern.matcher(entry.getKey()).matches())
+                                                                                    .collect(Collectors.toList());
+                        
+                        String quotedKetPattern = Pattern.quote(keyPatternAsString);
+                        
+                        if(!matchingAttributes.isEmpty()) {
+                            StringBuilder sb = new StringBuilder();
+                            
+                            for(Map.Entry<String, String> att: matchingAttributes)
+                                sb.append("\n\t" + att.getKey() + " = " + att.getValue());
+                            
+                            metricText = metricText.replaceAll("<attributes:"+quotedKetPattern+">", sb.toString());
+                        }else {
+                            metricText = metricText.replaceAll("<attributes:"+quotedKetPattern+">", "");
+                        }
+                        
+                        j++;
+                    }
+                }
+        		
+        		metricText = metricText.replaceAll("<datetime>", dateFormatter.format(metric.getTimestamp()));
+        		metricText = metricText.replaceAll("<value>", String.valueOf(metric.getValue()));
+        		
+        		metricsText += metricText;
+			}
+
+			template = preText + metricsText + postText;
+
+        	startAggMetrics = template.indexOf("<agg_metrics>", endAggMetrics);
+        }
+        
+        return template;
     }
 
 }
