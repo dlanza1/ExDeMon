@@ -223,16 +223,6 @@ public class ValueVariable extends Variable {
         return values;
     }
 
-    public void updateVariableStatuses(VariableStatuses variableStatuses, Metric metric, Metric originalMetric) {
-        Optional<StatusValue> status = Optional.ofNullable(variableStatuses.get(name));
-
-        
-
-        StatusValue updatedStatus = updateStatus(status, metric, originalMetric);
-
-        variableStatuses.put(name, updatedStatus);
-    }
-
     @Override
     public StatusValue updateStatus(Optional<StatusValue> statusOpt, Metric metric, Metric originalMetric) {
         StatusValue status = statusOpt.isPresent() ? statusOpt.get() : initStatus();
