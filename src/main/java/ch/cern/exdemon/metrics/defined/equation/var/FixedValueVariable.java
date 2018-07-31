@@ -25,7 +25,7 @@ public class FixedValueVariable extends Variable {
     
     @Override
     public ConfigurationResult config(Properties properties, Optional<Class<? extends Value>> typeOpt) {
-        ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+        ConfigurationResult confResult = super.config(properties, typeOpt);
         
         try {
             filter = MetricsFilter.build(properties.getSubset("filter"));

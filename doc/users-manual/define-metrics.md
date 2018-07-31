@@ -32,18 +32,22 @@ metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.latest-me
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.history.granularity = <not set|d|h|m|s|ms>  (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.ignore = <not set|period like 1h, 3m or 45s[, truncate d, h, m]> (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.expire = <never|period like 1h, 3m or 45s[, truncate d, h, m]> (default: 10m)
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.timestamp.shift = <period like 1h, 3m or 45s> (default: 0)
 # Variable that represents an attribute
 metrics.define.<defined-metric-id>.variables.<variable-id-2>.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.variables.<variable-id-2>.filter.attribute.<attribute-name> = <value>
 metrics.define.<defined-metric-id>.variables.<variable-id-2>.attribute = <attribute_from_filtered_metric
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.timestamp.shift = <period like 1h, 3m or 45s> (default: 0)
 # Variable that represents a fixed value
 metrics.define.<defined-metric-id>.variables.<variable-id-2>.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.variables.<variable-id-2>.filter.attribute.<attribute-name> = <value>
 metrics.define.<defined-metric-id>.variables.<variable-id-2>.fixed.value = <attribute_from_filtered_metric>
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.timestamp.shift = <period like 1h, 3m or 45s> (default: 0)
 # Variable that represents a set of properties for an analysis
 metrics.define.<defined-metric-id>.variables.<variable-id-3>.type = <analysis_type>
 metrics.define.<defined-metric-id>.variables.<variable-id-3>.<analysis-conf-key-1> = <value-1>
 metrics.define.<defined-metric-id>.variables.<variable-id-3>.<analysis-conf-key-n> = <value-n>
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.timestamp.shift = <period like 1h, 3m or 45s> (default: 0)
 metrics.define.<defined-metric-id>.variables.<variable-id-n>...
 
 # With different id, more metrics can be defined

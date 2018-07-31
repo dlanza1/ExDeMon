@@ -1,5 +1,6 @@
 package ch.cern.exdemon.metrics.defined.equation.var;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -15,6 +16,8 @@ import ch.cern.properties.Properties;
 public abstract class Variable implements ValueComputable, Predicate<Metric> {
 	
 	protected String name;
+	
+    private Duration delay;
 
 	public Variable(String name) {
 		this.name = name;
@@ -25,11 +28,23 @@ public abstract class Variable implements ValueComputable, Predicate<Metric> {
 	}
 
 	public ConfigurationResult config(Properties properties, Optional<Class<? extends Value>> typeOpt) {
-		return ConfigurationResult.SUCCESSFUL();
+		ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
+		
+		try {
+            delay = properties.getPeriod("timestamp.shift", Duration.ZERO);
+        } catch (ConfigurationException e) {
+            confResult.withError(null, e);
+        }
+		
+        return confResult;
 	}
 	
 	public VariableStatus updateStatus(Optional<VariableStatus> statusOpt, Metric metric, Metric originalMetric) {
 	    VariableStatus status = statusOpt.orElse(initStatus());
+
+	    metric.setTimestamp(metric.getTimestamp().plus(delay));
+	    
+	    status.setLastUpdateMetricTime(metric.getTimestamp());
 	    
         return updateStatus(status, metric, originalMetric);
 	}

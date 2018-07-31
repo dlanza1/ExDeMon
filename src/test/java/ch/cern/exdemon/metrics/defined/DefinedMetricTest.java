@@ -291,6 +291,24 @@ public class DefinedMetricTest {
         assertEquals("host1", generatedMetric.get().getAttributes().get("A"));
         assertEquals("Read Bytes", generatedMetric.get().getAttributes().get("B"));
     }
+    
+    @Test
+    public void delayInVariable() throws ConfigurationException, CloneNotSupportedException {
+        DefinedMetric definedMetric = new DefinedMetric("A");
+
+        Properties properties = newProperties();
+        properties.setProperty("value", "value");
+        properties.setProperty("variables.value.filter.attribute.METRIC_NAME", "Read Bytes");
+        properties.setProperty("variables.value.timestamp.shift", "+1h");
+        definedMetric.config(properties);
+
+        VariableStatuses store = new VariableStatuses();
+
+        Metric metric = Metric(0, 10, "HOSTNAME=host1", "METRIC_NAME=Read Bytes");
+        definedMetric.updateStore(store, metric, new HashSet<>());
+
+        assertEquals(Instant.EPOCH.plus(Duration.ofHours(1)), store.get("value").getLastUpdateMetricTime());
+    }
 	
 	@Test
 	public void computeWhenVariableThatIsNotInEqaution() throws ConfigurationException, CloneNotSupportedException {

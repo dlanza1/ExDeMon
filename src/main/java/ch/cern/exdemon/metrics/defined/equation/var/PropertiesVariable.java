@@ -18,10 +18,13 @@ public class PropertiesVariable extends Variable {
 	}
 	
 	@Override
-	public ConfigurationResult config(Properties properties, Optional<Class<? extends Value>> type) {
+	public ConfigurationResult config(Properties properties, Optional<Class<? extends Value>> typeOpt) {
+	    ConfigurationResult confResult = super.config(properties, typeOpt);
+	    
+	    properties.remove("delay");
 		this.properties = properties;
 		
-		return ConfigurationResult.SUCCESSFUL();
+		return confResult;
 	}
 
 	@Override

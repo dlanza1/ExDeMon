@@ -14,6 +14,10 @@ public abstract class StatusValue implements Serializable {
 	@Getter
 	private long status_update_time = 0;
 	
+	public StatusValue() {
+	    status_update_time = 0;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public<T> void update(State<T> status, Time time) {
 		status_update_time = time.milliseconds();

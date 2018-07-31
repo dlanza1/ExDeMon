@@ -26,6 +26,7 @@ public class Metric implements Serializable {
     private Map<String, String> attributes;
 
     @Getter
+    @Setter
     @NonNull
     private Instant timestamp;
 
