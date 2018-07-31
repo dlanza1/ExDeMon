@@ -7,7 +7,6 @@ import java.text.ParseException;
 
 import org.junit.Test;
 
-import ch.cern.exdemon.metrics.defined.equation.Equation;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 

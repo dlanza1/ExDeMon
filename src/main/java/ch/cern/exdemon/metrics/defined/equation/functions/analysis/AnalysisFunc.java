@@ -11,6 +11,7 @@ import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.ValueComputable;
 import ch.cern.exdemon.metrics.defined.equation.functions.Function;
 import ch.cern.exdemon.metrics.defined.equation.functions.FunctionCaller;
+import ch.cern.exdemon.metrics.defined.equation.var.VariableStatus;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.value.ExceptionValue;
 import ch.cern.exdemon.metrics.value.PropertiesValue;
@@ -25,6 +26,7 @@ import ch.cern.exdemon.monitor.analysis.types.NoneAnalysis;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.HasStatus;
+import ch.cern.spark.status.StatusValue;
 
 public class AnalysisFunc extends Function {
 	
@@ -63,6 +65,13 @@ public class AnalysisFunc extends Function {
 		
 		Value value = arguments[0].compute(stores, time);
 		
+		if(analysis instanceof HasStatus) {
+		    VariableStatus status = stores.get(propsVal.getName());
+		    
+		    if(status != null && status instanceof AnalysisStatus)		    
+		        ((HasStatus) analysis).load(((AnalysisStatus) status).status);
+        }
+		
 		if(value.getAsException().isPresent()) {
 			result = new ExceptionValue(value.getAsException().get());
 			
@@ -86,8 +95,12 @@ public class AnalysisFunc extends Function {
 			setSourceFromArgumentmValues(result, new ExceptionValue("argument 1: requires boolean value").toString(), value, propsVal);
 		}
 		
-		if(analysis instanceof HasStatus)
-			stores.put(propsVal.getName(), ((HasStatus) analysis).save());
+		if(analysis instanceof HasStatus) {
+		    AnalysisStatus status = new AnalysisStatus();
+		    status.status = ((HasStatus) analysis).save();
+		    
+			stores.put(propsVal.getName(), status);
+		}
 		
 		return result;
 	}
@@ -173,4 +186,10 @@ public class AnalysisFunc extends Function {
 		throw new RuntimeException("It cannot be called");
 	}
 
+	public static class AnalysisStatus extends VariableStatus {
+        private static final long serialVersionUID = -2164984398629720406L;
+        
+        StatusValue status;
+	}
+	
 }

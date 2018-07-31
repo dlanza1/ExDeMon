@@ -8,8 +8,6 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import ch.cern.exdemon.metrics.defined.DefinedMetricStatuskey;
-
 public class DefinedMetricIDTest {
 
 	@Test

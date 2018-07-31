@@ -12,6 +12,7 @@ import org.junit.Test;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.ValueHistory;
 import ch.cern.exdemon.metrics.defined.DefinedMetric;
+import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.properties.Properties;
 
@@ -31,7 +32,7 @@ public class AnalysisFuncTest {
 		stores = new VariableStatuses();
 		store = new ValueHistory.Status();
 		
-		stores.put("value", store);
+		stores.put("value", new ValueVariable.Status_(store));
 	}
 	
 	@Test
@@ -57,7 +58,7 @@ public class AnalysisFuncTest {
 		definedMetric.config(properties);
 		
 		assertResult(true, 	Metric(0, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
-		assertResult(false, 	Metric(1, 91f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
+		assertResult(false, Metric(1, 91f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
 		assertResult(true,	Metric(2, 89f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
 	}
 

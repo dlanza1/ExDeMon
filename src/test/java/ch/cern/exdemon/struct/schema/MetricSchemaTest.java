@@ -21,7 +21,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import ch.cern.exdemon.struct.Metric;
-import ch.cern.exdemon.struct.schema.MetricSchema;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import scala.collection.JavaConversions;

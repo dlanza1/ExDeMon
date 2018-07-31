@@ -2,8 +2,6 @@ package ch.cern.exdemon.metrics;
 
 import java.time.Instant;
 
-import ch.cern.exdemon.metrics.Metric;
-
 @SuppressWarnings("unused")
 public class JSONMetric {
 	

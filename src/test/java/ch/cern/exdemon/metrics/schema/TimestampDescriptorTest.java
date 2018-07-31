@@ -23,7 +23,6 @@ import org.junit.Test;
 import com.google.gson.JsonObject;
 
 import ch.cern.exdemon.json.JSON;
-import ch.cern.exdemon.metrics.schema.TimestampDescriptor;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 

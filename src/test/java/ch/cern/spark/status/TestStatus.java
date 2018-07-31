@@ -1,9 +1,10 @@
 package ch.cern.spark.status;
 
+import ch.cern.exdemon.metrics.defined.equation.var.VariableStatus;
 import ch.cern.spark.status.storage.ClassNameAlias;
 
 @ClassNameAlias("test-status")
-public class TestStatus extends StatusValue {
+public class TestStatus extends VariableStatus {
 
 	private static final long serialVersionUID = 2051099937848011407L;
 	

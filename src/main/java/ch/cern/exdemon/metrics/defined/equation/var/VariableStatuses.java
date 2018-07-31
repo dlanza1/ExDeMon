@@ -16,7 +16,7 @@ public class VariableStatuses extends StatusValue {
 	
 	private static final long serialVersionUID = 3020679839103994736L;
 
-	private Map<String, StatusValue> statuses;
+	private Map<String, VariableStatus> statuses;
 	
 	private Instant processedBatchTime;
 	
@@ -40,7 +40,7 @@ public class VariableStatuses extends StatusValue {
 		}
 	}
 
-	public void put(String varName, StatusValue status) {
+	public void put(String varName, VariableStatus status) {
 		statuses.put(varName, status);
 	}
 
@@ -48,7 +48,7 @@ public class VariableStatuses extends StatusValue {
 		return statuses.containsKey(StatusValue);
 	}
 
-	public StatusValue get(String varName) {
+	public VariableStatus get(String varName) {
 		return statuses.get(varName);
 	}
 

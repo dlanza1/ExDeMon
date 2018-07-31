@@ -8,7 +8,6 @@ import java.time.Instant;
 import org.junit.Test;
 
 import ch.cern.exdemon.metrics.defined.equation.ComputationException;
-import ch.cern.exdemon.metrics.defined.equation.var.agg.AggregationValues;
 
 public class AggregationValuesTest {
     

@@ -6,7 +6,6 @@ import static ch.cern.test.Utils.assertPresent;
 import org.junit.Test;
 
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult.Status;
-import ch.cern.exdemon.monitor.trigger.types.StatusesTrigger;
 import ch.cern.properties.Properties;
 import ch.cern.utils.TimeUtils;
 

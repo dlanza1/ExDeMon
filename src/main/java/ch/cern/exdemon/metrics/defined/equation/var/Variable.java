@@ -1,5 +1,6 @@
 package ch.cern.exdemon.metrics.defined.equation.var;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -10,7 +11,6 @@ import ch.cern.exdemon.metrics.value.PropertiesValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.status.StatusValue;
 
 public abstract class Variable implements ValueComputable, Predicate<Metric> {
 	
@@ -28,7 +28,30 @@ public abstract class Variable implements ValueComputable, Predicate<Metric> {
 		return ConfigurationResult.SUCCESSFUL();
 	}
 	
-	public abstract StatusValue updateStatus(Optional<StatusValue> statusOpt, Metric metric, Metric originalMetric);
+	public VariableStatus updateStatus(Optional<VariableStatus> statusOpt, Metric metric, Metric originalMetric) {
+	    VariableStatus status = statusOpt.orElse(initStatus());
+	    
+        return updateStatus(status, metric, originalMetric);
+	}
+
+	protected VariableStatus updateStatus(VariableStatus status, Metric metric, Metric originalMetric) {
+	    return status;
+	}
+
+	protected VariableStatus initStatus() {
+	    return new VariableStatus();
+	}
+
+    @Override
+	public Value compute(VariableStatuses stores, Instant time) {
+	    VariableStatus store = null;
+	    if(stores != null)
+	        store = stores.get(getName());
+	    
+        return compute(Optional.ofNullable(store ), time);
+	}
+
+    protected abstract Value compute(Optional<VariableStatus> statusValue, Instant time);
 
     public static Variable create(String name, Properties properties, Optional<Class<? extends Value>> argumentTypeOpt) throws ConfigurationException {
         Variable var = null;

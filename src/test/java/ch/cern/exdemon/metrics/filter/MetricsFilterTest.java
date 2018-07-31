@@ -14,7 +14,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import ch.cern.exdemon.metrics.Metric;
-import ch.cern.exdemon.metrics.filter.MetricsFilter;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 

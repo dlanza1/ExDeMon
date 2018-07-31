@@ -13,11 +13,10 @@ import org.apache.spark.streaming.Time;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.metrics.Metric;
-import ch.cern.exdemon.metrics.defined.ComputeBatchDefineMetricsF;
-import ch.cern.exdemon.metrics.defined.DefinedMetricStatuskey;
+import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.AggregationValues;
 import ch.cern.exdemon.metrics.value.FloatValue;
@@ -52,7 +51,7 @@ public class ComputeBatchDefinedMetricsFTest {
 		
 		VariableStatuses varStores = new VariableStatuses();
 		AggregationValues valueStore = new AggregationValues(100, 0);
-		varStores.put("value", valueStore);
+		varStores.put("value", new ValueVariable.Status_(valueStore));
 		
 		Map<String, String> ids = new HashMap<>();
 		ids.put("DB_NAME", "DB1");

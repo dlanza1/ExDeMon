@@ -10,11 +10,10 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.DefinedMetrics;
-import ch.cern.exdemon.monitor.Monitors;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult.Status;
 import ch.cern.properties.Properties;

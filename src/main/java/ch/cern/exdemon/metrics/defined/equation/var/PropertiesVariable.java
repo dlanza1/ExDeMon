@@ -8,7 +8,6 @@ import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.value.PropertiesValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.Properties;
-import ch.cern.spark.status.StatusValue;
 
 public class PropertiesVariable extends Variable {
 
@@ -26,7 +25,7 @@ public class PropertiesVariable extends Variable {
 	}
 
 	@Override
-	public Value compute(VariableStatuses store, Instant time) {
+	public Value compute(Optional<VariableStatus> storeOpt, Instant time) {
 		PropertiesValue value = new PropertiesValue(name, properties);
 		value.setSource("props(" + name + ")");
 		
@@ -47,10 +46,5 @@ public class PropertiesVariable extends Variable {
 	public String toString() {
 		return "props(" + name + ")";
 	}
-
-    @Override
-    public StatusValue updateStatus(Optional<StatusValue> statusOpt, Metric metric, Metric originalMetric) {
-        return null;
-    }
 
 }

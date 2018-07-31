@@ -10,7 +10,7 @@ import java.time.Instant;
 import org.junit.Test;
 
 import ch.cern.exdemon.metrics.ValueHistory;
-import ch.cern.exdemon.metrics.defined.equation.Equation;
+import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.value.BooleanValue;
 import ch.cern.exdemon.metrics.value.FloatValue;
@@ -82,13 +82,13 @@ public class EquationTest {
 		
 		VariableStatuses stores = new VariableStatuses();
 		ValueHistory.Status var1store = new ValueHistory.Status(100, 0, null, null);
-		stores.put("var1", var1store);
+		stores.put("var1", new ValueVariable.Status_(var1store));
 		ValueHistory.Status var2store = new ValueHistory.Status(100, 0, null, null);
-		stores.put("var2", var2store);
+		stores.put("var2", new ValueVariable.Status_(var2store));
 		ValueHistory.Status xstore = new ValueHistory.Status(100, 0, null, null);
-		stores.put("x", xstore);
+		stores.put("x", new ValueVariable.Status_(xstore));
 		ValueHistory.Status ystore = new ValueHistory.Status(100, 0, null, null);
-		stores.put("y", ystore);
+		stores.put("y", new ValueVariable.Status_(ystore));
 		
 		props = new Properties();
 		props.setProperty("var1.filter.attribute.A", "A");
@@ -162,9 +162,9 @@ public class EquationTest {
 		
 		VariableStatuses stores = new VariableStatuses();
 		ValueHistory.Status xstore = new ValueHistory.Status(100, 0, null, null);
-        stores.put("x", xstore);
+        stores.put("x", new ValueVariable.Status_(xstore));
         ValueHistory.Status ystore = new ValueHistory.Status(100, 0, null, null);
-        stores.put("y", ystore);
+        stores.put("y", new ValueVariable.Status_(ystore));
 		
 		xstore.history.add(time, new FloatValue(9));
 		assertEquals(9f, new Equation("abs(x)", props).compute(stores, time).getAsFloat().get(), 0.01f);

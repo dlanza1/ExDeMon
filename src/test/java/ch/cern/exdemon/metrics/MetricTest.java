@@ -1,6 +1,6 @@
 package ch.cern.exdemon.metrics;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 import org.spark_project.guava.collect.Sets;
 
-import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.value.BooleanValue;
 import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.StringValue;

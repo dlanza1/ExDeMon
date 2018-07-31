@@ -13,7 +13,6 @@ import org.junit.Test;
 
 import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.metrics.Metric;
-import ch.cern.exdemon.monitor.Monitor;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusValue;

@@ -3,8 +3,6 @@ package ch.cern.exdemon.json;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ch.cern.exdemon.json.JSON;
-
 public class JSONObjectParserTest {
 	
 	@Test

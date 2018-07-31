@@ -10,7 +10,6 @@ import java.util.Optional;
 import org.junit.Test;
 
 import ch.cern.exdemon.json.JSON;
-import ch.cern.exdemon.metrics.schema.ValueDescriptor;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;

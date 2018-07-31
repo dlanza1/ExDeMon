@@ -13,11 +13,9 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.metrics.Metric;
-import ch.cern.exdemon.metrics.defined.ComputeDefinedMetricKeysF;
-import ch.cern.exdemon.metrics.defined.DefinedMetricStatuskey;
 import ch.cern.properties.Properties;
 import scala.Tuple2;
 

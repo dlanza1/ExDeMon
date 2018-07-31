@@ -2,6 +2,9 @@ package ch.cern.exdemon.metrics.defined;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -9,7 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
-import static org.mockito.Mockito.*;
 
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.var.Variable;

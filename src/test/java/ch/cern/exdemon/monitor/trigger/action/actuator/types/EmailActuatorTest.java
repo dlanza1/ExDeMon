@@ -16,7 +16,6 @@ import org.junit.Test;
 import ch.cern.exdemon.monitor.trigger.action.Action;
 import ch.cern.exdemon.monitor.trigger.action.ActionTest;
 import ch.cern.exdemon.monitor.trigger.action.Template;
-import ch.cern.exdemon.monitor.trigger.action.actuator.types.EmailActuator;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 

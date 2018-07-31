@@ -22,8 +22,8 @@ import ch.cern.exdemon.monitor.trigger.TriggerStatusKey;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusOperation;
-import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.StatusOperation.Op;
+import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
 import scala.Tuple2;
 

@@ -10,7 +10,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
-import ch.cern.exdemon.monitor.analysis.types.PercentileAnalysis;
 import ch.cern.properties.Properties;
 
 public class PercentileAnalysisTest {

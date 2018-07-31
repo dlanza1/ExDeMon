@@ -12,8 +12,6 @@ import java.util.Optional;
 import org.junit.Test;
 
 import ch.cern.exdemon.metrics.Metric;
-import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
-import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
@@ -44,7 +42,8 @@ public class ValueVariableTest  {
             Instant time = Instant.parse("2007-12-03T09:40:00.00Z").plus(Duration.ofSeconds((long) (6000f * Math.random())));
             
             Metric metric = new Metric(time, new FloatValue(Math.random()), new HashMap<>());
-            variableStatuses.put("", var.updateStatus(Optional.ofNullable(variableStatuses.get("")), metric, metric));
+            VariableStatus status = (VariableStatus) variableStatuses.get("");
+            variableStatuses.put("", var.updateStatus(Optional.ofNullable(status), metric, metric));
             
             if(time.isBefore(newest) || time.isAfter(oldest))
                 outOfPeriod++;

@@ -13,9 +13,7 @@ import org.junit.Test;
 
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.ValueHistory;
-import ch.cern.exdemon.metrics.defined.DefinedMetric;
-import ch.cern.exdemon.metrics.defined.DefinedMetricStatuskey;
-import ch.cern.exdemon.metrics.defined.UpdateDefinedMetricStatusesF;
+import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.properties.Properties;
 
@@ -71,7 +69,7 @@ public class UpdateDefinedMetricStatusesFTest {
         State<VariableStatuses> status = new StateImpl<>();
         VariableStatuses varStores = new VariableStatuses();
         ValueHistory.Status varStore = new ValueHistory.Status(100, 0, null, null);
-		varStores.put("value", varStore);
+		varStores.put("value", new ValueVariable.Status_(varStore));
 		status.update(varStores);
         Metric metric = null;
         

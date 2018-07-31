@@ -127,7 +127,7 @@ public class SingleFileStatusesStorageTest {
 		DefinedMetricStatuskey id2 = new DefinedMetricStatuskey("df2", new HashMap<>());
 		
 		VariableStatuses varStatuses = new VariableStatuses();
-		StatusValue status = new TestStatus(11);
+		TestStatus status = new TestStatus(11);
 		varStatuses.put("var1-id1", status);
 		inputList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id1, varStatuses));
 		

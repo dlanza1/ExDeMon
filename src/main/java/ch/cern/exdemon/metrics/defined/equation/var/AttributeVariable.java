@@ -11,7 +11,6 @@ import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.status.StatusValue;
 import lombok.Getter;
 
 public class AttributeVariable extends Variable {
@@ -43,20 +42,30 @@ public class AttributeVariable extends Variable {
     }
 
     @Override
-    public StatusValue updateStatus(Optional<StatusValue> statusOpt, Metric metric, Metric originalMetric) {
-        Status_ status = statusOpt.filter(s -> s instanceof Status_)
-                                  .map(s -> (Status_) s)
-                                  .orElse(new Status_());
+    public VariableStatus updateStatus(VariableStatus varStatus, Metric metric, Metric originalMetric) {
+        Status_ status = null;
+        if(varStatus instanceof Status_) {
+            status = (Status_) varStatus;
         
-        status.time = metric.getTimestamp();
-        status.value = metric.getAttributes().get(attribute);
+            status.value = metric.getAttributes().get(attribute);
+            
+            return status;
+        }
         
-        return status;
+        return null;
     }
     
     @Override
-    public Value compute(VariableStatuses stores, Instant time) {
-        StatusValue statusValue = stores.get(name);
+    protected VariableStatus initStatus() {
+        return new Status_();
+    }
+    
+    @Override
+    public Value compute(Optional<VariableStatus> statusOpt, Instant time) {
+        if(!statusOpt.isPresent())
+            return new ExceptionValue("no store");
+        
+        VariableStatus statusValue = statusOpt.get();
         
         if(statusValue instanceof Status_) {
             Status_ status = (Status_) statusValue; 
@@ -64,7 +73,7 @@ public class AttributeVariable extends Variable {
             return new StringValue(status.value);
         }
         
-        return new ExceptionValue("no store");
+        return new ExceptionValue("no store of proper type");
     }
 
     @Override
@@ -77,10 +86,9 @@ public class AttributeVariable extends Variable {
         return filter.test(metric);
     }
     
-    public static class Status_ extends StatusValue{
+    public static class Status_ extends VariableStatus{
         private static final long serialVersionUID = -1241228510312512443L;
         
-        Instant time;
         String value;
     }
 

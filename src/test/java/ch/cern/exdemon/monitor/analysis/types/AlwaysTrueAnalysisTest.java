@@ -6,8 +6,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import ch.cern.exdemon.metrics.Metric;
-import ch.cern.exdemon.monitor.analysis.results.AnalysisResult.Status;
-import ch.cern.exdemon.monitor.analysis.types.AlwaysTrueAnalysis;;
+import ch.cern.exdemon.monitor.analysis.results.AnalysisResult.Status;;
 
 public class AlwaysTrueAnalysisTest {
 	

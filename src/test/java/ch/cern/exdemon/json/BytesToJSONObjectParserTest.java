@@ -2,9 +2,6 @@ package ch.cern.exdemon.json;
 
 import org.junit.Assert;
 
-import ch.cern.exdemon.json.JSON;
-import ch.cern.exdemon.json.JSONObjectDeserializer;
-
 public class BytesToJSONObjectParserTest {
 
     public void parse(){

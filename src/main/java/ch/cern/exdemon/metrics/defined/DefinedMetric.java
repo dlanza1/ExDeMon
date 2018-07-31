@@ -17,13 +17,13 @@ import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.Equation;
 import ch.cern.exdemon.metrics.defined.equation.var.Variable;
+import ch.cern.exdemon.metrics.defined.equation.var.VariableStatus;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
 import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.status.StatusValue;
 import ch.cern.utils.Pair;
 import lombok.Getter;
 import lombok.ToString;
@@ -166,9 +166,11 @@ public final class DefinedMetric extends Component {
 		for (Variable variableToUpdate : variablesToUpdate.values()) {
 		    String name = variableToUpdate.getName();
 		    
-		    Optional<StatusValue> status = Optional.ofNullable(stores.get(name));
+		    Optional<VariableStatus> status = Optional.ofNullable(stores.get(name))
+		                                           .filter(s -> s instanceof VariableStatus)
+		                                           .map(s -> (VariableStatus) s);
 		    
-		    StatusValue updatedStatus = variableToUpdate.updateStatus(status, metricForStore, metric.clone());
+		    VariableStatus updatedStatus = variableToUpdate.updateStatus(status, metricForStore, metric.clone());
 			
 		    stores.put(name, updatedStatus);
 		}

@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import org.junit.Test;
 
 import ch.cern.exdemon.metrics.DatedValue;
-import ch.cern.exdemon.metrics.defined.equation.var.agg.AvgAggregation;
 import ch.cern.exdemon.metrics.value.AggregatedValue;
 import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.Value;

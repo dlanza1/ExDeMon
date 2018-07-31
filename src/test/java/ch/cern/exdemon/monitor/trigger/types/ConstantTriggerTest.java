@@ -9,7 +9,6 @@ import java.time.Instant;
 import org.junit.Test;
 
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult.Status;
-import ch.cern.exdemon.monitor.trigger.types.ConstantTrigger;
 import ch.cern.properties.Properties;
 import ch.cern.utils.TimeUtils;
 

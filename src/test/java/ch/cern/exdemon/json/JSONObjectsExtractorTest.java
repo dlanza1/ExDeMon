@@ -3,9 +3,6 @@ package ch.cern.exdemon.json;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ch.cern.exdemon.json.JSON;
-import ch.cern.exdemon.json.JSONObjectsExtractor;
-
 public class JSONObjectsExtractorTest {
 
     @Test

@@ -10,7 +10,6 @@ import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.status.StatusValue;
 import lombok.Getter;
 
 public class FixedValueVariable extends Variable {
@@ -42,21 +41,9 @@ public class FixedValueVariable extends Variable {
         
         return confResult;
     }
-    
-    
-    @Override
-    public StatusValue updateStatus(Optional<StatusValue> statusOpt, Metric metric, Metric originalMetric) {
-        Status_ status = statusOpt.filter(s -> s instanceof Status_)
-                                  .map(s -> (Status_) s)
-                                  .orElse(new Status_());
-
-        status.time = metric.getTimestamp();
-        
-        return status;
-    }
 
     @Override
-    public Value compute(VariableStatuses stores, Instant time) {
+    public Value compute(Optional<VariableStatus> storeOpt, Instant time) {
         return value;
     }
 
@@ -70,10 +57,4 @@ public class FixedValueVariable extends Variable {
         return filter.test(metric);
     }
     
-    public static class Status_ extends StatusValue{
-        private static final long serialVersionUID = -1241228510312512443L;
-        
-        Instant time;
-    }
-
 }

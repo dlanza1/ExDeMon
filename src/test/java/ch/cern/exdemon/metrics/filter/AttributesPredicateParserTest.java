@@ -11,8 +11,6 @@ import java.util.function.Predicate;
 
 import org.junit.Test;
 
-import ch.cern.exdemon.metrics.filter.AttributesPredicateParser;
-
 public class AttributesPredicateParserTest {
 
 	@Test(expected=ParseException.class)

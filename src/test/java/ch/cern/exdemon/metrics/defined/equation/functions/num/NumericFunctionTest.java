@@ -9,7 +9,6 @@ import java.time.Instant;
 import org.junit.Test;
 
 import ch.cern.exdemon.metrics.defined.equation.ValueComputable;
-import ch.cern.exdemon.metrics.defined.equation.functions.num.NumericFunction;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.value.ExceptionValue;
 import ch.cern.exdemon.metrics.value.FloatValue;

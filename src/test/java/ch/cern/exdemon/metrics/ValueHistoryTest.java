@@ -24,8 +24,6 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ch.cern.exdemon.metrics.Metric;
-import ch.cern.exdemon.metrics.ValueHistory;
 import ch.cern.exdemon.metrics.ValueHistory.Status;
 import ch.cern.exdemon.metrics.defined.equation.ComputationException;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.Aggregation;

@@ -7,7 +7,6 @@ import java.util.HashSet;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult.Status;
-import ch.cern.exdemon.monitor.trigger.action.Action;
 
 public class ActionTest {
     

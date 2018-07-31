@@ -13,7 +13,6 @@ import org.apache.hadoop.fs.Path;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.exdemon.monitor.trigger.TriggerStatusKey;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusKey;

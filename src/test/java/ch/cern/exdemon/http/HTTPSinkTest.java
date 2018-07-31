@@ -32,8 +32,6 @@ import org.mockito.ArgumentCaptor;
 
 import com.google.gson.JsonPrimitive;
 
-import ch.cern.exdemon.http.HTTPSink;
-import ch.cern.exdemon.http.JsonPOSTRequest;
 import ch.cern.exdemon.json.JSONParser;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;

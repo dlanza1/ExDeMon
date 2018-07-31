@@ -9,7 +9,6 @@ import java.time.Instant;
 import org.junit.Test;
 
 import ch.cern.exdemon.metrics.defined.equation.ValueComputable;
-import ch.cern.exdemon.metrics.defined.equation.functions.num.BiNumericFunction;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.value.BooleanValue;
 import ch.cern.exdemon.metrics.value.ExceptionValue;

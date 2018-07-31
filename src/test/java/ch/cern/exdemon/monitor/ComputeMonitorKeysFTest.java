@@ -10,12 +10,10 @@ import java.util.Iterator;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.MetricTest;
-import ch.cern.exdemon.monitor.ComputeMonitorKeysF;
-import ch.cern.exdemon.monitor.MonitorStatusKey;
 import ch.cern.properties.Properties;
 import scala.Tuple2;
 

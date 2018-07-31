@@ -17,7 +17,6 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import ch.cern.exdemon.metrics.predictor.LearningRatioValuePredictor;
 import ch.cern.exdemon.metrics.predictor.LearningRatioValuePredictor.Period;
 import ch.cern.exdemon.metrics.predictor.LearningRatioValuePredictor.Status_;
 

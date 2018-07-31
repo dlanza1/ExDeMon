@@ -20,6 +20,7 @@ import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.metrics.DatedValue;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.ValueHistory;
+import ch.cern.exdemon.metrics.ValueHistory.Status;
 import ch.cern.exdemon.metrics.defined.equation.ComputationException;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.Aggregation;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.AggregationValues;
@@ -30,7 +31,6 @@ import ch.cern.exdemon.metrics.value.ExceptionValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.status.StatusValue;
 import ch.cern.utils.DurationAndTruncate;
 import ch.cern.utils.TimeUtils;
 import lombok.Getter;
@@ -146,19 +146,17 @@ public class ValueVariable extends Variable {
     }
 
     @Override
-    public Value compute(VariableStatuses variableStatuses, Instant time) {
-        StatusValue status = variableStatuses.get(name);
-
+    public Value compute(Optional<VariableStatus> statusOpt, Instant time) {
         Value aggValue = null;
         try {
-            Collection<DatedValue> values = getDatedValues(status, time, aggregation.inputType());
+            Collection<DatedValue> values = getDatedValues(statusOpt, time, aggregation.inputType());
 
             aggValue = aggregation.aggregateValues(values, time);
 
             if (aggValue.getAsAggregated().isPresent())
                 aggValue = aggValue.getAsAggregated().get();
 
-            aggValue.setLastSourceMetrics(getLastAggregatedMetrics(status));
+            aggValue.setLastSourceMetrics(getLastAggregatedMetrics(statusOpt));
         } catch (ComputationException e) {
             aggValue = new ExceptionValue(e.getMessage());
         }
@@ -173,15 +171,20 @@ public class ValueVariable extends Variable {
         return aggValue;
     }
 
-    private List<Metric> getLastAggregatedMetrics(StatusValue status) {
-        if (status instanceof AggregationValues) {
-            AggregationValues aggValues = (AggregationValues) status;
+    private List<Metric> getLastAggregatedMetrics(Optional<VariableStatus> statusOpt) {
+        if(!statusOpt.isPresent() || !(statusOpt.get() instanceof Status_))
+            return null;
+        
+        Status_ status = (Status_) statusOpt.get();
+        
+        if (status.aggregationValues != null) {
+            AggregationValues aggValues = status.aggregationValues;
 
             Map<Integer, Metric> metrics = aggValues.getLastAggregatedMetrics();
 
             return metrics != null ? new LinkedList<>(metrics.values()) : null;
-        } else if (status instanceof ValueHistory.Status) {
-            ValueHistory history = ((ValueHistory.Status) status).history;
+        } else if (status.valueHistoryStatus != null) {
+            ValueHistory history = status.valueHistoryStatus.history;
 
             List<Metric> metrics = history.getLastAggregatedMetrics();
 
@@ -191,22 +194,24 @@ public class ValueVariable extends Variable {
         return null;
     }
 
-    private Collection<DatedValue> getDatedValues(StatusValue status, Instant time, Class<? extends Value> inputType)
+    private Collection<DatedValue> getDatedValues(Optional<VariableStatus> statusOpt, Instant time, Class<? extends Value> inputType)
             throws ComputationException {
         Collection<DatedValue> values = new LinkedList<>();
 
-        if (status == null)
+        if(!statusOpt.isPresent() || !(statusOpt.get() instanceof Status_))
             return values;
+        
+        Status_ status = (Status_) statusOpt.get();
 
-        if (isThereSelectedAttributes() && status instanceof AggregationValues) {
-            AggregationValues aggValues = ((AggregationValues) status);
+        if (isThereSelectedAttributes() && status.aggregationValues != null) {
+            AggregationValues aggValues = status.aggregationValues;
 
             if (expire != null)
                 aggValues.purge(expire.adjustMinus(time));
 
             values = aggValues.getDatedValues();
-        } else if (!isThereSelectedAttributes() && status instanceof ValueHistory.Status) {
-            ValueHistory history = ((ValueHistory.Status) status).history;
+        } else if (!isThereSelectedAttributes() && status.valueHistoryStatus != null) {
+            ValueHistory history = status.valueHistoryStatus.history;
 
             if (expire != null)
                 history.purge(expire.adjustMinus(time));
@@ -224,16 +229,16 @@ public class ValueVariable extends Variable {
     }
 
     @Override
-    public StatusValue updateStatus(Optional<StatusValue> statusOpt, Metric metric, Metric originalMetric) {
-        StatusValue status = statusOpt.isPresent() ? statusOpt.get() : initStatus();
+    public VariableStatus updateStatus(VariableStatus varStatus, Metric metric, Metric originalMetric) {
+        Status_ status = (Status_) varStatus;
         
         metric.setAttributes(getAggSelectAttributes(metric.getAttributes()));
 
         if (isThereSelectedAttributes()) {
-            if (!(status instanceof AggregationValues))
-                status = initStatus();
+            if (status.aggregationValues == null)
+                status = (Status_) initStatus();
 
-            AggregationValues aggValues = ((AggregationValues) status);
+            AggregationValues aggValues = status.aggregationValues;
 
             aggValues.setMax_aggregation_size(max_aggregation_size);
             aggValues.setMax_lastAggregatedMetrics_size(max_lastAggregatedMetrics_size);
@@ -253,10 +258,10 @@ public class ValueVariable extends Variable {
             
             aggregation.postUpdateStatus(this, aggValues, metric);
         } else {
-            if (!(status instanceof ValueHistory.Status))
-                status = initStatus();
+            if (status.valueHistoryStatus == null)
+                status = (Status_) initStatus();
 
-            ValueHistory history = ((ValueHistory.Status) status).history;
+            ValueHistory history = status.valueHistoryStatus.history;
 
             history.setGranularity(granularity);
             history.setAggregation(aggregation);
@@ -274,11 +279,12 @@ public class ValueVariable extends Variable {
         return aggregateSelectAtt != null || aggregateSelectALL;
     }
 
-    private StatusValue initStatus() {
+    @Override
+    protected VariableStatus initStatus() {
         if (isThereSelectedAttributes())
-            return new AggregationValues(max_aggregation_size, max_lastAggregatedMetrics_size);
+            return new Status_(new AggregationValues(max_aggregation_size, max_lastAggregatedMetrics_size));
         else
-            return new ValueHistory.Status(max_aggregation_size, max_lastAggregatedMetrics_size, granularity, aggregation);
+            return new Status_(new ValueHistory.Status(max_aggregation_size, max_lastAggregatedMetrics_size, granularity, aggregation));
     }
 
     private Map<String, String> getAggSelectAttributes(Map<String, String> attributes) {
@@ -298,6 +304,23 @@ public class ValueVariable extends Variable {
     public String toString() {
         String aggName = aggregation.getClass().getAnnotation(RegisterComponentType.class).value();
         return aggName + "(time_filter(" + name + ", from:" + expire + ", to:" + ignore + "))";
+    }
+    
+    public static class Status_ extends VariableStatus { 
+    
+        private static final long serialVersionUID = 5808704505636633066L;
+        
+        AggregationValues aggregationValues;
+        Status valueHistoryStatus;
+
+        public Status_(AggregationValues aggregationValues) {
+            this.aggregationValues = aggregationValues;
+        }
+
+        public Status_(ValueHistory.Status valueHistoryStatus) {
+            this.valueHistoryStatus = valueHistoryStatus;
+        }
+        
     }
 
 }

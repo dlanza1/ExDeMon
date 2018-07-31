@@ -10,8 +10,6 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ch.cern.exdemon.json.JSON;
-import ch.cern.exdemon.json.JSONParser;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 
