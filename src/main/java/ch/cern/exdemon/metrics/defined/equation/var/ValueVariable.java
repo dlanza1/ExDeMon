@@ -230,7 +230,11 @@ public class ValueVariable extends Variable {
 
     @Override
     public VariableStatus updateStatus(VariableStatus varStatus, Metric metric, Metric originalMetric) {
-        Status_ status = (Status_) varStatus;
+        Status_ status = null;
+        if(varStatus instanceof Status_)
+            status = (Status_) varStatus;
+        else
+            status = (Status_) initStatus();
         
         metric.setAttributes(getAggSelectAttributes(metric.getAttributes()));
 
