@@ -48,6 +48,8 @@ public final class DefinedMetric extends Component {
 
     private Map<String, String> fixedValueAttributes;
 
+    private Map<String, String> triggeringAttributes;
+
     public DefinedMetric() {
     }
     
@@ -69,9 +71,15 @@ public final class DefinedMetric extends Component {
             confResult.withError("metrics.filter", e);
         }
 		
-		fixedValueAttributes = properties.getSubset("metrics.attribute").entrySet().stream()
-		                            .map(entry -> new Pair<String, String>(entry.getKey().toString(), entry.getValue().toString()))
+		fixedValueAttributes = properties.getSubset("metrics.attribute").entrySet().stream()      //TODO || DEPRECATED
+		                            .filter(entry -> entry.getKey().toString().endsWith(".fixed") || !entry.getKey().toString().contains("."))
+		                            .map(entry -> new Pair<String, String>(entry.getKey().toString().replace(".fixed", ""), entry.getValue().toString()))
 		                            .collect(Collectors.toMap(Pair::first, Pair::second));
+		
+		triggeringAttributes = properties.getSubset("metrics.attribute").entrySet().stream()
+                                    .filter(entry -> entry.getKey().toString().endsWith(".triggering"))
+                                    .map(entry -> new Pair<String, String>(entry.getKey().toString().replace(".triggering", ""), entry.getValue().toString()))
+                                    .collect(Collectors.toMap(Pair::first, Pair::second));
 		
 		Properties variablesProperties = properties.getSubset("variables");
 		Set<String> variableNames = variablesProperties.getIDs();
@@ -150,49 +158,54 @@ public final class DefinedMetric extends Component {
 			variableToUpdate.updateVariableStatuses(stores, metricForStore, metric.clone());
 	}
 
-	public Optional<Metric> generateByUpdate(VariableStatuses stores, Metric metric, Map<String, String> groupByMetricIDs) {
+	public Optional<Metric> generateByUpdate(VariableStatuses stores, Metric metric, Map<String, String> groupByAttributes) {
 	    if(!filter.test(metric))
             return Optional.empty();
 	    
 		if(when.isTriggerBy(metric))
-			return generate(stores, metric.getTimestamp(), groupByMetricIDs);
+			return generate(stores, metric.getTimestamp(), groupByAttributes, Optional.of(metric));
 		
 		return Optional.empty();
 	}
 	
-	public Optional<Metric> generateByBatch(VariableStatuses stores, Instant batchTime, Map<String, String> groupByMetricIDs) {
+	public Optional<Metric> generateByBatch(VariableStatuses stores, Instant batchTime, Map<String, String> groupByAttributes) {
 		if(when.isTriggerAt(batchTime))
-			return generate(stores, batchTime, groupByMetricIDs);
+			return generate(stores, batchTime, groupByAttributes, Optional.empty());
 		
 		return Optional.empty();
 	}
 	
-	private Optional<Metric> generate(VariableStatuses stores, Instant time, Map<String, String> groupByMetricIDs) {		
-		Map<String, String> metricIDs = new HashMap<>(groupByMetricIDs);
-		metricIDs.put("$defined_metric", getId());
-		metricIDs.putAll(fixedValueAttributes);
+	private Optional<Metric> generate(VariableStatuses stores, Instant time, Map<String, String> groupByAttributes, Optional<Metric> triggeringMetric) {		
+		Map<String, String> metricAttributes = new HashMap<>(groupByAttributes);
+		metricAttributes.put("$defined_metric", getId());
+		metricAttributes.putAll(fixedValueAttributes);
+		triggeringMetric.ifPresent(m -> {
+		    triggeringAttributes.forEach((attribute, key) -> {
+		        metricAttributes.put(attribute, m.getAttributes().get(key));
+		    });
+		});
 		
 		if(configurationException != null) {
 			if(stores.newProcessedBatchTime(time))
-				return Optional.of(new Metric(time, new ExceptionValue("ConfigurationException: " + configurationException.getMessage()), metricIDs));
+				return Optional.of(new Metric(time, new ExceptionValue("ConfigurationException: " + configurationException.getMessage()), metricAttributes));
 			else
 				return Optional.empty();
 		}
 		
 		Value value = equation.compute(stores, time);
 			
-		return Optional.of(new Metric(time, value, metricIDs));
+		return Optional.of(new Metric(time, value, metricAttributes));
 	}
 
-	public Optional<Map<String, String>> getGroupByMetricIDs(Map<String, String> metricIDs) {
+	public Optional<Map<String, String>> getGroupByAttributes(Map<String, String> metricAttributes) {
 		if(metricsGroupBy == null)
 			return Optional.of(new HashMap<>());
 		
 		if(metricsGroupBy.contains("ALL"))
-			return Optional.of(metricIDs);
+			return Optional.of(metricAttributes);
 		
 		Map<String, String> values = metricsGroupBy.stream()
-			.map(id -> new Pair<String, String>(id, metricIDs.get(id)))
+			.map(id -> new Pair<String, String>(id, metricAttributes.get(id)))
 			.filter(pair -> pair.second() != null)
 			.collect(Collectors.toMap(Pair::first, Pair::second));
 		

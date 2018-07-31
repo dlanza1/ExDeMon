@@ -19,7 +19,8 @@ metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/space separate
 metrics.define.<defined-metric-id>.metrics.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.metrics.filter.attribute.<attribute-name> = <value>
 # Fixed value attributes to add to the generated metrics
-metrics.define.<defined-metric-id>.metrics.attribute.<attribute-name> = <value>
+metrics.define.<defined-metric-id>.metrics.attribute.<attribute-name>.value = <value>
+metrics.define.<defined-metric-id>.metrics.attribute.<attribute-name>.triggering = <attribute_of_triggering_metric>
 # Variable that represent an incoming metric
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name> = <value->

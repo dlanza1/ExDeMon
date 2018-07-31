@@ -29,7 +29,7 @@ public class ComputeDefinedMetricKeysF implements PairFlatMapFunction<Metric, De
 		
         return definedMetrics.values().stream()
 		        		.filter(definedMetric -> definedMetric.testIfApplyForAnyVariable(metric))
-		        		.map(definedMetric -> new Tuple2<>(definedMetric.getId(), definedMetric.getGroupByMetricIDs(metric.getAttributes())))
+		        		.map(definedMetric -> new Tuple2<>(definedMetric.getId(), definedMetric.getGroupByAttributes(metric.getAttributes())))
 		        		.filter(pair -> pair._2.isPresent())
 		        		.map(pair -> new DefinedMetricStatuskey(pair._1, pair._2.get()))
 		        		.map(ids -> new Tuple2<DefinedMetricStatuskey, Metric>(ids, metric))

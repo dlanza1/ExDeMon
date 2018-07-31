@@ -151,7 +151,7 @@ public class DefinedMetricTest {
 	}
 	
 	@Test
-	public void getGroupByMetricIDs() throws ConfigurationException {
+	public void getGroupByMetricAttributess() throws ConfigurationException {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
@@ -164,7 +164,7 @@ public class DefinedMetricTest {
 		Map<String, String> ids = new HashMap<>();
 		ids.put("INSTANCE_NAME", "machine1");
 		ids.put("METRIC_NAME", "metric1");
-		assertEquals(0, definedMetric.getGroupByMetricIDs(ids).get().size());
+		assertEquals(0, definedMetric.getGroupByAttributes(ids).get().size());
 		
 		
 		properties.setProperty("metrics.groupby", "ALL");
@@ -173,9 +173,9 @@ public class DefinedMetricTest {
 		ids = new HashMap<>();
 		ids.put("INSTANCE_NAME", "machine1");
 		ids.put("METRIC_NAME", "metric1");
-		assertEquals(2, definedMetric.getGroupByMetricIDs(ids).get().size());
-		assertEquals("machine1", definedMetric.getGroupByMetricIDs(ids).get().get("INSTANCE_NAME"));
-		assertEquals("metric1", definedMetric.getGroupByMetricIDs(ids).get().get("METRIC_NAME"));
+		assertEquals(2, definedMetric.getGroupByAttributes(ids).get().size());
+		assertEquals("machine1", definedMetric.getGroupByAttributes(ids).get().get("INSTANCE_NAME"));
+		assertEquals("metric1", definedMetric.getGroupByAttributes(ids).get().get("METRIC_NAME"));
 		
 		
 		properties.setProperty("metrics.groupby", "INSTANCE_NAME");
@@ -184,8 +184,8 @@ public class DefinedMetricTest {
 		ids = new HashMap<>();
 		ids.put("INSTANCE_NAME", "machine1");
 		ids.put("METRIC_NAME", "metric1");
-		assertEquals(1, definedMetric.getGroupByMetricIDs(ids).get().size());
-		assertEquals("machine1", definedMetric.getGroupByMetricIDs(ids).get().get("INSTANCE_NAME"));
+		assertEquals(1, definedMetric.getGroupByAttributes(ids).get().size());
+		assertEquals("machine1", definedMetric.getGroupByAttributes(ids).get().get("INSTANCE_NAME"));
 		
 		
 		properties.setProperty("metrics.groupby", "INSTANCE_NAME METRIC_NAME");
@@ -194,9 +194,9 @@ public class DefinedMetricTest {
 		ids = new HashMap<>();
 		ids.put("INSTANCE_NAME", "machine1");
 		ids.put("METRIC_NAME", "metric1");
-		assertEquals(2, definedMetric.getGroupByMetricIDs(ids).get().size());
-		assertEquals("machine1", definedMetric.getGroupByMetricIDs(ids).get().get("INSTANCE_NAME"));
-		assertEquals("metric1", definedMetric.getGroupByMetricIDs(ids).get().get("METRIC_NAME"));
+		assertEquals(2, definedMetric.getGroupByAttributes(ids).get().size());
+		assertEquals("machine1", definedMetric.getGroupByAttributes(ids).get().get("INSTANCE_NAME"));
+		assertEquals("metric1", definedMetric.getGroupByAttributes(ids).get().get("METRIC_NAME"));
 		
 		
 		properties.setProperty("metrics.groupby", "INSTANCE_NAME METRIC_NAME");
@@ -205,28 +205,67 @@ public class DefinedMetricTest {
 		ids = new HashMap<>();
 		ids.put("INSTANCE_NAME", "machine1");
 		ids.put("METRIC_NAME", "metric1");
-		assertEquals(2, definedMetric.getGroupByMetricIDs(ids).get().size());
-		assertEquals("machine1", definedMetric.getGroupByMetricIDs(ids).get().get("INSTANCE_NAME"));
-		assertEquals("metric1", definedMetric.getGroupByMetricIDs(ids).get().get("METRIC_NAME"));
+		assertEquals(2, definedMetric.getGroupByAttributes(ids).get().size());
+		assertEquals("machine1", definedMetric.getGroupByAttributes(ids).get().get("INSTANCE_NAME"));
+		assertEquals("metric1", definedMetric.getGroupByAttributes(ids).get().get("METRIC_NAME"));
 	}
 	
-	@Test
-    public void fixedValueAttributes() throws ConfigurationException, CloneNotSupportedException {
+    @Test
+    @Deprecated
+    public void fixedValueAttributesDeprecated() throws ConfigurationException, CloneNotSupportedException {
         DefinedMetric definedMetric = new DefinedMetric("A");
-        
+
         Properties properties = newProperties();
         properties.setProperty("metrics.attribute.A", "A1");
         properties.setProperty("metrics.attribute.B", "B2");
         properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
         definedMetric.config(properties);
-        
-        VariableStatuses store = new VariableStatuses();;
-        
+
+        VariableStatuses store = new VariableStatuses();
+
         Metric metric = Metric(0, 10, "HOSTNAME=host1", "METRIC_NAME=Read Bytes");
         Optional<Metric> generatedMetric = definedMetric.generateByUpdate(store, metric, new HashMap<String, String>());
-        
+
         assertEquals("A1", generatedMetric.get().getAttributes().get("A"));
         assertEquals("B2", generatedMetric.get().getAttributes().get("B"));
+    }
+	
+    @Test
+    public void fixedValueAttributes() throws ConfigurationException, CloneNotSupportedException {
+        DefinedMetric definedMetric = new DefinedMetric("A");
+
+        Properties properties = newProperties();
+        properties.setProperty("metrics.attribute.A.fixed", "A1");
+        properties.setProperty("metrics.attribute.B.fixed", "B2");
+        properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
+        definedMetric.config(properties);
+
+        VariableStatuses store = new VariableStatuses();
+
+        Metric metric = Metric(0, 10, "HOSTNAME=host1", "METRIC_NAME=Read Bytes");
+        Optional<Metric> generatedMetric = definedMetric.generateByUpdate(store, metric, new HashMap<String, String>());
+
+        assertEquals("A1", generatedMetric.get().getAttributes().get("A"));
+        assertEquals("B2", generatedMetric.get().getAttributes().get("B"));
+    }
+
+    @Test
+    public void attributesFromTriggeringMetric() throws ConfigurationException, CloneNotSupportedException {
+        DefinedMetric definedMetric = new DefinedMetric("A");
+
+        Properties properties = newProperties();
+        properties.setProperty("metrics.attribute.A.triggering", "HOSTNAME");
+        properties.setProperty("metrics.attribute.B.triggering", "METRIC_NAME");
+        properties.setProperty("variables.readbytestotal.filter.attribute.METRIC_NAME", "Read Bytes");
+        definedMetric.config(properties);
+
+        VariableStatuses store = new VariableStatuses();
+
+        Metric metric = Metric(0, 10, "HOSTNAME=host1", "METRIC_NAME=Read Bytes");
+        Optional<Metric> generatedMetric = definedMetric.generateByUpdate(store, metric, new HashMap<String, String>());
+
+        assertEquals("host1", generatedMetric.get().getAttributes().get("A"));
+        assertEquals("Read Bytes", generatedMetric.get().getAttributes().get("B"));
     }
 	
 	@Test
