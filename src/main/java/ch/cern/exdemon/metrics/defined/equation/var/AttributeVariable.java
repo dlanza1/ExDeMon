@@ -6,6 +6,7 @@ import java.util.Optional;
 import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
+import ch.cern.exdemon.metrics.value.ExceptionValue;
 import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
@@ -63,7 +64,7 @@ public class AttributeVariable extends Variable {
             return new StringValue(status.value);
         }
         
-        return null;
+        return new ExceptionValue("no store");
     }
 
     @Override

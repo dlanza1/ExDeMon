@@ -25,17 +25,6 @@ public class FixedValueVariable extends Variable {
     }
     
     @Override
-    public StatusValue updateStatus(Optional<StatusValue> statusOpt, Metric metric, Metric originalMetric) {
-        Status_ status = statusOpt.filter(s -> s instanceof Status_)
-                .map(s -> (Status_) s)
-                .orElse(new Status_());
-
-        status.time = metric.getTimestamp();
-        
-        return status;
-    }
-    
-    @Override
     public ConfigurationResult config(Properties properties, Optional<Class<? extends Value>> typeOpt) {
         ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
         
@@ -52,6 +41,18 @@ public class FixedValueVariable extends Variable {
         value = new StringValue(valueAsString);
         
         return confResult;
+    }
+    
+    
+    @Override
+    public StatusValue updateStatus(Optional<StatusValue> statusOpt, Metric metric, Metric originalMetric) {
+        Status_ status = statusOpt.filter(s -> s instanceof Status_)
+                                  .map(s -> (Status_) s)
+                                  .orElse(new Status_());
+
+        status.time = metric.getTimestamp();
+        
+        return status;
     }
 
     @Override
