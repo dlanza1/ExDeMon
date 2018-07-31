@@ -223,22 +223,21 @@ public class ValueVariable extends Variable {
         return values;
     }
 
-    public void updateVariableStatuses(VariableStatuses variableStatuses, Metric metric) {
-        updateVariableStatuses(variableStatuses, metric, metric);
-    }
-
     public void updateVariableStatuses(VariableStatuses variableStatuses, Metric metric, Metric originalMetric) {
         Optional<StatusValue> status = Optional.ofNullable(variableStatuses.get(name));
 
-        metric.setAttributes(getAggSelectAttributes(metric.getAttributes()));
+        
 
         StatusValue updatedStatus = updateStatus(status, metric, originalMetric);
 
         variableStatuses.put(name, updatedStatus);
     }
 
-    private StatusValue updateStatus(Optional<StatusValue> statusOpt, Metric metric, Metric originalMetric) {
+    @Override
+    public StatusValue updateStatus(Optional<StatusValue> statusOpt, Metric metric, Metric originalMetric) {
         StatusValue status = statusOpt.isPresent() ? statusOpt.get() : initStatus();
+        
+        metric.setAttributes(getAggSelectAttributes(metric.getAttributes()));
 
         if (isThereSelectedAttributes()) {
             if (!(status instanceof AggregationValues))

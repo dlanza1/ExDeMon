@@ -32,12 +32,10 @@ import ch.cern.exdemon.metrics.defined.equation.functions.string.ConcatFunc;
 import ch.cern.exdemon.metrics.defined.equation.functions.string.IfStringFunc;
 import ch.cern.exdemon.metrics.defined.equation.functions.string.TrimFunc;
 import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
-import ch.cern.exdemon.metrics.defined.equation.var.PropertiesVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.Variable;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.LastValueAggregation;
 import ch.cern.exdemon.metrics.value.BooleanValue;
 import ch.cern.exdemon.metrics.value.FloatValue;
-import ch.cern.exdemon.metrics.value.PropertiesValue;
 import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
@@ -209,21 +207,14 @@ public class EquationParser {
 	private ValueComputable parseVariable(String variableName, Optional<Class<? extends Value>> argumentTypeOpt) throws ConfigurationException, ParseException {
 		if(!variableNames.contains(variableName))
 			throw new ParseException("Unknown variable: " + variableName, pos);
-		
-		if(argumentTypeOpt.isPresent() && argumentTypeOpt.get().equals(PropertiesValue.class)) {
-			variables.put(variableName, new PropertiesVariable(variableName));
-			variables.get(variableName).config(variablesProperties.getSubset(variableName), Optional.empty());
-		}
 
 		if(!variables.containsKey(variableName)) {				
-			putMetricVariable(variableName, argumentTypeOpt);
+			addVariable(variableName, argumentTypeOpt);
 		}else{
 			Variable previousVariable = variables.get(variableName);
 			
 			if(previousVariable.returnType().equals(Value.class) && argumentTypeOpt.isPresent()) {
-				putMetricVariable(variableName, argumentTypeOpt);
-				
-				variables.get(variableName).config(variablesProperties.getSubset(variableName), argumentTypeOpt);
+				addVariable(variableName, argumentTypeOpt);
 			}else if(argumentTypeOpt.isPresent() && !previousVariable.returnType().equals(argumentTypeOpt.get())) {
 			    if(previousVariable instanceof ValueVariable && !(((ValueVariable) previousVariable).getAggregation() instanceof LastValueAggregation))
 			        throw new ConfigurationException(variableName, "variable "+variableName+" returns type "+previousVariable.returnType().getSimpleName()+" because of its aggregation operation, "
@@ -237,9 +228,8 @@ public class EquationParser {
 		return variables.get(variableName);
 	}
 
-	private void putMetricVariable(String variableName, Optional<Class<? extends Value>> argumentTypeOpt) throws ConfigurationException {
-	    ValueVariable var = new ValueVariable(variableName);
-	    var.config(variablesProperties.getSubset(variableName), argumentTypeOpt);
+	private void addVariable(String variableName, Optional<Class<? extends Value>> argumentTypeOpt) throws ConfigurationException {
+	    Variable var = Variable.create(variableName, variablesProperties.getSubset(variableName), argumentTypeOpt);
 	    
 		variables.put(variableName, var);
 	}

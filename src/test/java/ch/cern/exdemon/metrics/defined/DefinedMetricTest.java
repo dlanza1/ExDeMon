@@ -248,6 +248,30 @@ public class DefinedMetricTest {
         assertEquals("A1", generatedMetric.get().getAttributes().get("A"));
         assertEquals("B2", generatedMetric.get().getAttributes().get("B"));
     }
+    
+    @Test
+    public void variableAttributes() throws ConfigurationException, CloneNotSupportedException {
+        DefinedMetric definedMetric = new DefinedMetric("A");
+
+        Properties properties = newProperties();
+        properties.setProperty("metrics.attribute.A.variable", "varA");
+        properties.setProperty("metrics.attribute.B.variable", "varB");
+        properties.setProperty("value", "value");
+        properties.setProperty("variables.value.filter.attribute.METRIC_NAME", "Read Bytes");
+        properties.setProperty("variables.varA.filter.attribute.METRIC_NAME", "Read Bytes");
+        properties.setProperty("variables.varA.attribute", "HOSTNAME");
+        properties.setProperty("variables.varB.fixed.value", "BbB");
+        definedMetric.config(properties);
+
+        VariableStatuses store = new VariableStatuses();
+
+        Metric metric = Metric(0, 10, "HOSTNAME=host1", "METRIC_NAME=Read Bytes");
+        definedMetric.updateStore(store, metric, new HashSet<>());
+        Optional<Metric> generatedMetric = definedMetric.generateByUpdate(store, metric, new HashMap<String, String>());
+
+        assertEquals("host1", generatedMetric.get().getAttributes().get("A"));
+        assertEquals("BbB", generatedMetric.get().getAttributes().get("B"));
+    }
 
     @Test
     public void attributesFromTriggeringMetric() throws ConfigurationException, CloneNotSupportedException {

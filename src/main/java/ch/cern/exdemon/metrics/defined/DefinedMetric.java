@@ -16,13 +16,14 @@ import ch.cern.exdemon.components.ComponentType;
 import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.Equation;
-import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.Variable;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
+import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
+import ch.cern.spark.status.StatusValue;
 import ch.cern.utils.Pair;
 import lombok.Getter;
 import lombok.ToString;
@@ -41,11 +42,13 @@ public final class DefinedMetric extends Component {
 	@Getter
 	private Equation equation;
 	
+	private HashMap<String, Variable> variables;
+	
 	private MetricsFilter filter;
 
     private Map<String, String> fixedValueAttributes;
-
     private Map<String, String> triggeringAttributes;
+    private Map<String, String> variableAttributes;
 
     public DefinedMetric() {
     }
@@ -68,16 +71,6 @@ public final class DefinedMetric extends Component {
             confResult.withError("metrics.filter", e);
         }
 		
-		fixedValueAttributes = properties.getSubset("metrics.attribute").entrySet().stream()      //TODO || DEPRECATED
-		                            .filter(entry -> entry.getKey().toString().endsWith(".fixed") || !entry.getKey().toString().contains("."))
-		                            .map(entry -> new Pair<String, String>(entry.getKey().toString().replace(".fixed", ""), entry.getValue().toString()))
-		                            .collect(Collectors.toMap(Pair::first, Pair::second));
-		
-		triggeringAttributes = properties.getSubset("metrics.attribute").entrySet().stream()
-                                    .filter(entry -> entry.getKey().toString().endsWith(".triggering"))
-                                    .map(entry -> new Pair<String, String>(entry.getKey().toString().replace(".triggering", ""), entry.getValue().toString()))
-                                    .collect(Collectors.toMap(Pair::first, Pair::second));
-		
 		Properties variablesProperties = properties.getSubset("variables");
 		Set<String> variableNames = variablesProperties.getIDs();
 		
@@ -93,18 +86,43 @@ public final class DefinedMetric extends Component {
 			return confResult.withError("value", e);
 		}
 		
-		Map<String, Variable> allVariables = new HashMap<>(equation.getVariables());
+		variables = new HashMap<>(equation.getVariables());
 		//Parse variables that were not used in the equation
 		for (String variableName : variableNames) {
-		    if(allVariables.containsKey(variableName))
+		    if(variables.containsKey(variableName))
 		        continue;
 		    
-            ValueVariable variable = new ValueVariable(variableName);
-            ConfigurationResult varConfResult = variable.config(variablesProperties.getSubset(variableName), Optional.empty());
-            confResult.merge("variables."+variableName, varConfResult);
-            
-            allVariables.put(variableName, variable);
+            try {
+                Variable variable = Variable.create(variableName, variablesProperties.getSubset(variableName), Optional.empty());
+                
+                variables.put(variableName, variable);
+            } catch (ConfigurationException e) {
+                return confResult.withError("variables", e);
+            }
         }
+		
+	      
+        fixedValueAttributes = properties.getSubset("metrics.attribute").entrySet().stream()      //TODO || DEPRECATED
+                                    .filter(entry -> entry.getKey().toString().endsWith(".fixed") || !entry.getKey().toString().contains("."))
+                                    .map(entry -> new Pair<String, String>(entry.getKey().toString().replace(".fixed", ""), entry.getValue().toString()))
+                                    .collect(Collectors.toMap(Pair::first, Pair::second));
+        
+        triggeringAttributes = properties.getSubset("metrics.attribute").entrySet().stream()
+                                    .filter(entry -> entry.getKey().toString().endsWith(".triggering"))
+                                    .map(entry -> new Pair<String, String>(entry.getKey().toString().replace(".triggering", ""), entry.getValue().toString()))
+                                    .collect(Collectors.toMap(Pair::first, Pair::second));
+        
+        variableAttributes = properties.getSubset("metrics.attribute").entrySet().stream()
+                                    .filter(entry -> entry.getKey().toString().endsWith(".variable"))
+                                    .map(entry -> new Pair<String, String>(entry.getKey().toString().replace(".variable", ""), entry.getValue().toString()))
+                                    .collect(Collectors.toMap(Pair::first, Pair::second));
+        variableAttributes.forEach((attribute, variable) -> {
+            if(!variables.containsKey(variable))
+                confResult.withError("metrics.attribute"+attribute+".variable", "variable with name \""+variable+"\" does not exist");
+            
+            if(!variables.get(variable).returnType().equals(StringValue.class))
+                confResult.withError("metrics.attribute"+attribute+".variable", "variable \""+variable+"\" does not return string type");
+        });
 		
         try {
             Optional<Duration> batchDurationOpt = properties.getPeriod(Driver.BATCH_INTERVAL_PARAM);
@@ -112,7 +130,7 @@ public final class DefinedMetric extends Component {
             if(!batchDurationOpt.isPresent())
                 throw new RuntimeException(Driver.BATCH_INTERVAL_PARAM + " must be configured");
 
-            when = When.from(batchDurationOpt.get(), allVariables, properties.getProperty("when", "ANY"));
+            when = When.from(batchDurationOpt.get(), variables, properties.getProperty("when", "ANY"));
         } catch (ConfigurationException e) {
             confResult.withError(null, e);
         }
@@ -129,8 +147,8 @@ public final class DefinedMetric extends Component {
 				.count() > 0;
 	}
 
-	public Map<String, ValueVariable> getVariablesToUpdate(Metric metric) {
-		return getValueVariables().entrySet().stream()
+	public Map<String, Variable> getVariablesToUpdate(Metric metric) {
+		return variables.entrySet().stream()
 				.filter(entry -> entry.getValue().test(metric))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
@@ -139,14 +157,21 @@ public final class DefinedMetric extends Component {
 		if(!filter.test(metric))
 			return;
 		
-		Map<String, ValueVariable> variablesToUpdate = getVariablesToUpdate(metric);
+		Map<String, Variable> variablesToUpdate = getVariablesToUpdate(metric);
 		
 		Metric metricForStore = metric.clone();
 		if(groupByKeys != null)
 			metricForStore.getAttributes().entrySet().removeIf(entry -> groupByKeys.contains(entry.getKey()));
 		
-		for (ValueVariable variableToUpdate : variablesToUpdate.values())
-			variableToUpdate.updateVariableStatuses(stores, metricForStore, metric.clone());
+		for (Variable variableToUpdate : variablesToUpdate.values()) {
+		    String name = variableToUpdate.getName();
+		    
+		    Optional<StatusValue> status = Optional.ofNullable(stores.get(name));
+		    
+		    StatusValue updatedStatus = variableToUpdate.updateStatus(status, metricForStore, metric.clone());
+			
+		    stores.put(name, updatedStatus);
+		}
 	}
 
 	public Optional<Metric> generateByUpdate(VariableStatuses stores, Metric metric, Map<String, String> groupByAttributes) {
@@ -167,18 +192,26 @@ public final class DefinedMetric extends Component {
 	}
 	
 	private Optional<Metric> generate(VariableStatuses stores, Instant time, Map<String, String> groupByAttributes, Optional<Metric> triggeringMetric) {		
-		Map<String, String> metricAttributes = new HashMap<>(groupByAttributes);
-		metricAttributes.put("$defined_metric", getId());
-		metricAttributes.putAll(fixedValueAttributes);
+		Map<String, String> attributes = new HashMap<>(groupByAttributes);
+		attributes.put("$defined_metric", getId());
+		attributes.putAll(fixedValueAttributes);
 		triggeringMetric.ifPresent(m -> {
 		    triggeringAttributes.forEach((attribute, key) -> {
-		        metricAttributes.put(attribute, m.getAttributes().get(key));
+		        attributes.put(attribute, m.getAttributes().get(key));
 		    });
+		});
+		variableAttributes.forEach((attribute, variable) -> {
+		    Value value = variables.get(variable).compute(stores, time);
+		    
+		    if(value != null)
+    		    value.getAsString().ifPresent(str -> {
+    		        attributes.put(attribute, str); 
+    		    });		    
 		});
 		
 		Value value = equation.compute(stores, time);
 			
-		return Optional.of(new Metric(time, value, metricAttributes));
+		return Optional.of(new Metric(time, value, attributes));
 	}
 
 	public Optional<Map<String, String>> getGroupByAttributes(Map<String, String> metricAttributes) {
@@ -194,13 +227,6 @@ public final class DefinedMetric extends Component {
 			.collect(Collectors.toMap(Pair::first, Pair::second));
 		
 		return values.size() == metricsGroupBy.size() ? Optional.of(values) : Optional.empty();
-	}
-	
-	protected Map<String, ValueVariable> getValueVariables() {
-		return equation.getVariables().entrySet().stream()
-						.filter(entry -> entry.getValue() instanceof ValueVariable)
-						.map(entry -> new Pair<String, ValueVariable>(entry.getKey(), (ValueVariable) entry.getValue()))
-						.collect(Collectors.toMap(Pair::first, Pair::second));
 	}
 
 }

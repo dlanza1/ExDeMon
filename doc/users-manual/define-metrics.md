@@ -18,12 +18,13 @@ metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/space separate
 # General filter for all metrics that update the variables (optional)
 metrics.define.<defined-metric-id>.metrics.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.metrics.filter.attribute.<attribute-name> = <value>
-# Fixed value attributes to add to the generated metrics
-metrics.define.<defined-metric-id>.metrics.attribute.<attribute-name>.value = <value>
+# Extra attributes to add to the generated metrics
+metrics.define.<defined-metric-id>.metrics.attribute.<attribute-name>.fixed = <value>
 metrics.define.<defined-metric-id>.metrics.attribute.<attribute-name>.triggering = <attribute_of_triggering_metric>
-# Variable that represent an incoming metric
+metrics.define.<defined-metric-id>.metrics.attribute.<attribute-name>.variable = <variable_of_type_string>
+# Variable that represents an incoming value
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.expr = <predicate with () | & = !=>
-metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name> = <value->
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<attribute-name> = <value>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.type = <not set|sum|avg|weighted_avg|count|successive_count|max|min|diff>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.attributes = <not set|ALL|space separated list of attributes> (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.max-size = <maximum-aggregation-size> (default: 10000)
@@ -31,10 +32,18 @@ metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.latest-me
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.history.granularity = <not set|d|h|m|s|ms>  (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.ignore = <not set|period like 1h, 3m or 45s[, truncate d, h, m]> (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.expire = <never|period like 1h, 3m or 45s[, truncate d, h, m]> (default: 10m)
-# Variable that represent a set of properties for an analysis (could serve to configure an analysis: properties_variable)
-metrics.define.<defined-metric-id>.variables.<variable-id-2>.type = <analysis_type>
-metrics.define.<defined-metric-id>.variables.<variable-id-2>.<analysis-conf-key-1> = <value-1>
-metrics.define.<defined-metric-id>.variables.<variable-id-2>.<analysis-conf-key-n> = <value-n>
+# Variable that represents an attribute
+metrics.define.<defined-metric-id>.variables.<variable-id-2>.filter.expr = <predicate with () | & = !=>
+metrics.define.<defined-metric-id>.variables.<variable-id-2>.filter.attribute.<attribute-name> = <value>
+metrics.define.<defined-metric-id>.variables.<variable-id-2>.attribute = <attribute_from_filtered_metric
+# Variable that represents a fixed value
+metrics.define.<defined-metric-id>.variables.<variable-id-2>.filter.expr = <predicate with () | & = !=>
+metrics.define.<defined-metric-id>.variables.<variable-id-2>.filter.attribute.<attribute-name> = <value>
+metrics.define.<defined-metric-id>.variables.<variable-id-2>.fixed.value = <attribute_from_filtered_metric>
+# Variable that represents a set of properties for an analysis
+metrics.define.<defined-metric-id>.variables.<variable-id-3>.type = <analysis_type>
+metrics.define.<defined-metric-id>.variables.<variable-id-3>.<analysis-conf-key-1> = <value-1>
+metrics.define.<defined-metric-id>.variables.<variable-id-3>.<analysis-conf-key-n> = <value-n>
 metrics.define.<defined-metric-id>.variables.<variable-id-n>...
 
 # With different id, more metrics can be defined
