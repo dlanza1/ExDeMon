@@ -16,11 +16,10 @@ import ch.cern.exdemon.components.ComponentType;
 import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.Equation;
-import ch.cern.exdemon.metrics.defined.equation.var.MetricVariable;
+import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.Variable;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
-import ch.cern.exdemon.metrics.value.ExceptionValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -41,8 +40,6 @@ public final class DefinedMetric extends Component {
 	
 	@Getter
 	private Equation equation;
-
-	private ConfigurationException configurationException;
 	
 	private MetricsFilter filter;
 
@@ -102,7 +99,7 @@ public final class DefinedMetric extends Component {
 		    if(allVariables.containsKey(variableName))
 		        continue;
 		    
-            MetricVariable variable = new MetricVariable(variableName);
+            ValueVariable variable = new ValueVariable(variableName);
             ConfigurationResult varConfResult = variable.config(variablesProperties.getSubset(variableName), Optional.empty());
             confResult.merge("variables."+variableName, varConfResult);
             
@@ -124,9 +121,6 @@ public final class DefinedMetric extends Component {
 	}
 
 	public boolean testIfApplyForAnyVariable(Metric metric) {
-		if(configurationException != null)
-			return true;
-		
 		if(!filter.test(metric))
 			return false;
 		
@@ -135,26 +129,23 @@ public final class DefinedMetric extends Component {
 				.count() > 0;
 	}
 
-	public Map<String, MetricVariable> getVariablesToUpdate(Metric metric) {
-		return getMetricVariables().entrySet().stream()
+	public Map<String, ValueVariable> getVariablesToUpdate(Metric metric) {
+		return getValueVariables().entrySet().stream()
 				.filter(entry -> entry.getValue().test(metric))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 
 	public void updateStore(VariableStatuses stores, Metric metric, Set<String> groupByKeys) throws CloneNotSupportedException {
-		if(configurationException != null)
-			return;
-		
 		if(!filter.test(metric))
 			return;
 		
-		Map<String, MetricVariable> variablesToUpdate = getVariablesToUpdate(metric);
+		Map<String, ValueVariable> variablesToUpdate = getVariablesToUpdate(metric);
 		
 		Metric metricForStore = metric.clone();
 		if(groupByKeys != null)
 			metricForStore.getAttributes().entrySet().removeIf(entry -> groupByKeys.contains(entry.getKey()));
 		
-		for (MetricVariable variableToUpdate : variablesToUpdate.values())
+		for (ValueVariable variableToUpdate : variablesToUpdate.values())
 			variableToUpdate.updateVariableStatuses(stores, metricForStore, metric.clone());
 	}
 
@@ -185,13 +176,6 @@ public final class DefinedMetric extends Component {
 		    });
 		});
 		
-		if(configurationException != null) {
-			if(stores.newProcessedBatchTime(time))
-				return Optional.of(new Metric(time, new ExceptionValue("ConfigurationException: " + configurationException.getMessage()), metricAttributes));
-			else
-				return Optional.empty();
-		}
-		
 		Value value = equation.compute(stores, time);
 			
 		return Optional.of(new Metric(time, value, metricAttributes));
@@ -212,10 +196,10 @@ public final class DefinedMetric extends Component {
 		return values.size() == metricsGroupBy.size() ? Optional.of(values) : Optional.empty();
 	}
 	
-	protected Map<String, MetricVariable> getMetricVariables() {
+	protected Map<String, ValueVariable> getValueVariables() {
 		return equation.getVariables().entrySet().stream()
-						.filter(entry -> entry.getValue() instanceof MetricVariable)
-						.map(entry -> new Pair<String, MetricVariable>(entry.getKey(), (MetricVariable) entry.getValue()))
+						.filter(entry -> entry.getValue() instanceof ValueVariable)
+						.map(entry -> new Pair<String, ValueVariable>(entry.getKey(), (ValueVariable) entry.getValue()))
 						.collect(Collectors.toMap(Pair::first, Pair::second));
 	}
 

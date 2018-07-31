@@ -12,18 +12,18 @@ import java.util.Optional;
 import org.junit.Test;
 
 import ch.cern.exdemon.metrics.Metric;
-import ch.cern.exdemon.metrics.defined.equation.var.MetricVariable;
+import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 
-public class MetricVariableTest  {
+public class ValueVariableTest  {
 	
     @Test
     public void aggregationHitMaxSizeDuringPeriod() throws ConfigurationException {
-        MetricVariable var = new MetricVariable("");
+        ValueVariable var = new ValueVariable("");
         Properties properties = new Properties();
         properties.setProperty("aggregate.type", "count");
         properties.setProperty("aggregate.max-size", "1000");
@@ -55,7 +55,7 @@ public class MetricVariableTest  {
     
     @Test
     public void aggregationSelectAttributes() throws ConfigurationException {
-        MetricVariable var = new MetricVariable("");
+        ValueVariable var = new ValueVariable("");
         Properties properties = new Properties();
         properties.setProperty("aggregate.type", "count");
         properties.setProperty("aggregate.attributes", "seq");

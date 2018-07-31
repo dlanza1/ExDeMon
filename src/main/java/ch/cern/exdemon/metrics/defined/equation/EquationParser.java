@@ -31,7 +31,7 @@ import ch.cern.exdemon.metrics.defined.equation.functions.num.TanFunc;
 import ch.cern.exdemon.metrics.defined.equation.functions.string.ConcatFunc;
 import ch.cern.exdemon.metrics.defined.equation.functions.string.IfStringFunc;
 import ch.cern.exdemon.metrics.defined.equation.functions.string.TrimFunc;
-import ch.cern.exdemon.metrics.defined.equation.var.MetricVariable;
+import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.PropertiesVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.Variable;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.LastValueAggregation;
@@ -196,12 +196,12 @@ public class EquationParser {
 	private ValueComputable typeVariable(ValueComputable valueComputable, Class<? extends Value> argumentType) 
 			throws ConfigurationException, ParseException {
 
-		if(!(valueComputable instanceof MetricVariable) 
+		if(!(valueComputable instanceof ValueVariable) 
 				|| argumentType.equals(Value.class)
 				|| valueComputable.getClass().equals(argumentType))
 			return valueComputable;
 		
-		MetricVariable metricVariable = (MetricVariable) valueComputable;
+		ValueVariable metricVariable = (ValueVariable) valueComputable;
 		
 		return parseVariable(metricVariable.getName(), Optional.ofNullable(argumentType));
 	}
@@ -225,7 +225,7 @@ public class EquationParser {
 				
 				variables.get(variableName).config(variablesProperties.getSubset(variableName), argumentTypeOpt);
 			}else if(argumentTypeOpt.isPresent() && !previousVariable.returnType().equals(argumentTypeOpt.get())) {
-			    if(previousVariable instanceof MetricVariable && !(((MetricVariable) previousVariable).getAggregation() instanceof LastValueAggregation))
+			    if(previousVariable instanceof ValueVariable && !(((ValueVariable) previousVariable).getAggregation() instanceof LastValueAggregation))
 			        throw new ConfigurationException(variableName, "variable "+variableName+" returns type "+previousVariable.returnType().getSimpleName()+" because of its aggregation operation, "
 		                                                            + "but in the equation there is a function that uses it as type " + argumentTypeOpt.get().getSimpleName());
 			    else
@@ -238,7 +238,7 @@ public class EquationParser {
 	}
 
 	private void putMetricVariable(String variableName, Optional<Class<? extends Value>> argumentTypeOpt) throws ConfigurationException {
-	    MetricVariable var = new MetricVariable(variableName);
+	    ValueVariable var = new ValueVariable(variableName);
 	    var.config(variablesProperties.getSubset(variableName), argumentTypeOpt);
 	    
 		variables.put(variableName, var);

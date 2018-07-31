@@ -7,7 +7,7 @@ import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.metrics.DatedValue;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.ValueHistory;
-import ch.cern.exdemon.metrics.defined.equation.var.MetricVariable;
+import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.Value;
 
@@ -41,13 +41,13 @@ public class SuccessiveCountAgregation extends Aggregation {
     }
 
     @Override
-    public void postUpdateStatus(MetricVariable metricVariable, AggregationValues aggValues, Metric metric) {
+    public void postUpdateStatus(ValueVariable metricVariable, AggregationValues aggValues, Metric metric) {
         if(!metricVariable.getFilter().test(metric))
             aggValues.reset();
     }
     
     @Override
-    public void postUpdateStatus(MetricVariable metricVariable, ValueHistory history, Metric metric) {
+    public void postUpdateStatus(ValueVariable metricVariable, ValueHistory history, Metric metric) {
         if(!metricVariable.getFilter().test(metric))
             history.reset();
     }

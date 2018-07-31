@@ -18,7 +18,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import ch.cern.exdemon.metrics.defined.equation.ComputationException;
-import ch.cern.exdemon.metrics.defined.equation.var.MetricVariable;
+import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.Aggregation;
 import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.Value;
@@ -55,7 +55,7 @@ public class ValueHistory implements Serializable {
     private int max_lastAggregatedMetrics_size = 0;
 
     public ValueHistory(){
-        this(MetricVariable.MAX_SIZE_DEFAULT, 0, null, null);
+        this(ValueVariable.MAX_SIZE_DEFAULT, 0, null, null);
     }
     
     public ValueHistory(long max_size, int max_lastAggregatedMetrics_size, ChronoUnit granularity, Aggregation aggregation){
@@ -220,7 +220,7 @@ public class ValueHistory implements Serializable {
         private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException{
             ChronoUnit granularity = (ChronoUnit) in.readObject();
             Aggregation aggregation = (Aggregation) in.readObject();
-            history = new ValueHistory(MetricVariable.MAX_SIZE_DEFAULT, 0, granularity, aggregation);
+            history = new ValueHistory(ValueVariable.MAX_SIZE_DEFAULT, 0, granularity, aggregation);
             
             int[] times = (int[]) in.readObject();
             Value[] values = (Value[]) in.readObject();

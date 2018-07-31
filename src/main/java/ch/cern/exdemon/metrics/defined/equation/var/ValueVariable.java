@@ -35,7 +35,7 @@ import ch.cern.utils.DurationAndTruncate;
 import ch.cern.utils.TimeUtils;
 import lombok.Getter;
 
-public class MetricVariable extends Variable {
+public class ValueVariable extends Variable {
 
     public static final long MAX_SIZE_DEFAULT = 10000;
 
@@ -56,7 +56,7 @@ public class MetricVariable extends Variable {
 
     private ChronoUnit granularity;
 
-    public MetricVariable(String name) {
+    public ValueVariable(String name) {
         super(name);
     }
 

@@ -10,7 +10,7 @@ import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.metrics.DatedValue;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.ValueHistory;
-import ch.cern.exdemon.metrics.defined.equation.var.MetricVariable;
+import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.value.AggregatedValue;
 import ch.cern.exdemon.metrics.value.BooleanValue;
 import ch.cern.exdemon.metrics.value.FloatValue;
@@ -65,10 +65,10 @@ public abstract class Aggregation extends Component {
         return true;
     }
 
-    public void postUpdateStatus(MetricVariable metricVariable, AggregationValues aggValues, Metric metric) {
+    public void postUpdateStatus(ValueVariable metricVariable, AggregationValues aggValues, Metric metric) {
     }
 
-    public void postUpdateStatus(MetricVariable metricVariable, ValueHistory history, Metric metric) {
+    public void postUpdateStatus(ValueVariable metricVariable, ValueHistory history, Metric metric) {
     }
     
 }
