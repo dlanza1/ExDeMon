@@ -255,11 +255,16 @@ public class HTTPSink implements Serializable{
 				
 				thrownException = null;
 			} catch (Exception e) {
-				LOG.error("Error sending request (retry " + retry + "): " + request, e);
+			    LOG.error("Error sending request (retry " + retry + "): " + request, e);
 				
 				thrownException = e;
 				
 				setHTTPClient(null);
+
+                try {
+                    Thread.sleep(1000 * (retry + 1));
+                } catch (InterruptedException e1) {}
+                
 				httpClient = getHTTPClient();
 			}	
 		}
@@ -289,9 +294,13 @@ public class HTTPSink implements Serializable{
         try {
             response = httpClient.execute(postMethod);
         } catch (IOException e) {
-            postMethod.releaseConnection();
+            try{
+                postMethod.releaseConnection();
+                postMethod.abort();
+                postMethod.completed();
+            }catch(Exception ee){}
             
-            throw new HttpException("Unable to POST to url=" + request.getUrl() + ". JSON: " + request.getJson(), e);
+            throw new HttpException("Unable to POST to url=" + request.getUrl(), e);
         }
 		
 		if(postMethod.isAborted())
