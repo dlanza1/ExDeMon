@@ -4,6 +4,7 @@ import static ch.cern.exdemon.metrics.MetricTest.Metric;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Optional;
 
 import org.junit.Before;
@@ -55,7 +56,7 @@ public class AnalysisFuncTest {
 		properties.setProperty("variables.value.filter.attribute.METRIC_NAME", "CPU Usage Per Sec");
 		properties.setProperty("variables.ana_props.type", "fixed-threshold");
 		properties.setProperty("variables.ana_props.error.upperbound", "90");
-		definedMetric.config(properties);
+		System.out.println(definedMetric.config(properties));
 		
 		assertResult(true, 	Metric(0, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
 		assertResult(false, Metric(1, 91f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
@@ -88,7 +89,7 @@ public class AnalysisFuncTest {
 		properties.setProperty("variables.ana_props.type", "seasonal");
 		definedMetric.config(properties);
 
-		assertResult(false, 	Metric(0, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec")); //Initializing
+		assertResult(false, Metric(0, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec")); //Initializing
 		assertResult(true, 	Metric(0, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
 		assertResult(true,	Metric(0, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
 		assertResult(true,	Metric(0, 10f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
@@ -107,8 +108,7 @@ public class AnalysisFuncTest {
 	}
 
 	private void assertResult(boolean expected, Metric metric) {
-		store.history.add(metric.getTimestamp(), metric.getValue());
-		
+		definedMetric.updateStore(stores, metric, new HashSet<>());
 		Optional<Metric> result = definedMetric.generateByUpdate(stores, metric, new HashMap<>());
 		
 		assertTrue(expected == result.get().getValue().getAsBoolean().get());

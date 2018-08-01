@@ -1,6 +1,7 @@
 package ch.cern.exdemon.metrics.defined.equation.var;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 import ch.cern.exdemon.components.ConfigurationResult;
@@ -13,8 +14,8 @@ public class PropertiesVariable extends Variable {
 
 	private Properties properties;
 
-	public PropertiesVariable(String name) {
-		super(name);
+	public PropertiesVariable(String name, Map<String, Variable> variables, Properties variablesProperties) {
+		super(name, variables, variablesProperties);
 	}
 	
 	@Override

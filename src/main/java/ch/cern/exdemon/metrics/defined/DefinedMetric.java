@@ -82,7 +82,10 @@ public final class DefinedMetric extends Component {
 			    return confResult.withMustBeConfigured("value");
 			else
 				equation = new Equation(equationString, variablesProperties);
+        } catch (ConfigurationException e) {
+            return confResult.withError("value", e);
 		} catch (Exception e) {
+		    e.printStackTrace();
 			return confResult.withError("value", e);
 		}
 		
@@ -93,14 +96,13 @@ public final class DefinedMetric extends Component {
 		        continue;
 		    
             try {
-                Variable variable = Variable.create(variableName, variablesProperties.getSubset(variableName), Optional.empty());
+                Variable variable = Variable.create(variableName, variablesProperties, Optional.empty(), variables);
                 
                 variables.put(variableName, variable);
             } catch (ConfigurationException e) {
                 return confResult.withError("variables", e);
             }
         }
-		
 	      
         fixedValueAttributes = properties.getSubset("metrics.attribute").entrySet().stream()      //TODO || DEPRECATED
                                     .filter(entry -> entry.getKey().toString().endsWith(".fixed") || !entry.getKey().toString().contains("."))
@@ -153,7 +155,7 @@ public final class DefinedMetric extends Component {
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 
-	public void updateStore(VariableStatuses stores, Metric metric, Set<String> groupByKeys) throws CloneNotSupportedException {
+	public void updateStore(VariableStatuses stores, Metric metric, Set<String> groupByKeys) {
 		if(!filter.test(metric))
 			return;
 		

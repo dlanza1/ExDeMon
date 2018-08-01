@@ -57,7 +57,7 @@ public class Metric implements Serializable {
     }
 
     @Override
-    public Metric clone() throws CloneNotSupportedException {
+    public Metric clone() {
         return new Metric(timestamp, value.clone(), new HashMap<>(attributes));
     }
 

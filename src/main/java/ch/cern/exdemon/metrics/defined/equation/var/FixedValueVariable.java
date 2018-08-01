@@ -1,6 +1,7 @@
 package ch.cern.exdemon.metrics.defined.equation.var;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 import ch.cern.exdemon.components.ConfigurationResult;
@@ -19,8 +20,8 @@ public class FixedValueVariable extends Variable {
     
     private Value value;
 
-    public FixedValueVariable(String name) {
-        super(name);
+    public FixedValueVariable(String name, Map<String, Variable> variables, Properties variablesProperties) {
+        super(name, variables, variablesProperties);
     }
     
     @Override

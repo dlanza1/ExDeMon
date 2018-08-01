@@ -293,6 +293,38 @@ public class DefinedMetricTest {
     }
     
     @Test
+    public void merge() throws ConfigurationException, CloneNotSupportedException {
+        DefinedMetric definedMetric = new DefinedMetric("A");
+
+        Properties properties = newProperties();
+        properties.setProperty("value", "value");
+        properties.setProperty("variables.value.filter.attribute.VAR", "value");
+        properties.setProperty("variables.value.merge.variables", "varA varB");
+        properties.setProperty("variables.varA.filter.attribute.VAR", "A");
+        properties.setProperty("variables.varA.fixed.value", "Avalue");
+        properties.setProperty("variables.varB.filter.attribute.VAR", "B");
+        properties.setProperty("variables.varB.fixed.value", "Bvalue");
+        definedMetric.config(properties);
+
+        VariableStatuses store = new VariableStatuses();
+
+        Metric metric = Metric(1, "Vvalue", "VAR=value");
+        definedMetric.updateStore(store, metric, new HashSet<>());
+        Optional<Metric> generatedMetric = definedMetric.generateByUpdate(store, metric, new HashMap<String, String>());
+        assertEquals("Vvalue", generatedMetric.get().getValue().getAsString().get());
+        
+        metric = Metric(2, "does_not_matter", "VAR=A");
+        definedMetric.updateStore(store, metric, new HashSet<>());
+        generatedMetric = definedMetric.generateByUpdate(store, metric, new HashMap<String, String>());
+        assertEquals("Avalue", generatedMetric.get().getValue().getAsString().get());
+        
+        metric = Metric(3, "does_not_matter", "VAR=B");
+        definedMetric.updateStore(store, metric, new HashSet<>());
+        generatedMetric = definedMetric.generateByUpdate(store, metric, new HashMap<String, String>());
+        assertEquals("Bvalue", generatedMetric.get().getValue().getAsString().get());
+    }
+    
+    @Test
     public void delayInVariable() throws ConfigurationException, CloneNotSupportedException {
         DefinedMetric definedMetric = new DefinedMetric("A");
 

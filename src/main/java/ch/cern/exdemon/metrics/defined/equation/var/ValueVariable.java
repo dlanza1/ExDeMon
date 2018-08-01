@@ -56,8 +56,8 @@ public class ValueVariable extends Variable {
 
     private ChronoUnit granularity;
 
-    public ValueVariable(String name) {
-        super(name);
+    public ValueVariable(String name, Map<String, Variable> variables, Properties variablesProperties) {
+        super(name, variables, variablesProperties);
     }
 
     public ConfigurationResult config(Properties properties, Optional<Class<? extends Value>> typeOpt) {

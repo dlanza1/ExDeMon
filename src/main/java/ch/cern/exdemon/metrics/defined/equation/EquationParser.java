@@ -229,7 +229,7 @@ public class EquationParser {
 	}
 
 	private void addVariable(String variableName, Optional<Class<? extends Value>> argumentTypeOpt) throws ConfigurationException {
-	    Variable var = Variable.create(variableName, variablesProperties.getSubset(variableName), argumentTypeOpt);
+	    Variable var = Variable.create(variableName, variablesProperties, argumentTypeOpt, variables);
 	    
 		variables.put(variableName, var);
 	}

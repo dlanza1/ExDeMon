@@ -21,7 +21,7 @@ public class ValueVariableTest  {
 	
     @Test
     public void aggregationHitMaxSizeDuringPeriod() throws ConfigurationException {
-        ValueVariable var = new ValueVariable("");
+        ValueVariable var = new ValueVariable("", new HashMap<>(), new Properties());
         Properties properties = new Properties();
         properties.setProperty("aggregate.type", "count");
         properties.setProperty("aggregate.max-size", "1000");
@@ -54,7 +54,7 @@ public class ValueVariableTest  {
     
     @Test
     public void aggregationSelectAttributes() throws ConfigurationException {
-        ValueVariable var = new ValueVariable("");
+        ValueVariable var = new ValueVariable("", new HashMap<>(), new Properties());
         Properties properties = new Properties();
         properties.setProperty("aggregate.type", "count");
         properties.setProperty("aggregate.attributes", "seq");
