@@ -6,6 +6,7 @@ import java.util.Optional;
 import ch.cern.exdemon.metrics.defined.equation.ValueComputable;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 
 @EqualsAndHashCode(callSuper=false)
 public class StringValue extends Value implements ValueComputable{
@@ -14,7 +15,7 @@ public class StringValue extends Value implements ValueComputable{
 
 	private String str;
 	
-	public StringValue(String value){
+	public StringValue(@NonNull String value){
 		this.str = value;
 	}
 

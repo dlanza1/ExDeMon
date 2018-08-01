@@ -7,6 +7,7 @@ import ch.cern.exdemon.metrics.defined.equation.ValueComputable;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.properties.Properties;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 
 @EqualsAndHashCode(callSuper=false)
 public class PropertiesValue extends Value implements ValueComputable{
@@ -17,7 +18,7 @@ public class PropertiesValue extends Value implements ValueComputable{
 	
 	private Properties props;
 
-	public PropertiesValue(String name, Properties props) {
+	public PropertiesValue(String name, @NonNull Properties props) {
 		this.properties_name = name;
 		this.props = props;
 	}

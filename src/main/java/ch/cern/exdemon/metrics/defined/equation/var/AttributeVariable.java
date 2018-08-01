@@ -71,7 +71,10 @@ public class AttributeVariable extends Variable {
         if(statusValue instanceof Status_) {
             Status_ status = (Status_) statusValue; 
             
-            return new StringValue(status.value);
+            if(status.value != null)
+                return new StringValue(status.value);
+            else
+                return new ExceptionValue("null value");
         }
         
         return new ExceptionValue("no store of proper type");
