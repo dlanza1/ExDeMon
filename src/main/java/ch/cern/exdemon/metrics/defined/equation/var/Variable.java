@@ -30,7 +30,7 @@ public abstract class Variable implements ValueComputable, Predicate<Metric> {
     
     private List<Variable> resultFromVariables;
 
-	public Variable(String name, Map<String, Variable> variables, Properties variablesProperties) {
+	protected Variable(String name, Map<String, Variable> variables, Properties variablesProperties) {
 		this.name = name;
 		this.variables = variables;
 		this.variablesProperties = variablesProperties;
