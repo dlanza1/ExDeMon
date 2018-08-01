@@ -143,7 +143,7 @@ public final class DefinedMetric extends Component {
 		if(!filter.test(metric))
 			return false;
 		
-		return equation.getVariables().values().stream()
+		return variables.values().stream()
 				.filter(variable -> variable.test(metric))
 				.count() > 0;
 	}
