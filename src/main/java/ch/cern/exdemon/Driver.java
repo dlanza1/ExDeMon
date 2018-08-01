@@ -166,14 +166,13 @@ public final class Driver {
 	}
 
 	private Optional<JavaDStream<StatusOperation<StatusKey, ?>>> getStatusesOperarions() {
-        if (statuses_removal_socket_host == null || statuses_removal_socket_port == null)
-            return Optional.empty();
-        
         JavaDStream<StatusOperation<StatusKey, ?>> operations = ssc.receiverStream(new ZookeeperStatusesOperationsReceiver(statusesOperationsReceiverProperties));
         
-        JavaReceiverInputDStream<StatusKey> keysToRemove = ssc.receiverStream(new StatusesKeySocketReceiver(statuses_removal_socket_host, statuses_removal_socket_port));
-        operations = operations.union(keysToRemove.map(key -> new StatusOperation<>("old_remove", key, Op.REMOVE)));
-
+        if (statuses_removal_socket_host != null && statuses_removal_socket_port != null) {
+            JavaReceiverInputDStream<StatusKey> keysToRemove = ssc.receiverStream(new StatusesKeySocketReceiver(statuses_removal_socket_host, statuses_removal_socket_port));
+            operations = operations.union(keysToRemove.map(key -> new StatusOperation<>("old_remove", key, Op.REMOVE)));
+        }
+        
         return Optional.of(operations);
     }
 
