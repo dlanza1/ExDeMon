@@ -29,9 +29,9 @@ checkpoint.dir = <path_to_store_stateful_data> (default: /tmp/)
 spark.batch.time = <period like 1h, 3m or 45s> (default: 1m)
 
 # Optional
-properties.source.type = <properties_source_type> (default: "file" with path to this configuration file)
-properties.source.expire = <period like 1h, 3m or 45s> (default: 1m)
-properties.source.<other_confs> = <value>
+components.source.type = <properties_source_type> (default: "file" with path to this configuration file)
+components.source.expire = <period like 1h, 3m or 45s> (default: 1m)
+components.source.<other_confs> = <value>
 
 # Optional
 # +info at components that store statuses: defined metrics, monitors and triggers

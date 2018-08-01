@@ -5,12 +5,12 @@ Configuration can be updated while running (except sources), configuration is ob
 To configure an external source of properties:
 
 ```
-properties.source.type = <properties_source_type>
-properties.source.id.filters.<filter_name1> = <regex>
-properties.source.id.filters.<filter_nameN> = <regex>
-properties.source.static.<key1> = <value>
-properties.source.static.<keyn> = <value> 
-properties.source.<other_confs> = <value>
+components.source.type = <properties_source_type>
+components.source.id.filters.<filter_name1> = <regex>
+components.source.id.filters.<filter_nameN> = <regex>
+components.source.static.<key1> = <value>
+components.source.static.<keyn> = <value> 
+components.source.<other_confs> = <value>
 ```
 
 Component's properties to be loaded will be filtered by id.filters. All these regexs will build filter for ids with or operator.
@@ -18,9 +18,9 @@ Component's properties to be loaded will be filtered by id.filters. All these re
 If not properties source is configured, the default configuration is:
 
 ```
-properties.source.type = file
-properties.source.expire = 1m
-properties.source.path = {path to main configuration file}
+components.source.type = file
+components.source.expire = 1m
+components.source.path = {path to main configuration file}
 ```
 
 ## Zookeeper components source
@@ -39,11 +39,11 @@ Where component_type can be one of: schema, metric, monitor or actuator.
 Configuration:
 
 ```
-properties.source.type = zookeeper
-properties.source.connection_string = <host:port,host:port/path>
-properties.source.initialization_timeout_ms = <milliseconds> (default: 5000)
-properties.source.timeout_ms = <milliseconds> (default: 20000)
-properties.source.conf_node_name = <name_of_nodes_with_config> (default: config)
+components.source.type = zookeeper
+components.source.connection_string = <host:port,host:port/path>
+components.source.initialization_timeout_ms = <milliseconds> (default: 5000)
+components.source.timeout_ms = <milliseconds> (default: 20000)
+components.source.conf_node_name = <name_of_nodes_with_config> (default: config)
 ```
 
 An example of structure if "conf_node_name" is configured to the default value (config).
@@ -75,7 +75,7 @@ This source obtains the configuration from a file or set of files.
 The format of the text files must be readable by java.util.Properties or a JSON that can be converted to java.util.Properties.
 
 ```
-properties.source.type = file
-properties.source.expire = <period like 1m, 1h> (default: 1m)
-properties.source.path = <path_to_configuration_file_or_directory>
+components.source.type = file
+components.source.expire = <period like 1m, 1h> (default: 1m)
+components.source.path = <path_to_configuration_file_or_directory>
 ```
