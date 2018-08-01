@@ -85,7 +85,6 @@ public final class DefinedMetric extends Component {
         } catch (ConfigurationException e) {
             return confResult.withError("value", e);
 		} catch (Exception e) {
-		    e.printStackTrace();
 			return confResult.withError("value", e);
 		}
 		
