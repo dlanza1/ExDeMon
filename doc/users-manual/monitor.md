@@ -38,14 +38,6 @@ monitor.<monitor-id>.tags.<tag-key-n> = <value-n>
 
 Configuration of monitors can be updated while running.
 
-## $error trigger
-
-If a monitor has a configuration error, actions are triggered using $error trigger. Its configuration can be changed with monitor.<monitor-id>.triggers.$error parameters.
-
-Notice that if you specify any configuration parameter for $error, other default values are not longer set, so full trigger configuration should be provided. 
-
-Monitor will constantly produce metrics of type exception, so statuses will be always set to EXCEPTION.
-
 ## Tags
 
 Each monitor or trigger can have different tags that are included in the analysis results and actions that the monitor produces.
