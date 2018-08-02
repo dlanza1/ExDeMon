@@ -50,7 +50,7 @@ actuators.<actuator-id>.parallelization = <number-of-parallel-clients> (default:
 actuators.<actuator-id>.batch.size = <max-number-of-records-in-a-POST-request> (default: 100)
 actuators.<actuator-id>.as-array = <true|false> (default: true)
 actuators.<actuator-id>.retries = <max-number-of-retries> (default: 5)
-actuators.<actuator-id>.timeout = <max-wait-time-in-ms> (default: 2000)
+actuators.<actuator-id>.timeout = <max-wait-time-in-ms> (default: 5000)
 # HTTP simple authentication
 actuators.<actuator-id>.auth.type = <disabled|basic-user-password> (default: disabled)
 actuators.<actuator-id>.auth.user = <username>
@@ -110,7 +110,7 @@ actuators.<actuator-id>.url = <url>
 actuators.<actuator-id>.parallelization = <number-of-parallel-clients> (default: 1)
 actuators.<actuator-id>.batch.size = <max-number-of-records-in-a-POST-request> (default: 100)
 actuators.<actuator-id>.retries = <max-number-of-retries> (default: 5)
-actuators.<actuator-id>.timeout = <max-wait-time-in-ms> (default: 2000)
+actuators.<actuator-id>.timeout = <max-wait-time-in-ms> (default: 5000)
 actuators.<actuator-id>.content.header.<header-key> = <template>
 actuators.<actuator-id>.content.body.metadata.<metadata-key> = <template>
 actuators.<actuator-id>.content.body.payload.<payload-key> = <template>

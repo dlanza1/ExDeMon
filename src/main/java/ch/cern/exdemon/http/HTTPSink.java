@@ -20,9 +20,11 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.spark.streaming.api.java.JavaDStream;
@@ -54,7 +56,7 @@ public class HTTPSink implements Serializable{
 	private String url;
 	
 	public static final String RETRIES_PARAM = "retries";
-	private int retries;
+	private static HttpRequestRetryHandler retryHandler;
 	
 	public static final String TIMEOUT_PARAM = "timeout";
 	private int timeout_ms;
@@ -85,8 +87,10 @@ public class HTTPSink implements Serializable{
 		if(url == null)
 		    confResult.withMustBeConfigured(URL_PARAM);
 		
-		retries = (int) properties.getFloat(RETRIES_PARAM, 1);
-		timeout_ms = (int) properties.getFloat(TIMEOUT_PARAM, 2000);
+		int retries = (int) properties.getFloat(RETRIES_PARAM, 1);
+		retryHandler = new StandardHttpRequestRetryHandler(retries, false);
+		
+		timeout_ms = (int) properties.getFloat(TIMEOUT_PARAM, 5000);
 		parallelization = (int) properties.getFloat(PARALLELIZATION_PARAM, 1);
 		batch_size = (int) properties.getFloat(BATCH_SIZE_PARAM, 100);
 		try {
@@ -132,13 +136,13 @@ public class HTTPSink implements Serializable{
 		        }
 		    });
 		
-		requestsStream.foreachRDD(rdd -> rdd.foreachPartitionAsync(requests -> send(requests)));
+		requestsStream.foreachRDD(rdd -> rdd.foreachPartitionAsync(requests -> batchAndSend(requests)));
 	}
 	
     public void sink(Object object) throws ParseException {
         JsonPOSTRequest request = toJsonPOSTRequest(object);
         
-        send(Collections.singleton(request).iterator());
+        batchAndSend(Collections.singleton(request).iterator());
     }
 
     public JsonPOSTRequest toJsonPOSTRequest(Object object) throws ParseException {
@@ -225,86 +229,53 @@ public class HTTPSink implements Serializable{
         return request;
     }
     
-    protected void send(Iterator<JsonPOSTRequest> requests) {
-        List<Exception> thrownExceptions = new LinkedList<>();
-        Exception thrownException = null;
-        
+    protected void batchAndSend(Iterator<JsonPOSTRequest> requests) {
         List<JsonPOSTRequest> requestsToSend = new LinkedList<>();
         while (requests.hasNext()) {
             requestsToSend.add(requests.next());
             
             if(requestsToSend.size() >= batch_size) {
-                thrownException = sendBatch(requestsToSend);
-                if(thrownException != null)
-                    thrownExceptions.add(thrownException);
+                buildBatchAndSend(requestsToSend);
                 
                 requestsToSend = new LinkedList<>();
             }
         }
         
-        thrownException = sendBatch(requestsToSend);
-        if(thrownException != null)
-            thrownExceptions.add(thrownException);
-        
-        if(!thrownExceptions.isEmpty())
-            LOG.error(new IOException("Some batches could not be sent. Exceptions: " + thrownExceptions));
+        buildBatchAndSend(requestsToSend);
     }
 
-    public Exception sendBatch(List<JsonPOSTRequest> requests) {
+    public void buildBatchAndSend(List<JsonPOSTRequest> requests) {
 	    if(as_array)
 	        requests = buildJSONArrays(requests);
 
-        for (JsonPOSTRequest request : requests) {
-            Exception excep = send(request);
-            
-            if(excep != null)
-                return excep;
-        }
-	    
-	    return null;
+        for (JsonPOSTRequest request : requests)
+            trySend(request);
     }
 
     private static HttpClient getHTTPClient() {
-		return HTTPSink.httpClient == null ? HttpClients.createDefault() : HTTPSink.httpClient;
+        if(HTTPSink.httpClient == null)
+            HTTPSink.httpClient = HttpClients.custom()
+                                             .setRetryHandler(retryHandler)
+                                             .build();
+        
+		return HTTPSink.httpClient;
 	}
 	
 	public static HttpClient setHTTPClient(HttpClient httpClient) {
 		return HTTPSink.httpClient = httpClient;
 	}
 
-	public Exception send(JsonPOSTRequest request) {		
+	public void trySend(JsonPOSTRequest request) {		
 		HttpClient httpClient = getHTTPClient();
 		
-		Exception thrownException = new Exception();
-		
-		int retry = 1;
-		for (; retry <= retries && thrownException != null; retry++) {
-			try {
-				trySend(httpClient, request);
-				
-				thrownException = null;
-			} catch (Exception e) {
-			    LOG.error("Error sending request (retry " + retry + "): " + request, e);
-				
-				thrownException = e;
-				
-				setHTTPClient(null);
-
-                try {
-                    Thread.sleep(1000 * retry);
-                } catch (InterruptedException e1) {}
-                
-				httpClient = getHTTPClient();
-			}	
-		}
-		
-		if(retry > 2 && thrownException != null)
-		    LOG.info("Request sent successfully after " + (retry) + " retries");
-		
-		return thrownException;	
+        try {
+            send(httpClient, request);
+        } catch (Exception e) {
+            LOG.error("Error sending request: " + request, e);
+        }
 	}
 	
-	private void trySend(HttpClient httpClient, JsonPOSTRequest request) throws HttpException, IOException {
+	private void send(HttpClient httpClient, JsonPOSTRequest request) throws HttpException, IOException {
         HttpPost postMethod = request.toPostMethod();
         
         if(authCredentials != null)
@@ -339,13 +310,9 @@ public class HTTPSink implements Serializable{
         if (statusCode == 201 || statusCode == 200) {
             LOG.trace("JSON: " + request.getJson() + " sent to " + request.getUrl());
         } else {
-            throw new HttpException("Unable to POST to url=" + request.getUrl() + " with status code=" + statusCode + " "+responseToString(response)+". JSON: " + request.getJson());
+            throw new HttpException("Unable to POST to url=" + request.getUrl() + " with status code=" + statusCode + " "+response.toString()+". JSON: " + request.getJson());
         }
 	}
-
-	private String responseToString(HttpResponse httpResponse) {        
-        return httpResponse.toString();
-    }
 
     private List<JsonPOSTRequest> buildJSONArrays(List<JsonPOSTRequest> elements) {
 	    Map<String, List<JsonPOSTRequest>> groupedByUrl = elements.stream().collect(Collectors.groupingBy(JsonPOSTRequest::getUrl));

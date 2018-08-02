@@ -26,7 +26,7 @@ results.sink.url = <url>
 results.sink.parallelization = <number-of-parallel-clients> (default: 5)
 results.sink.batch.size = <max-number-of-records-in-a-POST-request> (default: 100)
 results.sink.retries = <max-number-of-retries> (default: 1)
-results.sink.timeout = <max-wait-time-in-ms> (default: 2000)
+results.sink.timeout = <max-wait-time-in-ms> (default: 5000)
 # HTTP simple authentication
 results.sink.auth.type = <disabled|basic-user-password> (default: disabled)
 results.sink.auth.user = <username>

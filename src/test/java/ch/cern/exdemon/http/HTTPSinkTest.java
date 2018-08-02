@@ -63,7 +63,7 @@ public class HTTPSinkTest {
 		analysisResult.setAnalysis_timestamp(instant);
 		analysisResult.setTimestamp(instant.toEpochMilli());
 
-        sink.send(Arrays.asList(new JsonPOSTRequest("", JSONParser.parse(analysisResult))).iterator());
+        sink.batchAndSend(Arrays.asList(new JsonPOSTRequest("", JSONParser.parse(analysisResult))).iterator());
 		
 		ArgumentCaptor<HttpPost> methodCaptor = ArgumentCaptor.forClass(HttpPost.class);
 		verify(httpClient, times(1)).execute(methodCaptor.capture());
