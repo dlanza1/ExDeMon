@@ -109,7 +109,6 @@ public class TimestampDescriptor {
             return shift.adjustPlus(Instant.now());
         }
     }
-    
 
     private Instant toDate(String date_string) throws DateTimeParseException {
         if(format_auto == null)

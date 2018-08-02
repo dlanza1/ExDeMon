@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.LongAccumulator;
 import org.junit.Before;
 import org.junit.Test;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.json.JSON;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.properties.ConfigurationException;
@@ -62,14 +63,13 @@ public class MetricSchemaTest {
         thread.join();
         
         System.out.println("Took " + TimeUtils.toString(Duration.ofNanos(threadCpuTime.get())) + " ns");
-        
     }
     
     @Test
     public void shouldFilter() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
-        props.setProperty(ATTRIBUTES_PARAM + ".version", "metadata.version");
+        props.setProperty(ATTRIBUTES_PARAM + ".version.key", "metadata.version");
         props.setProperty("value.type_prefix.key", "metadata.type_prefix");
 
         props.setProperty(FILTER_PARAM + ".attribute.version", "001");
@@ -124,7 +124,7 @@ public class MetricSchemaTest {
         props.setProperty("value.pending_slots.key", "data.payload.WMBS_INFO.thresholds.pending_slots");
 
         String att_name_no_primitive = "data.payload.WMBS_INFO.thresholds";
-        props.setProperty(ATTRIBUTES_PARAM, att_name_no_primitive);
+        props.setProperty(ATTRIBUTES_PARAM + ".data.key", att_name_no_primitive);
 
         String jsonString = "{\"metadata\":{" + "\"timestamp\":1509520209883" + "},\"data\":{" + "\"payload\":{"
                 + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0}"
@@ -244,19 +244,9 @@ public class MetricSchemaTest {
         props.setProperty("value.t.key", "test");
 
         props.setProperty(ATTRIBUTES_PARAM + ".error_+", "a.b.error-.*");
-        schema.config(props);
+        ConfigurationResult confResult = schema.config(props);
 
-        String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
-        JSON jsonObject = new JSON(jsonString);
-
-        Iterator<Metric> metrics = schema.call(jsonObject).iterator();
-
-        metrics.hasNext();
-        Metric metric = metrics.next();
-        assertEquals("1", metric.getAttributes().get("a.b.error-1"));
-        assertEquals("2", metric.getAttributes().get("a.b.error-abcd"));
-
-        assertFalse(metrics.hasNext());
+        assertTrue(confResult.getErrors().get(0).getMessage().contains("no regular expression with one group"));
     }
 
     @Test
@@ -266,8 +256,8 @@ public class MetricSchemaTest {
         props.setProperty(TIMESTAMP_PARAM + "." + KEY_PARAM, "metadata.timestamp");
         props.setProperty("value.test.key", "test");
 
-        props.setProperty(ATTRIBUTES_PARAM + ".puppet_environment", "#qa");
-        props.setProperty(ATTRIBUTES_PARAM + ".error1", "a.b.error-1");
+        props.setProperty(ATTRIBUTES_PARAM + ".puppet_environment_DEPRECATED", "#qa_deprecated");
+        props.setProperty(ATTRIBUTES_PARAM + ".puppet_environment.value", "qa");
         schema.config(props);
 
         String jsonString = "{\"a\":{\"b\":{\"error-1\": 1, \"error-abcd\": 2}}}";
@@ -277,8 +267,33 @@ public class MetricSchemaTest {
 
         metrics.hasNext();
         Metric metric = metrics.next();
+        assertEquals("qa_deprecated", metric.getAttributes().get("puppet_environment_DEPRECATED"));
         assertEquals("qa", metric.getAttributes().get("puppet_environment"));
-        assertEquals("1", metric.getAttributes().get("error1"));
+
+        assertFalse(metrics.hasNext());
+    }
+    
+    @Test
+    public void attributesWithRegex() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty("value.test.key", "a.b.error");
+
+        props.setProperty(ATTRIBUTES_PARAM + ".error.key", "a.b.error");
+        props.setProperty(ATTRIBUTES_PARAM + ".error.regex", "ERROR (.*) PARAMS .*");
+        props.setProperty(ATTRIBUTES_PARAM + ".params.key", "a.b.error");
+        props.setProperty(ATTRIBUTES_PARAM + ".params.regex", ".* PARAMS (.*)");
+        schema.config(props);
+        
+        String jsonString = "{\"a\":{\"b\":{\"error\": \"ERROR error message PARAMS paramValues\"}}}";
+        JSON jsonObject = new JSON(jsonString);
+
+        Iterator<Metric> metrics = schema.call(jsonObject).iterator();
+
+        metrics.hasNext();
+        Metric metric = metrics.next();
+        assertEquals("error message", metric.getAttributes().get("error"));
+        assertEquals("paramValues", metric.getAttributes().get("params"));
 
         assertFalse(metrics.hasNext());
     }
@@ -321,17 +336,29 @@ public class MetricSchemaTest {
 
         props.setProperty("value.running_slots.key", "data.payload.WMBS_INFO.thresholds.running_slots");
 
-        props.setProperty(ATTRIBUTES_PARAM + ".data.payload.site_name", "data.payload.site_name");
-        props.setProperty(ATTRIBUTES_PARAM + ".data.payload.agent_url", "data.payload.agent_url");
+        props.setProperty(ATTRIBUTES_PARAM + ".site_name", "data.payload.site_name");
+        props.setProperty(ATTRIBUTES_PARAM + ".agent_url", "data.payload.agent_url");
         props.setProperty(ATTRIBUTES_PARAM + ".type.meta", "metadata.type");
         props.setProperty(ATTRIBUTES_PARAM + ".version", "metadata.version");
         schema.config(props);
 
-        String jsonString = "{\"metadata\":{" + "\"timestamp\":1509520209883}," + "\"data\":{" + "\"payload\":{"
-                + "\"site_name\":\"T2_UK_London_Brunel\"," + "\"timestamp\":1509519908," + "\"LocalWQ_INFO\":{},"
-                + "\"WMBS_INFO\":{" + "\"thresholds\":{" + "\"state\":\"Normal\"," + "\"running_slots\":2815,"
-                + "\"pending_slots\":2111.89}," + "\"thresholdsGQ2LQ\":2111.0},"
-                + "\"agent_url\":\"vocms0258.cern.ch\"," + "\"type\":\"site_info\"}" + "}" + "}";
+        String jsonString = "{\"metadata\":{" 
+                                + "\"timestamp\":1509520209883}," 
+                             + "\"data\":{" 
+                                + "\"payload\":{"
+                                    + "\"site_name\":\"T2_UK_London_Brunel\"," 
+                                    + "\"timestamp\":1509519908," 
+                                    + "\"LocalWQ_INFO\":{},"
+                                    + "\"WMBS_INFO\":{" 
+                                        + "\"thresholds\":{" 
+                                            + "\"state\":\"Normal\"," 
+                                            + "\"running_slots\":2815,"
+                                            + "\"pending_slots\":2111.89}," 
+                                        + "\"thresholdsGQ2LQ\":2111.0},"
+                                    + "\"agent_url\":\"vocms0258.cern.ch\"," 
+                                    + "\"type\":\"site_info\"}" 
+                                 + "}" 
+                              + "}";
 
         JSON jsonObject = new JSON(jsonString);
 
@@ -344,8 +371,8 @@ public class MetricSchemaTest {
         assertEquals(4, metric.getAttributes().size());
         assertTrue("test", metric.getAttributes().get("$schema").startsWith("test"));
         assertEquals("running_slots", metric.getAttributes().get("$value"));
-        assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("data.payload.site_name"));
-        assertEquals("vocms0258.cern.ch", metric.getAttributes().get("data.payload.agent_url"));
+        assertEquals("T2_UK_London_Brunel", metric.getAttributes().get("site_name"));
+        assertEquals("vocms0258.cern.ch", metric.getAttributes().get("agent_url"));
 
         assertFalse(metrics.hasNext());
     }

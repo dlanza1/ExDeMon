@@ -10,18 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
-import com.google.gson.JsonElement;
-
 import ch.cern.exdemon.components.Component;
+import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.components.ComponentType;
 import ch.cern.exdemon.components.ConfigurationResult;
-import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.json.JSON;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
@@ -30,7 +26,6 @@ import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.utils.ExceptionsCache;
-import ch.cern.utils.Pair;
 import lombok.ToString;
 
 @ToString
@@ -47,8 +42,7 @@ public final class MetricSchema extends Component {
     protected HashMap<String, String> fixedAttributes;
     
     public static String ATTRIBUTES_PARAM = "attributes";
-    protected List<Pair<String, String>> attributes;
-    protected List<Pair<String, Pattern>> attributesPattern;
+    protected List<AttributeDescriptor> attributes;
 
     public static String VALUES_PARAM = "value";
     protected List<ValueDescriptor> values;
@@ -94,21 +88,27 @@ public final class MetricSchema extends Component {
             confResult.withError(VALUES_PARAM , ConfigurationResult.MUST_BE_CONFIGURED_MSG);
 
         fixedAttributes = new HashMap<>();
-        fixedAttributes.put("$schema", getId());
         
         attributes = new LinkedList<>();
-        attributesPattern = new LinkedList<>();
         Properties attributesProps = properties.getSubset(ATTRIBUTES_PARAM);
-        for (Map.Entry<Object, Object> pair : attributesProps.entrySet()) {
-            String alias = (String) pair.getKey();
-            String key = (String) pair.getValue();
+        attributesProps.setProperty("$schema.value", getId());
+        //TODO DEPRECATED
+        Set<String> oldAttributeKeys = attributesProps.keySet().stream()
+                                                               .map(key -> key.toString())
+                                                               .filter(key -> !key.contains("."))
+                                                               .collect(Collectors.toSet());
+        oldAttributeKeys.forEach(oldKey -> attributesProps.put(oldKey + ".key", attributesProps.get(oldKey)));
+        //TODO DEPRECATED
+        Set<String> attributeAliases = attributesProps.keySet().stream()
+                                                               .map(key -> key.toString())
+                                                               .filter(key -> key.contains("."))
+                                                               .map(key -> key.substring(0, key.indexOf(".")))
+                                                               .collect(Collectors.toSet());
+        for (String attributeAlias : attributeAliases) {
+            AttributeDescriptor attDescriptor = new AttributeDescriptor(attributeAlias);
+            confResult.merge(ATTRIBUTES_PARAM + "." + attributeAlias, attDescriptor.config(attributesProps.getSubset(attributeAlias)));
             
-            if(isFixedValue(key))
-                fixedAttributes.put(alias, key.substring(1));
-            else if(!isKeyRegex(key))
-                attributes.add(new Pair<String, String>(alias, key));
-            else
-                attributesPattern.add(new Pair<String, Pattern>(alias, Pattern.compile(key)));
+            attributes.add(attDescriptor);
         }
 
         try {
@@ -120,43 +120,11 @@ public final class MetricSchema extends Component {
         return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }
 
-    private boolean isKeyRegex(String value) {
-        return value.contains("*") || value.contains("+") || value.contains("(");
-    }
-
     public List<Metric> call(JSON jsonObject) {        
         try {
             Map<String, String> attributesForMetric = new HashMap<>(fixedAttributes);
-            for (Pair<String, String> attribute : attributes) {
-                String alias = attribute.first;
-                String key = attribute.second;
-
-                JsonElement value = jsonObject.getElement(key);
-
-                if (value != null && value.isJsonPrimitive())
-                    attributesForMetric.put(alias, value.getAsString());
-            }
-            for (Pair<String, Pattern> attribute : attributesPattern) {
-                String alias = attribute.first;
-                Pattern keyPattern = attribute.second;
-
-                String[] keys = jsonObject.getKeys(keyPattern);
-                
-                for (String key : keys) {
-                    String finalAlias = key;
-                    if(alias.contains("+") && !alias.equals(keyPattern.pattern())) {
-                        Matcher matcher = attribute.second.matcher(key);
-                        
-                        if(matcher.find() && matcher.groupCount() == 1)
-                            finalAlias = alias.replace("+", matcher.group(1));
-                    }
-                    
-                    JsonElement value = jsonObject.getElement(key);
-                    
-                    if (value != null && value.isJsonPrimitive())
-                        attributesForMetric.put(finalAlias, value.getAsString());
-                }
-            }
+            for (AttributeDescriptor attributeDescriptor : attributes)
+                attributesForMetric.putAll(attributeDescriptor.extract(jsonObject));
             
             if(!filter.test(attributesForMetric))
                 return Collections.emptyList();
@@ -214,10 +182,6 @@ public final class MetricSchema extends Component {
         }
         
         return Optional.empty();
-    }
-
-    private boolean isFixedValue(String key) {
-        return key.startsWith("#");
     }
 
     public boolean containsSource(String sourceID) {
