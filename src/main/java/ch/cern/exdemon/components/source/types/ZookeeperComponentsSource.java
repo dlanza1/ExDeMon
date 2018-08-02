@@ -189,8 +189,13 @@ public class ZookeeperComponentsSource extends ComponentsSource {
             }
             break;
         case NODE_REMOVED:
-            removeComponent(event.getData().getPath());
-            LOG.info("Node removed from the tree: " + event.getData().getPath());
+            String removedPath = event.getData().getPath();
+            if(!isConfigurationNode(removedPath))
+                return;
+             
+            removeComponent(removedPath);
+            
+            LOG.debug("Node removed from the tree: " + removedPath);
             break;
         case NODE_UPDATED:
             if(event.getData().getData() != null) {
