@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -144,7 +146,8 @@ public class HTTPSink implements Serializable{
         JSON json = null;
         
         if(object instanceof Action) {
-            url = Template.apply(url, (Action) object);
+            Action action = (Action) object;            
+            url = Template.apply(url, action);
             json = addAction ? JSONParser.parse(object) : new JSON("{}");
         }else if(object instanceof String) {
             json = new JSON((String) object);
@@ -154,7 +157,7 @@ public class HTTPSink implements Serializable{
         
         JsonPOSTRequest request = new JsonPOSTRequest(url, json);
         
-        Map<String, String> tags = null;
+        Map<String, String> tags = new HashMap<>();
         if(object instanceof Taggable)
             tags = ((Taggable) object).getTags();
         
@@ -177,17 +180,43 @@ public class HTTPSink implements Serializable{
                     && value.startsWith("[")
                     && value.endsWith("]")) {
                 String arrayContent = value.substring(1, value.length() - 1);
+                String[] arrayContentParts = arrayContent.split("\\+\\+");
                 
-                if(arrayContent.startsWith("keys:")) {
-                    String keysRegex = arrayContent.replace("keys:", "");
+                JsonArray jsonArray = new JsonArray();
+                
+                String[] jsonKeys = request.getJson().getAllKeys();
+                
+                for (String arrayContentPart : arrayContentParts) {
+                    if(arrayContentPart.startsWith("keys:")) {
+                        String keysRegex = arrayContentPart.replace("keys:", "");
+                        
+                        Pattern pattern = Pattern.compile(keysRegex);
+                        
+                        String[] matchingKeys = Arrays.stream(jsonKeys).filter(jsonKey -> pattern.matcher(jsonKey).matches()).toArray(String[]::new);
+                        
+                        for (String matchingKey : matchingKeys)
+                            jsonArray.add(new JsonPrimitive(matchingKey));
+                    }
                     
-                    String[] matchingKeys = request.getJson().getKeys(Pattern.compile(keysRegex));
-                    JsonArray jsonArray = new JsonArray();
-                    for (String matchingKey : matchingKeys)
-                        jsonArray.add(new JsonPrimitive(matchingKey));
-                    
-                    request.getJson().getElement().getAsJsonObject().add(propertyToAdd.getKey(), jsonArray);
+                    if(arrayContentPart.startsWith("attributes:#")) {
+                        String tag = arrayContentPart.replace("attributes:#", "");
+                        
+                        if(tags.containsKey(tag)) {
+                            String[] attributesKeys = tags.get(tag).split("\\s");
+                            
+                            for (String attributeKey : attributesKeys) {
+                                String fullKey = "analyzed_metric.attributes." + attributeKey;
+                                
+                                boolean exist = Arrays.stream(jsonKeys).filter(jsonKey -> jsonKey.equals(fullKey)).count() > 0;
+                                
+                                if(exist)
+                                    jsonArray.add(new JsonPrimitive(fullKey));
+                            }
+                        }
+                    }
                 }
+                
+                request.getJson().getElement().getAsJsonObject().add(propertyToAdd.getKey(), jsonArray);
             }else{
                 request.addProperty(propertyToAdd.getKey(), value);
             }
