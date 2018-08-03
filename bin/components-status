@@ -1,0 +1,148 @@
+#!/bin/bash
+
+show_help(){
+	echo Arguments:
+	echo -h: help
+	echo -id: filter by id
+	echo -idp: filter ids by pattern
+	echo -sc: show config 
+	echo "-t: filter by type (schema, metric, monitor or actuator)"
+	echo "-s: filter by status (WARNING, ERROR, OK)"
+	echo -r: remove components
+}
+
+show_component(){
+    COMPONENT_PATH=$1
+    
+    CONFIG_RESULT=`zookeepercli --servers $ZK_HOST -c get /exdemon/components/$COMPONENT_PATH/config.result 2>/dev/null`
+    if [ $? != 0 ]
+    then
+        return
+    fi
+    
+    STATUS=`echo "$CONFIG_RESULT" | python -c "import sys, json; print json.load(sys.stdin)['status']"`
+    TYPE=`echo "$CONFIG_RESULT" | python -c "import sys, json; print json.load(sys.stdin)['componentType']"`
+    ID=`echo "$CONFIG_RESULT" | python -c "import sys, json; print json.load(sys.stdin)['componentId']"`
+    
+    if ! [ -z $STATUS_FILTER ] && [ $STATUS_FILTER != $STATUS ]
+    then
+        return
+    fi
+    
+    echo " --- Component type $TYPE with ID $ID --- "
+    
+    if [ $SHOW_CONFIG == true ]
+    then
+        echo "Configuration:"
+        zookeepercli --servers $ZK_HOST -c get /exdemon/components/$COMPONENT_PATH/config
+    fi
+    
+    echo "Configuration result:"
+    echo "$CONFIG_RESULT"
+    
+    echo
+}
+
+op_done_wait(){
+	echo Waiting for operation results...
+
+	RESULT=$(zookeepercli --servers $ZK_HOST -c get $OP_PATH/status)
+	while [ "$RESULT" == "RECEIVED" ]
+	do
+		sleep 1
+		RESULT=$(zookeepercli --servers $ZK_HOST -c get $OP_PATH/status)
+	done
+}
+
+process_args(){
+	NL=$'\n'
+	ID=""
+	ID_PATTERN=""
+	SHOW_CONFIG=false
+	TYPE_FILTER=""
+	STATUS_FILTER=""
+	REMOVE_OP=false
+
+	POSITIONAL=()
+	while [[ $# -gt 0 ]]
+	do
+	key="$1"
+
+	case $key in
+		-h|--help)
+	    show_help
+	    exit
+		;;
+		-id|--id)
+        ID=$2
+        shift
+        shift
+        ;;
+        -idp|--id-pattern)
+        ID_PATTERN=$2
+        shift
+        shift
+        ;;
+        -t|--type)
+        TYPE_FILTER=`echo $2 | tr A-Z a-z`
+        shift
+        shift
+        ;;
+        -s|--status)
+        STATUS_FILTER=`echo $2 | tr a-z A-Z`
+        shift
+        shift
+        ;;
+	    -r|--remove)
+		REMOVE_OP=true
+	    shift
+	    ;;
+	    -sc|--show-config)
+		SHOW_CONFIG=true
+	    shift
+	    ;;
+	    *)
+	    echo Unknown option: $1
+	    show_help
+	    exit 1
+	    ;;
+	esac
+	done
+	set -- "${POSITIONAL[@]}"
+}
+
+### MAIN ###
+
+process_args $@
+
+ZK_HOST=exdemon-zookeeper-01:2181,exdemon-zookeeper-02:2181,exdemon-zookeeper-03:2181
+
+ALL_COMPONENT_PATHS=`zookeepercli --servers $ZK_HOST -c lsr /exdemon/components | grep "/config$" | sed 's#/config##g'`
+
+FILTERED_COMPONENT_PATHS=$ALL_COMPONENT_PATHS
+
+if ! [ -z $ID ]
+then
+    FILTERED_COMPONENT_PATHS=`echo "$FILTERED_COMPONENT_PATHS" | grep "/id=$ID$"`
+fi
+if ! [ -z $ID_PATTERN ]
+then
+    FILTERED_COMPONENT_PATHS=`echo "$FILTERED_COMPONENT_PATHS" | grep "/id=.*$ID_PATTERN.*"`
+fi
+if ! [ -z $TYPE_FILTER ]
+then
+    FILTERED_COMPONENT_PATHS=`echo "$FILTERED_COMPONENT_PATHS" | grep "^type=$TYPE_FILTER/"`
+fi
+
+for COMPONENT_PATH in $FILTERED_COMPONENT_PATHS
+do
+    if [ $REMOVE_OP == true ]
+    then
+        zookeepercli --servers $ZK_HOST -c deleter --force /exdemon/components/$COMPONENT_PATH/config
+        echo Removed /exdemon/components/$COMPONENT_PATH/config
+        
+        continue
+    fi
+    
+    show_component $COMPONENT_PATH
+done
