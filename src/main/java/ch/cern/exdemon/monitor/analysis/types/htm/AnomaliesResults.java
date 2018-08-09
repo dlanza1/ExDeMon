@@ -1,11 +1,14 @@
 package ch.cern.exdemon.monitor.analysis.types.htm;
-public class AnomaliesResults {
+
+import java.io.Serializable;
+
+public class AnomaliesResults implements Serializable{
 	
 	private double score;
 	private double errThreshold;
 	private double warnThreshold;
 	
-	public AnomaliesResults(double score, double errorThreshold, double warningThreshold) {
+	public AnomaliesResults(double score, double errorThreshold, double warningThreshold){
 		setAnomalyLikelihoodScore(score);
 		setErrThreshold(errorThreshold);
 		setWarnThreshold(warningThreshold);
