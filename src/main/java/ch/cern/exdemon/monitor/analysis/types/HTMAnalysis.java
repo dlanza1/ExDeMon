@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.net.util.Base64;
 import org.joda.time.DateTime;
 import org.numenta.nupic.FieldMetaType;
 import org.numenta.nupic.Parameters.KEY;
@@ -34,6 +35,7 @@ import org.numenta.nupic.network.Network;
 import org.numenta.nupic.network.Persistence;
 import org.numenta.nupic.network.PersistenceAPI;
 import org.numenta.nupic.util.NamedTuple;
+import org.nustaq.serialization.FSTConfiguration;
 
 import com.esotericsoftware.minlog.Log;
 import com.google.gson.JsonArray;
@@ -154,7 +156,6 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 		Map<String, Object> m = new HashMap<>();
 		m.put("timestamp", dateEncoder.parse(timestamp.toString()));
 		m.put("value", value);
-		
 		Inference i = network.computeImmediate(m);
 		
 		if(i == null)
@@ -237,40 +238,54 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
     }
     
 	public static class JsonAdapter implements JsonSerializer<Network>, JsonDeserializer<Network> {
+		
+		//private PersistenceAPI persistance;
+		private transient FSTConfiguration fastSerialConfig = FSTConfiguration.createDefaultConfiguration();
 
 		@Override
 		public JsonElement serialize(Network status, java.lang.reflect.Type type, JsonSerializationContext context) {
-			JsonArray jsonBytes = new JsonArray();
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-
-			try {
-				ObjectOutput out = new ObjectOutputStream(bos);
-				out.writeObject(status);
-				out.flush();
-
-				byte[] bytes = bos.toByteArray();
-				
-				for (byte byte_ : bytes) {
-					jsonBytes.add(new JsonPrimitive(byte_));
-				}
-			} catch (IOException e) {
-				Log.error("Error when serializing", e);
-			} finally {
-				try {
-					bos.close();
-				} catch (IOException ex) {}
-			}
+			long serializeStartTime = System.currentTimeMillis();
 			
-			return jsonBytes;
+			long startTime = System.currentTimeMillis();
+			//if(persistance == null)
+			//	persistance = Persistence.get();
+			long stopTime = System.currentTimeMillis();
+			long elapsedTime = stopTime - startTime;
+			System.out.println("SERIALIZE persistance get: "+elapsedTime);
+			
+			startTime = System.currentTimeMillis();
+			status.preSerialize();
+			//byte[] bytes = persistance.storeAndGet(status);
+			byte[] bytes = fastSerialConfig.asByteArray(status);
+			System.out.println();
+			stopTime = System.currentTimeMillis();
+			elapsedTime = stopTime - startTime;
+			System.out.println("SERIALIZE storeAndGet: "+elapsedTime);
+			
+			/*startTime = System.currentTimeMillis();
+			JsonArray jsonBytes = new JsonArray();
+			for (byte byte_ : jsonString.getBytes()) {
+				jsonBytes.add(new JsonPrimitive(byte_));
+			}
+			stopTime = System.currentTimeMillis();
+			elapsedTime = stopTime - startTime;
+			System.out.println("SERIALIZE json array building: "+elapsedTime);*/
+			
+			long serializeStopTime = System.currentTimeMillis();
+			long serializeElapsedTime = serializeStopTime - serializeStartTime;
+			System.out.println("SERIALIZE: "+serializeElapsedTime);
+			
+			return new JsonPrimitive(Base64.encodeBase64String(bytes));
 		}
 		
 		@Override
 		public Network deserialize(JsonElement element, java.lang.reflect.Type type, JsonDeserializationContext context)
 				throws JsonParseException {
-			if(!element.isJsonArray())
-				throw new JsonParseException("Expected JsonArray");
+			long deserializeStartTime = System.currentTimeMillis();
+			if(!element.isJsonPrimitive())
+				throw new JsonParseException("Expected JsonPrimitive");
 			
-			ObjectInput in = null;
+			/*long startTime = System.currentTimeMillis();
 			JsonArray jsonArray = element.getAsJsonArray();
 			byte[] bytes = new byte[jsonArray.size()];
 			int i = 0;
@@ -278,21 +293,23 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 				bytes[i] = el.getAsByte();
 				i++;
 			}
-			try {
-				in = new ObjectInputStream(new ByteArrayInputStream(bytes));
-
-				return (Network) in.readObject();
-			} catch (Exception e) {
-				Log.error("Error when deserializing", e);
-			} finally {
-				try {
-					if (in != null) {
-						in.close();
-					}
-				} catch (IOException ex) {}
-			}
+			long stopTime = System.currentTimeMillis();
+			long elapsedTime = stopTime - startTime;
+			System.out.println("DESERIALIZE byte array building: "+elapsedTime);*/
+			byte[] bytes = Base64.decodeBase64(element.getAsString());
 			
-			return null;
+			long startTime = System.currentTimeMillis();
+			//Network net = persistance.read(bytes);
+			Network status = (Network) fastSerialConfig.asObject(bytes);
+			status = status.postDeSerialize();
+			long stopTime = System.currentTimeMillis();
+			long elapsedTime = stopTime - startTime;
+			System.out.println("DESERIALIZE persitance load: "+elapsedTime);
+			
+			long deserializeStopTime = System.currentTimeMillis();
+			long deserializeElapsedTime = deserializeStopTime - deserializeStartTime;
+			System.out.println("DESERIALIZE: "+deserializeElapsedTime);
+			return status;
 		}
 
 	}
