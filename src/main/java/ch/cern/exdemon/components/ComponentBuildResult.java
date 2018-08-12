@@ -26,17 +26,18 @@ public class ComponentBuildResult<C extends Component> {
     
     public static<C extends Component> ComponentBuildResult<C> from(
             Type componentType, 
-            String componentId,
-            Optional<C> component,
+            Optional<String> idOpt,
+            Optional<C> optional,
             ConfigurationResult configurationResult) {
         
         ComponentBuildResult<C> result = new ComponentBuildResult<>();
         
+        idOpt.ifPresent(id -> result.componentId = id);
+        
         result.componentType = componentType;
-        result.componentId = componentId;
         result.configurationResult = configurationResult;
         
-        component.ifPresent(c -> result.component = c);
+        optional.ifPresent(c -> result.component = c);
         
         return result;
     }

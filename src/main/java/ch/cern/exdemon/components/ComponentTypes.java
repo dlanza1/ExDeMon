@@ -66,14 +66,14 @@ public class ComponentTypes {
     }
 	
 	public static<C extends Component> ComponentBuildResult<C> build(Component.Type componentType, String id, Properties properties) {
-	    ComponentBuildResult<C> result = build(componentType, properties);
-	    
-	    result.setComponentId(id);
-	    
-		return result;
+	    return build(componentType, Optional.ofNullable(id), properties);
 	}
 	
 	public static<C extends Component> ComponentBuildResult<C> build(Type componentType, Properties properties) {
+	    return build(componentType, Optional.empty(), properties);
+	}
+	
+	public static<C extends Component> ComponentBuildResult<C> build(Type componentType, Optional<String> idOpt, Properties properties) {
 	    String type = componentType.type();
 	    if(type == null)
             type = properties.getProperty("type");
@@ -101,10 +101,13 @@ public class ComponentTypes {
                     return ComponentBuildResult.from(componentType, ConfigurationResult.SUCCESSFUL().withError("type", message));
                 }
             }
+            
+            if(idOpt.isPresent())
+                component.setId(idOpt.get());
         
             ConfigurationResult configResult = component.buildConfig(properties);
             
-            return ComponentBuildResult.from(componentType, null, Optional.of(component), configResult);
+            return ComponentBuildResult.from(componentType, idOpt, Optional.of(component), configResult);
         } catch (Exception e) {
             return ComponentBuildResult.from(componentType, ConfigurationResult.SUCCESSFUL().withError(null, e));
         }

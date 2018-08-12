@@ -20,7 +20,7 @@ public class ComponentRegistrationResultTest {
         ComponentRegistrationResult regResult = ComponentRegistrationResult.from(
                                                             ComponentBuildResult.from(
                                                                     Type.MONITOR, 
-                                                                    "test-id", 
+                                                                    Optional.of("test-id"), 
                                                                     Optional.empty(), 
                                                                     configurationResult));
         
@@ -36,7 +36,7 @@ public class ComponentRegistrationResultTest {
         ComponentRegistrationResult regResult = ComponentRegistrationResult.from(
                                                             ComponentBuildResult.from(
                                                                     Type.MONITOR, 
-                                                                    "test-id", 
+                                                                    Optional.of("test-id"),
                                                                     Optional.empty(), 
                                                                     configurationResult));
         
@@ -51,7 +51,7 @@ public class ComponentRegistrationResultTest {
         ComponentRegistrationResult regResult = ComponentRegistrationResult.from(
                                                             ComponentBuildResult.from(
                                                                     Type.MONITOR, 
-                                                                    "test-id", 
+                                                                    Optional.of("test-id"),
                                                                     Optional.empty(), 
                                                                     configurationResult));
         
@@ -66,7 +66,7 @@ public class ComponentRegistrationResultTest {
         configurationResult.withWarning("pw1", "w1");
         configurationResult.withWarning("pw2", "w2");
         
-        ComponentRegistrationResult regResult = ComponentRegistrationResult.from(ComponentBuildResult.from(Type.MONITOR, "test-id", Optional.empty(), configurationResult));
+        ComponentRegistrationResult regResult = ComponentRegistrationResult.from(ComponentBuildResult.from(Type.MONITOR, Optional.of("test-id"), Optional.empty(), configurationResult));
         
         String jsonString = regResult.toJsonString();
         
