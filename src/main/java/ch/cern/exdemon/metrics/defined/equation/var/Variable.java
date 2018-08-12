@@ -104,7 +104,7 @@ public abstract class Variable implements ValueComputable, Predicate<Metric> {
 	public final Value compute(VariableStatuses stores, Instant time) {
         Variable variableToCompute = resultFromVariables.stream()
                                                         .filter(var -> getStore(stores, var.name).isPresent())
-                                                        .filter(var -> getStore(stores, var.name).get().getLastUpdateMetricTime().compareTo(time) <= 0)
+                                                        .filter(var -> var.delay.equals(Duration.ZERO) || getStore(stores, var.name).get().getLastUpdateMetricTime().compareTo(time) <= 0)
                                                         .map(var -> new Pair<String, Instant>(var.name, getStore(stores, var.name).get().getLastUpdateMetricTime()))
                                                         .max((a, b) -> a.second.compareTo(b.second))
                                                         .map(pair -> variables.get(pair.first))
