@@ -3,7 +3,6 @@ package ch.cern.exdemon.http;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.ParseException;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,8 +10,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -21,6 +18,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.HttpClients;
@@ -40,7 +38,6 @@ import ch.cern.exdemon.monitor.trigger.action.Action;
 import ch.cern.exdemon.monitor.trigger.action.Template;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.utils.TimeUtils;
 import lombok.ToString;
 
 @ToString(callSuper=false)
@@ -278,17 +275,10 @@ public class HTTPSink implements Serializable{
 	private void send(HttpClient httpClient, JsonPOSTRequest request) throws HttpException, IOException {
         HttpPost postMethod = request.toPostMethod();
         
+        postMethod.setConfig(RequestConfig.custom().setConnectTimeout(timeout_ms).build());
+        
         if(authCredentials != null)
             postMethod.addHeader(new BasicScheme().authenticate(authCredentials, postMethod, null));
-        
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                if (postMethod != null)
-                		postMethod.abort();
-            }
-        };
-        new Timer(true).schedule(task, timeout_ms);
         
 		HttpResponse response = null;
         try {
@@ -302,9 +292,6 @@ public class HTTPSink implements Serializable{
             
             throw new HttpException("Unable to POST to url=" + request.getUrl(), e);
         }
-		
-		if(postMethod.isAborted())
-			throw new HttpException("Request has timmed out after " + TimeUtils.toString(Duration.ofMillis(timeout_ms)));
 		
 		int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode == 201 || statusCode == 200) {
