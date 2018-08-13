@@ -293,12 +293,13 @@ public class HTTPSink implements Serializable{
             response = httpClient.execute(postMethod);
         } catch (IOException e) {
             try{
-                postMethod.releaseConnection();
                 postMethod.abort();
                 postMethod.completed();
             }catch(Exception ee){}
             
             throw new HttpException("Unable to POST to url=" + request.getUrl(), e);
+        }finally {
+            postMethod.releaseConnection();
         }
 		
 		int statusCode = response.getStatusLine().getStatusCode();
