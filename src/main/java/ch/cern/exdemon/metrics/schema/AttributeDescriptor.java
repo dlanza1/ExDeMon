@@ -26,6 +26,7 @@ public class AttributeDescriptor implements Serializable{
     private String key;
     private Pattern keyPattern;
     
+    @Getter
     private String fixedValue;
     
     private Pattern valueRegex;

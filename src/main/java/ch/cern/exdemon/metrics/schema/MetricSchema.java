@@ -26,6 +26,7 @@ import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.utils.ExceptionsCache;
+import ch.cern.utils.Pair;
 import lombok.ToString;
 
 @ToString
@@ -38,8 +39,6 @@ public final class MetricSchema extends Component {
 
     public static String SOURCES_PARAM = "sources";
     private List<String> sources;
-
-    protected HashMap<String, String> fixedAttributes;
     
     public static String ATTRIBUTES_PARAM = "attributes";
     protected List<AttributeDescriptor> attributes;
@@ -87,8 +86,6 @@ public final class MetricSchema extends Component {
         if (values.isEmpty())
             confResult.withError(VALUES_PARAM , ConfigurationResult.MUST_BE_CONFIGURED_MSG);
 
-        fixedAttributes = new HashMap<>();
-        
         attributes = new LinkedList<>();
         Properties attributesProps = properties.getSubset(ATTRIBUTES_PARAM);
         if(!attributesProps.containsKey("$schema") && !attributesProps.containsKey("$schema.value"))
@@ -135,7 +132,7 @@ public final class MetricSchema extends Component {
 
     public List<Metric> call(JSON jsonObject) {        
         try {
-            Map<String, String> attributesForMetric = new HashMap<>(fixedAttributes);
+            Map<String, String> attributesForMetric = new HashMap<>();
             for (AttributeDescriptor attributeDescriptor : attributes)
                 attributesForMetric.putAll(attributeDescriptor.extract(jsonObject));
             
@@ -179,10 +176,16 @@ public final class MetricSchema extends Component {
             Optional<ExceptionValue> exceptionValueOpt = raiseException(null, e);
 
             if(exceptionValueOpt.isPresent())
-                return Collections.singletonList(new Metric(Instant.now(), exceptionValueOpt.get(), fixedAttributes));
+                return Collections.singletonList(new Metric(Instant.now(), exceptionValueOpt.get(), getFixedValueAttributes()));
             else
                 return Collections.emptyList();
         }
+    }
+
+    private Map<String, String> getFixedValueAttributes() {
+        return attributes.stream().filter(att -> att.getFixedValue() != null)
+                  .map(att -> new Pair<>(att.getAlias(), att.getFixedValue()))
+                  .collect(Collectors.toMap(Pair::first, Pair::second));
     }
 
     private Optional<ExceptionValue> raiseException(String value, Exception exception) {
