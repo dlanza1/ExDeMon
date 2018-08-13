@@ -96,7 +96,7 @@ public final class MetricSchema extends Component {
         Set<String> oldAttributeKeys = attributesProps.keySet().stream()
                                                                .map(key -> key.toString())
                                                                .filter(key -> !key.contains("."))
-                                                               .filter(key -> !key.startsWith("#"))
+                                                               .filter(key -> !attributesProps.getProperty(key).startsWith("#"))
                                                                .collect(Collectors.toSet());
         oldAttributeKeys.forEach(oldKey -> attributesProps.put(oldKey + ".key", attributesProps.get(oldKey)));
         if(!oldAttributeKeys.isEmpty())
@@ -104,7 +104,7 @@ public final class MetricSchema extends Component {
         Set<String> oldAttributeValues = attributesProps.keySet().stream()
                                                                .map(key -> key.toString())
                                                                .filter(key -> !key.contains("."))
-                                                               .filter(key -> key.startsWith("#"))
+                                                               .filter(key -> attributesProps.getProperty(key).startsWith("#"))
                                                                .map(key -> key.toString())
                                                                .collect(Collectors.toSet());
         oldAttributeValues.forEach(oldKey -> attributesProps.put(oldKey + ".value", attributesProps.getProperty(oldKey).substring(1)));
