@@ -105,9 +105,9 @@ public final class MetricSchema extends Component {
                                                                .map(key -> key.toString())
                                                                .filter(key -> !key.contains("."))
                                                                .filter(key -> key.startsWith("#"))
-                                                               .map(key -> key.toString().substring(1))
+                                                               .map(key -> key.toString())
                                                                .collect(Collectors.toSet());
-        oldAttributeValues.forEach(oldKey -> attributesProps.put(oldKey + ".value", attributesProps.get(oldKey)));
+        oldAttributeValues.forEach(oldKey -> attributesProps.put(oldKey + ".value", attributesProps.getProperty(oldKey).substring(1)));
         if(!oldAttributeValues.isEmpty())
             confResult.withWarning(ATTRIBUTES_PARAM, "deprecated way of configuring params, refer to docs");
         //TODO DEPRECATED
