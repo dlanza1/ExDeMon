@@ -96,8 +96,20 @@ public final class MetricSchema extends Component {
         Set<String> oldAttributeKeys = attributesProps.keySet().stream()
                                                                .map(key -> key.toString())
                                                                .filter(key -> !key.contains("."))
+                                                               .filter(key -> !key.startsWith("#"))
                                                                .collect(Collectors.toSet());
         oldAttributeKeys.forEach(oldKey -> attributesProps.put(oldKey + ".key", attributesProps.get(oldKey)));
+        if(!oldAttributeKeys.isEmpty())
+            confResult.withWarning(ATTRIBUTES_PARAM, "deprecated way of configuring params, refer to docs");
+        Set<String> oldAttributeValues = attributesProps.keySet().stream()
+                                                               .map(key -> key.toString())
+                                                               .filter(key -> !key.contains("."))
+                                                               .filter(key -> key.startsWith("#"))
+                                                               .map(key -> key.toString().substring(1))
+                                                               .collect(Collectors.toSet());
+        oldAttributeValues.forEach(oldKey -> attributesProps.put(oldKey + ".value", attributesProps.get(oldKey)));
+        if(!oldAttributeValues.isEmpty())
+            confResult.withWarning(ATTRIBUTES_PARAM, "deprecated way of configuring params, refer to docs");
         //TODO DEPRECATED
         Set<String> attributeAliases = attributesProps.keySet().stream()
                                                                .map(key -> key.toString())

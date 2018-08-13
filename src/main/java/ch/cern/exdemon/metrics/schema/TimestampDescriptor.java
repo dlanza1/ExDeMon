@@ -19,7 +19,9 @@ import ch.cern.exdemon.json.JSON;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.utils.DurationAndTruncate;
+import lombok.ToString;
 
+@ToString
 public class TimestampDescriptor {
     
     private static final Pattern INTEGER_NUMBER = Pattern.compile("\\d+");
