@@ -275,7 +275,11 @@ public class HTTPSink implements Serializable{
 	private void send(HttpClient httpClient, JsonPOSTRequest request) throws HttpException, IOException {
         HttpPost postMethod = request.toPostMethod();
         
-        postMethod.setConfig(RequestConfig.custom().setConnectTimeout(timeout_ms).build());
+        postMethod.setConfig(RequestConfig.custom()
+                                                .setConnectTimeout(timeout_ms)
+                                                .setSocketTimeout(timeout_ms)
+                                                .setConnectionRequestTimeout(timeout_ms)
+                                                .build());
         
         if(authCredentials != null)
             postMethod.addHeader(new BasicScheme().authenticate(authCredentials, postMethod, null));
