@@ -91,7 +91,8 @@ public final class MetricSchema extends Component {
         
         attributes = new LinkedList<>();
         Properties attributesProps = properties.getSubset(ATTRIBUTES_PARAM);
-        attributesProps.setProperty("$schema.value", getId());
+        if(!attributesProps.containsKey("$schema") && !attributesProps.containsKey("$schema.value"))
+            attributesProps.setProperty("$schema.value", getId());
         //TODO DEPRECATED
         Set<String> oldAttributeKeys = attributesProps.keySet().stream()
                                                                .map(key -> key.toString())
