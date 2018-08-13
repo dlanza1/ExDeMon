@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -253,6 +254,9 @@ public class HTTPSink implements Serializable{
         if(HTTPSink.httpClient == null)
             HTTPSink.httpClient = HttpClients.custom()
                                              .setRetryHandler(retryHandler)
+                                             .setConnectionTimeToLive(1, TimeUnit.MINUTES)
+                                             .setMaxConnPerRoute(1000)
+                                             .setMaxConnTotal(10000)
                                              .build();
         
 		return HTTPSink.httpClient;
