@@ -3,15 +3,12 @@ package ch.cern.exdemon.http;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.http.HttpException;
@@ -28,15 +25,8 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.spark.streaming.api.java.JavaDStream;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonPrimitive;
-
-import ch.cern.Taggable;
 import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.json.JSON;
-import ch.cern.exdemon.json.JSONParser;
-import ch.cern.exdemon.monitor.trigger.action.Action;
-import ch.cern.exdemon.monitor.trigger.action.Template;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import lombok.ToString;
@@ -70,8 +60,6 @@ public class HTTPSink implements Serializable{
     public static final String AUTH_USERNAME_PARAM = AUTH_PARAM + ".user";
     public static final String AUTH_PASSWORD_PARAM = AUTH_PARAM + ".password";
     private UsernamePasswordCredentials authCredentials;
-    
-	private Map<String, String> propertiesToAdd;
 	
 	private static final String AS_ARRAY_PARAM = "as-array";
     private boolean as_array;
@@ -97,15 +85,6 @@ public class HTTPSink implements Serializable{
             confResult.withError(null, e);
         }
 		
-		try {
-            addAction = properties.getBoolean("add.$action", true);
-        } catch (ConfigurationException e) {
-            confResult.withError(null, e);
-        }
-		
-		propertiesToAdd = properties.getSubset("add").toStringMap();
-		propertiesToAdd.remove("$action");
-		
 		String authenticationType = properties.getProperty(AUTH_TYPE_PARAM, "disabled");
         if(authenticationType.equals("basic-user-password")){
             String username = properties.getProperty(AUTH_USERNAME_PARAM);
@@ -121,116 +100,24 @@ public class HTTPSink implements Serializable{
         return confResult;
 	}
 	
-	public void sink(JavaDStream<?> outputStream) {
-		outputStream = outputStream.repartition(parallelization);
-		
-		JavaDStream<JsonPOSTRequest> requestsStream = outputStream.flatMap(object -> {
-		        try {
-		            return Collections.singleton(toJsonPOSTRequest(object)).iterator();
-		        }catch(Exception e) {
-		            LOG.error("Error when parsing object to request. Object=" + String.valueOf(object), e);
-		            
-		            return Collections.emptyIterator();
-		        }
-		    });
-		
-		requestsStream.foreachRDD(rdd -> rdd.foreachPartitionAsync(requests -> batchAndSend(requests)));
+	public void sink(JavaDStream<JsonPOSTRequest> jsonRequests) {
+	    jsonRequests = jsonRequests.repartition(parallelization);
+	    
+	    jsonRequests.foreachRDD(rdd -> rdd.foreachPartitionAsync(requests -> batchAndSend(requests)));
 	}
-	
-    public void sink(Object object) throws ParseException {
-        JsonPOSTRequest request = toJsonPOSTRequest(object);
-        
-        batchAndSend(Collections.singleton(request).iterator());
-    }
 
-    public JsonPOSTRequest toJsonPOSTRequest(Object object) throws ParseException {
-        String url = this.url;
-        JSON json = null;
-        
-        if(object instanceof Action) {
-            Action action = (Action) object;            
-            url = Template.apply(url, action);
-            json = addAction ? JSONParser.parse(object) : new JSON("{}");
-        }else if(object instanceof String) {
-            json = new JSON((String) object);
-        }else {
-            json = JSONParser.parse(object);
-        }
-        
-        JsonPOSTRequest request = new JsonPOSTRequest(url, json);
-        
-        Map<String, String> tags = new HashMap<>();
-        if(object instanceof Taggable)
-            tags = ((Taggable) object).getTags();
-        
-        for (Map.Entry<String, String> propertyToAdd : propertiesToAdd.entrySet()) {
-            String value = propertyToAdd.getValue();
-            
-            if(value.startsWith("%"))
-                if(tags != null)
-                    value = tags.get(value.substring(1));
-                else
-                    value = null;
-            
-            if(value != null && object instanceof Action)
-                value = Template.apply(value, (Action) object);
-            
-            if(value != null && value.equals("null"))
-                value = null;
-                
-            if(value != null 
-                    && value.startsWith("[")
-                    && value.endsWith("]")) {
-                String arrayContent = value.substring(1, value.length() - 1);
-                String[] arrayContentParts = arrayContent.split("\\+\\+");
-                
-                JsonArray jsonArray = new JsonArray();
-                
-                String[] jsonKeys = request.getJson().getAllKeys();
-                
-                for (String arrayContentPart : arrayContentParts) {
-                    if(arrayContentPart.startsWith("keys:")) {
-                        String keysRegex = arrayContentPart.replace("keys:", "");
-                        
-                        Pattern pattern = Pattern.compile(keysRegex);
-                        
-                        String[] matchingKeys = Arrays.stream(jsonKeys).filter(jsonKey -> pattern.matcher(jsonKey).matches()).toArray(String[]::new);
-                        
-                        for (String matchingKey : matchingKeys)
-                            jsonArray.add(new JsonPrimitive(matchingKey));
-                    }
-                    
-                    if(arrayContentPart.startsWith("attributes:#")) {
-                        String tag = arrayContentPart.replace("attributes:#", "");
-                        
-                        if(tags.containsKey(tag)) {
-                            String[] attributesKeys = tags.get(tag).split("\\s");
-                            
-                            for (String attributeKey : attributesKeys) {
-                                String fullKey = "analyzed_metric.attributes." + attributeKey;
-                                
-                                boolean exist = Arrays.stream(jsonKeys).filter(jsonKey -> jsonKey.equals(fullKey)).count() > 0;
-                                
-                                if(exist)
-                                    jsonArray.add(new JsonPrimitive(fullKey));
-                            }
-                        }
-                    }
-                }
-                
-                request.getJson().getElement().getAsJsonObject().add(propertyToAdd.getKey(), jsonArray);
-            }else{
-                request.addProperty(propertyToAdd.getKey(), value);
-            }
-        }
-        
-        return request;
+	public void sink(JsonPOSTRequest request) throws ParseException {
+        batchAndSend(Collections.singleton(request).iterator());
     }
     
     protected void batchAndSend(Iterator<JsonPOSTRequest> requests) {
         List<JsonPOSTRequest> requestsToSend = new LinkedList<>();
         while (requests.hasNext()) {
-            requestsToSend.add(requests.next());
+            JsonPOSTRequest request = requests.next();
+            
+            request.setUrlIfNull(url);
+            
+            requestsToSend.add(request);
             
             if(requestsToSend.size() >= batch_size) {
                 buildBatchAndSend(requestsToSend);
@@ -310,8 +197,8 @@ public class HTTPSink implements Serializable{
         }
 	}
 
-    private List<JsonPOSTRequest> buildJSONArrays(List<JsonPOSTRequest> elements) {
-	    Map<String, List<JsonPOSTRequest>> groupedByUrl = elements.stream().collect(Collectors.groupingBy(JsonPOSTRequest::getUrl));
+    private List<JsonPOSTRequest> buildJSONArrays(List<JsonPOSTRequest> requests) {
+	    Map<String, List<JsonPOSTRequest>> groupedByUrl = requests.stream().collect(Collectors.groupingBy(JsonPOSTRequest::getUrl));
 	    
 	    return groupedByUrl.entrySet().stream().map(entry -> {
             	        String jsonString = entry.getValue().stream().map(req -> req.getJson().toString()).collect(Collectors.toList()).toString();

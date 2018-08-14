@@ -40,4 +40,11 @@ public class JsonPOSTRequest {
         return httpPost;
     }
 
+    public JsonPOSTRequest setUrlIfNull(String url) {
+        if(url == null)
+            this.url = url;
+        
+        return this;
+    }
+
 }
