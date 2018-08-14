@@ -168,7 +168,17 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
     protected void addOperation(String rootPath, String opString) throws Exception {
     	String id = getId(rootPath);
     	
-    	switch(Op.valueOf(opString.toUpperCase())) {
+    	if(opString == null || opString.isEmpty())
+    	    throw new Exception("Operation must be specified.");
+    	
+    	Op operation = null;
+    	try {
+    	    operation = Op.valueOf(opString.toUpperCase()); 
+    	}catch(IllegalArgumentException e) {
+    	    throw new Exception("Operation \"" + opString + "\" not available.");
+    	}
+    	
+        switch(operation) {
 		case REMOVE:
 			getKeys(rootPath).stream().forEach(key -> storeOperation(new StatusOperation<>(id, key, Op.REMOVE)));
 			setNodeData(rootPath + "status", "RECEIVED".getBytes());
@@ -183,7 +193,7 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
             break;
 		case UPDATE:
 		default:
-			throw new Exception("Operation " + opString + " not available.");
+			throw new Exception("Operation \"" + opString + "\" not available.");
     	}
     }
 
