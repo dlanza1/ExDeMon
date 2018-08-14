@@ -37,7 +37,7 @@ public class CERNAnalysisResultSinkTest {
         Metric metric = new Metric(Instant.now(), 10f, metric_attributes);
         analysis.setAnalyzedMetric(metric);
         Map<String, String> tags = new HashMap<>();
-        tags.put("idb.tags.attributes", "att1 att2 att4");
+        tags.put("influx.tags.attributes", "att1 att2 att4");
         analysis.setTags(tags);
         
         JsonPOSTRequest request = sink.toJsonPOSTRequest(analysis);

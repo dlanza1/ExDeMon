@@ -47,7 +47,7 @@ results.sink.add.<key-n> = <value-n|%analysis-result-tag-key>
 
 Analysis results are converted to JSON (array) and sunk to an HTTP (POST) end point.
 
-Attributes with name starting with $ will be added as tags for InfluxDB. Additionally, attributes that should be also treated as tags can be specified with the monitor or metric tag "idb.tags.attributes":
+Attributes with name starting with $ will be added as tags for InfluxDB. Additionally, attributes that should be also treated as tags can be specified with the monitor or metric tag "influx.tags.attributes":
 
 ```
 # In a metric or monitor

@@ -101,7 +101,7 @@ public class CERNAnalysisResultSink extends AnalysisResultsSink {
                                                     idbTagsJsonArray.add(new JsonPrimitive("idbtags.".concat(att.getKey())));
                                                 });
         
-        String idbTagsAttributesAsString = tags.get("idb.tags.attributes");
+        String idbTagsAttributesAsString = tags.get("influx.tags.attributes");
         String[] idbTagsAttributes = Optional.ofNullable(idbTagsAttributesAsString)
                                                 .map(attKey -> attKey.split("\\s"))
                                                 .orElse(new String[0]);
