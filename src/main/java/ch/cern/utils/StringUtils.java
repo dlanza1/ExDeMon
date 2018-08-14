@@ -61,5 +61,17 @@ public class StringUtils {
         
         return lines.length;
     }
+    
+    public static String headLines(String string, int lines) {
+        int fromIndex = 0;
+        
+        for (int i = 0; i < lines && fromIndex >= 0; i++)
+            fromIndex = string.indexOf("\n", fromIndex + 1);
+        
+        if(fromIndex < 0)
+            fromIndex = string.length();
+        
+        return string.substring(0, fromIndex);
+    }
 
 }

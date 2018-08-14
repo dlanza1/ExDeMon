@@ -102,10 +102,18 @@ public class ComponentsCatalog {
         components.put(Type.METRIC, new ConcurrentHashMap<>());
         components.put(Type.MONITOR, new ConcurrentHashMap<>());
         components.put(Type.ACTUATOR, new ConcurrentHashMap<>());
+        components.put(Type.SILENCE, new ConcurrentHashMap<>());
     }
 
     public static void resetSource() {
         source = null;
+    }
+
+    public static void addToReport(Type componentType, String componentId, String reportName, String content) {
+        if(source == null)
+            return;
+        
+        source.addToReport(componentType, componentId, reportName, content);
     }
 
 }

@@ -13,7 +13,7 @@ components.source.static.<keyn> = <value>
 components.source.<other_confs> = <value>
 ```
 
-Component's properties to be loaded will be filtered by id.filters. All these regexs will build filter for ids with or operator.
+Component's properties to be loaded will be filtered by id.filters. All these regexs will build filter for ids with "or" operator.
 
 If not properties source is configured, the default configuration is:
 
@@ -78,4 +78,14 @@ The format of the text files must be readable by java.util.Properties or a JSON 
 components.source.type = file
 components.source.expire = <period like 1m, 1h> (default: 1m)
 components.source.path = <path_to_configuration_file_or_directory>
+```
+
+It expects the following structure in the file:
+
+```
+# Optional (dynamic, coming from components.source)
+metrics.schema.<id>...
+metrics.define.<id>...
+monitor.<id>...
+actuators.<id>...
 ```

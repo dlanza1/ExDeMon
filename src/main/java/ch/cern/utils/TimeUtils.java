@@ -36,6 +36,8 @@ public class TimeUtils {
             long number = Long.parseLong(number_string);
 
             switch (unit.get()) {
+            case 'w':
+                return Duration.ofDays(number * 7);
             case 'd':
                 return Duration.ofDays(number);
             case 'h':

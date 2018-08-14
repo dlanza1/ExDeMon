@@ -104,4 +104,8 @@ public abstract class ComponentsSource extends Component {
     public void close() {
     }
 
+    public void addToReport(Type componentType, String componentId, String reportName, String content) {
+        LOG.info("Report for " + componentType + " with id=" + componentId + " for report=" + reportName + ": " + content);
+    }
+
 }

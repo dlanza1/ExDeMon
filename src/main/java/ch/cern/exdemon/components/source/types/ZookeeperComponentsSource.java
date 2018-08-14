@@ -1,6 +1,7 @@
 package ch.cern.exdemon.components.source.types;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,6 +26,7 @@ import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.components.source.ComponentsSource;
 import ch.cern.properties.Properties;
+import ch.cern.utils.StringUtils;
 
 @RegisterComponentType("zookeeper")
 public class ZookeeperComponentsSource extends ComponentsSource {
@@ -116,7 +118,7 @@ public class ZookeeperComponentsSource extends ComponentsSource {
             if(client.checkExists().forPath(rootPath) != null)
                 client.delete().deletingChildrenIfNeeded().forPath(rootPath);
         } catch (Exception e) {
-            LOG.error("Error when cleaning compoent from Zookeeper: " + rootPath, e);
+            LOG.error("Error when cleaning component: " + rootPath, e);
         }
     }
     
@@ -268,12 +270,41 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         String prettryJson = componentRegistrationResult.toJsonString();
     
         try {
-            if(client.checkExists().forPath(path) == null)
+            if(client.checkExists().forPath(path) == null) {
                 client.create().forPath(path, prettryJson.getBytes());
-            else
+            }else {
                 client.setData().forPath(path, prettryJson.getBytes());
+            }
         } catch (Exception e) {
             LOG.error("Error when updating configuration result at: " + path, e);
+        }
+    }
+    
+    @Override
+    public void addToReport(Type componentType, String componentId, String reportName, String content) {
+        super.addToReport(componentType, componentId, reportName, content);
+        
+        String path = "/type=" + componentType.toString().toLowerCase() 
+                    + "/id=" + componentId
+                    + "/" + reportName + ".report";
+        
+        content = Instant.now().toString().concat(content);
+        
+        try {
+            if(client.checkExists().forPath(path) == null) {
+                client.create().forPath(path, content.getBytes());
+            }else {
+                byte[] currentContentAsBytes = client.getData().forPath(path);
+                String currentContent = currentContentAsBytes == null ? "" : new String(currentContentAsBytes);
+                
+                content = content.concat("\n").concat(currentContent);
+                
+                content = StringUtils.headLines(content, 50);
+                
+                client.setData().forPath(path, content.getBytes());
+            }
+        } catch (Exception e) {
+            LOG.error("Error when inserting report: " + path, e);
         }
     }
     

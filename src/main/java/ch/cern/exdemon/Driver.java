@@ -37,6 +37,7 @@ import ch.cern.exdemon.monitor.trigger.TriggerStatus;
 import ch.cern.exdemon.monitor.trigger.TriggerStatusKey;
 import ch.cern.exdemon.monitor.trigger.action.Action;
 import ch.cern.exdemon.monitor.trigger.action.actuator.Actuators;
+import ch.cern.exdemon.monitor.trigger.action.silence.Silences;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.SparkConf;
@@ -147,6 +148,8 @@ public final class Driver {
         analysisResultsSink.ifPresent(sink -> sink.sink(results));
 
         JavaDStream<Action> actions = Monitors.applyTriggers(results, componentsSourceProps, monitorsStatusesOperationsOpt);
+        
+        actions = Silences.apply(actions, componentsSourceProps);
 
         Actuators.run(actions, componentsSourceProps);
 

@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 import ch.cern.exdemon.metrics.defined.DefinedMetric;
 import ch.cern.exdemon.metrics.schema.MetricSchema;
 import ch.cern.exdemon.monitor.Monitor;
+import ch.cern.exdemon.monitor.trigger.action.silence.Silence;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
@@ -30,7 +31,8 @@ public abstract class Component implements Serializable {
         ACTUATOR,
         SCHEMA  { String type(){ return MetricSchema.class.getName(); }},
         METRIC  { String type(){ return DefinedMetric.class.getName(); }},
-        MONITOR { String type(){ return Monitor.class.getName(); }};
+        MONITOR { String type(){ return Monitor.class.getName(); }},
+        SILENCE { String type(){ return Silence.class.getName(); }};
         
         String type() { return null; }
     };

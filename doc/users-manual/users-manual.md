@@ -2,17 +2,34 @@
 
 Let's build a basic understanding of how the tool works.
 
-1) Metrics are consumed from different systems by using [metric sources](metric-sources.md). Metric sources produce JSON documents that represent the metrics.
+1) Metrics are consumed from different systems by using [metric sources](metric-sources.md). Metric sources produce JSON documents that represent metrics.
 2) JSON documents are interpreted by [metric schemas](metrics-schema.md). The result are [metrics](metrics.md) that can be used in the application. Each metric source should have associated at least a metric schema. One metric schema can be associated to several sources.
-3) Optionally, new [metrics can be defined](define-metrics.md) based on incoming metrics.
+3) New [metrics can be defined](define-metrics.md) based on incoming metrics.
 4) Metrics coming from schemas or from defined metrics are consumed by [monitors](monitor.md).
 5) Monitors [filter](metrics-filter.md), [analyze](monitor-analysis.md) and [trigger actions](monitor-triggers.md).
 6) Analysis results can be sunk to an external service by using an [analysis results sink](analysis-results-sink.md).
-7) Triggered actions are processed by [actuators](actuators.md).
+7) [Silences](silences.md) may drop actions. Use case: interventions on services.
+8) Triggered actions are processed by [actuators](actuators.md).
 
 An image that describes some of the previous concepts and shows the data flow can be seen here.
   
 ![Data flow](/doc/img/dataflow.png)
+
+### Index
+
+* [Components source](components-source.md)
+* [Metrics source](metric-sources.md)
+* [Metric schemas](metrics-schema.md)
+* [Definition of new metrics](define-metrics.md)
+* [Monitor](monitor.md)
+  * [Filter](metrics-filter.md) 
+  * [Analysis](monitor-analysis.md)
+  * [Triggers](monitor-triggers.md)
+* [Analysis results sink](analysis-results-sink.md)
+* [Silences](silences.md)
+* [Actuators](actuators.md)
+
+* [Statuses management](statuses-management.md)
 
 ## Configuration
 
@@ -48,18 +65,18 @@ metrics.source.<metric-source-id-1>.schema.<configs at Metric schemas> = <values
 metrics.source.<metric-source-id-2>...
 metrics.source.<metric-source-id-n>...
 
-# Optional (dynamic, coming from properties.source)
+# Optional (dynamic, coming from components.source)
 metrics.schema.<schema-id-1>.sources = <source-ids>
 metrics.schema.<schema-id-1>...
 metrics.schema.<schema-id-2>...
 metrics.schema.<schema-id-n>...
 
-# Optional (dynamic, coming from properties.source)
+# Optional (dynamic, coming from components.source)
 metrics.define.<defined-metric-1>...
 metrics.define.<defined-metric-2>...
 metrics.define.<defined-metric-n>...
 
-# Monitors (dynamic, coming from properties.source)
+# Monitors (dynamic, coming from components.source)
 monitor.<monitor-id-1>.<confs>...
 monitor.<monitor-id-2>.<confs>...
 monitor.<monitor-id-n>.<confs>...
@@ -70,21 +87,6 @@ results.sink.<other_confs> = <value>
 actuators.<sink-id>.type = <a_type>
 actuators.<sink-id>.<other_confs> = <value>
 ```
-
-### Index
-
-* [Components source](components-source.md)
-* [Metrics source](metric-sources.md)
-* [Metric schemas](metrics-schema.md)
-* [Definition of new metrics](define-metrics.md)
-* [Monitor](monitor.md)
-  * [Filter](metrics-filter.md) 
-  * [Analysis](monitor-analysis.md)
-  * [Triggers](monitor-triggers.md)
-* [Analysis results sink](analysis-results-sink.md)
-* [Actuators](actuators.md)
-
-* [Statuses management](statuses-management.md)
 
 ### Example of full configuration can be:
 
