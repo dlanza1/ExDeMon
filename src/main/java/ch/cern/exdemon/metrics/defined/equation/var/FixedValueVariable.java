@@ -1,5 +1,6 @@
 package ch.cern.exdemon.metrics.defined.equation.var;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -15,6 +16,11 @@ import lombok.Getter;
 
 public class FixedValueVariable extends Variable {
     
+    /*
+     * By adding a second, FixedValueVariable variables will be taken when merging in case of missing value
+     */
+    private static final Instant DURATION_WHEN_NO_STATUS = Instant.EPOCH.plus(Duration.ofSeconds(1));
+
     @Getter
     private MetricsFilter filter;
     
@@ -56,6 +62,11 @@ public class FixedValueVariable extends Variable {
     @Override
     public boolean test(Metric metric) {
         return filter.test(metric);
+    }
+    
+    @Override
+    protected Instant getLastUpdateMetricTimeWhenNoStatus() {
+        return DURATION_WHEN_NO_STATUS;
     }
     
 }

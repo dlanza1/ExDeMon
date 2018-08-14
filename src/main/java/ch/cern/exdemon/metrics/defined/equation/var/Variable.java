@@ -103,19 +103,28 @@ public abstract class Variable implements ValueComputable, Predicate<Metric> {
     @Override
 	public final Value compute(VariableStatuses stores, Instant time) {
         Variable variableToCompute = resultFromVariables.stream()
-                                                        .filter(var -> getStore(stores, var.name).isPresent())
-                                                        .filter(var -> var.delay.equals(Duration.ZERO) || getStore(stores, var.name).get().getLastUpdateMetricTime().compareTo(time) <= 0)
-                                                        .map(var -> new Pair<String, Instant>(var.name, getStore(stores, var.name).get().getLastUpdateMetricTime()))
+                                                        .filter(var -> var.delay.equals(Duration.ZERO) || getLastUpdateMetricTime(stores, var).compareTo(time) <= 0)
+                                                        .map(var -> new Pair<String, Instant>(var.name, getLastUpdateMetricTime(stores, var)))
                                                         .max((a, b) -> a.second.compareTo(b.second))
                                                         .map(pair -> variables.get(pair.first))
                                                         .orElse(this);
         
-        Optional<VariableStatus> status = getStore(stores, variableToCompute.name);
+        Optional<VariableStatus> status = getStatus(stores, variableToCompute.name);
         
         return variableToCompute.compute(status, time);
 	}
 
-    private Optional<VariableStatus> getStore(VariableStatuses stores, String name) {
+    private Instant getLastUpdateMetricTime(VariableStatuses stores, Variable var) {
+        Optional<VariableStatus> statusOpt = getStatus(stores, var.name);
+
+        return statusOpt.map(s -> s.getLastUpdateMetricTime()).orElse(var.getLastUpdateMetricTimeWhenNoStatus());
+    }
+
+    protected Instant getLastUpdateMetricTimeWhenNoStatus() {
+        return Instant.EPOCH;
+    }
+
+    private Optional<VariableStatus> getStatus(VariableStatuses stores, String name) {
         if(stores == null)
             return Optional.empty();
         

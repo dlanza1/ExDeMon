@@ -35,17 +35,17 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
         }
         DefinedMetric definedMetric = definedMetricOpt.get();
             
-        VariableStatuses store = getStore(status);
+        VariableStatuses varStatuses = getStatus(status);
 
         Optional<Metric> newMetric = Optional.empty();
         try {
-            definedMetric.updateStore(store, metric, id.getMetric_attributes().keySet());
+            definedMetric.updateStore(varStatuses, metric, id.getMetric_attributes().keySet());
             
-            newMetric = definedMetric.generateByUpdate(store, metric, id.getMetric_attributes());
+            newMetric = definedMetric.generateByUpdate(varStatuses, metric, id.getMetric_attributes());
         }catch(Exception e) {
             LOG.error("ID:" + id
                     + " Metric: " + metric
-                    + " VariableStatuses: " + store
+                    + " VariableStatuses: " + varStatuses
                     + " Message:" + e.getMessage(), e);
             
             newMetric = Optional.of(new Metric(
@@ -54,7 +54,7 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
                                             id.getMetric_attributes()));   
         }
         
-        status.update(store);
+        status.update(varStatuses);
         
         return newMetric;
     }
@@ -65,7 +65,7 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
         return ComponentsCatalog.get(Type.METRIC, id);
     }
 
-    private VariableStatuses getStore(State<VariableStatuses> status) {
+    private VariableStatuses getStatus(State<VariableStatuses> status) {
 		return status.exists() ? status.get() : new VariableStatuses();
 	}
 
