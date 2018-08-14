@@ -41,7 +41,7 @@ public class JsonPOSTRequest {
     }
 
     public JsonPOSTRequest setUrlIfNull(String url) {
-        if(url == null)
+        if(this.url == null)
             this.url = url;
         
         return this;
