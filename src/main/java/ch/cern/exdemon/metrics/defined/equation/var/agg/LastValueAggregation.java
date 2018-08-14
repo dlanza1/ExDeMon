@@ -6,6 +6,9 @@ import java.util.stream.Collectors;
 
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.metrics.DatedValue;
+import ch.cern.exdemon.metrics.Metric;
+import ch.cern.exdemon.metrics.ValueHistory;
+import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.value.ExceptionValue;
 import ch.cern.exdemon.metrics.value.Value;
 
@@ -47,6 +50,12 @@ public class LastValueAggregation extends Aggregation {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Class not found");
         }
+    }
+    
+    @Override
+    public void postUpdateStatus(ValueVariable metricVariable, ValueHistory history, Metric metric) {
+        history.reset();
+        history.add(metric.getTimestamp(), metric.getValue(), metric);
     }
 
 }
