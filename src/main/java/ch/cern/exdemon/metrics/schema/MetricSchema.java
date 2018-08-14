@@ -79,7 +79,7 @@ public final class MetricSchema extends Component {
         Set<String> valueIDs = valuesProps.getIDs();
         for (String valueId : valueIDs) {
             ValueDescriptor descriptor = new ValueDescriptor(valueId);
-            confResult.merge(VALUES_PARAM + valueId, descriptor.config(valuesProps.getSubset(valueId)));
+            confResult.merge(VALUES_PARAM + "." + valueId, descriptor.config(valuesProps.getSubset(valueId)));
             
             values.add(descriptor);
         }
