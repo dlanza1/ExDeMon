@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 public class AnomaliesResults implements Serializable{
 	
+	private static final long serialVersionUID = 2504261847208235950L;
 	private double score;
 	private double errThreshold;
 	private double warnThreshold;

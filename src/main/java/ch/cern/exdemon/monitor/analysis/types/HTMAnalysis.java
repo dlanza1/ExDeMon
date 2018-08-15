@@ -10,12 +10,9 @@ import static org.numenta.nupic.algorithms.Anomaly.VALUE_NONE;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,11 +31,14 @@ import org.numenta.nupic.network.ManualInput;
 import org.numenta.nupic.network.Network;
 import org.numenta.nupic.network.Persistence;
 import org.numenta.nupic.network.PersistenceAPI;
+import org.numenta.nupic.serialize.HTMObjectInput;
+import org.numenta.nupic.serialize.HTMObjectOutput;
+import org.numenta.nupic.serialize.SerialConfig;
+import org.numenta.nupic.serialize.SerializerCore;
+import org.numenta.nupic.model.Persistable;
 import org.numenta.nupic.util.NamedTuple;
 import org.nustaq.serialization.FSTConfiguration;
 
-import com.esotericsoftware.minlog.Log;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -51,6 +51,7 @@ import ch.cern.exdemon.monitor.analysis.NumericAnalysis;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult.Status;
 import ch.cern.exdemon.monitor.analysis.types.htm.AnomaliesResults;
+import ch.cern.exdemon.monitor.analysis.types.htm.AnomalyLikelihoodFunc;
 import ch.cern.exdemon.monitor.analysis.types.htm.HTMParameters;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -135,6 +136,7 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 		if(store != null && (store instanceof Status_)) {
 			Status_ status_ = ((Status_) store);
 			network = status_.network;
+			network.restart();
 		}
 		
 		if(network == null)
@@ -184,9 +186,9 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 
 	private Network buildNetwork(){
     	
-		AnomalyLikelihood anomalyLikelihood = initAnomalyLikelihood(HTMParameters.getAnomalyLikelihoodParams()); 
-    	Func1<ManualInput, ManualInput> AnomalyLikelihood = this.anomalyLikelihood(anomalyLikelihood);
-    	
+//		AnomalyLikelihood anomalyLikelihood = initAnomalyLikelihood(HTMParameters.getAnomalyLikelihoodParams()); 
+//    	Func1<ManualInput, ManualInput> AnomalyLikelihood = this.anomalyLikelihood(anomalyLikelihood);
+		AnomalyLikelihoodFunc anomalyLikelihood = new AnomalyLikelihoodFunc(errorThreshold, warningThreshold);
     	
     	Network network = Network.create("Demo", this.networkParams.getParameters())    
     	    .add(Network.createRegion("Region 1")                       
@@ -194,27 +196,27 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
     	    		.add(new TemporalMemory())                
     	    		.add(new SpatialPooler())
     	    		.add(Anomaly.create())
-    	    		.add(AnomalyLikelihood)));
+    	    		.add(anomalyLikelihood)));
     	
     	return network;
 	}
 	
-	@SuppressWarnings("unchecked")
-	private Func1<ManualInput, ManualInput> anomalyLikelihood(AnomalyLikelihood anomalyLikelihood){
-		return (Func1<ManualInput, ManualInput> & Serializable) I -> { 
-    		double anomalyScore = I.getAnomalyScore();
-    		Map<String, NamedTuple> inputs = I.getClassifierInput();
-    		
-            double inputValue = (double) inputs.get("value").get("inputValue");
-            DateTime timestamp = (DateTime) inputs.get("timestamp").get("inputValue");
-            double al = anomalyLikelihood.anomalyProbability(inputValue, anomalyScore, timestamp);
-            
-            AnomaliesResults results = new AnomaliesResults(al, errorThreshold, warningThreshold);
-            return I.customObject(results);
-        };
-	}
+//	@SuppressWarnings("unchecked")
+//	private Func1<ManualInput, ManualInput> anomalyLikelihood(AnomalyLikelihood anomalyLikelihood){
+//		return (Func1<ManualInput, ManualInput> & Persistable) I -> { 
+//    		double anomalyScore = I.getAnomalyScore();
+//    		Map<String, NamedTuple> inputs = I.getClassifierInput();
+//    		
+//            double inputValue = (double) inputs.get("value").get("inputValue");
+//            DateTime timestamp = (DateTime) inputs.get("timestamp").get("inputValue");
+//            double al = anomalyLikelihood.anomalyProbability(inputValue, anomalyScore, timestamp);
+//            
+//            AnomaliesResults results = new AnomaliesResults(al, errorThreshold, warningThreshold);
+//            return I.customObject(results);
+//        };
+//	}
 	
-	private AnomalyLikelihood initAnomalyLikelihood(Map<String, Object> anomalyParams) {
+	/*private AnomalyLikelihood initAnomalyLikelihood(Map<String, Object> anomalyParams) {
 		
 		boolean useMovingAvg = (boolean)anomalyParams.getOrDefault(KEY_USE_MOVING_AVG, false);
         int windowSize = (int)anomalyParams.getOrDefault(KEY_WINDOW_SIZE, -1);
@@ -228,7 +230,7 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
         int estimationSamples = (int)anomalyParams.getOrDefault(KEY_ESTIMATION_SAMPLES, VALUE_NONE);
         
 		return new AnomalyLikelihood(useMovingAvg, windowSize, isWeighted, claLearningPeriod, estimationSamples);
-	}
+	}*/
 	
     @ToString
     @ClassNameAlias("anomaly-likelihood")
@@ -239,77 +241,75 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
     
 	public static class JsonAdapter implements JsonSerializer<Network>, JsonDeserializer<Network> {
 		
-		//private PersistenceAPI persistance;
-		private transient FSTConfiguration fastSerialConfig = FSTConfiguration.createDefaultConfiguration();
+		private PersistenceAPI persistance;
+//		private byte[] bytesOriginal;
+		//private transient FSTConfiguration fastSerialConfig = FSTConfiguration.createDefaultConfiguration();
+		private final SerializerCore serializer = new SerializerCore(SerialConfig.DEFAULT_REGISTERED_TYPES);
 
 		@Override
 		public JsonElement serialize(Network status, java.lang.reflect.Type type, JsonSerializationContext context) {
-			long serializeStartTime = System.currentTimeMillis();
+	
+			//status.preSerialize();
+			//byte[] bytes = fastSerialConfig.asByteArray(status);
+			if(persistance == null)
+				persistance = Persistence.get();
 			
-			long startTime = System.currentTimeMillis();
-			//if(persistance == null)
-			//	persistance = Persistence.get();
-			long stopTime = System.currentTimeMillis();
-			long elapsedTime = stopTime - startTime;
-			System.out.println("SERIALIZE persistance get: "+elapsedTime);
-			
-			startTime = System.currentTimeMillis();
-			status.preSerialize();
-			//byte[] bytes = persistance.storeAndGet(status);
-			byte[] bytes = fastSerialConfig.asByteArray(status);
-			System.out.println();
-			stopTime = System.currentTimeMillis();
-			elapsedTime = stopTime - startTime;
-			System.out.println("SERIALIZE storeAndGet: "+elapsedTime);
-			
-			/*startTime = System.currentTimeMillis();
-			JsonArray jsonBytes = new JsonArray();
-			for (byte byte_ : jsonString.getBytes()) {
-				jsonBytes.add(new JsonPrimitive(byte_));
+			ByteArrayOutputStream stream = new ByteArrayOutputStream(4096);
+//			if(Arrays.equals(bytesOriginal, bytes))
+//			System.out.println("Equals");
+                // write the object using the HTM serializer
+            HTMObjectOutput writer = serializer.getObjectOutput(stream);
+            try {
+				writer.writeObject(status, status.getClass());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			stopTime = System.currentTimeMillis();
-			elapsedTime = stopTime - startTime;
-			System.out.println("SERIALIZE json array building: "+elapsedTime);*/
-			
-			long serializeStopTime = System.currentTimeMillis();
-			long serializeElapsedTime = serializeStopTime - serializeStartTime;
-			System.out.println("SERIALIZE: "+serializeElapsedTime);
-			
+            
+            try {
+				writer.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+            
+			byte[] bytes = stream.toByteArray();
 			return new JsonPrimitive(Base64.encodeBase64String(bytes));
 		}
 		
 		@Override
 		public Network deserialize(JsonElement element, java.lang.reflect.Type type, JsonDeserializationContext context)
 				throws JsonParseException {
-			long deserializeStartTime = System.currentTimeMillis();
+
 			if(!element.isJsonPrimitive())
 				throw new JsonParseException("Expected JsonPrimitive");
-			
-			/*long startTime = System.currentTimeMillis();
-			JsonArray jsonArray = element.getAsJsonArray();
-			byte[] bytes = new byte[jsonArray.size()];
-			int i = 0;
-			for(JsonElement el: jsonArray){
-				bytes[i] = el.getAsByte();
-				i++;
-			}
-			long stopTime = System.currentTimeMillis();
-			long elapsedTime = stopTime - startTime;
-			System.out.println("DESERIALIZE byte array building: "+elapsedTime);*/
+
 			byte[] bytes = Base64.decodeBase64(element.getAsString());
+//			if(Arrays.equals(bytesOriginal, bytes))
+//				System.out.println("Equals");
 			
-			long startTime = System.currentTimeMillis();
-			//Network net = persistance.read(bytes);
-			Network status = (Network) fastSerialConfig.asObject(bytes);
-			status = status.postDeSerialize();
-			long stopTime = System.currentTimeMillis();
-			long elapsedTime = stopTime - startTime;
-			System.out.println("DESERIALIZE persitance load: "+elapsedTime);
+			//Network status = (Network) fastSerialConfig.asObject(bytes);
+//			Network status = persistance.read(bytes);
 			
-			long deserializeStopTime = System.currentTimeMillis();
-			long deserializeElapsedTime = deserializeStopTime - deserializeStartTime;
-			System.out.println("DESERIALIZE: "+deserializeElapsedTime);
-			return status;
+			//status.postDeSerialize();
+			
+			ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+            HTMObjectInput reader = null;
+			try {
+				reader = serializer.getObjectInput(stream);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			try {
+				return (Network) reader.readObject(Network.class);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return null;
 		}
 
 	}
