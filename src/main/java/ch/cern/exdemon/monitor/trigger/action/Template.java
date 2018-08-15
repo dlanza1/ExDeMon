@@ -117,9 +117,9 @@ public class Template {
             for (int j = 1; j <= tagsMatcher.groupCount(); j++) {
                 String key = tagsMatcher.group(j);
                 
-                String value = Matcher.quoteReplacement(apply(tags.get(key), action));
+                String value = apply(tags.get(key), action);
                 
-                text = text.replaceAll("\\<tags:"+key+"\\>", String.valueOf(value));
+                text = text.replaceAll("\\<tags:"+key+"\\>", Matcher.quoteReplacement(String.valueOf(value)));
                 
                 j++;
             }
