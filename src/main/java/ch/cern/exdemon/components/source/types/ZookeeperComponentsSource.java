@@ -236,7 +236,6 @@ public class ZookeeperComponentsSource extends ComponentsSource {
                     applyEvent(sem, event);
                 }catch(Exception e) {
                     LOG.error("Error when applying tree event", e);
-                    close();
                 }
             }
         };
