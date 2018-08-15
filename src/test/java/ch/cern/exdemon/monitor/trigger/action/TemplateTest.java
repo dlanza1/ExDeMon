@@ -74,11 +74,11 @@ public class TemplateTest {
         
         assertEquals("Some text: "
         				+ "1970-01-01 01:00:00:A1(=11), A2(=12):value=\"v1\":"
-        				+ "\n\ta1 = 11"
-        				+ "\n\ta2 = 12"
+        				+ "\na1 = 11"
+        				+ "\na2 = 12"
         				+ "\n 1970-01-01 01:00:00:A1(=21), A2(=22):value=\"v2\":"
-        				+ "\n\ta1 = 21"
-                        + "\n\ta2 = 22"
+        				+ "\na1 = 21"
+                        + "\na2 = 22"
         				+ "\nOther text.", 
         		Template.apply("Some text:<agg_metrics> <datetime>:A1(=<attribute_value:a1>), A2(=<attribute_value:a2>):value=<value>:<attributes:a.+>\n</agg_metrics>Other text.", action));
     }

@@ -41,7 +41,7 @@ public class Template {
         //TODO DEPRECATED
         String metric_attributes = "";
         for(Map.Entry<String, String> att: attributes.entrySet())
-            metric_attributes += "\n\t" + att.getKey() + " = " + att.getValue();
+            metric_attributes += "\n" + att.getKey() + " = " + att.getValue();
         if(attributes.size() != 0) {
             text = text.replaceAll("\\<metric_attributes\\>", metric_attributes);
         }else {
@@ -89,7 +89,7 @@ public class Template {
                     StringBuilder sb = new StringBuilder();
                     
                     for(Map.Entry<String, String> att: matchingAttributes)
-                        sb.append("\n\t" + att.getKey() + " = " + att.getValue());
+                        sb.append("\n" + att.getKey() + " = " + att.getValue());
                     
                     text = text.replaceAll("\\<attributes:"+quotedKetPattern+"\\>", Matcher.quoteReplacement(sb.toString()));
                 }else {
@@ -106,7 +106,7 @@ public class Template {
          
         String tags_attributes = "";
         for(Map.Entry<String, String> tag: tags.entrySet())
-            tags_attributes += "\n\t" + tag.getKey() + " = " + tag.getValue();
+            tags_attributes += "\n" + tag.getKey() + " = " + tag.getValue();
         if(tags.size() != 0)
             text = text.replaceAll("\\<tags\\>", tags_attributes);
         else
@@ -225,7 +225,7 @@ public class Template {
                             StringBuilder sb = new StringBuilder();
                             
                             for(Map.Entry<String, String> att: matchingAttributes)
-                                sb.append("\n\t" + att.getKey() + " = " + att.getValue());
+                                sb.append("\n" + att.getKey() + " = " + att.getValue());
                             
                             metricText = metricText.replaceAll("\\<attributes:"+quotedKetPattern+"\\>", Matcher.quoteReplacement(sb.toString()));
                         }else {

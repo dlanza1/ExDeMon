@@ -69,13 +69,13 @@ public class ActuatorTest {
 
         assertEquals("M_ID "
                 + "T_ID " 
-                + "\n\ta = a1" 
-                + "\n\tb = b2 "
+                + "\na = a1" 
+                + "\nb = b2 "
                 + "a1 "
                 + "2007-12-03 11:15:30 "
                 + "reason_action " 
-                + "\n\ta = a_tag" 
-                + "\n\tb = b_tag "
+                + "\na = a_tag" 
+                + "\nb = b_tag "
                 + "b_tag", result);
     }
 

@@ -79,16 +79,19 @@ public class EmailActuator extends Actuator {
         }
         for(String email_to: Template.apply(toProp, action).split(","))
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(email_to.trim()));
-        
-        if(subjectProp != null)
+
+        if(subjectProp != null && !subjectProp.equals("null"))
             message.setSubject(Template.apply(subjectProp, action));
         else
             message.setSubject(Template.apply("ExDeMon: action from monitor <moniotr_id> (<trigger_id>)", action));
         
         textProp = Template.apply(textProp, action);
-        if(!textProp.equals("null"))
-            message.setText(textProp);
-        else {
+        
+        if(!textProp.equals("null")) {
+            textProp = toHtml(textProp);
+        
+            message.setContent(textProp, "text/html; charset=utf-8");
+        }else {
             String textTemplate = "Monitor ID: <monitor_id>";
             textTemplate += "\n\nTrigger ID: <trigger_id>";
             textTemplate += "\n\nMetric attributes: <metric_attributes>";
@@ -96,10 +99,14 @@ public class EmailActuator extends Actuator {
             textTemplate += "\n\nReason: <reason>";
             textTemplate += "\n\nTags: <tags>";
             
-            message.setText(Template.apply(textTemplate, action));
+            message.setContent(toHtml(Template.apply(textTemplate, action)), "text/html; charset=utf-8");
         }
         
         return message;  
+    }
+
+    private String toHtml(String text) {
+        return text.replace("\n", "<br />");
     }
 
     public void setSession() {

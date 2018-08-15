@@ -28,7 +28,7 @@ public class EmailActuatorTest {
         Properties properties = new Properties();
         properties.setProperty("session.mail.smtp.host", "mmm.cern.ch");
         properties.setProperty("session.mail.smtp.auth", "true");
-        properties.setProperty("username", "exdemon.m@cern.ch");
+        properties.setProperty("username", "exdemon.notifications@cern.ch");
         properties.setProperty("password", "");
         sink.config(properties);
         sink.setSession();
@@ -47,7 +47,7 @@ public class EmailActuatorTest {
         metric_attributes.put("b", "2");
         action.setMetric_attributes(metric_attributes);
         
-//        sink.run(action);
+        sink.run(action);
     }
     
     @Test
@@ -78,21 +78,21 @@ public class EmailActuatorTest {
         
         MimeMessage message = sink.toMimeMessage(action);
 
-        assertEquals("Monitor ID: MONITOR_ID\n" + 
-                        "\n" + 
-                        "Trigger ID: TRIGGER_ID\n" + 
-                        "\n" + 
-                        "Metric attributes: \n" + 
-                        "\ta = 1\n" + 
-                        "\tb = 2\n" + 
-                        "\n" + 
-                        "At: " + Template.dateFormatter.format(action.getCreation_timestamp()) + "\n" + 
-                        "\n" + 
-                        "Reason: In ERROR for 3 hours\n" + 
-                        "\n" + 
-                        "Tags: \n" + 
-                        "\temail.to = daniel.lanza@cern.ch\n" + 
-                        "\tcluster = cluster1", 
+        assertEquals("Monitor ID: MONITOR_ID<br />" + 
+                        "<br />" + 
+                        "Trigger ID: TRIGGER_ID<br />" + 
+                        "<br />" + 
+                        "Metric attributes: <br />" + 
+                        "a = 1<br />" + 
+                        "b = 2<br />" + 
+                        "<br />" + 
+                        "At: " + Template.dateFormatter.format(action.getCreation_timestamp()) + "<br />" + 
+                        "<br />" + 
+                        "Reason: In ERROR for 3 hours<br />" + 
+                        "<br />" + 
+                        "Tags: <br />" + 
+                        "email.to = daniel.lanza@cern.ch<br />" + 
+                        "cluster = cluster1", 
                         message.getContent());
     }
 
