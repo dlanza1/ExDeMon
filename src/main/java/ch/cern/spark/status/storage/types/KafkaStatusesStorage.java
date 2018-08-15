@@ -3,6 +3,7 @@ package ch.cern.spark.status.storage.types;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -239,11 +240,11 @@ public class KafkaStatusesStorage extends StatusesStorage {
     }
 
     private JavaRDD<Tuple2<StatusKey, StatusValue>> parseRecords(JavaRDD<Tuple2<ByteArray, ByteArray>> latestRecords) {
-		return latestRecords.map(binaryRecord -> { 
+		return latestRecords.flatMap(binaryRecord -> { 
 		                                            try {
-		                                                return new Tuple2<>(
-		                                                    serializer.toKey(binaryRecord._1.get()),
-		                                                    serializer.toValue(binaryRecord._2.get()));
+		                                                return Collections.singleton(new Tuple2<>(
+                		                                                    serializer.toKey(binaryRecord._1.get()),
+                		                                                    serializer.toValue(binaryRecord._2.get()))).iterator();
 		                                            }catch(Exception e) {
 		                                                LOG.error("Serialization error with key=" + 
 		                                                                    new String(binaryRecord._1.get()) +
@@ -253,7 +254,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
 		                                                if(!ignoreExceptionsDuringSerialization)
 		                                                    throw e;
 		                                                
-		                                                return null;
+		                                                return Collections.<Tuple2<StatusKey, StatusValue>>emptyList().iterator();
 		                                            }
 		                                         });
 	}
