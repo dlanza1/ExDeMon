@@ -9,11 +9,11 @@ import java.util.Map;
 
 import org.numenta.nupic.Parameters;
 import org.numenta.nupic.Parameters.KEY;
-import org.numenta.nupic.algorithms.Classifier;
-import org.numenta.nupic.algorithms.SDRClassifier;
+import org.numenta.nupic.model.Persistable;
 import org.numenta.nupic.util.Tuple;
 
-public class HTMParameters implements Serializable{
+public class HTMParameters implements Persistable{
+	private static final long serialVersionUID = 4118240112485895557L;
 	private Parameters p;
 	
 	public void setModelParameters(float minValue, float maxValue, boolean timeOfDay, 
@@ -99,8 +99,8 @@ public class HTMParameters implements Serializable{
     
     public static Map<String, Object> getAnomalyLikelihoodParams(){
 	    Map<String, Object> p = new HashMap<>();
-	    p.put(KEY_LEARNING_PERIOD, 300);
-	    p.put(KEY_ESTIMATION_SAMPLES, 300);
+	    p.put(KEY_LEARNING_PERIOD, 100);
+	    p.put(KEY_ESTIMATION_SAMPLES, 100);
 	    return p;
     }
 }

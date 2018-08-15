@@ -12,7 +12,6 @@ public class ResultsToFileWriter {
 	PrintWriter writer;
 	
 	public ResultsToFileWriter(String filename) {
-		//this.filename = filename;
 		try {
 			this.writer = new PrintWriter(filename);
 		} catch (FileNotFoundException e) {
@@ -23,12 +22,13 @@ public class ResultsToFileWriter {
 	
 	public void write(AnalysisResult results) {
 		StringBuilder s = new StringBuilder();
-		s.append(results.getTimestamp()).append(",")
+		s.append(results.getAnalysis_timestamp()).append(",")
 			.append(results.getAnalysisParams().get("anomaly.likelihood")).append(",")
 			.append(results.getAnalysisParams().get("anomaly.score")).append(",")
 			.append(results.getStatus() == AnalysisResult.Status.WARNING ? 1 : 0).append(",")
 			.append(results.getStatus() == AnalysisResult.Status.ERROR ? 1 : 0);
 		writer.println(s.toString());
+		writer.flush();
 	}
 	
 	public void writeHeader() {

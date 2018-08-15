@@ -29,6 +29,7 @@ public class MetricsFromFileReader implements Iterator<Metric> {
 		this.splittingString = splittingString;
 		this.timeformat = timeformat;
 		
+		
 		try {
 			fr = new FileReader(filename);
 			br = new BufferedReader(fr);
@@ -42,13 +43,6 @@ public class MetricsFromFileReader implements Iterator<Metric> {
 			
 		} catch (FileNotFoundException e) {
 			Log.error("Can't read the file: "+filename);
-			try {
-				fr.close();
-				br.close();
-			} catch (IOException e1) {
-				Log.error("Can't close the file: "+filename);
-				e1.printStackTrace();
-			}
 			e.printStackTrace();
 		} catch (IOException e) {
 			Log.error("Can't read line");
