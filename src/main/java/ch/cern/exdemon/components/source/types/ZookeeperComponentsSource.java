@@ -273,7 +273,12 @@ public class ZookeeperComponentsSource extends ComponentsSource {
     
         try {
             if(client.checkExists().forPath(path) == null) {
-                client.create().forPath(path, prettryJson.getBytes());
+                //Might creared by another worker during this time, so if it fails, data is set
+                try {
+                    client.create().forPath(path, prettryJson.getBytes());
+                }catch(Exception e) {
+                    client.setData().forPath(path, prettryJson.getBytes());
+                }
             }else {
                 client.setData().forPath(path, prettryJson.getBytes());
             }
