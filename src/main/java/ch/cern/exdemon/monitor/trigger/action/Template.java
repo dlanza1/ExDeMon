@@ -29,9 +29,9 @@ public class Template {
         
         String text = template;
         
-        text = text.replaceAll("<monitor_id>", String.valueOf(action.getMonitor_id()));
+        text = text.replaceAll("\\<monitor_id\\>", String.valueOf(action.getMonitor_id()));
         
-        text = text.replaceAll("<trigger_id>", String.valueOf(action.getTrigger_id()));
+        text = text.replaceAll("\\<trigger_id\\>", String.valueOf(action.getTrigger_id()));
         
         AnalysisResult triggeringResult = action.getTriggeringResult();
         text = aggregatedMetrics(text, triggeringResult);
@@ -43,9 +43,9 @@ public class Template {
         for(Map.Entry<String, String> att: attributes.entrySet())
             metric_attributes += "\n\t" + att.getKey() + " = " + att.getValue();
         if(attributes.size() != 0) {
-            text = text.replaceAll("<metric_attributes>", metric_attributes);
+            text = text.replaceAll("\\<metric_attributes\\>", metric_attributes);
         }else {
-            text = text.replaceAll("<metric_attributes>", "(no attributes)");
+            text = text.replaceAll("\\<metric_attributes\\>", "(no attributes)");
         }
         Matcher mattMatcher = Pattern.compile("\\<metric_attributes:([^>]+)\\>").matcher(text);        
         while (mattMatcher.find()) {
@@ -54,7 +54,7 @@ public class Template {
                 
                 String value = attributes.get(key);
                 
-                text = text.replaceAll("<metric_attributes:"+key+">", String.valueOf(value));
+                text = text.replaceAll("\\<metric_attributes:"+key+"\\>", String.valueOf(value));
                 
                 j++;
             }
@@ -68,7 +68,7 @@ public class Template {
                 
                 String value = attributes.get(key);
                 
-                text = text.replaceAll("<attribute_value:"+key+">", String.valueOf(value));
+                text = text.replaceAll("\\<attribute_value:"+key+"\\>", String.valueOf(value));
                 
                 j++;
             }
@@ -91,16 +91,16 @@ public class Template {
                     for(Map.Entry<String, String> att: matchingAttributes)
                         sb.append("\n\t" + att.getKey() + " = " + att.getValue());
                     
-                    text = text.replaceAll("<attributes:"+quotedKetPattern+">", sb.toString());
+                    text = text.replaceAll("\\<attributes:"+quotedKetPattern+"\\>", sb.toString());
                 }else {
-                    text = text.replaceAll("<attributes:"+quotedKetPattern+">", "");
+                    text = text.replaceAll("\\<attributes:"+quotedKetPattern+"\\>", "");
                 }
                 
                 j++;
             }
         }
         
-        text = text.replaceAll("<reason>", String.valueOf(action.getReason()));
+        text = text.replaceAll("\\<reason\\>", String.valueOf(action.getReason()));
         
         Map<String, String> tags = action.getTags() != null ? action.getTags() : new HashMap<>();
          
@@ -108,9 +108,9 @@ public class Template {
         for(Map.Entry<String, String> tag: tags.entrySet())
             tags_attributes += "\n\t" + tag.getKey() + " = " + tag.getValue();
         if(tags.size() != 0)
-            text = text.replaceAll("<tags>", tags_attributes);
+            text = text.replaceAll("\\<tags\\>", tags_attributes);
         else
-            text = text.replaceAll("<tags>", "(empty)");
+            text = text.replaceAll("\\<tags\\>", "(empty)");
         
         Matcher tagsMatcher = Pattern.compile("\\<tags:([^>]+)\\>").matcher(text);        
         while (tagsMatcher.find()) {
@@ -119,15 +119,15 @@ public class Template {
                 
                 String value = apply(tags.get(key), action);
                 
-                text = text.replaceAll("<tags:"+key+">", String.valueOf(value));
+                text = text.replaceAll("\\<tags:"+key+"\\>", String.valueOf(value));
                 
                 j++;
             }
         }
         
-        text = text.replaceAll("<triggering_value>", String.valueOf(triggeringResult.getAnalyzed_metric().getValue()));
+        text = text.replaceAll("\\<triggering_value\\>", String.valueOf(triggeringResult.getAnalyzed_metric().getValue()));
         
-        text = text.replaceAll("<analysis_status>", String.valueOf(triggeringResult.getStatus().toString().toLowerCase()));
+        text = text.replaceAll("\\<analysis_status\\>", String.valueOf(triggeringResult.getStatus().toString().toLowerCase()));
         
         Map<String, Object> analysisParams = triggeringResult.getAnalysisParams();
         Matcher analysisParamMatcher = Pattern.compile("\\<analysis_param:([^>]+)\\>").matcher(text);        
@@ -137,13 +137,13 @@ public class Template {
                 
                 String value = String.valueOf(analysisParams.get(key));
                 
-                text = text.replaceAll("<analysis_param:"+key+">", value);
+                text = text.replaceAll("\\<analysis_param:"+key+"\\>", value);
                 
                 j++;
             }
         }
         
-        text = text.replaceAll("<datetime>", dateFormatter.format(action.getCreation_timestamp()));
+        text = text.replaceAll("\\<datetime\\>", dateFormatter.format(action.getCreation_timestamp()));
         Matcher datetimeMatcher = Pattern.compile("\\<datetime:([^>]+)\\>").matcher(text);        
         while (datetimeMatcher.find()) {
             String paramsAsString = datetimeMatcher.group(1);
@@ -170,7 +170,7 @@ public class Template {
             else
                 value = String.valueOf(time);
             
-            text = text.replaceAll("<datetime:"+Pattern.quote(paramsAsString)+">", String.valueOf(value));
+            text = text.replaceAll("\\<datetime:"+Pattern.quote(paramsAsString)+"\\>", String.valueOf(value));
         }
         
         return text;
@@ -203,7 +203,7 @@ public class Template {
                         
                         String value = String.valueOf(metric.getAttributes().get(key));
                         
-                        metricText = metricText.replaceAll("<attribute_value:"+key+">", value);
+                        metricText = metricText.replaceAll("\\<attribute_value:"+key+"\\>", value);
                         
                         j++;
                     }
@@ -227,17 +227,17 @@ public class Template {
                             for(Map.Entry<String, String> att: matchingAttributes)
                                 sb.append("\n\t" + att.getKey() + " = " + att.getValue());
                             
-                            metricText = metricText.replaceAll("<attributes:"+quotedKetPattern+">", sb.toString());
+                            metricText = metricText.replaceAll("\\<attributes:"+quotedKetPattern+"\\>", sb.toString());
                         }else {
-                            metricText = metricText.replaceAll("<attributes:"+quotedKetPattern+">", "");
+                            metricText = metricText.replaceAll("\\<attributes:"+quotedKetPattern+"\\>", "");
                         }
                         
                         j++;
                     }
                 }
         		
-        		metricText = metricText.replaceAll("<datetime>", dateFormatter.format(metric.getTimestamp()));
-        		metricText = metricText.replaceAll("<value>", String.valueOf(metric.getValue()));
+        		metricText = metricText.replaceAll("\\<datetime\\>", dateFormatter.format(metric.getTimestamp()));
+        		metricText = metricText.replaceAll("\\<value\\>", String.valueOf(metric.getValue()));
         		
         		metricsText += metricText;
 			}
