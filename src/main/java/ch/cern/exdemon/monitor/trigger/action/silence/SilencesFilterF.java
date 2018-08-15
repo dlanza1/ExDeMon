@@ -36,15 +36,15 @@ public class SilencesFilterF implements Function<Action, Boolean> {
     }
 
     private boolean shouldSilentAndReport(Action action, Silence silence) {
-        boolean shouldSilence = silence.filter(action);
+        boolean actionAllowed = silence.filter(action);
         
-        if(shouldSilence)
+        if(!actionAllowed)
             ComponentsCatalog.addToReport(Type.SILENCE, 
                                  silence.getId(),
                                  "silenced",
                                  JSONParser.parse(action).toString());
         
-        return shouldSilence;
+        return actionAllowed;
     }
 
 }
