@@ -1,7 +1,6 @@
 package ch.cern.exdemon.components.source.types;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -294,8 +293,6 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         String path = "/type=" + componentType.toString().toLowerCase() 
                     + "/id=" + componentId
                     + "/" + reportName + ".report";
-        
-        content = Instant.now().toString().concat(content);
         
         try {
             if(client.checkExists().forPath(path) == null) {
