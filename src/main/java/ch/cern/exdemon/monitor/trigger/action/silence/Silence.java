@@ -16,7 +16,9 @@ import ch.cern.exdemon.monitor.trigger.action.Action;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.utils.TimeUtils;
+import lombok.ToString;
 
+@ToString
 @ComponentType(Type.SILENCE)
 public class Silence extends Component {
 
