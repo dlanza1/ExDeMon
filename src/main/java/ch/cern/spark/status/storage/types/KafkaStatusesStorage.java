@@ -245,7 +245,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
 		                                                return Collections.singleton(new Tuple2<>(
                 		                                                    serializer.toKey(binaryRecord._1.get()),
                 		                                                    serializer.toValue(binaryRecord._2.get()))).iterator();
-		                                            }catch(Exception e) {
+		                                            }catch(Throwable e) {
 		                                                LOG.error("Serialization error with key=" + 
 		                                                                    new String(binaryRecord._1.get()) +
 		                                                                    " value=" +
