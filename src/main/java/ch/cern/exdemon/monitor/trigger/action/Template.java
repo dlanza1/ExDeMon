@@ -54,7 +54,7 @@ public class Template {
                 
                 String value = attributes.get(key);
                 
-                text = text.replaceAll("\\<metric_attributes:"+key+"\\>", String.valueOf(value));
+                text = text.replaceAll("\\<metric_attributes:"+key+"\\>", Matcher.quoteReplacement(String.valueOf(value)));
                 
                 j++;
             }
@@ -68,7 +68,7 @@ public class Template {
                 
                 String value = attributes.get(key);
                 
-                text = text.replaceAll("\\<attribute_value:"+key+"\\>", String.valueOf(value));
+                text = text.replaceAll("\\<attribute_value:"+key+"\\>", Matcher.quoteReplacement(String.valueOf(value)));
                 
                 j++;
             }
@@ -91,7 +91,7 @@ public class Template {
                     for(Map.Entry<String, String> att: matchingAttributes)
                         sb.append("\n\t" + att.getKey() + " = " + att.getValue());
                     
-                    text = text.replaceAll("\\<attributes:"+quotedKetPattern+"\\>", sb.toString());
+                    text = text.replaceAll("\\<attributes:"+quotedKetPattern+"\\>", Matcher.quoteReplacement(sb.toString()));
                 }else {
                     text = text.replaceAll("\\<attributes:"+quotedKetPattern+"\\>", "");
                 }
@@ -117,7 +117,7 @@ public class Template {
             for (int j = 1; j <= tagsMatcher.groupCount(); j++) {
                 String key = tagsMatcher.group(j);
                 
-                String value = apply(tags.get(key), action);
+                String value = Matcher.quoteReplacement(apply(tags.get(key), action));
                 
                 text = text.replaceAll("\\<tags:"+key+"\\>", String.valueOf(value));
                 
@@ -135,7 +135,7 @@ public class Template {
             for (int j = 1; j <= analysisParamMatcher.groupCount(); j++) {
                 String key = analysisParamMatcher.group(j);
                 
-                String value = String.valueOf(analysisParams.get(key));
+                String value = Matcher.quoteReplacement(String.valueOf(analysisParams.get(key)));
                 
                 text = text.replaceAll("\\<analysis_param:"+key+"\\>", value);
                 
@@ -201,7 +201,7 @@ public class Template {
                     for (int j = 1; j <= attributeMatcher.groupCount(); j++) {
                         String key = attributeMatcher.group(j);
                         
-                        String value = String.valueOf(metric.getAttributes().get(key));
+                        String value = Matcher.quoteReplacement(String.valueOf(metric.getAttributes().get(key)));
                         
                         metricText = metricText.replaceAll("\\<attribute_value:"+key+"\\>", value);
                         
@@ -227,7 +227,7 @@ public class Template {
                             for(Map.Entry<String, String> att: matchingAttributes)
                                 sb.append("\n\t" + att.getKey() + " = " + att.getValue());
                             
-                            metricText = metricText.replaceAll("\\<attributes:"+quotedKetPattern+"\\>", sb.toString());
+                            metricText = metricText.replaceAll("\\<attributes:"+quotedKetPattern+"\\>", Matcher.quoteReplacement(sb.toString()));
                         }else {
                             metricText = metricText.replaceAll("\\<attributes:"+quotedKetPattern+"\\>", "");
                         }
