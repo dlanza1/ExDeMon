@@ -84,9 +84,12 @@ public class ZookeeperComponentsSource extends ComponentsSource {
         
         Properties componentProps = Properties.fromJson(value);
         
-        if(value != null && componentProps == null)
+        if(value != null && componentProps == null) {
             LOG.warn("Not a valid JSON at path " + path + ". Value: " + value);
-        
+            remove(Type.valueOf(type.toUpperCase()), id);
+            return;
+        }
+            
         register(Type.valueOf(type.toUpperCase()), id, componentProps);
         
         cleanStats(path);
