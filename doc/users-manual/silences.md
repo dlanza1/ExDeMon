@@ -11,8 +11,8 @@ from = <yyyy-MM-dd HH:mm:ss> (e.g: 2018-02-16 11:00:02)
 to = <yyyy-MM-dd HH:mm:ss> (e.g: 2018-04-16 11:00:02)
 duration = <period like 15m, 1h, 1w> (if configured, "from" parameter must be set and "to" parameter is ignored) 
 filter.expr = <expr> (as for metrics filter)
-filter.attributes.<att> = <val>
-filter.attributes.<att> = <val>
+filter.attribute.<att> = <val>
+filter.attribute.<att> = <val>
 ```
 
 Silences will be active during the specified period.
@@ -26,7 +26,7 @@ An example to silence all actions from a "http\_errors" monitor for the next to 
 # "from" should configure current time
 from = 2018-08-01 19:40:02
 duration = 2h 
-filter.attributes.$monitor = http_errors
+filter.attribute.$monitor = http_errors
 ```
 
 
