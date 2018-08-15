@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ch.cern.exdemon.metrics.defined.DefinedMetricStatuskey;
+import ch.cern.exdemon.metrics.defined.equation.var.TestVariableStatus;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.monitor.MonitorStatusKey;
 import ch.cern.properties.Properties;
@@ -64,8 +65,8 @@ public class SingleFileStatusesStorageTest {
 		DefinedMetricStatuskey id = new DefinedMetricStatuskey("df1", new HashMap<>());
 		VariableStatuses statuses = new VariableStatuses();
 		statuses.newProcessedBatchTime(Instant.now());
-		statuses.put("v1", new TestStatus(100));
-		statuses.put("v2", new TestStatus(101));
+		statuses.put("v1", new TestVariableStatus(100));
+		statuses.put("v2", new TestVariableStatus(101));
 		inputList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id, statuses));
 		
 		JavaPairRDD<DefinedMetricStatuskey, VariableStatuses> inputRDD = context.parallelize(inputList).mapToPair(f->f);;
@@ -127,12 +128,12 @@ public class SingleFileStatusesStorageTest {
 		DefinedMetricStatuskey id2 = new DefinedMetricStatuskey("df2", new HashMap<>());
 		
 		VariableStatuses varStatuses = new VariableStatuses();
-		TestStatus status = new TestStatus(11);
+		TestVariableStatus status = new TestVariableStatus(11);
 		varStatuses.put("var1-id1", status);
 		inputList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id1, varStatuses));
 		
 		varStatuses = new VariableStatuses();
-		status = new TestStatus(12);
+		status = new TestVariableStatus(12);
 		varStatuses.put("var2-id2", status);
 		inputList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id2, varStatuses));
 
@@ -143,12 +144,12 @@ public class SingleFileStatusesStorageTest {
 		inputList = new LinkedList<>();
 		
 		varStatuses = new VariableStatuses();
-		status = new TestStatus(13);
+		status = new TestVariableStatus(13);
 		varStatuses.put("var3-id1", status);
 		inputList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id1, varStatuses));
 		
 		varStatuses = new VariableStatuses();
-		status = new TestStatus(12);
+		status = new TestVariableStatus(12);
 		varStatuses.put("var3-id2", status);
 		inputList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id2, varStatuses));
 		
@@ -162,12 +163,12 @@ public class SingleFileStatusesStorageTest {
 		
 		List<Tuple2<DefinedMetricStatuskey, VariableStatuses>> expectedList = new LinkedList<>();
 		varStatuses = new VariableStatuses();
-		status = new TestStatus(13);
+		status = new TestVariableStatus(13);
 		varStatuses.put("var3-id1", status);
 		expectedList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id1, varStatuses));
 		
 		varStatuses = new VariableStatuses();
-		status = new TestStatus(12);
+		status = new TestVariableStatus(12);
 		varStatuses.put("var3-id2", status);
 		expectedList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id2, varStatuses));
 		

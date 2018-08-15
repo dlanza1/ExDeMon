@@ -12,6 +12,7 @@ import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
+import ch.cern.spark.status.storage.ClassNameAlias;
 import lombok.Getter;
 
 public class AttributeVariable extends Variable {
@@ -90,6 +91,7 @@ public class AttributeVariable extends Variable {
         return filter.test(metric);
     }
     
+    @ClassNameAlias("attribute-variable-status")
     public static class Status_ extends VariableStatus{
         private static final long serialVersionUID = -1241228510312512443L;
         

@@ -31,9 +31,11 @@ import ch.cern.exdemon.metrics.value.ExceptionValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
+import ch.cern.spark.status.storage.ClassNameAlias;
 import ch.cern.utils.DurationAndTruncate;
 import ch.cern.utils.TimeUtils;
 import lombok.Getter;
+import lombok.ToString;
 
 public class ValueVariable extends Variable {
 
@@ -310,6 +312,8 @@ public class ValueVariable extends Variable {
         return aggName + "(time_filter(" + name + ", from:" + expire + ", to:" + ignore + "))";
     }
     
+    @ClassNameAlias("value-variable-status")
+    @ToString
     public static class Status_ extends VariableStatus { 
     
         private static final long serialVersionUID = 5808704505636633066L;

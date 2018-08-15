@@ -1,15 +1,15 @@
-package ch.cern.spark.status;
+package ch.cern.exdemon.metrics.defined.equation.var;
 
 import ch.cern.spark.status.storage.ClassNameAlias;
 
-@ClassNameAlias("test-status")
-public class TestStatus extends StatusValue {
+@ClassNameAlias("test-variable-status")
+public class TestVariableStatus extends VariableStatus {
 
 	private static final long serialVersionUID = 2051099937848011407L;
 	
 	private long number = 10;
 
-	public TestStatus(int i) {
+	public TestVariableStatus(int i) {
 		number = i;
 	}
 
@@ -29,7 +29,7 @@ public class TestStatus extends StatusValue {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		TestStatus other = (TestStatus) obj;
+		TestVariableStatus other = (TestVariableStatus) obj;
 		if (number != other.number)
 			return false;
 		return true;

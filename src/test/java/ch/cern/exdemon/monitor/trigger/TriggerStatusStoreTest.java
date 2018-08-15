@@ -37,9 +37,9 @@ public class TriggerStatusStoreTest {
 	
 	@Test
     public void saveAndLoad() throws ClassNotFoundException, IOException, ConfigurationException{
-    		List<Tuple2<TriggerStatusKey, StatusValue>> expectedNotifications = new LinkedList<>();
-    		TriggerStatusKey id = new TriggerStatusKey("moni1", "trigger1", new HashMap<>());
-    		StatusValue store = new TestStatus(1);
+		List<Tuple2<TriggerStatusKey, StatusValue>> expectedNotifications = new LinkedList<>();
+		TriggerStatusKey id = new TriggerStatusKey("moni1", "trigger1", new HashMap<>());
+		StatusValue store = new TestStatus(1);
 		expectedNotifications.add(new Tuple2<TriggerStatusKey, StatusValue>(id, store));
 		
 		id = new TriggerStatusKey("moni2", "trigger2", new HashMap<>());

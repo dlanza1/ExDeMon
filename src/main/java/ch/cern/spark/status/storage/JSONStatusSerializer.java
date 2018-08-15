@@ -21,6 +21,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
+import ch.cern.exdemon.metrics.defined.equation.var.VariableStatus;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.Aggregation;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.CountAgregation;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.CountFloatsAgregation;
@@ -48,6 +49,7 @@ public class JSONStatusSerializer implements StatusSerializer {
     private static Gson parser = new GsonBuilder().registerTypeAdapter(Instant.class, new InstantAdapter())
                                                     .registerTypeAdapter(Value.class, new ValueAdapter())
                                                     .registerTypeAdapter(Aggregation.class, new HierarchyAdapter<Aggregation>())
+                                                    .registerTypeAdapter(VariableStatus.class, new HierarchyAdapter<Aggregation>())
                                                     .registerTypeAdapter(StatusKey.class, new HierarchyAdapter<StatusKey>())
                                                     .registerTypeAdapter(StatusValue.class, new HierarchyAdapter<StatusValue>()).create();
     
