@@ -94,6 +94,8 @@ public class ComponentsCatalog {
         if(!components.containsKey(componentType))
             throw new IllegalArgumentException(componentType + " type cannot be in the catalog");
         
+        LOG.info("Component "+componentType+" with id="+id+" removed ");
+        
         components.get(componentType).remove(id);
     }
 
