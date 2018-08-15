@@ -25,7 +25,10 @@ Topic should be configured with [log compaction](https://kafka.apache.org/docume
 spark.cern.streaming.status.storage.type = kafka
 spark.cern.streaming.status.storage.topic = <topic>
 spark.cern.streaming.status.storage.timeout = <period like 1s, 1m, 3h> (default: 2s)
-spark.cern.streaming.status.storage.serialization = <java or json> (default: json)
+spark.cern.streaming.status.storage.producer...
+spark.cern.streaming.status.storage.consumer...
+spark.cern.streaming.status.storage.serialization.errors.ignore = <true|false> (default: false)
+spark.cern.streaming.status.storage.serialization.type = <java or json> (default: json)
 ```
 
 ## Removing statuses

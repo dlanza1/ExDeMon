@@ -68,6 +68,8 @@ public class KafkaStatusesStorage extends StatusesStorage {
 	private transient KafkaConsumer<Bytes, Bytes> consumer;
 
     private Duration timeout;
+
+    private boolean ignoreExceptionsDuringSerialization;
 	
 	public ConfigurationResult config(Properties properties) {
 	    ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
@@ -85,7 +87,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
             confResult.withError("timeout", e);
         }
 		
-		String serializationType = properties.getProperty("serialization", "json");
+		String serializationType = properties.getProperty("serialization.type", "json");
 		switch (serializationType) {
 		case "json":
 			serializer = new JSONStatusSerializer();
@@ -94,8 +96,14 @@ public class KafkaStatusesStorage extends StatusesStorage {
 			serializer = new JavaStatusSerializer();
 			break;
 		default:
-		    confResult.withError("serialization", "serialization type " + serializationType + " is not available.");
+		    confResult.withError("serialization.type", "serialization type " + serializationType + " is not available.");
 		}
+		
+		try {
+            ignoreExceptionsDuringSerialization = properties.getBoolean("serialization.errors.ignore", false);
+        } catch (ConfigurationException e) {
+            confResult.withError(null, e);
+        }
         
 		return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
 	}
@@ -231,10 +239,23 @@ public class KafkaStatusesStorage extends StatusesStorage {
     }
 
     private JavaRDD<Tuple2<StatusKey, StatusValue>> parseRecords(JavaRDD<Tuple2<ByteArray, ByteArray>> latestRecords) {
-		return latestRecords.map(binaryRecord -> new Tuple2<>(
-														serializer.toKey(binaryRecord._1.get()),
-														serializer.toValue(binaryRecord._2.get()))
-													);
+		return latestRecords.map(binaryRecord -> { 
+		                                            try {
+		                                                return new Tuple2<>(
+		                                                    serializer.toKey(binaryRecord._1.get()),
+		                                                    serializer.toValue(binaryRecord._2.get()));
+		                                            }catch(Exception e) {
+		                                                LOG.error("Serialization error with key=" + 
+		                                                                    new String(binaryRecord._1.get()) +
+		                                                                    " value=" +
+		                                                                    new String(binaryRecord._2.get()), e);
+		                                                
+		                                                if(!ignoreExceptionsDuringSerialization)
+		                                                    throw e;
+		                                                
+		                                                return null;
+		                                            }
+		                                         });
 	}
 	
 	@Override
