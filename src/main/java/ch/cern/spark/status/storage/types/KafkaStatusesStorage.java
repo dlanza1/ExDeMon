@@ -241,15 +241,17 @@ public class KafkaStatusesStorage extends StatusesStorage {
 
     private JavaRDD<Tuple2<StatusKey, StatusValue>> parseRecords(JavaRDD<Tuple2<ByteArray, ByteArray>> latestRecords) {
 		return latestRecords.flatMap(binaryRecord -> { 
+		                                            byte[] keyBytes = binaryRecord._1.get();
+		                                            byte[] valueBytes = binaryRecord._2.get();
 		                                            try {
 		                                                return Collections.singleton(new Tuple2<>(
-                		                                                    serializer.toKey(binaryRecord._1.get()),
-                		                                                    serializer.toValue(binaryRecord._2.get()))).iterator();
+                		                                                    serializer.toKey(keyBytes),
+                		                                                    serializer.toValue(valueBytes))).iterator();
 		                                            }catch(Throwable e) {
 		                                                LOG.error("Deserialization error with key=" + 
-		                                                                    String.valueOf(binaryRecord._1.get()) +
+		                                                                    keyBytes != null ? new String(keyBytes) : "null" +
 		                                                                    " value=" +
-		                                                                    String.valueOf(binaryRecord._2.get()), e);
+		                                                                    valueBytes != null ? new String(valueBytes) : "null", e);
 		                                                
 		                                                if(!ignoreExceptionsDuringSerialization)
 		                                                    throw e;
