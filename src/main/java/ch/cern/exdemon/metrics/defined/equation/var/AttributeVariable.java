@@ -13,8 +13,11 @@ import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.storage.ClassNameAlias;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
+@EqualsAndHashCode(callSuper=true)
 public class AttributeVariable extends Variable {
     
     @Getter
@@ -92,6 +95,8 @@ public class AttributeVariable extends Variable {
     }
     
     @ClassNameAlias("attribute-variable-status")
+    @EqualsAndHashCode(callSuper=true)
+    @ToString
     public static class Status_ extends VariableStatus{
         private static final long serialVersionUID = -1241228510312512443L;
         

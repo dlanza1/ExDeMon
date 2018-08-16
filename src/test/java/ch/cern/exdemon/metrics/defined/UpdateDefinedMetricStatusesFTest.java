@@ -68,8 +68,8 @@ public class UpdateDefinedMetricStatusesFTest {
         DefinedMetricStatuskey id = new DefinedMetricStatuskey("dmID1", groupByIDs);
         State<VariableStatuses> status = new StateImpl<>();
         VariableStatuses varStores = new VariableStatuses();
-        ValueHistory.Status varStore = new ValueHistory.Status(100, 0, null, null);
-		varStores.put("value", new ValueVariable.Status_(varStore));
+		ValueHistory valueHistory = new ValueHistory(100, 0, null, null);
+        varStores.put("value", new ValueVariable.Status_(valueHistory ));
 		status.update(varStores);
         Metric metric = null;
         

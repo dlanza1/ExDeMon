@@ -179,6 +179,7 @@ public class ValueHistory implements Serializable {
         return stats;
     }
     
+    @EqualsAndHashCode(callSuper=true)
     @ToString
     @ClassNameAlias("value-history")
     public static class Status extends StatusValue{

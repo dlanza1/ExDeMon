@@ -8,8 +8,10 @@ import ch.cern.exdemon.metrics.DatedValue;
 import ch.cern.exdemon.metrics.value.ExceptionValue;
 import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.Value;
+import lombok.EqualsAndHashCode;
 
 @RegisterComponentType("avg")
+@EqualsAndHashCode(callSuper=false)
 public class AvgAggregation extends Aggregation {
 
     private static final long serialVersionUID = 8713765353223035040L;

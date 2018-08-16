@@ -19,5 +19,30 @@ public class VariableStatus implements Serializable {
     public VariableStatus() {
         lastUpdateMetricTime = Instant.EPOCH;
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((lastUpdateMetricTime == null) ? 0 : lastUpdateMetricTime.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        VariableStatus other = (VariableStatus) obj;
+        if (lastUpdateMetricTime == null) {
+            if (other.lastUpdateMetricTime != null)
+                return false;
+        } else if (!lastUpdateMetricTime.equals(other.lastUpdateMetricTime))
+            return false;
+        return true;
+    }
     
 }

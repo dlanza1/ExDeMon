@@ -22,7 +22,7 @@ public class AnalysisFuncTest {
 	DefinedMetric definedMetric = new DefinedMetric("A");
 	Properties properties = new Properties();
 	VariableStatuses stores = new VariableStatuses();
-	ValueHistory.Status store = new ValueHistory.Status();
+	ValueHistory valueHistory = new ValueHistory();
 	
 	@Before
 	public void setUp() {
@@ -31,9 +31,9 @@ public class AnalysisFuncTest {
 		properties.setProperty("spark.batch.time", "1m");
 		
 		stores = new VariableStatuses();
-		store = new ValueHistory.Status();
+		valueHistory = new ValueHistory();
 		
-		stores.put("value", new ValueVariable.Status_(store));
+		stores.put("value", new ValueVariable.Status_(valueHistory));
 	}
 	
 	@Test

@@ -20,7 +20,6 @@ import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.metrics.DatedValue;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.ValueHistory;
-import ch.cern.exdemon.metrics.ValueHistory.Status;
 import ch.cern.exdemon.metrics.defined.equation.ComputationException;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.Aggregation;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.AggregationValues;
@@ -34,6 +33,7 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.status.storage.ClassNameAlias;
 import ch.cern.utils.DurationAndTruncate;
 import ch.cern.utils.TimeUtils;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -185,8 +185,8 @@ public class ValueVariable extends Variable {
             Map<Integer, Metric> metrics = aggValues.getLastAggregatedMetrics();
 
             return metrics != null ? new LinkedList<>(metrics.values()) : null;
-        } else if (status.valueHistoryStatus != null) {
-            ValueHistory history = status.valueHistoryStatus.history;
+        } else if (status.valueHistory != null) {
+            ValueHistory history = status.valueHistory;
 
             List<Metric> metrics = history.getLastAggregatedMetrics();
 
@@ -212,8 +212,8 @@ public class ValueVariable extends Variable {
                 aggValues.purge(expire.adjustMinus(time));
 
             values = aggValues.getDatedValues();
-        } else if (!isThereSelectedAttributes() && status.valueHistoryStatus != null) {
-            ValueHistory history = status.valueHistoryStatus.history;
+        } else if (!isThereSelectedAttributes() && status.valueHistory != null) {
+            ValueHistory history = status.valueHistory;
 
             if (expire != null)
                 history.purge(expire.adjustMinus(time));
@@ -264,10 +264,10 @@ public class ValueVariable extends Variable {
             
             aggregation.postUpdateStatus(this, aggValues, metric);
         } else {
-            if (status.valueHistoryStatus == null)
+            if (status.valueHistory == null)
                 status = (Status_) initStatus();
 
-            ValueHistory history = status.valueHistoryStatus.history;
+            ValueHistory history = status.valueHistory;
 
             history.setGranularity(granularity);
             history.setAggregation(aggregation);
@@ -290,7 +290,7 @@ public class ValueVariable extends Variable {
         if (isThereSelectedAttributes())
             return new Status_(new AggregationValues(max_aggregation_size, max_lastAggregatedMetrics_size));
         else
-            return new Status_(new ValueHistory.Status(max_aggregation_size, max_lastAggregatedMetrics_size, granularity, aggregation));
+            return new Status_(new ValueHistory(max_aggregation_size, max_lastAggregatedMetrics_size, granularity, aggregation));
     }
 
     private Map<String, String> getAggSelectAttributes(Map<String, String> attributes) {
@@ -312,6 +312,7 @@ public class ValueVariable extends Variable {
         return aggName + "(time_filter(" + name + ", from:" + expire + ", to:" + ignore + "))";
     }
     
+    @EqualsAndHashCode(callSuper=true)
     @ClassNameAlias("value-variable-status")
     @ToString
     public static class Status_ extends VariableStatus { 
@@ -319,14 +320,14 @@ public class ValueVariable extends Variable {
         private static final long serialVersionUID = 5808704505636633066L;
         
         AggregationValues aggregationValues;
-        Status valueHistoryStatus;
+        ValueHistory valueHistory;
 
         public Status_(AggregationValues aggregationValues) {
             this.aggregationValues = aggregationValues;
         }
 
-        public Status_(ValueHistory.Status valueHistoryStatus) {
-            this.valueHistoryStatus = valueHistoryStatus;
+        public Status_(ValueHistory valueHistory) {
+            this.valueHistory = valueHistory;
         }
         
     }
