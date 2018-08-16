@@ -20,6 +20,7 @@ import ch.cern.spark.status.StatusOperation.Op;
 import ch.cern.spark.status.storage.StatusesStorage;
 import ch.cern.spark.status.storage.manager.ZookeeperStatusesOperationsReceiver;
 import ch.cern.spark.status.storage.manager.ZookeeperStatusesOpertaionsF;
+import ch.cern.utils.TimeUtils;
 import scala.Option;
 import scala.Tuple2;
 
@@ -51,7 +52,6 @@ public class Status {
         
 		//Map values and remove states
         StateSpec<K, StatusOperation<K, V>, S, RemoveAndValue<K, R>> statusSpec = StateSpec.function(updateStatusFunction).initialState(initialStates.rdd());
-        statusSpec.numPartitions(10);
         
         Option<Duration> timeout = getStatusExpirationPeriod(context);
         if(timeout.isDefined())
@@ -78,14 +78,16 @@ public class Status {
 		return new StateDStream<>(statusStream);
 	}
 
-    private static Option<Duration> getStatusExpirationPeriod(JavaSparkContext context) {
+    private static Option<Duration> getStatusExpirationPeriod(JavaSparkContext context) throws ConfigurationException {
 		SparkConf conf = context.getConf();
 		
 		Option<String> valueString = conf.getOption(STATUSES_EXPIRATION_PERIOD_PARAM);
 		
-		if(valueString.isDefined())
-		    return Option.apply(new Duration(java.time.Duration.parse(valueString.get()).toMillis()));
-		else
+		if(valueString.isDefined()) {
+		    long millis = TimeUtils.parsePeriod(valueString.get()).toMillis();
+		    
+		    return Option.apply(new Duration(millis));
+		}else
 		    return Option.empty();
 	}
 
