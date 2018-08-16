@@ -246,10 +246,10 @@ public class KafkaStatusesStorage extends StatusesStorage {
                 		                                                    serializer.toKey(binaryRecord._1.get()),
                 		                                                    serializer.toValue(binaryRecord._2.get()))).iterator();
 		                                            }catch(Throwable e) {
-		                                                LOG.error("Serialization error with key=" + 
-		                                                                    new String(binaryRecord._1.get()) +
+		                                                LOG.error("Deserialization error with key=" + 
+		                                                                    String.valueOf(binaryRecord._1.get()) +
 		                                                                    " value=" +
-		                                                                    new String(binaryRecord._2.get()), e);
+		                                                                    String.valueOf(binaryRecord._2.get()), e);
 		                                                
 		                                                if(!ignoreExceptionsDuringSerialization)
 		                                                    throw e;
@@ -265,7 +265,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
 		
 		rdd = rdd.filter(tuple -> isUpdatedState(tuple, time));
 		
-		rdd.foreachPartitionAsync(new KafkaProducerFunc<K, V>(kafkaProducerParams, serializer, topic));
+		rdd.foreachPartitionAsync(new KafkaProducerFunc<K, V>(kafkaProducerParams, serializer, topic, ignoreExceptionsDuringSerialization));
 	}
 	
     private <K extends StatusKey, V extends StatusValue> boolean isUpdatedState(Tuple2<K, V> tuple, Time time) {
@@ -278,7 +278,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
     public <K extends StatusKey> void remove(JavaRDD<K> rdd) {
         JavaRDD<Tuple2<K, StatusValue>> keyWithNulls = rdd.map(key -> new Tuple2<K, StatusValue>(key, null));
         
-        keyWithNulls.foreachPartitionAsync(new KafkaProducerFunc<K, StatusValue>(kafkaProducerParams, serializer, topic));
+        keyWithNulls.foreachPartitionAsync(new KafkaProducerFunc<K, StatusValue>(kafkaProducerParams, serializer, topic, ignoreExceptionsDuringSerialization));
     }
 
 	private Map<String, Object> getKafkaProducerParams(Properties props) {
@@ -328,22 +328,36 @@ public class KafkaStatusesStorage extends StatusesStorage {
 		private String topic;
 
 		private StatusSerializer serializer;
+
+        private boolean ignoreExceptionsDuringSerialization;
 		
-		protected KafkaProducerFunc(Map<String, Object> props, StatusSerializer serializer, String topic) {
+		protected KafkaProducerFunc(Map<String, Object> props, StatusSerializer serializer, String topic, boolean ignoreExceptionsDuringSerialization) {
 			this.props = props;
 			this.topic = topic;
 			this.serializer = serializer;
+			this.ignoreExceptionsDuringSerialization = ignoreExceptionsDuringSerialization;
 		}
 
 		@Override
 		public void call(Iterator<Tuple2<K, V>> records) throws Exception {
-			KafkaProducer<Bytes, Bytes> producer = new KafkaProducer<>(props);
+			@SuppressWarnings("resource")
+            KafkaProducer<Bytes, Bytes> producer = new KafkaProducer<>(props);
 			
 			while(records.hasNext()) {
 				Tuple2<K, V> tuple = records.next();
 
-				Bytes key = tuple._1 != null ? new Bytes(serializer.fromKey(tuple._1)) : null;
-				Bytes value = tuple._2 != null ? new Bytes(serializer.fromValue(tuple._2)) : null;
+				Bytes key = null;
+				Bytes value = null;
+				
+				try {
+				    key = tuple._1 != null ? new Bytes(serializer.fromKey(tuple._1)) : null;
+				    value = tuple._2 != null ? new Bytes(serializer.fromValue(tuple._2)) : null;
+				}catch(Throwable e) {
+				    LOG.error("Serialization error with key=" + String.valueOf(tuple._1) + " value=" + String.valueOf(tuple._2), e);
+				    
+				    if(!ignoreExceptionsDuringSerialization)
+				        throw e;
+				}
 				
 				ProducerRecord<Bytes, Bytes> record = new ProducerRecord<Bytes, Bytes>(topic, key, value);
 				
