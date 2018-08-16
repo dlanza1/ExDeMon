@@ -41,12 +41,16 @@ public class VariableStatusesTest {
         var3status.value = "att-var-value";
         value.put("var3", var3status);
         
+        FixedValueVariable.Status_ var4status = new FixedValueVariable.Status_();
+        value.put("var4", var4status);
+        
         byte[] valueSerialized = serializer.fromValue(value);
         VariableStatuses valueResult = (VariableStatuses) serializer.toValue(valueSerialized);
         
-        assertEquals(value.get("var1"), valueResult.get("var1"));
-        assertEquals(value.get("var2"), valueResult.get("var2"));
-        assertEquals(value.get("var3"), valueResult.get("var3"));
+//        assertEquals(value.get("var1"), valueResult.get("var1"));
+//        assertEquals(value.get("var2"), valueResult.get("var2"));
+//        assertEquals(value.get("var3"), valueResult.get("var3"));
+//        assertEquals(value.get("var4"), valueResult.get("var4"));
         assertEquals(value, valueResult);
     }
     

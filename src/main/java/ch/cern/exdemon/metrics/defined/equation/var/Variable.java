@@ -17,7 +17,10 @@ import ch.cern.exdemon.metrics.value.PropertiesValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
+import ch.cern.spark.status.storage.ClassNameAlias;
 import ch.cern.utils.Pair;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 public abstract class Variable implements ValueComputable, Predicate<Metric> {
 	
@@ -97,8 +100,8 @@ public abstract class Variable implements ValueComputable, Predicate<Metric> {
 	}
 
 	protected VariableStatus initStatus() {
-	    return new VariableStatus();
-	}
+	    return new Status_();
+	};
 
     @Override
 	public final Value compute(VariableStatuses stores, Instant time) {
@@ -154,6 +157,13 @@ public abstract class Variable implements ValueComputable, Predicate<Metric> {
             throw new ConfigurationException(name, configResult.getErrors().toString());
         
         return var;
+    }
+    
+    @ClassNameAlias("default-attribute-status")
+    @EqualsAndHashCode(callSuper=true)
+    @ToString
+    public static class Status_ extends VariableStatus{
+        private static final long serialVersionUID = -6219307165345965744L;
     }
 	
 }
