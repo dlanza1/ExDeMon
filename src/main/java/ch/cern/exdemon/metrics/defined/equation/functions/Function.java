@@ -2,9 +2,13 @@ package ch.cern.exdemon.metrics.defined.equation.functions;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
+import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.ValueComputable;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.value.BooleanValue;
@@ -99,6 +103,12 @@ public abstract class Function implements ValueComputable{
 			
 			result.setSource(output.substring(0, output.length() - 2) + ")=" + resultString);
 		}
+		
+		List<Metric> lastSourceMetrics = Arrays.stream(argumentValues).map(value -> value.getLastSourceMetrics())
+		                                                              .filter(metrics -> metrics != null)
+		                                                              .reduce(new LinkedList<>(), (a, b) -> { a.addAll(b); return a; } );
+		if(lastSourceMetrics.size() > 0)
+            result.setLastSourceMetrics(lastSourceMetrics);
 	}
 
 	protected abstract Value compute(Value... values);

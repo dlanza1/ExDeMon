@@ -11,6 +11,8 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -343,7 +345,7 @@ public class DefinedMetricTest {
     }
 	
 	@Test
-	public void computeWhenVariableThatIsNotInEqaution() throws ConfigurationException, CloneNotSupportedException {
+	public void computeWhenVariableIsNotInEqaution() throws ConfigurationException, CloneNotSupportedException {
 		
 		DefinedMetric definedMetric = new DefinedMetric("A");
 		
@@ -813,5 +815,42 @@ public class DefinedMetricTest {
 		metric = Metric(Instant.now(), 15, "HOSTNAME=host3", "METRIC_NAME=Write Bytes");
 		assertFalse(definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).isPresent());
 	}
+	
+    @Test
+    public void combineLastSourceMerics() throws ConfigurationException, CloneNotSupportedException {
+        DefinedMetric definedMetric = new DefinedMetric("A");
+
+        Properties properties = newProperties();
+        properties.setProperty("value", "var1 + var2");
+        properties.setProperty("when", "var2");
+        properties.setProperty("variables.var1.filter.attribute.A", "A");
+        properties.setProperty("variables.var1.aggregate.latest-metrics.max-size", "1");
+        properties.setProperty("variables.var2.filter.attribute.B", "B");
+        properties.setProperty("variables.var2.aggregate.latest-metrics.max-size", "1");
+        properties.setProperty("variables.var3.filter.attribute.C", "C");
+        properties.setProperty("variables.var3.aggregate.latest-metrics.max-size", "0");
+        definedMetric.config(properties);
+
+        VariableStatuses store = new VariableStatuses();
+
+        Instant batchTime = Instant.parse("2007-12-03T10:15:00.00Z");
+        
+        List<Metric> expectedLastSourceMetrics = new LinkedList<>();
+
+        Metric metricA = Metric(batchTime.plus(Duration.ofMinutes(1)), 1f, "A=A");
+        expectedLastSourceMetrics.add(metricA);
+        definedMetric.updateStore(store, metricA, null);
+        
+        Metric metricB = Metric(batchTime.plus(Duration.ofMinutes(2)), 2f, "B=B");
+        expectedLastSourceMetrics.add(metricB);
+        definedMetric.updateStore(store, metricB, null);
+        
+        Metric metricC = Metric(batchTime.plus(Duration.ofMinutes(3)), 2f, "C=C");
+        definedMetric.updateStore(store, metricC, null);
+        
+        List<Metric> lastSourceMetrics = definedMetric.generateByUpdate(store, metricB, new HashMap<>()).get().getValue().getLastSourceMetrics();
+        
+        assertEquals(expectedLastSourceMetrics, lastSourceMetrics);
+    }
 	
 }

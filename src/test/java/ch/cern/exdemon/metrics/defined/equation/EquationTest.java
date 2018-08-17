@@ -157,7 +157,7 @@ public class EquationTest {
 	@Test
 	public void evalWithVariablesAndFormulas() throws ParseException, ConfigurationException {
 		Instant time = Instant.now();
-		Properties props = new Properties();;
+		Properties props = new Properties();
 		props.setProperty("x.filter.attribute.A", "A");
 		
 		VariableStatuses stores = new VariableStatuses();
@@ -188,5 +188,5 @@ public class EquationTest {
 		valHistoryY.add(time, new FloatValue(2));
 		assertEquals(2.57f, new Equation("sin(x) + cos(x) + sqrt(y)", props).compute(stores, time).getAsFloat().get(), 0.01f);
 	}
-	
+
 }

@@ -136,7 +136,7 @@ public class ValueVariable extends Variable {
             max_lastAggregatedMetrics_size = 100;
         }
 
-        return confResult;
+        return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }
 
     @Override

@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.Variable;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.value.Value;
@@ -33,16 +32,6 @@ public class Equation implements ValueComputable{
 	@Override
 	public Value compute(VariableStatuses stores, Instant time) {
 		return formula.compute(stores, time);
-	}
-	
-	public Map<String, ValueVariable> getMetricVariables() {
-		HashMap<String, ValueVariable> metricVariables = new HashMap<>();
-		
-		for (Map.Entry<String, Variable> variable : getVariables().entrySet())
-			if(variable.getValue() instanceof ValueVariable)
-				metricVariables.put(variable.getKey(), (ValueVariable) variable.getValue());
-		
-		return metricVariables;
 	}
 
 	@Override
