@@ -85,12 +85,12 @@ public class EmailActuator extends Actuator {
         else
             message.setSubject(Template.apply("ExDeMon: action from monitor <moniotr_id> (<trigger_id>)", action));
         
-        textProp = Template.apply(textProp, action);
+        String content = Template.apply(textProp, action);
         
-        if(!textProp.equals("null")) {
-            textProp = toHtml(textProp);
+        if(!content.equals("null")) {
+            content = toHtml(content);
         
-            message.setContent(textProp, "text/html; charset=utf-8");
+            message.setContent(content, "text/html; charset=utf-8");
         }else {
             String textTemplate = "Monitor ID: <monitor_id>";
             textTemplate += "\n\nTrigger ID: <trigger_id>";
