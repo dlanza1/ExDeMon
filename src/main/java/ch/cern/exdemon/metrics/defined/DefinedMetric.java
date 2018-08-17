@@ -17,6 +17,7 @@ import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.Equation;
 import ch.cern.exdemon.metrics.defined.equation.var.Variable;
+import ch.cern.exdemon.metrics.defined.equation.var.VariableCreationResult;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatus;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
@@ -91,13 +92,10 @@ public final class DefinedMetric extends Component {
 		    if(variables.containsKey(variableName))
 		        continue;
 		    
-            try {
-                Variable variable = Variable.create(variableName, variablesProperties, Optional.empty(), variables);
-                
-                variables.put(variableName, variable);
-            } catch (ConfigurationException e) {
-                return confResult.withError("variables", e);
-            }
+            VariableCreationResult variableCreatioinResult = Variable.create(variableName, variablesProperties, Optional.empty(), variables);
+            variableCreatioinResult.getVariable().ifPresent(var -> variables.put(variableName, var));
+            
+            confResult.merge("variables."+variableName, variableCreatioinResult.getConfigResult());
         }
 	      
         fixedValueAttributes = properties.getSubset("metrics.attribute").entrySet().stream()      //TODO || DEPRECATED
@@ -116,10 +114,10 @@ public final class DefinedMetric extends Component {
                                     .collect(Collectors.toMap(Pair::first, Pair::second));
         variableAttributes.forEach((attribute, variable) -> {
             if(!variables.containsKey(variable))
-                confResult.withError("metrics.attribute"+attribute+".variable", "variable with name \""+variable+"\" does not exist");
+                confResult.withError("metrics.attribute."+attribute+".variable", "variable with name \""+variable+"\" does not exist");
             
             if(!variables.get(variable).returnType().equals(StringValue.class))
-                confResult.withError("metrics.attribute"+attribute+".variable", "variable \""+variable+"\" does not return string type");
+                confResult.withError("metrics.attribute."+attribute+".variable", "variable \""+variable+"\" does not return string type");
         });
 		
         try {
