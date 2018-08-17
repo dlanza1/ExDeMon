@@ -65,11 +65,8 @@ public class ValueVariable extends Variable {
     public ConfigurationResult config(Properties properties, Optional<Class<? extends Value>> typeOpt) {
         ConfigurationResult confResult = super.config(properties, typeOpt);
         
-        try {
-            filter = MetricsFilter.build(properties.getSubset("filter"));
-        } catch (ConfigurationException e) {
-            confResult.withError("filter", e);
-        }
+        filter = new MetricsFilter();
+        confResult.merge("filter", filter.config(properties.getSubset("filter")));
 
         if (properties.containsKey("expire") && properties.getProperty("expire").toLowerCase().equals("never"))
             expire = null;

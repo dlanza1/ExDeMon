@@ -10,7 +10,6 @@ import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
 import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.exdemon.metrics.value.Value;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import lombok.Getter;
 
@@ -34,11 +33,8 @@ public class FixedValueVariable extends Variable {
     public ConfigurationResult config(Properties properties, Optional<Class<? extends Value>> typeOpt) {
         ConfigurationResult confResult = super.config(properties, typeOpt);
         
-        try {
-            filter = MetricsFilter.build(properties.getSubset("filter"));
-        } catch (ConfigurationException e) {
-            confResult.withError("filter", e);
-        }
+        filter = new MetricsFilter();
+        confResult.merge("filter", filter.config(properties.getSubset("filter")));
         
         String valueAsString = properties.getProperty("fixed.value");
         if(valueAsString == null)

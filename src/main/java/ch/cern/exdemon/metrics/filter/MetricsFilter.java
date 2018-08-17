@@ -13,6 +13,7 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -34,6 +35,67 @@ public class MetricsFilter implements Predicate<Metric>, Serializable {
     private Predicate<Map<String, String>> attributesPredicate = null;
 
     public MetricsFilter() {
+    }
+    
+    public ConfigurationResult config(Properties props){
+        ConfigurationResult configResult = ConfigurationResult.SUCCESSFUL();
+        
+        String expression = props.getProperty("expr");
+        if (expression != null)
+            try {
+                addAttributesPredicate(AttributesPredicateParser.parse(expression));
+            } catch (ParseException e) {
+                configResult.withError("expr", "Error when parsing filter expression: " + e.getMessage());
+            }
+
+        Optional<Duration> timestampExpireOpt;
+        try {
+            timestampExpireOpt = props.getPeriod("timestamp.expire");
+            
+            if (timestampExpireOpt.isPresent())
+                setTimestampExpire(timestampExpireOpt.get());
+        } catch (ConfigurationException e) {
+            configResult.withError(null, e);
+        }
+
+        Properties filterProperties = props.getSubset("attribute");
+
+        for (Entry<Object, Object> attribute : filterProperties.entrySet()) {
+            String key = (String) attribute.getKey();
+            String valueString = (String) attribute.getValue();
+
+            List<String> values = getValues(valueString);
+            if (values.size() == 0) {
+                try {
+                    addAttributesPredicate(key, valueString);
+                } catch (ParseException e) {
+                    configResult.withError("attribute." + key, "Error when parsing filter value expression (" + valueString + "): " + e.getMessage());
+                }
+            } else {
+                boolean negate = valueString.startsWith("!");
+
+                try {
+                    if (negate)
+                        for (String value : values)
+                            addAttributesPredicate(new NotEqualMetricPredicate(key, value));
+                    else {
+                        Predicate<Map<String, String>> orOptions = null;
+    
+                        for (String value : values)
+                            if (orOptions == null)
+                                orOptions = new EqualMetricPredicate(key, value);
+                            else
+                                orOptions = new OrPredicate<Map<String, String>>(orOptions, new EqualMetricPredicate(key, value));
+    
+                        addAttributesPredicate(orOptions);
+                    }
+                } catch (ParseException e) {
+                    configResult.withError("attribute." + key, "Error when parsing values (" + valueString + "): " + e.getMessage());
+                }
+            }
+        }
+
+        return configResult.merge(null, props.warningsIfNotAllPropertiesUsed());
     }
 
     @Override
@@ -59,64 +121,6 @@ public class MetricsFilter implements Predicate<Metric>, Serializable {
             attributesPredicate = newPredicate;
         else
             attributesPredicate = new AndPredicate<Map<String, String>>(attributesPredicate, newPredicate);
-    }
-
-    public static MetricsFilter build(Properties props) throws ConfigurationException {
-        MetricsFilter filter = new MetricsFilter();
-
-        String expression = props.getProperty("expr");
-        if (expression != null)
-            try {
-                filter.addAttributesPredicate(AttributesPredicateParser.parse(expression));
-            } catch (ParseException e) {
-                throw new ConfigurationException("expr", "Error when parsing filter expression: " + e.getMessage());
-            }
-
-        Optional<Duration> timestampExpireOpt = props.getPeriod("timestamp.expire");
-        if (timestampExpireOpt.isPresent())
-            filter.setTimestampExpire(timestampExpireOpt.get());
-
-        Properties filterProperties = props.getSubset("attribute");
-
-        try {
-            for (Entry<Object, Object> attribute : filterProperties.entrySet()) {
-                String key = (String) attribute.getKey();
-                String valueString = (String) attribute.getValue();
-
-                List<String> values = getValues(valueString);
-                if (values.size() == 0) {
-                    try {
-                        filter.addAttributesPredicate(key, valueString);
-                    } catch (ParseException e) {
-                        throw new ConfigurationException("attribute." + key,
-                                "Error when parsing filter value expression (" + valueString + "): " + e.getMessage());
-                    }
-                } else {
-                    boolean negate = valueString.startsWith("!");
-
-                    if (negate)
-                        for (String value : values)
-                            filter.addAttributesPredicate(new NotEqualMetricPredicate(key, value));
-                    else {
-                        Predicate<Map<String, String>> orOptions = null;
-
-                        for (String value : values)
-                            if (orOptions == null)
-                                orOptions = new EqualMetricPredicate(key, value);
-                            else
-                                orOptions = new OrPredicate<Map<String, String>>(orOptions, new EqualMetricPredicate(key, value));
-
-                        filter.addAttributesPredicate(orOptions);
-                    }
-                }
-            }
-
-            props.warningsIfNotAllPropertiesUsed();
-        } catch (ConfigurationException | ParseException e) {
-            throw new ConfigurationException("attribute", "error when parsing attributes in filter: " + e.getMessage());
-        }
-
-        return filter;
     }
 
     private static List<String> getValues(String valueString) {
