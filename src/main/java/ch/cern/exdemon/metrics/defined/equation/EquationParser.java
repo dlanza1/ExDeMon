@@ -33,6 +33,7 @@ import ch.cern.exdemon.metrics.defined.equation.functions.string.IfStringFunc;
 import ch.cern.exdemon.metrics.defined.equation.functions.string.TrimFunc;
 import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.Variable;
+import ch.cern.exdemon.metrics.defined.equation.var.VariableCreationResult;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.LastValueAggregation;
 import ch.cern.exdemon.metrics.value.BooleanValue;
 import ch.cern.exdemon.metrics.value.FloatValue;
@@ -229,9 +230,13 @@ public class EquationParser {
 	}
 
 	private void addVariable(String variableName, Optional<Class<? extends Value>> argumentTypeOpt) throws ConfigurationException {
-	    Variable var = Variable.create(variableName, variablesProperties, argumentTypeOpt, variables);
+	    VariableCreationResult varCreationResult = Variable.create(variableName, variablesProperties, argumentTypeOpt, variables);
 	    
-		variables.put(variableName, var);
+	    if(!varCreationResult.getConfigResult().getErrors().isEmpty())
+	        throw new ConfigurationException(null, varCreationResult.getConfigResult().getErrors().toString());
+	    
+	    if(varCreationResult.getVariable().isPresent())
+	        variables.put(variableName, varCreationResult.getVariable().get());
 	}
 
 	private ValueComputable parseFunction(String functionRepresentation) throws ParseException, ConfigurationException {
