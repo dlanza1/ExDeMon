@@ -23,124 +23,124 @@ import lombok.Setter;
 import lombok.ToString;
 
 @ToString
-public class MetricsFilter implements Predicate<Metric>, Serializable{
-    
+public class MetricsFilter implements Predicate<Metric>, Serializable {
+
     private static final long serialVersionUID = 9170996730102744051L;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private Duration timestampExpire = null;
 
     private Predicate<Map<String, String>> attributesPredicate = null;
-    
-    public MetricsFilter(){
+
+    public MetricsFilter() {
     }
-    
+
     @Override
-	public boolean test(Metric metric) {
-        if(attributesPredicate != null
-                && !attributesPredicate.test(metric.getAttributes()))
-               return false;
-        
-        if(timestampExpire != null
-                && !metric.getTimestamp().isAfter(Instant.now().minus(timestampExpire)))
-               return false;
-    		
-		return true;
-	}
-    
-    public void addAttributesPredicate(String key, String value) throws ParseException{
-        if(value.charAt(0) == '!')  		
+    public boolean test(Metric metric) {
+        if (attributesPredicate != null && !attributesPredicate.test(metric.getAttributes()))
+            return false;
+
+        if (timestampExpire != null && !metric.getTimestamp().isAfter(Instant.now().minus(timestampExpire)))
+            return false;
+
+        return true;
+    }
+
+    public void addAttributesPredicate(String key, String value) throws ParseException {
+        if (value.charAt(0) == '!')
             addAttributesPredicate(new NotEqualMetricPredicate(key, value.substring(1)));
         else
             addAttributesPredicate(new EqualMetricPredicate(key, value));
     }
 
     public void addAttributesPredicate(Predicate<Map<String, String>> newPredicate) {
-        if(attributesPredicate == null)
+        if (attributesPredicate == null)
             attributesPredicate = newPredicate;
         else
             attributesPredicate = new AndPredicate<Map<String, String>>(attributesPredicate, newPredicate);
-	}
+    }
 
-	public static MetricsFilter build(Properties props) throws ConfigurationException {
-		MetricsFilter filter = new MetricsFilter();
-        
+    public static MetricsFilter build(Properties props) throws ConfigurationException {
+        MetricsFilter filter = new MetricsFilter();
+
         String expression = props.getProperty("expr");
-        if(expression != null)
-			try {
-				filter.addAttributesPredicate(AttributesPredicateParser.parse(expression));
-			} catch (ParseException e) {
-				throw new ConfigurationException("expr", "Error when parsing filter expression: " + e.getMessage());
-			}
-        
+        if (expression != null)
+            try {
+                filter.addAttributesPredicate(AttributesPredicateParser.parse(expression));
+            } catch (ParseException e) {
+                throw new ConfigurationException("expr", "Error when parsing filter expression: " + e.getMessage());
+            }
+
         Optional<Duration> timestampExpireOpt = props.getPeriod("timestamp.expire");
-        if(timestampExpireOpt.isPresent())
+        if (timestampExpireOpt.isPresent())
             filter.setTimestampExpire(timestampExpireOpt.get());
-        
+
         Properties filterProperties = props.getSubset("attribute");
-        
+
         try {
             for (Entry<Object, Object> attribute : filterProperties.entrySet()) {
                 String key = (String) attribute.getKey();
                 String valueString = (String) attribute.getValue();
-                
+
                 List<String> values = getValues(valueString);
-                if(values.size() == 0) {
-        			try {
-        				filter.addAttributesPredicate(key, valueString);
-        			} catch (ParseException e) {
-        				throw new ConfigurationException("attribute."+key, "Error when parsing filter value expression (" + valueString + "): " + e.getMessage());
-        			}
-                }else {
+                if (values.size() == 0) {
+                    try {
+                        filter.addAttributesPredicate(key, valueString);
+                    } catch (ParseException e) {
+                        throw new ConfigurationException("attribute." + key,
+                                "Error when parsing filter value expression (" + valueString + "): " + e.getMessage());
+                    }
+                } else {
                     boolean negate = valueString.startsWith("!");
-                    
-                    if(negate)
+
+                    if (negate)
                         for (String value : values)
                             filter.addAttributesPredicate(new NotEqualMetricPredicate(key, value));
                     else {
                         Predicate<Map<String, String>> orOptions = null;
-                        
+
                         for (String value : values)
-                            if(orOptions  == null)
+                            if (orOptions == null)
                                 orOptions = new EqualMetricPredicate(key, value);
                             else
                                 orOptions = new OrPredicate<Map<String, String>>(orOptions, new EqualMetricPredicate(key, value));
-                        
+
                         filter.addAttributesPredicate(orOptions);
                     }
                 }
             }
-        
-			props.warningsIfNotAllPropertiesUsed();
-		} catch (ConfigurationException|ParseException e) {
-		    throw new ConfigurationException("attribute", "error when parsing attributes in filter: " + e.getMessage());
+
+            props.warningsIfNotAllPropertiesUsed();
+        } catch (ConfigurationException | ParseException e) {
+            throw new ConfigurationException("attribute", "error when parsing attributes in filter: " + e.getMessage());
         }
-        
+
         return filter;
     }
 
     private static List<String> getValues(String valueString) {
-	    Pattern pattern = Pattern.compile("([\"'])(?:(?=(\\\\?))\\2.)*?\\1");
-	    
-	    LinkedList<String> hits = new LinkedList<>();
-	    
+        Pattern pattern = Pattern.compile("([\"'])(?:(?=(\\\\?))\\2.)*?\\1");
+
+        LinkedList<String> hits = new LinkedList<>();
+
         Matcher m = pattern.matcher(valueString);
         while (m.find()) {
             String value = m.group();
-            
+
             value = value.substring(1, value.length() - 1);
-            
+
             hits.add(value);
         }
-	    
+
         return hits;
     }
 
     public boolean test(Map<String, String> attributes) {
-        if(attributesPredicate == null)
+        if (attributesPredicate == null)
             return true;
-        
+
         return attributesPredicate.test(attributes);
     }
-    
+
 }
