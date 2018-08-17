@@ -65,11 +65,8 @@ public final class DefinedMetric extends Component {
 		if(groupByVal != null)
 			metricsGroupBy = Arrays.stream(groupByVal.split(" ")).map(String::trim).collect(Collectors.toSet());
 		
-		try {
-            filter = MetricsFilter.build(properties.getSubset("metrics.filter"));
-        } catch (ConfigurationException e) {
-            confResult.withError("metrics.filter", e);
-        }
+		filter = new MetricsFilter();
+		confResult.merge("metrics.filter", filter.config(properties.getSubset("metrics.filter")));
 		
 		Properties variablesProperties = properties.getSubset("variables");
 		Set<String> variableNames = variablesProperties.getIDs();

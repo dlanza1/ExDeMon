@@ -23,7 +23,6 @@ import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
 import ch.cern.exdemon.metrics.value.ExceptionValue;
 import ch.cern.exdemon.metrics.value.Value;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.utils.ExceptionsCache;
 import ch.cern.utils.Pair;
@@ -121,11 +120,8 @@ public final class MetricSchema extends Component {
             attributes.add(attDescriptor);
         }
 
-        try {
-            filter = MetricsFilter.build(properties.getSubset(FILTER_PARAM));
-        } catch (ConfigurationException e) {
-            confResult.withError(FILTER_PARAM, e);
-        }
+        filter = new MetricsFilter();
+        confResult.merge(FILTER_PARAM, filter.config(properties.getSubset(FILTER_PARAM)));
         
         return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }

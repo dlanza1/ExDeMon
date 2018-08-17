@@ -13,7 +13,6 @@ import ch.cern.exdemon.components.ComponentType;
 import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
 import ch.cern.exdemon.monitor.trigger.action.Action;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.utils.TimeUtils;
 import lombok.ToString;
@@ -75,11 +74,8 @@ public class Silence extends Component {
             }
         }
     
-        try {
-            filter = MetricsFilter.build(properties.getSubset("filter"));
-        } catch (ConfigurationException e) {
-            confResult.withError("filter", e);
-        }
+        filter = new MetricsFilter();
+        confResult.merge("filter", filter.config(properties.getSubset("filter")));
         
         return confResult;
     }

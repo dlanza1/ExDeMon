@@ -24,7 +24,8 @@ public class MetricsFilterTest {
         Properties props = new Properties();
         props.setProperty("timestamp.expire", "24h");
         props.setProperty("expr", "K1=V1");
-        MetricsFilter filter = MetricsFilter.build(props);
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
 
         assertTrue(filter.test(Metric(Instant.now(), 0, "K1=V1")));
         assertFalse(filter.test(Metric(Instant.now().minus(Duration.ofHours(12)), 0, "K1=V2")));
@@ -54,7 +55,8 @@ public class MetricsFilterTest {
         props.setProperty("expr", "K1.K11=V1");
         props.setProperty("attribute.K2.K21", "V2");
         props.setProperty("attribute.K2.K22", "V3");
-        MetricsFilter filter = MetricsFilter.build(props);
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
 
         assertTrue(filter.test(Metric(0, 0, "K1.K11=V1", "K2.K21=V2", "K2.K22=V3")));
         assertTrue(filter.test(Metric(0, 0, "K1.K11=V1", "K2.K21=V2", "K2.K22=V3", "K4.K41=V4")));
@@ -71,7 +73,8 @@ public class MetricsFilterTest {
         props.setProperty("expr", "K1=V1");
         props.setProperty("attribute.K2", "V2");
         props.setProperty("attribute.K3", "V3");
-        MetricsFilter filter = MetricsFilter.build(props);
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
 
         assertTrue(filter.test(Metric(0, 0, "K1=V1", "K2=V2", "K3=V3")));
         assertTrue(filter.test(Metric(0, 0, "K1=V1", "K2=V2", "K3=V3", "K4=V4")));
@@ -86,7 +89,8 @@ public class MetricsFilterTest {
     public void filterMultiValue() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty("attribute.K1", "\"V1\" \"V2\"");
-        MetricsFilter filter = MetricsFilter.build(props);
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
 
         assertTrue(filter.test(Metric(0, 0, "K1=V1")));
         assertTrue(filter.test(Metric(0, 0, "K1=V2")));
@@ -97,7 +101,8 @@ public class MetricsFilterTest {
     public void filterMultiValueSimpleQuotes() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty("attribute.K1", "'V1' 'V2'");
-        MetricsFilter filter = MetricsFilter.build(props);
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
 
         assertTrue(filter.test(Metric(0, 0, "K1=V1")));
         assertTrue(filter.test(Metric(0, 0, "K1=V2")));
@@ -108,7 +113,8 @@ public class MetricsFilterTest {
     public void filterMultiValueNegated() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty("attribute.K1", "!\"V1\" \"V2\"");
-        MetricsFilter filter = MetricsFilter.build(props);
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
 
         assertFalse(filter.test(Metric(0, 0, "K1=V1")));
         assertFalse(filter.test(Metric(0, 0, "K1=V2")));

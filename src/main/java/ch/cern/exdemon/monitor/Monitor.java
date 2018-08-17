@@ -10,12 +10,12 @@ import org.apache.log4j.Logger;
 import org.apache.spark.streaming.State;
 
 import ch.cern.exdemon.components.Component;
+import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentBuildResult;
 import ch.cern.exdemon.components.ComponentType;
 import ch.cern.exdemon.components.ComponentTypes;
 import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
-import ch.cern.exdemon.components.Component.Type;
-import ch.cern.exdemon.components.ComponentBuildResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
 import ch.cern.exdemon.monitor.analysis.Analysis;
@@ -23,7 +23,6 @@ import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult.Status;
 import ch.cern.exdemon.monitor.analysis.types.NoneAnalysis;
 import ch.cern.exdemon.monitor.trigger.Trigger;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
@@ -62,11 +61,8 @@ public class Monitor extends Component{
     public ConfigurationResult config(Properties properties) {
         ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
         
-        try {
-            filter = MetricsFilter.build(properties.getSubset("filter"));
-        } catch (ConfigurationException e) {
-            confResult.withError("filter", e);
-        }
+        filter = new MetricsFilter();
+        confResult.merge("filter", filter.config(properties.getSubset("filter")));
         
         fixedValueAttributes = properties.getSubset("attribute").entrySet().stream()
                 .map(entry -> new Pair<String, String>(entry.getKey().toString(), entry.getValue().toString()))
