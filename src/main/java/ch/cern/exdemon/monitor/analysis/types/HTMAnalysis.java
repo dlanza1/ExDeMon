@@ -34,6 +34,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 import ch.cern.exdemon.components.ConfigurationResult;
+import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.monitor.analysis.NumericAnalysis;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult.Status;
@@ -46,7 +47,7 @@ import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
 import lombok.ToString;
 
-
+@RegisterComponentType("htm")
 public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 
 	private static final long serialVersionUID = 1015850481683037208L;
