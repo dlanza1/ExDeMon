@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.joda.time.DateTime;
 import org.numenta.nupic.algorithms.AnomalyLikelihood;
 import org.numenta.nupic.network.Network;
 import org.reflections.Reflections;
@@ -47,7 +46,6 @@ import ch.cern.exdemon.monitor.trigger.types.ConstantTrigger;
 import ch.cern.exdemon.monitor.trigger.types.PercentageTrigger;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
-import gnu.trove.list.TDoubleList;
 
 public class JSONStatusSerializer implements StatusSerializer {
 

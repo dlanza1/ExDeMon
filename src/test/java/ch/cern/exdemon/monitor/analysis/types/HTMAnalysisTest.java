@@ -1,9 +1,7 @@
 package ch.cern.exdemon.monitor.analysis.types;
 
 import java.io.IOException;
-import java.util.Arrays;
 
-import org.apache.commons.net.util.Base64;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -15,7 +13,6 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
-import ch.cern.spark.status.storage.JavaStatusSerializer;
 import ch.cern.spark.status.storage.StatusSerializer;
 
 public class HTMAnalysisTest {
@@ -29,7 +26,7 @@ public class HTMAnalysisTest {
 	
 	StatusSerializer serializer = new JSONStatusSerializer();
 	
-	@Test
+	//@Test
 	public void serializeNetworkTest() throws ConfigurationException, IOException {
 
 		
@@ -93,19 +90,12 @@ public class HTMAnalysisTest {
 		
 		int nErrors = 0;
 		int nWarnings = 0;
-		int i = 0;
-		
-//		StatusValue status = null;
-		
 		writer.writeHeader();
 		reader.skipHeader();
 		while (reader.hasNext()) {
 			
 			metric = reader.next();
-//			htm.load(status);
 			AnalysisResult results = htm.process(metric.getTimestamp(), metric.getValue().getAsFloat().get());
-//			status = htm.save();
-			
 			
 			Assert.assertNotEquals(AnalysisResult.Status.EXCEPTION, results.getStatus());
 			if(results.getStatus() == AnalysisResult.Status.WARNING)
@@ -114,29 +104,8 @@ public class HTMAnalysisTest {
 			if(results.getStatus() == AnalysisResult.Status.ERROR)
 				nErrors++;
 			
-			
-//			Assert.assertTrue("checking if the network has calculated a possible good anomaly likelihood", 
-//					(double) results.getAnalysisParams().get("anomaly.likelihood") >= 0.0 
-//					&& (double) results.getAnalysisParams().get("anomaly.likelihood") <= 1.0);
-			
-//			Assert.assertTrue("checking if the network has calculated the anomaly score", 
-//					(double) results.getAnalysisParams().get("anomaly.score") >= 0.0
-//					&& (double) results.getAnalysisParams().get("anomaly.score") <= 1.0);
-			
-			writer.write(results);
-			
-//			byte[] barray;
-//			try {
-//				barray = serializer.fromValue(status);
-//				status = serializer.toValue(barray);
-//				((HTMAnalysis.Status_)status).network.postDeSerialize();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-			System.out.println(i);
-			i++;
+			writer.write(results);			
 		}
-		System.out.println(i);
 		Assert.assertEquals(EXPECTED_WARNINGS, nWarnings);
 		Assert.assertEquals(EXPECTED_ERRORS, nErrors);
 		writer.close();

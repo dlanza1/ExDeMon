@@ -3,7 +3,6 @@ package ch.cern.exdemon.monitor.analysis.types.htm;
 import static org.numenta.nupic.algorithms.Anomaly.KEY_ESTIMATION_SAMPLES;
 import static org.numenta.nupic.algorithms.Anomaly.KEY_LEARNING_PERIOD;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
