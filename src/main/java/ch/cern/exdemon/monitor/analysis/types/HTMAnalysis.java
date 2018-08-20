@@ -33,6 +33,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.monitor.analysis.NumericAnalysis;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult.Status;
@@ -82,27 +83,43 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 	private HTMParameters networkParams;
 
 	@Override
-	protected void config(Properties properties) throws ConfigurationException {
-		super.config(properties);	
+	protected ConfigurationResult config(Properties properties) {
+		ConfigurationResult confResult = super.config(properties);	
+		
 		networkParams = new HTMParameters();
 		
 		float minValue = properties.getFloat(MIN_VALUE_PARAMS, MIN_VALUE_DEFAULT);
 		float maxValue = properties.getFloat(MAX_VALUE_PARAMS, MAX_VALUE_DEFAULT);
 		
-		boolean timeOfDay = properties.getBoolean(TOD_PARAMS, TOD_DEFAULT);
-		boolean dateOfWeek = properties.getBoolean(DOW_PARAMS, DOW_DEFAULT);
-		boolean isWeekend = properties.getBoolean(WEEKEND_PARAMS, WEEKEND_DEFAULT);
+		boolean timeOfDay = TOD_DEFAULT;
+		try {
+			timeOfDay = properties.getBoolean(TOD_PARAMS, TOD_DEFAULT);
+		} catch (ConfigurationException e) {
+			confResult.withError(null, e);
+		}
+		boolean dateOfWeek = DOW_DEFAULT;
+		try {
+			dateOfWeek = properties.getBoolean(DOW_PARAMS, DOW_DEFAULT);
+		} catch (ConfigurationException e) {
+			confResult.withError(null, e);
+		}
+		boolean isWeekend = WEEKEND_DEFAULT;
+		try {
+			isWeekend = properties.getBoolean(WEEKEND_PARAMS, WEEKEND_DEFAULT);
+		} catch (ConfigurationException e) {
+			confResult.withError(null, e);
+		}
 		String timeformat = properties.getProperty(TIMESTAMP_FORMAT, TIMESTAMP_DEFAULT);
 		
 		networkParams.setModelParameters(minValue, maxValue, timeOfDay, dateOfWeek, isWeekend, timeformat);
 		
 		errorThreshold = properties.getFloat(ERROR_THRESHOLD_PARAMS, ERROR_THRESHOLD_DEFAULT);
 		warningThreshold = properties.getFloat(WARNING_THRESHOLD_PARAMS, WARNING_THRESHOLD_DEFAULT);
-		
-		properties.confirmAllPropertiesUsed();
-		
+				
 		anomalyLikelihood = initAnomalyLikelihood(HTMParameters.getAnomalyLikelihoodParams());
 		network = buildNetwork();
+		
+		return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
 	}
 	
 	@Override
