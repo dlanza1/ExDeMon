@@ -130,7 +130,7 @@ public class ValueVariable extends Variable {
         //TODO DEPRECATED
         if(max_lastAggregatedMetrics_size == 0)
             max_lastAggregatedMetrics_size = (int) properties.getFloat("aggregate.latest-metrics.max-size", 0);
-        if(properties.containsKey(""))
+        if(properties.containsKey("aggregate.latest-metrics.max-size"))
             confResult.withWarning("aggregate.latest-metrics.max-size", "is deprecated, use aggregate.last_source_metrics.max-size");
         //TODO DEPRECATED
         
