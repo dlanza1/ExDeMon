@@ -132,3 +132,25 @@ monitor.<monitor-id>.analysis.warn.ratio = <float> (default: 2)
 
 An example of the result of this analysis can be seen in the following image.
 ![Seasonal analysis](../img/analysis/seasonal.png)
+
+## Hierarchical Temporal Memory Analysis
+
+Filter metrics with float values.
+[Hierarchical Temporam Memory](https://numenta.org/hierarchical-temporal-memory/) is a new interesting theory that try to put the new knowledge about how human neocoartex worksin a set of algorithms.
+
+We used this technology to try determine the status of the metrics. We implemented it using the [htm.java](https://github.com/numenta/htm.java) library that is supported by the numenta comunity.
+Every time that a [Metric](metric-sources.md) come from the strem an Anomalylikelihood score is calculated and, if is higher than a choosen thresholds, the metric is setted as WARNING or ERROR otherwise is setted as OK.
+
+Configuration: 
+```
+monitor.<monitor-id>.analysis.type = htm
+monitor.<monitor-id>.analysis.htm.min = <integer> (default: 0)
+monitor.<monitor-id>.analysis.htm.max = <integer> (default: 100)
+monitor.<monitor-id>.analysis.htm.timeofday = <true|false> (default: true)
+monitor.<monitor-id>.analysis.htm.dateodweek = <true|false> (default: false)
+monitor.<monitor-id>.analysis.htm.weekend = <true|false> (default: false)
+monitor.<monitor-id>.analysis.timestamp.format = <string> (default: YYYY-MM-dd'T'HH:mm:ssZ)
+monitor.<monitor-id>.analysis.error.threshold = <float> (default: 0.999)
+monitor.<monitor-id>.analysis.warning.threshold = <float> (default: 0.9)
+```
+
