@@ -8,9 +8,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.joda.time.DateTime;
+import org.numenta.nupic.algorithms.AnomalyLikelihood;
 import org.numenta.nupic.network.Network;
 import org.reflections.Reflections;
 
+import com.fatboyindustrial.gsonjodatime.Converters;
+import com.fatboyindustrial.gsonjodatime.DateTimeConverter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -43,6 +47,7 @@ import ch.cern.exdemon.monitor.trigger.types.ConstantTrigger;
 import ch.cern.exdemon.monitor.trigger.types.PercentageTrigger;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
+import gnu.trove.list.TDoubleList;
 
 public class JSONStatusSerializer implements StatusSerializer {
 
@@ -55,13 +60,14 @@ public class JSONStatusSerializer implements StatusSerializer {
                                                     .registerTypeAdapter(StatusKey.class, new HierarchyAdapter<StatusKey>())
                                                     .registerTypeAdapter(StatusValue.class, new HierarchyAdapter<StatusValue>())
                                                     .registerTypeAdapter(Network.class, new HTMAnalysis.JsonAdapter())
+                                                    .registerTypeAdapter(AnomalyLikelihood.class, new HTMAnalysis.AnomalyLikelihoodJsonAdapter())
+                                                    .registerTypeAdapter(Converters.DATE_TIME_TYPE, new DateTimeConverter())
                                                     .create();
     
     @Override
     public byte[] fromKey(StatusKey key) throws IOException {
         return parser.toJson(key, StatusKey.class).getBytes();
     }
-
     @Override
     public StatusKey toKey(byte[] bytes) throws IOException {
         return parser.fromJson(new String(bytes), StatusKey.class);
