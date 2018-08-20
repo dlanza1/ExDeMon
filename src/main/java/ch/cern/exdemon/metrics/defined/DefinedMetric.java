@@ -4,6 +4,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -51,6 +53,8 @@ public final class DefinedMetric extends Component {
     private Map<String, String> triggeringAttributes;
     private Map<String, String> variableAttributes;
 
+    private HashSet<String> lastSourceMetricsVariables;
+
     public DefinedMetric() {
     }
     
@@ -97,6 +101,17 @@ public final class DefinedMetric extends Component {
             
             confResult.merge("variables."+variableName, variableCreatioinResult.getConfigResult());
         }
+		
+		if(properties.containsKey("metrics.last_source_metrics.variables")) {
+		    lastSourceMetricsVariables = new HashSet<>(Arrays.asList(properties.getProperty("metrics.last_source_metrics.variables").split("\\s")));
+		    
+		    lastSourceMetricsVariables.forEach(var -> {
+		        if(!variables.containsKey(var))
+	                confResult.withError("metrics.last_source_metrics.variables", "variable with name \""+var+"\" does not exist");
+		    });
+		}else {
+		    lastSourceMetricsVariables = null;
+		}
 	      
         fixedValueAttributes = properties.getSubset("metrics.attribute").entrySet().stream()      //TODO || DEPRECATED
                                     .filter(entry -> entry.getKey().toString().endsWith(".fixed") || !entry.getKey().toString().contains("."))
@@ -208,6 +223,20 @@ public final class DefinedMetric extends Component {
 		});
 		
 		Value value = equation.compute(stores, time);
+		
+		if(lastSourceMetricsVariables != null) {
+		    List<Metric> lastSourceMetrics = lastSourceMetricsVariables.stream().map(varName -> variables.get(varName))
+                                            		                                      .map(var -> var.compute(stores, time))
+                                            		                                      .map(val -> val.getLastSourceMetrics())
+                                            		                                      .filter(metrics -> metrics != null)
+                                            		                                      .flatMap(List::stream)
+                                                                                          .distinct()
+                                                                                          .collect(Collectors.toList());
+	        if(lastSourceMetrics.isEmpty())
+	            value.setLastSourceMetrics(null);
+	        else
+	            value.setLastSourceMetrics(lastSourceMetrics);
+		}
 			
 		return Optional.of(new Metric(time, value, attributes));
 	}

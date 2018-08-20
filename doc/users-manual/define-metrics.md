@@ -14,7 +14,8 @@ Configuration:
 ```
 metrics.define.<defined-metric-id>.value = <equation containing <variable-ids>> (default: <variable-id> if only one variable has been declared)
 metrics.define.<defined-metric-id>.when = <ANY|space separated list of metric variable-ids|BATCH|period like 1m, 10h or 3d> (default: ANY)
-metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/space separated attribute names> (default: not set)
+metrics.define.<defined-metric-id>.metrics.groupby = <not set|ALL|space separated attribute names> (default: not set)
+metrics.define.<defined-metric-id>.metrics.last_source_metrics.variables = <not set|space separated name of variables> (default: not set, so they come from computed value)
 # General filter for all metrics that update the variables (optional)
 metrics.define.<defined-metric-id>.metrics.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.metrics.filter.attribute.<attribute-name> = <value>
@@ -28,7 +29,7 @@ metrics.define.<defined-metric-id>.variables.<variable-id-1>.filter.attribute.<a
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.type = <not set|sum|avg|weighted_avg|count|successive_count|max|min|diff>
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.attributes = <not set|ALL|space separated list of attributes> (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.max-size = <maximum-aggregation-size> (default: 10000)
-metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.last_source_metrics.max-size = <size> (default: 0)
+metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.latest-metrics.max-size = <size> (default: 0)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.aggregate.history.granularity = <not set|d|h|m|s|ms>  (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.ignore = <not set|period like 1h, 3m or 45s[, truncate d, h, m]> (default: not set)
 metrics.define.<defined-metric-id>.variables.<variable-id-1>.expire = <never|period like 1h, 3m or 45s[, truncate d, h, m]> (default: 10m)
