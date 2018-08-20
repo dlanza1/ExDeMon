@@ -16,8 +16,8 @@ import org.apache.log4j.Logger;
 import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.components.RegisterComponentType;
 import ch.cern.exdemon.monitor.trigger.action.Action;
-import ch.cern.exdemon.monitor.trigger.action.Template;
 import ch.cern.exdemon.monitor.trigger.action.actuator.Actuator;
+import ch.cern.exdemon.monitor.trigger.action.template.Template;
 import ch.cern.properties.Properties;
 import lombok.ToString;
 
@@ -94,7 +94,7 @@ public class EmailActuator extends Actuator {
         }else {
             String textTemplate = "Monitor ID: <monitor_id>";
             textTemplate += "\n\nTrigger ID: <trigger_id>";
-            textTemplate += "\n\nMetric attributes: <metric_attributes>";
+            textTemplate += "\n\nMetric attributes: <attributes:.*>";
             textTemplate += "\n\nAt: <datetime>";
             textTemplate += "\n\nReason: <reason>";
             textTemplate += "\n\nTags: <tags>";

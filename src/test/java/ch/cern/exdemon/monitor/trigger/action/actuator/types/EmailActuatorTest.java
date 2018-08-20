@@ -15,7 +15,7 @@ import org.junit.Test;
 
 import ch.cern.exdemon.monitor.trigger.action.Action;
 import ch.cern.exdemon.monitor.trigger.action.ActionTest;
-import ch.cern.exdemon.monitor.trigger.action.Template;
+import ch.cern.exdemon.monitor.trigger.action.template.Template;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 

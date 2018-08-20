@@ -108,7 +108,7 @@ public class Monitor extends Component{
             result.addAnalysisParam("type", analysis.getClass().getAnnotation(RegisterComponentType.class).value());
             
             if(analysis.hasStatus())
-            		analysis.getStatus().ifPresent(s -> status.update(s));
+                analysis.getStatus().ifPresent(s -> status.update(s));
         }catch(Throwable e){
             result = AnalysisResult.buildWithStatus(Status.EXCEPTION, e.getClass().getSimpleName() + ": " + e.getMessage());
             LOG.error(e.getMessage(), e);

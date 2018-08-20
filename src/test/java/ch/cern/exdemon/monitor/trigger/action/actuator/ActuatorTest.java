@@ -15,7 +15,7 @@ import org.junit.Test;
 
 import ch.cern.exdemon.monitor.trigger.action.Action;
 import ch.cern.exdemon.monitor.trigger.action.ActionTest;
-import ch.cern.exdemon.monitor.trigger.action.Template;
+import ch.cern.exdemon.monitor.trigger.action.template.Template;
 import ch.cern.properties.ConfigurationException;
 
 public class ActuatorTest {
@@ -44,7 +44,7 @@ public class ActuatorTest {
     
     @Test
     public void template() {
-        String template = "<monitor_id> <trigger_id> <metric_attributes> <metric_attributes:a> <datetime> <reason> <tags> <tags:b>";
+        String template = "<monitor_id> <trigger_id> <attributes:.*> <attribute_value:a> <datetime> <reason> <tags> <tags:b>";
 
         Action action = ActionTest.DUMMY;
         action.setMonitor_id("M_ID");
