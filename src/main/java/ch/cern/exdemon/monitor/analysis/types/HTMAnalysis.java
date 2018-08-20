@@ -283,5 +283,3 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 		
 	}
 }
-
-
