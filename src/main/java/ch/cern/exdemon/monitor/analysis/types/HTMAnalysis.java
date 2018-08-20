@@ -7,17 +7,11 @@ import static org.numenta.nupic.algorithms.Anomaly.KEY_USE_MOVING_AVG;
 import static org.numenta.nupic.algorithms.Anomaly.KEY_WINDOW_SIZE;
 import static org.numenta.nupic.algorithms.Anomaly.VALUE_NONE;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.Serializable;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.net.util.Base64;
-import org.joda.time.DateTime;
 import org.numenta.nupic.FieldMetaType;
 import org.numenta.nupic.Parameters.KEY;
 import org.numenta.nupic.algorithms.Anomaly;
@@ -27,27 +21,13 @@ import org.numenta.nupic.algorithms.TemporalMemory;
 import org.numenta.nupic.encoders.DateEncoder;
 import org.numenta.nupic.encoders.MultiEncoder;
 import org.numenta.nupic.network.Inference;
-import org.numenta.nupic.network.ManualInput;
 import org.numenta.nupic.network.Network;
 import org.numenta.nupic.network.Persistence;
 import org.numenta.nupic.network.PersistenceAPI;
-import org.numenta.nupic.network.Region;
-import org.numenta.nupic.serialize.HTMObjectInput;
-import org.numenta.nupic.serialize.HTMObjectOutput;
-import org.numenta.nupic.serialize.SerialConfig;
-import org.numenta.nupic.serialize.SerializerCore;
-import org.numenta.nupic.model.Persistable;
-import org.numenta.nupic.util.NamedTuple;
-import org.nustaq.serialization.FSTConfiguration;
 
-import com.fatboyindustrial.gsonjodatime.Converters;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.InstanceCreator;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
@@ -63,8 +43,6 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
-import gnu.trove.list.TDoubleList;
-import gnu.trove.list.array.TDoubleArrayList;
 import lombok.ToString;
 
 
@@ -102,8 +80,7 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 	private AnomalyLikelihood anomalyLikelihood;
 	DateEncoder dateEncoder;
 	private HTMParameters networkParams;
-	
-	@SuppressWarnings("unchecked")
+
 	@Override
 	protected void config(Properties properties) throws ConfigurationException {
 		super.config(properties);	
@@ -126,17 +103,6 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 		
 		anomalyLikelihood = initAnomalyLikelihood(HTMParameters.getAnomalyLikelihoodParams());
 		network = buildNetwork();
-		
-		Map<String, Map<String, Object>> fieldEncodingMap = 
-				(Map<String, Map<String, Object>>) network.getParameters().get(KEY.FIELD_ENCODING_MAP);
-		
-		MultiEncoder me = MultiEncoder.builder()
-	            .name("")
-	            .build()
-	            .addMultipleEncoders(fieldEncodingMap);
-		network.lookup("Region 1").lookup("Layer 2/3").add(me);
-		
-		dateEncoder = me.getEncoderOfType(FieldMetaType.DATETIME);
 	}
 	
 	@Override
@@ -195,10 +161,6 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 
 	private Network buildNetwork(){
     	
-//		AnomalyLikelihood anomalyLikelihood = initAnomalyLikelihood(HTMParameters.getAnomalyLikelihoodParams()); 
-//    	Func1<ManualInput, ManualInput> AnomalyLikelihood = this.anomalyLikelihood(anomalyLikelihood);
-// 		AnomalyLikelihoodFunc anomalyLikelihood = new AnomalyLikelihoodFunc(errorThreshold, warningThreshold);
-    	
     	Network network = Network.create("Demo", this.networkParams.getParameters())    
     	    .add(Network.createRegion("Region 1")                       
     	    	.add(Network.createLayer("Layer 2/3", this.networkParams.getParameters())
@@ -206,6 +168,18 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
     	    		.add(new SpatialPooler())
     	    		.add(Anomaly.create())));
     	
+		@SuppressWarnings("unchecked")
+		Map<String, Map<String, Object>> fieldEncodingMap = 
+				(Map<String, Map<String, Object>>) network.getParameters().get(KEY.FIELD_ENCODING_MAP);
+    	
+    	MultiEncoder me = MultiEncoder.builder()
+	            .name("")
+	            .build()
+	            .addMultipleEncoders(fieldEncodingMap);
+		
+		network.lookup("Region 1").lookup("Layer 2/3").add(me);
+		
+		dateEncoder = me.getEncoderOfType(FieldMetaType.DATETIME);
     	return network;
 	}
 	
