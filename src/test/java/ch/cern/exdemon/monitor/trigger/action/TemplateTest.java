@@ -84,6 +84,39 @@ public class TemplateTest {
     }
     
     @Test
+    public void aggMetricsWithFilter() throws ConfigurationException, AddressException, MessagingException, IOException{
+        Action action = ActionTest.DUMMY;
+
+        AnalysisResult triggeringResult = new AnalysisResult();
+        Value value = new StringValue("VALUE");
+        List<Metric> lastSourceMetrics = new LinkedList<>();
+        
+        Map<String, String> ids1 = new HashMap<>();
+        ids1.put("status", "F");
+        Metric m1 = new Metric(Instant.EPOCH, new StringValue("v1"), ids1 );
+        lastSourceMetrics.add(m1);
+        Map<String, String> ids2 = new HashMap<>();
+        ids2.put("status", "F");
+        Metric m2 = new Metric(Instant.EPOCH, new StringValue("v2"), ids2 );
+        lastSourceMetrics.add(m2);
+        Map<String, String> ids3 = new HashMap<>();
+        ids3.put("status", "S");
+        Metric m3 = new Metric(Instant.EPOCH, new StringValue("v3"), ids3 );
+        lastSourceMetrics.add(m3);
+        value.setLastSourceMetrics(lastSourceMetrics);
+        
+        Map<String, String> ids = new HashMap<>();
+        Metric metric = new Metric(Instant.EPOCH, value, ids);
+        triggeringResult.setAnalyzedMetric(metric);
+        triggeringResult.setStatus(Status.OK, "");
+        action.setTriggeringResult(triggeringResult);
+        
+        assertEquals("1970-01-01 01:00:00:status=F value=\"v1\"\n" + 
+                     "1970-01-01 01:00:00:status=F value=\"v2\"\n", 
+                Template.apply("<agg_metrics><filter_expr:status = F><datetime>:status=<attribute_value:status> value=<value>\n</agg_metrics>", action));
+    }
+    
+    @Test
     public void aggMetricsEmpty() throws ConfigurationException, AddressException, MessagingException, IOException{
         Action action = ActionTest.DUMMY;
 

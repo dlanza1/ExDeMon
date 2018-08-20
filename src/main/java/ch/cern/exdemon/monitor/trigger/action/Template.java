@@ -15,7 +15,9 @@ import java.util.stream.Collectors;
 import com.esotericsoftware.minlog.Log;
 
 import ch.cern.exdemon.metrics.Metric;
+import ch.cern.exdemon.metrics.filter.MetricsFilter;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
+import ch.cern.properties.Properties;
 import ch.cern.utils.TimeUtils;
 import lombok.NonNull;
 
@@ -186,11 +188,23 @@ public class Template {
         	String metricTemplate = template.substring(startAggMetrics + 13, endAggMetrics);
         	String postText = template.substring(endAggMetrics + 14);
         	
+        	MetricsFilter metricsFilter = new MetricsFilter();
+            Properties props = new Properties();
+        	Matcher filter_exprMatcher = Pattern.compile("\\<filter_expr:([^>]+)\\>").matcher(metricTemplate);     
+        	if(filter_exprMatcher.find()) {
+        	    String filterExpression = filter_exprMatcher.group(1);
+        	    props.setProperty("expr", filterExpression);
+        	    
+        	    metricTemplate = metricTemplate.replaceAll("\\<filter_expr:"+Pattern.quote(filterExpression)+"\\>", "");
+        	}
+        	metricsFilter.config(props);
+        	
         	List<Metric> lastSourceMetrics = triggeringResult.getAnalyzed_metric().getValue().getLastSourceMetrics();
         	if(lastSourceMetrics == null || lastSourceMetrics.isEmpty()) {
         		template = preText + "No aggregated metrics." + postText;
         		break;
         	}
+        	lastSourceMetrics.removeIf(metric -> !metricsFilter.test(metric));
         		
         	String metricsText = "";
         	for (Metric metric : lastSourceMetrics) {
