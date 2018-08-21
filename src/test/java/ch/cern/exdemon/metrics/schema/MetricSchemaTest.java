@@ -90,6 +90,20 @@ public class MetricSchemaTest {
     }
     
     @Test
+    public void warningWhenFilterWithNonExistingAttribute() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty(SOURCES_PARAM, "test");
+        props.setProperty(ATTRIBUTES_PARAM + ".version.key", "metadata.version");
+        props.setProperty("value.type_prefix.key", "metadata.type_prefix");
+
+        props.setProperty(FILTER_PARAM + ".attribute.version", "001");
+        props.setProperty(FILTER_PARAM + ".attribute.noExist1", "001");
+        props.setProperty(FILTER_PARAM + ".attribute.noExist2", "001");
+
+        assertEquals("filtering with attributes [noExist2, noExist1] not configured in the schema", schema.config(props).getWarnings().get(0).getMessage());
+    }
+    
+    @Test
     public void shouldGenerateSeveralMetricsWithSeveralValues() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty(SOURCES_PARAM, "test");
