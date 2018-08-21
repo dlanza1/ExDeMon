@@ -1,6 +1,8 @@
 package ch.cern.spark.status.storage.manager;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,8 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
     private static final long serialVersionUID = -6756122444455084725L;
     
     private transient final static Logger LOG = Logger.getLogger(ZookeeperStatusesOperationsReceiver.class.getName());
+
+    protected static final Duration OPERATION_EXPIRATION_PERIOD = Duration.ofMinutes(10);
     
     public static String PARAM = "spark.statuses.operations.zookeeper";
     
@@ -118,7 +122,7 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
                     String path = event.getData().getPath();
                     byte[] data = event.getData().getData();
                     
-                    if(path.endsWith("/ops")) {
+                    if(isNotExpiredOperation(event)) {
                     	String rootPath = path.substring(0, path.length() - "ops".length());
                         
                         try {
@@ -143,6 +147,18 @@ public class ZookeeperStatusesOperationsReceiver extends Receiver<StatusOperatio
                 default:
                     break;
                 }
+            }
+
+            private boolean isNotExpiredOperation(TreeCacheEvent event) {
+                String path = event.getData().getPath();
+                
+                if(!path.endsWith("/ops"))
+                    return false;
+                
+                Instant modificationTime = Instant.ofEpochMilli(event.getData().getStat().getMtime());
+                Instant expirationdAt = Instant.now().minus(OPERATION_EXPIRATION_PERIOD);
+                
+                return modificationTime.isAfter(expirationdAt);
             }
         };
         cache.getListenable().addListener(listener);
