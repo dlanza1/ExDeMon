@@ -4,11 +4,13 @@ import java.io.Serializable;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -145,6 +147,75 @@ public class MetricsFilter implements Predicate<Metric>, Serializable {
             return true;
 
         return attributesPredicate.test(attributes);
+    }
+    
+    public Set<String> getAttributesValuesWithEqualsForKey(String key){
+        HashSet<String> values = new HashSet<>();
+        
+        if(attributesPredicate == null)
+            return values;
+        
+        List<Predicate<Map<String, String>>> predicates = new LinkedList<>();
+        predicates.add(attributesPredicate);
+        
+        while(!predicates.isEmpty()) {
+            Predicate<Map<String, String>> predicate = predicates.remove(0);
+         
+            if(predicate instanceof AndPredicate) {
+                AndPredicate<Map<String, String>> andPredicate = (AndPredicate<Map<String, String>>) predicate;
+                
+                predicates.add(andPredicate.getPred1());
+                predicates.add(andPredicate.getPred2());
+            }else if(predicate instanceof OrPredicate) {
+                OrPredicate<Map<String, String>> orPredicate = (OrPredicate<Map<String, String>>) predicate;
+                
+                predicates.add(orPredicate.getPred1());
+                predicates.add(orPredicate.getPred2());
+            }else if(predicate instanceof EqualMetricPredicate) {
+                EqualMetricPredicate equalPredicate = (EqualMetricPredicate) predicate;
+                
+                if(equalPredicate.getKey().equals(key))
+                    values.add(equalPredicate.getValue().toString());
+            }
+        }
+        
+        return values;
+    }
+    
+    public Set<String> getFilteredAttributes(){
+        HashSet<String> values = new HashSet<>();
+        
+        if(attributesPredicate == null)
+            return values;
+        
+        List<Predicate<Map<String, String>>> predicates = new LinkedList<>();
+        predicates.add(attributesPredicate);
+        
+        while(!predicates.isEmpty()) {
+            Predicate<Map<String, String>> predicate = predicates.remove(0);
+         
+            if(predicate instanceof AndPredicate) {
+                AndPredicate<Map<String, String>> andPredicate = (AndPredicate<Map<String, String>>) predicate;
+                
+                predicates.add(andPredicate.getPred1());
+                predicates.add(andPredicate.getPred2());
+            }else if(predicate instanceof OrPredicate) {
+                OrPredicate<Map<String, String>> orPredicate = (OrPredicate<Map<String, String>>) predicate;
+                
+                predicates.add(orPredicate.getPred1());
+                predicates.add(orPredicate.getPred2());
+            }else if(predicate instanceof EqualMetricPredicate) {
+                EqualMetricPredicate equalPredicate = (EqualMetricPredicate) predicate;
+                
+                values.add(equalPredicate.getKey());
+            }else if(predicate instanceof NotEqualMetricPredicate) {
+                NotEqualMetricPredicate notEqualPredicate = (NotEqualMetricPredicate) predicate;
+                
+                values.add(notEqualPredicate.getKey());
+            }
+        }
+        
+        return values;
     }
 
 }
