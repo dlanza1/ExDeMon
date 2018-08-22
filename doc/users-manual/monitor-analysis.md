@@ -140,11 +140,11 @@ Filter metrics with float values.
 
 We used this technology to try determine the status of the metrics. We implemented it using the [htm.java](https://github.com/numenta/htm.java) library that is supported by the numenta comunity.
 
-Every time that a [Metric](metric-sources.md) come from the stream an Anomalylikelihood score is calculated and, if is higher than a choosen thresholds, the metric is setted as WARNING or ERROR otherwise is setted as OK.
+Every time that a [Metric](metric-sources.md) come from the stream an anomaly likelihood score is calculated and, if is higher than a choosen thresholds, the metric is set as WARNING or ERROR otherwise is set as OK.
 
-To calculate the AnomalyLikelihood the algorithm need a learning phase of 200 metric, during this phase the metric status is setted to EXCEPTION.
+To calculate the anomaly likelihood score the algorithm need a learning phase of 200 metric, during this phase the metric status is set to EXCEPTION.
 
-The user can set two threshold one for WARNINGS and one for ERRORS. The ERROR threshold MUST be higher than the WARNING threshold, a configuration error will be setted otherwise. 
+The user can set two threshold one for WARNINGS and one for ERRORS. The ERROR threshold MUST be higher than the WARNING threshold, a configuration error will be set otherwise. 
 
 Configuration example: 
 ```

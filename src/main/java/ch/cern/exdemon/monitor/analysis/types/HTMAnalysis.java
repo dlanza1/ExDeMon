@@ -120,6 +120,8 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 			anomalyLikelihood = initAnomalyLikelihood(HTMParameters.getAnomalyLikelihoodParams());
 			network = buildNetwork();
 		}
+		learningPhaseCounter = 0;
+		
 		return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
 	}
 	
@@ -155,7 +157,7 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 		m.put("timestamp", dateEncoder.parse(timestamp.toString()));
 		m.put("value", value);
 		Inference i = network.computeImmediate(m);
-		learningPhaseCounter++;
+		learningPhaseCounter = isLearningPhase() ? learningPhaseCounter+1 : -1;
 		if(i == null)
 			results.setStatus(Status.EXCEPTION, "Inference is null");
 		else if(isLearningPhase()) {
@@ -184,7 +186,7 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 	
 	private boolean isLearningPhase() {
 		Map<String, Object> anomalyLikelihoodParams = HTMParameters.getAnomalyLikelihoodParams();
-		return learningPhaseCounter <= 
+		return  learningPhaseCounter >= 0 && learningPhaseCounter <= 
 				((int)anomalyLikelihoodParams.get(KEY_LEARNING_PERIOD) + (int)anomalyLikelihoodParams.get(KEY_ESTIMATION_SAMPLES));
 	}
 
