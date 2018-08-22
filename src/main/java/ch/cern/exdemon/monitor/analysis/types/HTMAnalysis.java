@@ -58,35 +58,34 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 	public static final String MAX_VALUE_PARAMS = "htm.max";
 	public static final float MAX_VALUE_DEFAULT = 1;
 	
-	public static final String TOD_PARAMS = "htm.timeofday";
+	public static final String TOD_PARAMS = "htm.season.timeofday";
 	public static final boolean TOD_DEFAULT = true;
 	
-	public static final String DOW_PARAMS = "htm.dateodweek";
+	public static final String DOW_PARAMS = "htm.season.dateofweek";
 	public static final boolean DOW_DEFAULT = false;
 	
-	public static final String WEEKEND_PARAMS = "htm.weekend";
+	public static final String WEEKEND_PARAMS = "htm.season.weekend";
 	public static final boolean WEEKEND_DEFAULT = false;
-	
-	public static final String TIMESTAMP_FORMAT = "timestamp.format";
-	public static final String TIMESTAMP_DEFAULT = "YYYY-MM-dd'T'HH:mm:ssZ";
 	
 	public static final String ERROR_THRESHOLD_PARAMS = "error.threshold";
 	public static final float ERROR_THRESHOLD_DEFAULT = (float) 0.999;
 	public double errorThreshold;
 	
-	public static final String WARNING_THRESHOLD_PARAMS = "warning.threshold";
+	public static final String WARNING_THRESHOLD_PARAMS = "warn.threshold";
 	public static final float WARNING_THRESHOLD_DEFAULT = (float) 0.9;
 	public double warningThreshold;
 
 	private Network network;
 	private AnomalyLikelihood anomalyLikelihood;
+	private int learningPhaseCounter;
 	DateEncoder dateEncoder;
 	private HTMParameters networkParams;
+	
 
 	@Override
 	protected ConfigurationResult config(Properties properties) {
 		ConfigurationResult confResult = super.config(properties);	
-		
+				
 		networkParams = new HTMParameters();
 		
 		float minValue = properties.getFloat(MIN_VALUE_PARAMS, MIN_VALUE_DEFAULT);
@@ -110,15 +109,18 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 		} catch (ConfigurationException e) {
 			confResult.withError(null, e);
 		}
-		String timeformat = properties.getProperty(TIMESTAMP_FORMAT, TIMESTAMP_DEFAULT);
 		
-		networkParams.setModelParameters(minValue, maxValue, timeOfDay, dateOfWeek, isWeekend, timeformat);
+		networkParams.setModelParameters(minValue, maxValue, timeOfDay, dateOfWeek, isWeekend);
 		
 		errorThreshold = properties.getFloat(ERROR_THRESHOLD_PARAMS, ERROR_THRESHOLD_DEFAULT);
 		warningThreshold = properties.getFloat(WARNING_THRESHOLD_PARAMS, WARNING_THRESHOLD_DEFAULT);
-				
-		anomalyLikelihood = initAnomalyLikelihood(HTMParameters.getAnomalyLikelihoodParams());
-		network = buildNetwork();
+		if(errorThreshold < warningThreshold)
+			confResult.withError(ERROR_THRESHOLD_PARAMS, "Error Threshold is lower than the warning treshold");
+		else {
+			anomalyLikelihood = initAnomalyLikelihood(HTMParameters.getAnomalyLikelihoodParams());
+			network = buildNetwork();
+		}
+		learningPhaseCounter = 0;
 		
 		return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
 	}
@@ -129,6 +131,7 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 			Status_ status_ = ((Status_) store);
 			network = status_.network;
 			anomalyLikelihood = status_.anomalyLikelihood;
+			learningPhaseCounter = status_.learningPhaseCounter;
 			network.restart();
 		}
 		
@@ -141,23 +144,27 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
         Status_ status = new Status_();
         status.network = network;
         status.anomalyLikelihood = anomalyLikelihood;
+        status.learningPhaseCounter = learningPhaseCounter;
         return status;
 	}
 
 	@Override
 	public AnalysisResult process(Instant timestamp, double value) {
-		//TODO: check the reasons
 		AnalysisResult results = new AnalysisResult();
+		double likelihood;
 		
 		Map<String, Object> m = new HashMap<>();
 		m.put("timestamp", dateEncoder.parse(timestamp.toString()));
 		m.put("value", value);
 		Inference i = network.computeImmediate(m);
-		
+		learningPhaseCounter = isLearningPhase() ? learningPhaseCounter+1 : -1;
 		if(i == null)
 			results.setStatus(Status.EXCEPTION, "Inference is null");
-		else {
-			double likelihood = anomalyLikelihood.anomalyProbability((double)m.get("value"), i.getAnomalyScore(),dateEncoder.parse(timestamp.toString()));
+		else if(isLearningPhase()) {
+			anomalyLikelihood.anomalyProbability((double)m.get("value"), i.getAnomalyScore(),dateEncoder.parse(timestamp.toString()));
+			results.setStatus(Status.EXCEPTION, "Algorithm is in the learning phase");
+		} else {
+			likelihood = anomalyLikelihood.anomalyProbability((double)m.get("value"), i.getAnomalyScore(),dateEncoder.parse(timestamp.toString()));
 			AnomaliesResults anomaliesResults = new AnomaliesResults(likelihood, errorThreshold, warningThreshold);
 			
 			if(anomaliesResults.isError())
@@ -175,6 +182,12 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 		}
 		
 		return results;
+	}
+	
+	private boolean isLearningPhase() {
+		Map<String, Object> anomalyLikelihoodParams = HTMParameters.getAnomalyLikelihoodParams();
+		return  learningPhaseCounter >= 0 && learningPhaseCounter <= 
+				((int)anomalyLikelihoodParams.get(KEY_LEARNING_PERIOD) + (int)anomalyLikelihoodParams.get(KEY_ESTIMATION_SAMPLES));
 	}
 
 	private Network buildNetwork(){
@@ -222,7 +235,8 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
     public static class Status_ extends StatusValue{
 		private static final long serialVersionUID = 1921682817162401606L;
         public Network network;
-        public AnomalyLikelihood anomalyLikelihood; 
+        public AnomalyLikelihood anomalyLikelihood;
+        public int learningPhaseCounter;
     }
     
 	public static class JsonAdapter implements JsonSerializer<Network>, JsonDeserializer<Network> {
