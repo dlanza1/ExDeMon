@@ -7,11 +7,16 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import lombok.Getter;
+
 public class EqualMetricPredicate implements Predicate<Map<String, String>>, Serializable {
 
 	private static final long serialVersionUID = 99926521342965096L;
 	
+	@Getter
 	private String key;
+	
+	@Getter
 	private Pattern value;
 
 	public EqualMetricPredicate(String key, String value) throws ParseException {

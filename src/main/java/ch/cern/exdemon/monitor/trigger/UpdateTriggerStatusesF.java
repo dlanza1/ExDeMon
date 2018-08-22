@@ -7,12 +7,12 @@ import java.util.Optional;
 
 import org.apache.spark.streaming.State;
 
-import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ComponentsCatalog;
 import ch.cern.exdemon.monitor.Monitor;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import ch.cern.exdemon.monitor.trigger.action.Action;
-import ch.cern.exdemon.monitor.trigger.action.Template;
+import ch.cern.exdemon.monitor.trigger.action.template.Template;
 import ch.cern.properties.Properties;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.UpdateStatusFunction;

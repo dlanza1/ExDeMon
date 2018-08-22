@@ -16,7 +16,7 @@ The following strings will be replaced by the action corresponding information:
 * &lt;datetime[:(utc:ms)[:period]]&gt;
 * &lt;reason&gt;
 * &lt;triggering\_value&gt;
-* &lt;agg\_metrics&gt; &lt;attribute\_value:key&gt; &lt;attributes:key\_regex&gt; &lt;value&gt; &lt;datetime&gt; &lt;/agg\_metrics&gt; (max size parameter: aggregate.latest-metrics.max-size)
+* &lt;source\_metrics&gt; &lt;filter\_expr:expression\_as\_in\_metrics\_filter&gt; &lt;attribute\_value:key&gt; &lt;attributes:key\_regex&gt; &lt;value&gt; &lt;datetime&gt; &lt;/source\_metrics&gt; (max size given by parameter: aggregate.last_source_metrics.max-size)
 * &lt;tags&gt; (will be replaced by the tag list)
 * &lt;tags:key&gt; (will be replaced by the value of the specified tag key)
 * &lt;analysis_param:key&gt; (will be replaced by the value of the specified analysis parameter key)

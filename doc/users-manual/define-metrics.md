@@ -14,7 +14,8 @@ Configuration:
 ```
 metrics.define.<defined-metric-id>.value = <equation containing <variable-ids>> (default: <variable-id> if only one variable has been declared)
 metrics.define.<defined-metric-id>.when = <ANY|space separated list of metric variable-ids|BATCH|period like 1m, 10h or 3d> (default: ANY)
-metrics.define.<defined-metric-id>.metrics.groupby = <not set/ALL/space separated attribute names> (default: not set)
+metrics.define.<defined-metric-id>.metrics.groupby = <not set|ALL|space separated attribute names> (default: not set)
+metrics.define.<defined-metric-id>.metrics.last_source_metrics.variables = <not set|space separated name of variables> (default: not set, so they come from computed value)
 # General filter for all metrics that update the variables (optional)
 metrics.define.<defined-metric-id>.metrics.filter.expr = <predicate with () | & = !=>
 metrics.define.<defined-metric-id>.metrics.filter.attribute.<attribute-name> = <value>

@@ -2,8 +2,11 @@ package ch.cern.util.function;
 
 import java.util.function.Predicate;
 
+import lombok.Getter;
+
 public class OrPredicate<T> implements Predicate<T>{
 	
+    @Getter
 	private Predicate<T> pred1, pred2;
 	
 	public OrPredicate(Predicate<T> pred1, Predicate<T> pred2) {

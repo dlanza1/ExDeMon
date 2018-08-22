@@ -65,11 +65,8 @@ public class ValueVariable extends Variable {
     public ConfigurationResult config(Properties properties, Optional<Class<? extends Value>> typeOpt) {
         ConfigurationResult confResult = super.config(properties, typeOpt);
         
-        try {
-            filter = MetricsFilter.build(properties.getSubset("filter"));
-        } catch (ConfigurationException e) {
-            confResult.withError("filter", e);
-        }
+        filter = new MetricsFilter();
+        confResult.merge("filter", filter.config(properties.getSubset("filter")));
 
         if (properties.containsKey("expire") && properties.getProperty("expire").toLowerCase().equals("never"))
             expire = null;
@@ -129,9 +126,16 @@ public class ValueVariable extends Variable {
 
         max_aggregation_size = (int) properties.getFloat("aggregate.max-size", MAX_SIZE_DEFAULT);
 
-        max_lastAggregatedMetrics_size = (int) properties.getFloat("aggregate.latest-metrics.max-size", 0);
+        max_lastAggregatedMetrics_size = (int) properties.getFloat("aggregate.last_source_metrics.max-size", 0);
+        //TODO DEPRECATED
+        if(max_lastAggregatedMetrics_size == 0)
+            max_lastAggregatedMetrics_size = (int) properties.getFloat("aggregate.latest-metrics.max-size", 0);
+        if(properties.containsKey("aggregate.latest-metrics.max-size"))
+            confResult.withWarning("aggregate.latest-metrics.max-size", "is deprecated, use aggregate.last_source_metrics.max-size");
+        //TODO DEPRECATED
+        
         if(max_lastAggregatedMetrics_size > 100) {
-            confResult.withWarning("aggregate.latest-metrics.max-size", "can be maximun 100, new value = 100");
+            confResult.withWarning("aggregate.last_source_metrics.max-size", "can be maximun 100, new value = 100");
             
             max_lastAggregatedMetrics_size = 100;
         }

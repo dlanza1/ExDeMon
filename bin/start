@@ -41,7 +41,8 @@ $SPARK_CMD \
 		--executor-memory 2G \
 		--executor-cores 1 \
 		--class ch.cern.exdemon.Driver \
-		--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:$SPARK_VERSION,org.reflections:reflections:0.9.9,org.apache.curator:curator-recipes:2.7.1,com.sun.mail:javax.mail:1.6.1 \
+		--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:$SPARK_VERSION,org.reflections:reflections:0.9.9,org.apache.curator:curator-recipes:2.7.1,com.sun.mail:javax.mail:1.6.1,org.numenta:htm.java:0.6.13 \
+		--exclude-packages algorithmfoundry:algorithmfoundry-shade-culled \
 		--jars $JARS \
 		--files "$HOME/conf/exdemon.properties,$HOME/conf/log4j.properties" \
 		--conf spark.yarn.submit.waitAppCompletion=false \

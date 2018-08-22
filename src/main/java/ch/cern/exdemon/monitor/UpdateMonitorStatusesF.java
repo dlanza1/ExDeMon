@@ -19,7 +19,7 @@ public class UpdateMonitorStatusesF extends UpdateStatusFunction<MonitorStatusKe
     private Properties componentsSourceProperties;
     
     public UpdateMonitorStatusesF(Properties componentsSourceProperties) {
-    		this.componentsSourceProperties = componentsSourceProperties;
+        this.componentsSourceProperties = componentsSourceProperties;
     }
     
     @Override

@@ -23,7 +23,6 @@ import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
 import ch.cern.exdemon.metrics.value.ExceptionValue;
 import ch.cern.exdemon.metrics.value.Value;
-import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.utils.ExceptionsCache;
 import ch.cern.utils.Pair;
@@ -41,7 +40,7 @@ public final class MetricSchema extends Component {
     private List<String> sources;
     
     public static String ATTRIBUTES_PARAM = "attributes";
-    protected List<AttributeDescriptor> attributes;
+    protected Map<String, AttributeDescriptor> attributes;
 
     public static String VALUES_PARAM = "value";
     protected List<ValueDescriptor> values;
@@ -86,7 +85,7 @@ public final class MetricSchema extends Component {
         if (values.isEmpty())
             confResult.withError(VALUES_PARAM , ConfigurationResult.MUST_BE_CONFIGURED_MSG);
 
-        attributes = new LinkedList<>();
+        attributes = new HashMap<>();
         Properties attributesProps = properties.getSubset(ATTRIBUTES_PARAM);
         if(!attributesProps.containsKey("$schema") && !attributesProps.containsKey("$schema.value"))
             attributesProps.setProperty("$schema.value", getId());
@@ -118,14 +117,16 @@ public final class MetricSchema extends Component {
             AttributeDescriptor attDescriptor = new AttributeDescriptor(attributeAlias);
             confResult.merge(ATTRIBUTES_PARAM + "." + attributeAlias, attDescriptor.config(attributesProps.getSubset(attributeAlias)));
             
-            attributes.add(attDescriptor);
+            attributes.put(attributeAlias, attDescriptor);
         }
 
-        try {
-            filter = MetricsFilter.build(properties.getSubset(FILTER_PARAM));
-        } catch (ConfigurationException e) {
-            confResult.withError(FILTER_PARAM, e);
-        }
+        filter = new MetricsFilter();
+        confResult.merge(FILTER_PARAM, filter.config(properties.getSubset(FILTER_PARAM)));
+        
+        Set<String> filteringAttributes = filter.getFilteredAttributes();
+        filteringAttributes.removeIf(attName -> attributes.containsKey(attName));
+        if(!filteringAttributes.isEmpty())
+            confResult.withWarning(FILTER_PARAM, "filtering with attributes "+filteringAttributes+" not configured in the schema");
         
         return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
     }
@@ -133,7 +134,7 @@ public final class MetricSchema extends Component {
     public List<Metric> call(JSON jsonObject) {        
         try {
             Map<String, String> attributesForMetric = new HashMap<>();
-            for (AttributeDescriptor attributeDescriptor : attributes)
+            for (AttributeDescriptor attributeDescriptor : attributes.values())
                 attributesForMetric.putAll(attributeDescriptor.extract(jsonObject));
             
             if(!filter.test(attributesForMetric))
@@ -183,7 +184,7 @@ public final class MetricSchema extends Component {
     }
 
     private Map<String, String> getFixedValueAttributes() {
-        return attributes.stream().filter(att -> att.getFixedValue() != null)
+        return attributes.values().stream().filter(att -> att.getFixedValue() != null)
                   .map(att -> new Pair<>(att.getAlias(), att.getFixedValue()))
                   .collect(Collectors.toMap(Pair::first, Pair::second));
     }

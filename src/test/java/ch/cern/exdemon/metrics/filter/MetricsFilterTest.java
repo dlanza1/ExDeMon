@@ -1,6 +1,7 @@
 package ch.cern.exdemon.metrics.filter;
 
 import static ch.cern.exdemon.metrics.MetricTest.Metric;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -8,7 +9,9 @@ import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,7 +27,8 @@ public class MetricsFilterTest {
         Properties props = new Properties();
         props.setProperty("timestamp.expire", "24h");
         props.setProperty("expr", "K1=V1");
-        MetricsFilter filter = MetricsFilter.build(props);
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
 
         assertTrue(filter.test(Metric(Instant.now(), 0, "K1=V1")));
         assertFalse(filter.test(Metric(Instant.now().minus(Duration.ofHours(12)), 0, "K1=V2")));
@@ -54,7 +58,8 @@ public class MetricsFilterTest {
         props.setProperty("expr", "K1.K11=V1");
         props.setProperty("attribute.K2.K21", "V2");
         props.setProperty("attribute.K2.K22", "V3");
-        MetricsFilter filter = MetricsFilter.build(props);
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
 
         assertTrue(filter.test(Metric(0, 0, "K1.K11=V1", "K2.K21=V2", "K2.K22=V3")));
         assertTrue(filter.test(Metric(0, 0, "K1.K11=V1", "K2.K21=V2", "K2.K22=V3", "K4.K41=V4")));
@@ -71,7 +76,8 @@ public class MetricsFilterTest {
         props.setProperty("expr", "K1=V1");
         props.setProperty("attribute.K2", "V2");
         props.setProperty("attribute.K3", "V3");
-        MetricsFilter filter = MetricsFilter.build(props);
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
 
         assertTrue(filter.test(Metric(0, 0, "K1=V1", "K2=V2", "K3=V3")));
         assertTrue(filter.test(Metric(0, 0, "K1=V1", "K2=V2", "K3=V3", "K4=V4")));
@@ -86,7 +92,8 @@ public class MetricsFilterTest {
     public void filterMultiValue() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty("attribute.K1", "\"V1\" \"V2\"");
-        MetricsFilter filter = MetricsFilter.build(props);
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
 
         assertTrue(filter.test(Metric(0, 0, "K1=V1")));
         assertTrue(filter.test(Metric(0, 0, "K1=V2")));
@@ -97,7 +104,8 @@ public class MetricsFilterTest {
     public void filterMultiValueSimpleQuotes() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty("attribute.K1", "'V1' 'V2'");
-        MetricsFilter filter = MetricsFilter.build(props);
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
 
         assertTrue(filter.test(Metric(0, 0, "K1=V1")));
         assertTrue(filter.test(Metric(0, 0, "K1=V2")));
@@ -108,7 +116,8 @@ public class MetricsFilterTest {
     public void filterMultiValueNegated() throws ParseException, ConfigurationException {
         Properties props = new Properties();
         props.setProperty("attribute.K1", "!\"V1\" \"V2\"");
-        MetricsFilter filter = MetricsFilter.build(props);
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
 
         assertFalse(filter.test(Metric(0, 0, "K1=V1")));
         assertFalse(filter.test(Metric(0, 0, "K1=V2")));
@@ -227,5 +236,43 @@ public class MetricsFilterTest {
         ids.put("K2", "NO");
         Assert.assertFalse(filter.test(metric));
     }
-
+    
+    @Test
+    public void getFilteredAttributes() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty("expr", "K1a=V1 & K1b=.* | ( K1c=c & K1d=d )");
+        props.setProperty("attribute.K2", "V2");
+        props.setProperty("attribute.K3", "V3");
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
+    
+        Set<String> expected = new HashSet<>();
+        expected.add("K1a");
+        expected.add("K1b");
+        expected.add("K1c");
+        expected.add("K1d");
+        expected.add("K2");
+        expected.add("K3");
+        
+        assertEquals(expected, filter.getFilteredAttributes());
+    }
+    
+    @Test
+    public void getAttributesValuesWithEqualsForKey() throws ParseException, ConfigurationException {
+        Properties props = new Properties();
+        props.setProperty("expr", "$schema=1 & K1b=.* | ( $schema!=c & $schema=2 )");
+        props.setProperty("attribute.$schema", "'3' '4' '5'");
+        MetricsFilter filter = new MetricsFilter();
+        filter.config(props);
+    
+        Set<String> expected = new HashSet<>();
+        expected.add("1");
+        expected.add("2");
+        expected.add("3");
+        expected.add("4");
+        expected.add("5");
+        
+        assertEquals(expected, filter.getAttributesValuesWithEqualsForKey("$schema"));
+    }
+    
 }
