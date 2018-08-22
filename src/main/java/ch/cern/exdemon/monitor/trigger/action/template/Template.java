@@ -166,13 +166,13 @@ public class Template {
                 return "No aggregated metrics.";
             
             MetricsFilter metricsFilter = getMetricsFilter(globalMetricTemplate);
-            lastSourceMetrics.removeIf(metric -> !metricsFilter.test(metric));
+            List<Metric> metrics = lastSourceMetrics.stream().filter(metricsFilter::test).collect(Collectors.toList());
             
-            if(lastSourceMetrics == null || lastSourceMetrics.isEmpty())
+            if(metrics.isEmpty())
                 return "No aggregated metrics.";
                 
             String finalText = "";
-            for (Metric metric : lastSourceMetrics) {
+            for (Metric metric : metrics) {
                 TemplateString metricTemplate = globalMetricTemplate.clone();
                 
                 metricTemplate.replaceKeys("attribute_value", metric.getAttributes());
