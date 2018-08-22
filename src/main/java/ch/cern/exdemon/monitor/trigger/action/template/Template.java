@@ -35,7 +35,10 @@ public class Template {
         template.replace("monitor_id", action.getMonitor_id());
         template.replace("trigger_id", action.getTrigger_id());
         
+        //TODO DEPRECATED
         template.replaceContainer("agg_metrics", new AggregatedMetricsSupplier(action.getTriggeringResult()));
+        //TODO DEPRECATED
+        template.replaceContainer("source_metrics", new AggregatedMetricsSupplier(action.getTriggeringResult()));
         
         template.replaceKeys("attribute_value", action.getMetric_attributes());
         template.replaceKeys("attributes", new AttributesSupplier(action.getMetric_attributes()));
