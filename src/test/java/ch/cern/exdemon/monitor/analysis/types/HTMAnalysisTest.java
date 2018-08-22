@@ -7,11 +7,13 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import ch.cern.exdemon.monitor.analysis.types.htm.HTMParameters;
@@ -151,5 +153,17 @@ public class HTMAnalysisTest {
 			Assert.assertNotEquals(AnalysisResult.Status.EXCEPTION, result.getStatus());
 			status = htm.save();
 		}
+	}
+	
+	@Test
+	public void thresholdCheckingTest() throws ConfigurationException {
+		HTMAnalysis htm = new HTMAnalysis();
+		Properties prop = new Properties();
+		prop.setProperty(HTMAnalysis.ERROR_THRESHOLD_PARAMS, Float.toString(0.8f));
+		prop.setProperty(HTMAnalysis.WARNING_THRESHOLD_PARAMS, Float.toString(0.9f));
+		
+		ConfigurationResult confResult = htm.config(prop);
+		List<ConfigurationException> errors = confResult.getErrors();
+		Assert.assertEquals(HTMAnalysis.ERROR_THRESHOLD_PARAMS, errors.get(0).getParameter());
 	}
 }

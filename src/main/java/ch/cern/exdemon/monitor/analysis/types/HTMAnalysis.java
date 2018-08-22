@@ -114,11 +114,12 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 		
 		errorThreshold = properties.getFloat(ERROR_THRESHOLD_PARAMS, ERROR_THRESHOLD_DEFAULT);
 		warningThreshold = properties.getFloat(WARNING_THRESHOLD_PARAMS, WARNING_THRESHOLD_DEFAULT);
-		//confResult.withError(parameter, exception)
-				
-		anomalyLikelihood = initAnomalyLikelihood(HTMParameters.getAnomalyLikelihoodParams());
-		network = buildNetwork();
-		
+		if(errorThreshold < warningThreshold)
+			confResult.withError(ERROR_THRESHOLD_PARAMS, "Error Threshold is lower than the warning treshold");
+		else {
+			anomalyLikelihood = initAnomalyLikelihood(HTMParameters.getAnomalyLikelihoodParams());
+			network = buildNetwork();
+		}
 		return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
 	}
 	
