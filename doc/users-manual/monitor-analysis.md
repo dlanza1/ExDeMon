@@ -136,22 +136,31 @@ An example of the result of this analysis can be seen in the following image.
 ## Hierarchical Temporal Memory Analysis
 
 Filter metrics with float values.
-[Hierarchical Temporam Memory](https://numenta.org/hierarchical-temporal-memory/) is a new interesting theory that try to put the new knowledge about how human neocoartex works in a set of algorithms.
+[Hierarchical Temporam Memory](https://numenta.org/hierarchical-temporal-memory/) is a new interesting theory that try to put the new knowledge about how human neocortex works in a set of algorithms.
 
 We used this technology to try determine the status of the metrics. We implemented it using the [htm.java](https://github.com/numenta/htm.java) library that is supported by the numenta comunity.
 
-Every time that a [Metric](metric-sources.md) come from the strem an Anomalylikelihood score is calculated and, if is higher than a choosen thresholds, the metric is setted as WARNING or ERROR otherwise is setted as OK.
+Every time that a [Metric](metric-sources.md) come from the stream an Anomalylikelihood score is calculated and, if is higher than a choosen thresholds, the metric is setted as WARNING or ERROR otherwise is setted as OK.
 
-Configuration: 
+To calculate the AnomalyLikelihood the algorithm need a learning phase of 200 metric, during this phase the metric status is setted to EXCEPTION.
+
+The user can set two threshold one for WARNINGS and one for ERRORS. The ERROR threshold MUST be higher than the WARNING threshold, a configuration error will be setted otherwise. 
+
+Configuration example: 
 ```
 monitor.<monitor-id>.analysis.type = htm
 monitor.<monitor-id>.analysis.htm.min = <integer> (default: 0)
 monitor.<monitor-id>.analysis.htm.max = <integer> (default: 100)
-monitor.<monitor-id>.analysis.htm.timeofday = <true|false> (default: true)
-monitor.<monitor-id>.analysis.htm.dateodweek = <true|false> (default: false)
-monitor.<monitor-id>.analysis.htm.weekend = <true|false> (default: false)
+
+# Set true or false if the metric follow a pattern every day or not.
+monitor.<monitor-id>.analysis.htm.season.timeofday = <true|false> (default: true)
+# Set true or false if the metric follow a weekly pattern or not.
+monitor.<monitor-id>.analysis.htm.season.dateofweek = <true|false> (default: false)
+# Set true or false if you must take note of the weekend or not.
+monitor.<monitor-id>.analysis.htm.season.weekend = <true|false> (default: false)
+
 monitor.<monitor-id>.analysis.timestamp.format = <string> (default: YYYY-MM-dd'T'HH:mm:ssZ)
 monitor.<monitor-id>.analysis.error.threshold = <float> (default: 0.999)
-monitor.<monitor-id>.analysis.warning.threshold = <float> (default: 0.9)
+monitor.<monitor-id>.analysis.warn.threshold = <float> (default: 0.9)
 ```
 

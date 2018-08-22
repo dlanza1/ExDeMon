@@ -58,13 +58,13 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 	public static final String MAX_VALUE_PARAMS = "htm.max";
 	public static final float MAX_VALUE_DEFAULT = 1;
 	
-	public static final String TOD_PARAMS = "htm.timeofday";
+	public static final String TOD_PARAMS = "htm.season.timeofday";
 	public static final boolean TOD_DEFAULT = true;
 	
-	public static final String DOW_PARAMS = "htm.dateofweek";
+	public static final String DOW_PARAMS = "htm.season.dateofweek";
 	public static final boolean DOW_DEFAULT = false;
 	
-	public static final String WEEKEND_PARAMS = "htm.weekend";
+	public static final String WEEKEND_PARAMS = "htm.season.weekend";
 	public static final boolean WEEKEND_DEFAULT = false;
 	
 	public static final String ERROR_THRESHOLD_PARAMS = "error.threshold";

@@ -145,7 +145,7 @@ public class HTMAnalysisTest {
 			status = htm.save();
 		}
 		
-		//Testing if after the learning phase start work properly.
+		//Testing if after the learning phase algorithm start working properly.
 		for(int i = 1; i < 200; i++) {
 			htm.load(status);
 			metric = new Metric(Instant.now().truncatedTo(ChronoUnit.SECONDS), r.nextFloat(), new HashMap<String, String>());
