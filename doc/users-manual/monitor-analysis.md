@@ -136,9 +136,10 @@ An example of the result of this analysis can be seen in the following image.
 ## Hierarchical Temporal Memory Analysis
 
 Filter metrics with float values.
-[Hierarchical Temporam Memory](https://numenta.org/hierarchical-temporal-memory/) is a new interesting theory that try to put the new knowledge about how human neocoartex worksin a set of algorithms.
+[Hierarchical Temporam Memory](https://numenta.org/hierarchical-temporal-memory/) is a new interesting theory that try to put the new knowledge about how human neocoartex works in a set of algorithms.
 
 We used this technology to try determine the status of the metrics. We implemented it using the [htm.java](https://github.com/numenta/htm.java) library that is supported by the numenta comunity.
+
 Every time that a [Metric](metric-sources.md) come from the strem an Anomalylikelihood score is calculated and, if is higher than a choosen thresholds, the metric is setted as WARNING or ERROR otherwise is setted as OK.
 
 Configuration: 
