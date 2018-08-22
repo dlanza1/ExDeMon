@@ -35,7 +35,10 @@ public class Template {
         template.replace("monitor_id", action.getMonitor_id());
         template.replace("trigger_id", action.getTrigger_id());
         
+        //TODO DEPRECATED
         template.replaceContainer("agg_metrics", new AggregatedMetricsSupplier(action.getTriggeringResult()));
+        //TODO DEPRECATED
+        template.replaceContainer("source_metrics", new AggregatedMetricsSupplier(action.getTriggeringResult()));
         
         template.replaceKeys("attribute_value", action.getMetric_attributes());
         template.replaceKeys("attributes", new AttributesSupplier(action.getMetric_attributes()));
@@ -166,13 +169,13 @@ public class Template {
                 return "No aggregated metrics.";
             
             MetricsFilter metricsFilter = getMetricsFilter(globalMetricTemplate);
-            lastSourceMetrics.removeIf(metric -> !metricsFilter.test(metric));
+            List<Metric> metrics = lastSourceMetrics.stream().filter(metricsFilter::test).collect(Collectors.toList());
             
-            if(lastSourceMetrics == null || lastSourceMetrics.isEmpty())
+            if(metrics.isEmpty())
                 return "No aggregated metrics.";
                 
             String finalText = "";
-            for (Metric metric : lastSourceMetrics) {
+            for (Metric metric : metrics) {
                 TemplateString metricTemplate = globalMetricTemplate.clone();
                 
                 metricTemplate.replaceKeys("attribute_value", metric.getAttributes());
