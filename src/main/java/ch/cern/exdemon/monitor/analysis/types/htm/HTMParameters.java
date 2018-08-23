@@ -44,7 +44,8 @@ public class HTMParameters implements Persistable{
         
         fieldEncodings.get("timestamp").put(KEY.DATEFIELD_PATTERN.getFieldName(), TIMESTAMP_FORMAT);
 
-        p = Parameters.getEncoderDefaultParameters();
+        //p = Parameters.getEncoderDefaultParameters();
+        p = Parameters.getAllDefaultParameters();
         p.set(KEY.GLOBAL_INHIBITION, true);
         p.set(KEY.COLUMN_DIMENSIONS, new int[] { 2048 });
         p.set(KEY.INPUT_DIMENSIONS, new int[] { 2048 });

@@ -31,8 +31,8 @@ public class HTMAnalysisTest {
 	
 	private static final String DATA_FILE = "src/test/resources/write_mounts.csv";
 	private static final String OUTPUT_DATA_FILE = "src/test/resources/write_mounts_outputs.csv";
-	private static final int EXPECTED_ERRORS = 44;
-	private static final int EXPECTED_WARNINGS = 23;
+	private static final int EXPECTED_ERRORS = 16;
+	private static final int EXPECTED_WARNINGS = 8;
 	private static final String CSV_SPLIT_BY = ",";
 	private static final String TIME_FORMAT = "YYYY-MM-dd'T'HH:mm:ssZ";
 	
