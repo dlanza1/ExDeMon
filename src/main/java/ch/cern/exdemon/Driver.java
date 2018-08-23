@@ -2,7 +2,6 @@ package ch.cern.exdemon;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -22,18 +21,14 @@ import ch.cern.exdemon.components.ComponentBuildResult;
 import ch.cern.exdemon.components.ComponentTypes;
 import ch.cern.exdemon.components.source.ComponentsSource;
 import ch.cern.exdemon.metrics.Metric;
-import ch.cern.exdemon.metrics.ValueHistory;
 import ch.cern.exdemon.metrics.defined.DefinedMetricStatuskey;
 import ch.cern.exdemon.metrics.defined.DefinedMetrics;
-import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
-import ch.cern.exdemon.metrics.defined.equation.var.agg.AggregationValues;
 import ch.cern.exdemon.metrics.schema.MetricSchemas;
 import ch.cern.exdemon.metrics.source.MetricsSource;
 import ch.cern.exdemon.monitor.MonitorStatusKey;
 import ch.cern.exdemon.monitor.Monitors;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import ch.cern.exdemon.monitor.analysis.results.sink.AnalysisResultsSink;
-import ch.cern.exdemon.monitor.trigger.TriggerStatus;
 import ch.cern.exdemon.monitor.trigger.TriggerStatusKey;
 import ch.cern.exdemon.monitor.trigger.action.Action;
 import ch.cern.exdemon.monitor.trigger.action.actuator.Actuators;
@@ -229,16 +224,7 @@ public final class Driver {
 
         sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
         sparkConf.set("spark.extraListeners", ZookeeperJobListener.class.getName());
-
-        sparkConf.registerKryoClasses(Arrays.asList(
-                                DefinedMetricStatuskey.class, 
-                                MonitorStatusKey.class, 
-                                TriggerStatusKey.class,
-                                TriggerStatus.class, 
-                                ValueHistory.class, 
-                                VariableStatuses.class, 
-                                AggregationValues.class)
-                                .toArray(new Class[0]));
+        sparkConf.set("spark.kryo.registrator", "ch.cern.exdemon.SparkKryoRegistrator");
 
         String checkpointDir = properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT);
 

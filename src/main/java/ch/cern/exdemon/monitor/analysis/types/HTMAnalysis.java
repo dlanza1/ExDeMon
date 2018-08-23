@@ -78,7 +78,7 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 	private Network network;
 	private AnomalyLikelihood anomalyLikelihood;
 	private int learningPhaseCounter;
-	DateEncoder dateEncoder;
+	private DateEncoder dateEncoder;
 	private HTMParameters networkParams;
 	
 
