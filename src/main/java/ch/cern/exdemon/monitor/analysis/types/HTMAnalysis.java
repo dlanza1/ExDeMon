@@ -248,7 +248,8 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 			if(persistance == null)
 				persistance = Persistence.get();
 			
-			byte[] barray = persistance.storeAndGet(status);
+			status.preSerialize();
+            byte[] barray = persistance.serializer().serialize(status);
 			return new JsonPrimitive(Base64.encodeBase64String(barray));
 		}
 		
@@ -277,7 +278,8 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 			if(persistance == null)
 				persistance = Persistence.get();
 			
-			byte[] barray = persistance.write(status);
+			status.preSerialize();
+            byte[] barray = persistance.serializer().serialize(status);
 			return new JsonPrimitive(Base64.encodeBase64String(barray));
 		}
 		

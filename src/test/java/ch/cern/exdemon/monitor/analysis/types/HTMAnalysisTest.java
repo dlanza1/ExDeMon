@@ -38,7 +38,7 @@ public class HTMAnalysisTest {
 	
 	StatusSerializer serializer = new JSONStatusSerializer();
 	
-	//@Test
+	@Test
 	public void serializeNetworkTest() throws ConfigurationException, IOException {
 
 		
