@@ -92,6 +92,7 @@ public class MetricsFromFileReader implements Iterator<Metric> {
         DateTimeFormatter formatter = DateTimeFormat.forPattern(timeformat);
         DateTime dt = formatter.parseDateTime(splittedRow[0]);
         Instant instant = java.time.Instant.ofEpochMilli(dt.toInstant().getMillis());
+        
         Float value = Float.parseFloat(splittedRow[1]);
         return new Metric(instant, value, new HashMap<String, String>());
 	}

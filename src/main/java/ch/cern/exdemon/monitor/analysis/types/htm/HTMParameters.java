@@ -11,12 +11,17 @@ import org.numenta.nupic.Parameters.KEY;
 import org.numenta.nupic.model.Persistable;
 import org.numenta.nupic.util.Tuple;
 
+
+
 public class HTMParameters implements Persistable{
 	private static final long serialVersionUID = 4118240112485895557L;
+	
+	public static final String TIMESTAMP_FORMAT = "YYYY-MM-dd'T'HH:mm:ssZ";
+	
 	private Parameters p;
 	
 	public void setModelParameters(float minValue, float maxValue, boolean timeOfDay, 
-			boolean dateOfWeek, boolean isWeekend, String timeformat) {
+			boolean dateOfWeek, boolean isWeekend) {
 		Map<String, Map<String, Object>> fieldEncodings = setupEncoderMap(
                 null,
                 0, // n
@@ -37,9 +42,10 @@ public class HTMParameters implements Persistable{
         if(isWeekend)
         	fieldEncodings.get("timestamp").put(KEY.DATEFIELD_WKEND.getFieldName(), new Tuple(21,9.5));
         
-        fieldEncodings.get("timestamp").put(KEY.DATEFIELD_PATTERN.getFieldName(), timeformat);
+        fieldEncodings.get("timestamp").put(KEY.DATEFIELD_PATTERN.getFieldName(), TIMESTAMP_FORMAT);
 
-        p = Parameters.getEncoderDefaultParameters();
+        //p = Parameters.getEncoderDefaultParameters();
+        p = Parameters.getAllDefaultParameters();
         p.set(KEY.GLOBAL_INHIBITION, true);
         p.set(KEY.COLUMN_DIMENSIONS, new int[] { 2048 });
         p.set(KEY.INPUT_DIMENSIONS, new int[] { 2048 });

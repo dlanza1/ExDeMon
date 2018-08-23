@@ -1,4 +1,4 @@
-package ch.cern.exdemon.monitor.trigger.action;
+package ch.cern.exdemon.monitor.trigger.action.template;
 
 import static org.junit.Assert.assertEquals;
 
@@ -19,6 +19,8 @@ import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult.Status;
+import ch.cern.exdemon.monitor.trigger.action.Action;
+import ch.cern.exdemon.monitor.trigger.action.ActionTest;
 import ch.cern.exdemon.monitor.trigger.action.template.Template;
 import ch.cern.properties.ConfigurationException;
 
