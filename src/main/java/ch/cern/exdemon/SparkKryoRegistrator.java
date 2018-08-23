@@ -1,7 +1,9 @@
 package ch.cern.exdemon;
 
 import org.apache.spark.serializer.KryoRegistrator;
+import org.numenta.nupic.algorithms.AnomalyLikelihood;
 import org.numenta.nupic.model.Persistable;
+import org.numenta.nupic.network.Network;
 
 import com.esotericsoftware.kryo.Kryo;
 
@@ -28,6 +30,8 @@ public class SparkKryoRegistrator implements KryoRegistrator {
         kryo.register(AggregationValues.class);
         
         kryo.register(Persistable.class, new PersistableKryoSerializer());
+        kryo.register(Network.class, new PersistableKryoSerializer());
+        kryo.register(AnomalyLikelihood.class, new PersistableKryoSerializer());
     }
     
 }
