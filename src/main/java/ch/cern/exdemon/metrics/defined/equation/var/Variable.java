@@ -68,18 +68,18 @@ public abstract class Variable implements ValueComputable, Predicate<Metric> {
         
         resultFromVariables = new LinkedList<>();
         resultFromVariables.add(this);
-        for (String mergeVariablesName : mergeVariablesNames) {
-            Variable mergeVariable = variables.get(mergeVariablesName);
+        for (String mergeVariableName : mergeVariablesNames) {
+            Variable mergeVariable = variables.get(mergeVariableName);
             if(mergeVariable == null) {
-                try {
-                    mergeVariable = Variable.create(mergeVariablesName, variablesProperties, Optional.empty(), variables);
-                } catch (ConfigurationException e) {
-                    confResult.withError("merge.variables", e);
-                }
+                VariableCreationResult variableCreationResult = Variable.create(mergeVariableName, variablesProperties, Optional.empty(), variables);
+                if(variableCreationResult.getVariable().isPresent())
+                    mergeVariable = variableCreationResult.getVariable().get();
+                
+                confResult.merge("variables."+mergeVariableName, variableCreationResult.getConfigResult());
             }
             
             if(mergeVariable == null)
-                confResult.withError("merge.variables", "variable with name \""+mergeVariablesName+"\" does not exist");
+                confResult.withError("merge.variables", "variable with name \""+mergeVariableName+"\" does not exist");
             else
                 resultFromVariables.add(mergeVariable);
         }
@@ -136,10 +136,10 @@ public abstract class Variable implements ValueComputable, Predicate<Metric> {
 
     protected abstract Value compute(Optional<VariableStatus> statusValue, Instant time);
 
-    public static Variable create(String name, Properties variablesProperties, Optional<Class<? extends Value>> argumentTypeOpt, Map<String, Variable> variables) throws ConfigurationException {
-        Variable var = null;
-        
+    public static VariableCreationResult create(String name, Properties variablesProperties, Optional<Class<? extends Value>> argumentTypeOpt, Map<String, Variable> variables) {
         Properties properties = variablesProperties.getSubset(name);
+        
+        Variable var = null;
         
         if(argumentTypeOpt.isPresent() && argumentTypeOpt.get().equals(PropertiesValue.class)) {
             var = new PropertiesVariable(name, variables, variablesProperties);
@@ -151,12 +151,7 @@ public abstract class Variable implements ValueComputable, Predicate<Metric> {
             var = new ValueVariable(name, variables, variablesProperties);
         }
         
-        ConfigurationResult configResult = var.config(properties, argumentTypeOpt);
-        
-        if(!configResult.getErrors().isEmpty())
-            throw new ConfigurationException(name, configResult.getErrors().toString());
-        
-        return var;
+        return new VariableCreationResult(var, var.config(properties, argumentTypeOpt));
     }
     
     @ClassNameAlias("default-attribute-status")

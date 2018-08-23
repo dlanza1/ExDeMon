@@ -4,6 +4,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -17,6 +19,7 @@ import ch.cern.exdemon.components.ConfigurationResult;
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.Equation;
 import ch.cern.exdemon.metrics.defined.equation.var.Variable;
+import ch.cern.exdemon.metrics.defined.equation.var.VariableCreationResult;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatus;
 import ch.cern.exdemon.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.exdemon.metrics.filter.MetricsFilter;
@@ -50,6 +53,8 @@ public final class DefinedMetric extends Component {
     private Map<String, String> triggeringAttributes;
     private Map<String, String> variableAttributes;
 
+    private HashSet<String> lastSourceMetricsVariables;
+
     public DefinedMetric() {
     }
     
@@ -65,11 +70,8 @@ public final class DefinedMetric extends Component {
 		if(groupByVal != null)
 			metricsGroupBy = Arrays.stream(groupByVal.split(" ")).map(String::trim).collect(Collectors.toSet());
 		
-		try {
-            filter = MetricsFilter.build(properties.getSubset("metrics.filter"));
-        } catch (ConfigurationException e) {
-            confResult.withError("metrics.filter", e);
-        }
+		filter = new MetricsFilter();
+		confResult.merge("metrics.filter", filter.config(properties.getSubset("metrics.filter")));
 		
 		Properties variablesProperties = properties.getSubset("variables");
 		Set<String> variableNames = variablesProperties.getIDs();
@@ -94,14 +96,22 @@ public final class DefinedMetric extends Component {
 		    if(variables.containsKey(variableName))
 		        continue;
 		    
-            try {
-                Variable variable = Variable.create(variableName, variablesProperties, Optional.empty(), variables);
-                
-                variables.put(variableName, variable);
-            } catch (ConfigurationException e) {
-                return confResult.withError("variables", e);
-            }
+            VariableCreationResult variableCreatioinResult = Variable.create(variableName, variablesProperties, Optional.empty(), variables);
+            variableCreatioinResult.getVariable().ifPresent(var -> variables.put(variableName, var));
+            
+            confResult.merge("variables."+variableName, variableCreatioinResult.getConfigResult());
         }
+		
+		if(properties.containsKey("metrics.last_source_metrics.variables")) {
+		    lastSourceMetricsVariables = new HashSet<>(Arrays.asList(properties.getProperty("metrics.last_source_metrics.variables").split("\\s")));
+		    
+		    lastSourceMetricsVariables.forEach(var -> {
+		        if(!variables.containsKey(var))
+	                confResult.withError("metrics.last_source_metrics.variables", "variable with name \""+var+"\" does not exist");
+		    });
+		}else {
+		    lastSourceMetricsVariables = null;
+		}
 	      
         fixedValueAttributes = properties.getSubset("metrics.attribute").entrySet().stream()      //TODO || DEPRECATED
                                     .filter(entry -> entry.getKey().toString().endsWith(".fixed") || !entry.getKey().toString().contains("."))
@@ -119,10 +129,10 @@ public final class DefinedMetric extends Component {
                                     .collect(Collectors.toMap(Pair::first, Pair::second));
         variableAttributes.forEach((attribute, variable) -> {
             if(!variables.containsKey(variable))
-                confResult.withError("metrics.attribute"+attribute+".variable", "variable with name \""+variable+"\" does not exist");
+                confResult.withError("metrics.attribute."+attribute+".variable", "variable with name \""+variable+"\" does not exist");
             
             if(!variables.get(variable).returnType().equals(StringValue.class))
-                confResult.withError("metrics.attribute"+attribute+".variable", "variable \""+variable+"\" does not return string type");
+                confResult.withError("metrics.attribute."+attribute+".variable", "variable \""+variable+"\" does not return string type");
         });
 		
         try {
@@ -213,6 +223,20 @@ public final class DefinedMetric extends Component {
 		});
 		
 		Value value = equation.compute(stores, time);
+		
+		if(lastSourceMetricsVariables != null) {
+		    List<Metric> lastSourceMetrics = lastSourceMetricsVariables.stream().map(varName -> variables.get(varName))
+                                            		                                      .map(var -> var.compute(stores, time))
+                                            		                                      .map(val -> val.getLastSourceMetrics())
+                                            		                                      .filter(metrics -> metrics != null)
+                                            		                                      .flatMap(List::stream)
+                                                                                          .distinct()
+                                                                                          .collect(Collectors.toList());
+	        if(lastSourceMetrics.isEmpty())
+	            value.setLastSourceMetrics(null);
+	        else
+	            value.setLastSourceMetrics(lastSourceMetrics);
+		}
 			
 		return Optional.of(new Metric(time, value, attributes));
 	}

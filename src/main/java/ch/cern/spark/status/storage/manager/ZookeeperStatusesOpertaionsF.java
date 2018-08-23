@@ -71,7 +71,7 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 		
 		client.setData().forPath("/id=" + id + "/status", "DONE".getBytes());
 		
-		String[] ops = new String(client.getData().forPath("/id=" + id + "/ops")).split(" ");
+		String[] ops = new String(client.getData().forPath("/id=" + id + "/ops")).trim().split(" ");
 		
 		if(ops.length > 1) {
 			String leftOps = null;

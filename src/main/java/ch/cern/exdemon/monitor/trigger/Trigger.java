@@ -64,11 +64,8 @@ public abstract class Trigger extends Component implements Function<AnalysisResu
 
         tags = properties.getSubset("tags").toStringMap();
 
-        try {
-            filter = MetricsFilter.build(properties.getSubset("filter"));
-        } catch (ConfigurationException e) {
-            confResult.withError("filter", e);
-        }
+        filter = new MetricsFilter();
+        confResult.merge("filter", filter.config(properties.getSubset("filter")));
 
         try {
             silentPeriod = properties.getPeriod(SILENT_PERIOD_PARAM, Duration.ofSeconds(0));

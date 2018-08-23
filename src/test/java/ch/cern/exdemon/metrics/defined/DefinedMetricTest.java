@@ -817,6 +817,44 @@ public class DefinedMetricTest {
 	}
 	
     @Test
+    public void lastSourceMericsFromVariables() throws ConfigurationException, CloneNotSupportedException {
+        DefinedMetric definedMetric = new DefinedMetric("A");
+
+        Properties properties = newProperties();
+        properties.setProperty("metrics.last_source_metrics.variables", "var2 var3");
+        properties.setProperty("value", "var1 + var2");
+        properties.setProperty("when", "var1");
+        properties.setProperty("variables.var1.filter.attribute.A", "A");
+        properties.setProperty("variables.var1.aggregate.latest-metrics.max-size", "1");
+        properties.setProperty("variables.var2.filter.attribute.B", "B");
+        properties.setProperty("variables.var2.aggregate.latest-metrics.max-size", "1");
+        properties.setProperty("variables.var3.filter.attribute.C", "C");
+        properties.setProperty("variables.var3.aggregate.latest-metrics.max-size", "2");
+        definedMetric.config(properties);
+
+        VariableStatuses store = new VariableStatuses();
+
+        Instant batchTime = Instant.parse("2007-12-03T10:15:00.00Z");
+        
+        Metric metricA = Metric(batchTime.plus(Duration.ofMinutes(1)), 1f, "A=A");
+        definedMetric.updateStore(store, metricA, null);
+        
+        Metric metricB = Metric(batchTime.plus(Duration.ofMinutes(2)), 2f, "B=B");
+        definedMetric.updateStore(store, metricB, null);
+        
+        Metric metricC = Metric(batchTime.plus(Duration.ofMinutes(3)), 2f, "C=C");
+        definedMetric.updateStore(store, metricC, null);
+        
+        List<Metric> lastSourceMetrics = definedMetric.generateByUpdate(store, metricA, new HashMap<>()).get().getValue().getLastSourceMetrics();
+        
+        List<Metric> expectedLastSourceMetrics = new LinkedList<>();
+        expectedLastSourceMetrics.add(metricC);
+        expectedLastSourceMetrics.add(metricB);
+        
+        assertEquals(expectedLastSourceMetrics, lastSourceMetrics);
+    }
+	
+    @Test
     public void combineLastSourceMerics() throws ConfigurationException, CloneNotSupportedException {
         DefinedMetric definedMetric = new DefinedMetric("A");
 

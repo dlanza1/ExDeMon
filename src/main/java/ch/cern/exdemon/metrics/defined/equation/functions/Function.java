@@ -4,9 +4,9 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import ch.cern.exdemon.metrics.Metric;
 import ch.cern.exdemon.metrics.defined.equation.ValueComputable;
@@ -106,7 +106,9 @@ public abstract class Function implements ValueComputable{
 		
 		List<Metric> lastSourceMetrics = Arrays.stream(argumentValues).map(value -> value.getLastSourceMetrics())
 		                                                              .filter(metrics -> metrics != null)
-		                                                              .reduce(new LinkedList<>(), (a, b) -> { a.addAll(b); return a; } );
+		                                                              .flatMap(List::stream)
+		                                                              .distinct()
+		                                                              .collect(Collectors.toList());
 		if(lastSourceMetrics.size() > 0)
             result.setLastSourceMetrics(lastSourceMetrics);
 	}

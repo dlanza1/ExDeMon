@@ -1,0 +1,206 @@
+#!/bin/bash
+
+NL=$'\n'
+
+show_help(){
+	echo Arguments:
+	echo -h: help
+	echo "-s: show silent info (requires: -id)"
+	echo "-r: remove silent (requires: -id)"
+	echo "-l: list silent ids"
+	echo "-c: create silent (requires: -id, make use of -from, -to, -duration and -att-filter)"
+	echo "-id <id>: silent id"
+	echo "-from <YYYY-MM-DD'T'HH:MM>: optional when creating"
+	echo "-to <YYYY-MM-DD'T'HH:MM>: optional when creating"
+	echo "-duration <duration>: optional when creating (format like: 10m, 1h, 3d)"
+	echo "-att-filter <attribute=pattern>: optional when creating, IF NOT SPECIFIED all actions are silenced"
+}
+
+show_silent(){
+
+    if [ -z $ID ]
+    then
+        echo "Error: id is required" 
+        
+        show_help
+        exit
+    fi
+    
+    SILENCE_PATH="$SILENTS_PATH/id=${ID}"
+    
+    echo "Configuration result:"
+    zookeepercli --servers $ZK_HOST -c get "$SILENCE_PATH/config.result"
+    echo
+    
+    echo "Silenced actions:"
+    zookeepercli --servers $ZK_HOST -c get "$SILENCE_PATH/silenced.report"
+    echo
+}
+
+list_silents(){
+    ALL_SILENTS_PATHS=`zookeepercli --servers $ZK_HOST -c lsr $SILENTS_PATH | grep "/config$" | sed 's#/config##g'`
+    
+    echo "$ALL_SILENTS_PATHS"
+}
+
+create_silent(){
+
+    if [ -z $ID ]
+    then
+        echo "Error: id is required" 
+        
+        show_help
+        exit
+    fi
+    
+    CONFIG_JSON="{$NL"
+    
+    if ! [ -z $FROM ]
+    then
+        FROM=`echo $FROM | sed 's/T/ /g'`:00    
+        CONFIG_JSON="$CONFIG_JSON   \"from\":\"$FROM\",$NL"
+    fi
+    if ! [ -z $TO ]
+    then
+        TO=`echo $TO | sed 's/T/ /g'`:00    
+        CONFIG_JSON="$CONFIG_JSON   \"to\":\"$FROM\",$NL"
+    fi
+    if ! [ -z $DURATION ]
+    then    
+        CONFIG_JSON="$CONFIG_JSON   \"duration\":\"$DURATION\",$NL"
+    fi
+    
+    CONFIG_JSON="$CONFIG_JSON   \"filter\":{$NL"
+    for ATT_FILTER in $ATT_FILTERS
+    do
+        KEY=`echo $ATT_FILTER | cut -d = -f 1`
+        VALUE=`echo $ATT_FILTER | cut -d = -f 2`
+        
+        CONFIG_JSON="$CONFIG_JSON      \"attribute.$KEY\":\"$VALUE\",$NL"
+    done
+    CONFIG_JSON="$CONFIG_JSON      \"attribute.$monitor\":\".*\"$NL"        # to avoid the trailing comma in the json
+    CONFIG_JSON="$CONFIG_JSON   }$NL"
+    
+    CONFIG_JSON="$CONFIG_JSON}"
+    
+    CONFIG_PATH="$SILENTS_PATH/id=${ID}/config"
+    
+    zookeepercli --servers $ZK_HOST -c creater $CONFIG_PATH ""
+    echo "$CONFIG_JSON" | zookeepercli --servers $ZK_HOST -c set $CONFIG_PATH
+    
+    sleep 1
+    zookeepercli --servers $ZK_HOST -c get "$CONFIG_PATH.result"
+}
+
+remove_silent(){
+
+    if [ -z $ID ]
+    then
+        echo "Error: id is required" 
+        
+        show_help
+        exit
+    fi
+    
+    SILENCE_PATH="$SILENTS_PATH/id=${ID}"
+ 
+    zookeepercli --servers $ZK_HOST -c deleter --force "$SILENCE_PATH"
+    
+    echo Deleted $SILENCE_PATH   
+}
+
+process_args(){
+    OP=""
+    ID=""
+    FROM=""
+    TO=""
+    DURATION=""
+    ATT_FILTERS=""
+
+	POSITIONAL=()
+	while [[ $# -gt 0 ]]
+	do
+	key="$1"
+
+	case $key in
+		-h|--help)
+	    show_help
+	    exit
+		;;
+		-s|--show)
+        OP=show
+        shift
+        ;;
+        -r|--remove)
+        OP=remove
+        shift
+        ;;
+        -l|--list)
+        OP=list
+        shift
+        ;;
+        -c|--create)
+        OP=create
+        shift
+        ;;
+		-id|--id)
+        ID=$2
+        shift
+        shift
+        ;;
+        -from|--from)
+        FROM=$2
+        shift
+        shift
+        ;;
+        -to|--to)
+        TO=$2
+        shift
+        shift
+        ;;
+        -duration|--duration)
+        DURATION=$2
+        shift
+        shift
+        ;;
+        -att-filter|--attribute-filter)
+        ATT_FILTERS=$ATT_FILTERS$2$NL
+        shift
+        shift
+        ;;
+	    *)
+	    echo Unknown option: $1
+	    show_help
+	    exit 1
+	    ;;
+	esac
+	done
+	set -- "${POSITIONAL[@]}"
+}
+
+### MAIN ###
+
+process_args $@
+
+ZK_HOST=exdemon-zookeeper-01:2181,exdemon-zookeeper-02:2181,exdemon-zookeeper-03:2181
+
+SILENTS_PATH=/exdemon/components/type=silence
+
+if [ -z $OP ]
+then
+    echo "Error: operation is missing"
+    
+    show_help
+elif [ $OP == show ]
+then
+    show_silent
+elif [ $OP == list ]
+then
+    list_silents
+elif [ $OP == create ]
+then
+    create_silent
+elif [ $OP == remove ]
+then
+    remove_silent
+fi
