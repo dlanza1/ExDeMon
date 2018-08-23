@@ -86,6 +86,7 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 	private transient int learningPhaseCounter;
 	private transient DateEncoder dateEncoder;
 	
+	private PersistenceAPI persistance;
 
 	@Override
 	protected ConfigurationResult config(Properties properties) {
@@ -130,10 +131,11 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 	public void load(StatusValue store) {
 		if(store != null && (store instanceof Status_)) {
 			Status_ status_ = ((Status_) store);
-			network = status_.network;
-			anomalyLikelihood = status_.anomalyLikelihood;
+			
+			network = (Network) byteToPersistable(Base64.decodeBase64(status_.networkBase64));
+			anomalyLikelihood = (AnomalyLikelihood) byteToPersistable(Base64.decodeBase64(status_.anomalyLikelihoodBase64));
 			learningPhaseCounter = status_.learningPhaseCounter;
-			dateEncoder = status_.dateEncoder;
+			dateEncoder = (DateEncoder) byteToPersistable(Base64.decodeBase64(status_.dateEncoderBase64));
 			network.restart();
 		}
 		
@@ -144,11 +146,25 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 	@Override
 	public StatusValue save() {
         Status_ status = new Status_();
-        status.network = network;
-        status.anomalyLikelihood = anomalyLikelihood;
+        status.networkBase64 = Base64.encodeBase64String(persistableToByte(network));
+        status.anomalyLikelihoodBase64 = Base64.encodeBase64String(persistableToByte(anomalyLikelihood));
         status.learningPhaseCounter = learningPhaseCounter;
-        status.dateEncoder = dateEncoder;
+        status.dateEncoderBase64 = Base64.encodeBase64String(persistableToByte(dateEncoder));
         return status;
+	}
+	
+	private byte[] persistableToByte(Persistable pers) {
+		if(persistance == null)
+			persistance = Persistence.get();
+		
+		pers.preSerialize();
+        byte[] barray = persistance.serializer().serialize(pers);
+        return barray;
+	}
+	
+	private Persistable byteToPersistable(byte[] barray) {
+		Persistable pers = persistance.read(barray);
+		return pers;
 	}
 
 	@Override
@@ -240,9 +256,9 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
     @ClassNameAlias("anomaly-likelihood")
     public static class Status_ extends StatusValue{
 		private static final long serialVersionUID = 1921682817162401606L;
-        public Network network;
-        public AnomalyLikelihood anomalyLikelihood;
-        public DateEncoder dateEncoder;
+        public String networkBase64;
+        public String anomalyLikelihoodBase64;
+        public String dateEncoderBase64;
         public int learningPhaseCounter;
     }
     
@@ -269,7 +285,7 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 
 			byte[] bytes = Base64.decodeBase64(element.getAsString());
 			
-			Network status = persistance.read(bytes);
+			Persistable status = persistance.read(bytes);
 			return status;
 		}
 
