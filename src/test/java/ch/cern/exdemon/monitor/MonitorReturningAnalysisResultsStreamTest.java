@@ -8,7 +8,6 @@ import java.util.Optional;
 
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.junit.Before;
-import org.junit.Test;
 
 import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.components.ComponentsCatalog;
@@ -34,7 +33,7 @@ public class MonitorReturningAnalysisResultsStreamTest extends StreamTestHelper<
         ComponentsCatalog.reset();
 	}
 	
-	@Test
+	//@Test
 	public void monitorAndDefinedMetric() throws Exception {
         Properties properties = new Properties();
         properties.setProperty("spark.batch.time", "1m");
