@@ -133,25 +133,19 @@ public class HTMAnalysisTest {
 		Properties prop = new Properties();
 		htm.config(prop);
 		
-		
 		//Testing if the status for the learning phase is an Exception
 		AnalysisResult result;
-		StatusValue status = null;
 		for(int i = 0; i < learningPoints; i++) {
-			htm.load(status);
 			metric = new Metric(Instant.now().truncatedTo(ChronoUnit.SECONDS), r.nextFloat(), new HashMap<String, String>());
 			result = htm.process(metric.getTimestamp(), metric.getValue().getAsFloat().get());
 			Assert.assertEquals(AnalysisResult.Status.EXCEPTION, result.getStatus());
-			status = htm.save();
 		}
 		
 		//Testing if after the learning phase algorithm start working properly.
 		for(int i = 1; i < 200; i++) {
-			htm.load(status);
 			metric = new Metric(Instant.now().truncatedTo(ChronoUnit.SECONDS), r.nextFloat(), new HashMap<String, String>());
 			result = htm.process(metric.getTimestamp(), metric.getValue().getAsFloat().get());
 			Assert.assertNotEquals(AnalysisResult.Status.EXCEPTION, result.getStatus());
-			status = htm.save();
 		}
 	}
 	
@@ -166,4 +160,5 @@ public class HTMAnalysisTest {
 		List<ConfigurationException> errors = confResult.getErrors();
 		Assert.assertEquals(HTMAnalysis.ERROR_THRESHOLD_PARAMS, errors.get(0).getParameter());
 	}
+	
 }

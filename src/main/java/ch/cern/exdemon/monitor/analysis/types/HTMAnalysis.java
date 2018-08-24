@@ -135,7 +135,7 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 			network = (Network) byteToPersistable(Base64.decodeBase64(status_.networkBase64));
 			anomalyLikelihood = (AnomalyLikelihood) byteToPersistable(Base64.decodeBase64(status_.anomalyLikelihoodBase64));
 			learningPhaseCounter = status_.learningPhaseCounter;
-			dateEncoder = (DateEncoder) byteToPersistable(Base64.decodeBase64(status_.dateEncoderBase64));
+			
 			network.restart();
 		}
 		
@@ -149,7 +149,7 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
         status.networkBase64 = Base64.encodeBase64String(persistableToByte(network));
         status.anomalyLikelihoodBase64 = Base64.encodeBase64String(persistableToByte(anomalyLikelihood));
         status.learningPhaseCounter = learningPhaseCounter;
-        status.dateEncoderBase64 = Base64.encodeBase64String(persistableToByte(dateEncoder));
+        
         return status;
 	}
 	
@@ -233,6 +233,7 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 		network.lookup("Region 1").lookup("Layer 2/3").add(me);
 		
 		dateEncoder = me.getEncoderOfType(FieldMetaType.DATETIME);
+		
     	return network;
 	}
 	
@@ -258,7 +259,6 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 		private static final long serialVersionUID = 1921682817162401606L;
         public String networkBase64;
         public String anomalyLikelihoodBase64;
-        public String dateEncoderBase64;
         public int learningPhaseCounter;
     }
     
@@ -289,6 +289,5 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 			return status;
 		}
 
-		
 	}
 }
