@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ch.cern.utils.StringUtils;
 import scala.util.matching.Regex;
 
 public class TemplateString {
@@ -22,14 +23,17 @@ public class TemplateString {
     public void replace(String key, Object value) {
         key = "<".concat(key).concat(">");
         
-        template = template.replaceAll(Regex.quote(key), Matcher.quoteReplacement(String.valueOf(value)));
+        template = template.replaceAll(Regex.quote(key), StringUtils.removeTrailingZerosIfNumber(Matcher.quoteReplacement(String.valueOf(value))));
     }
 
     public void replaceKeys(String mainKey, Map<String, ?> attributes) {
         replaceKeys(mainKey, new ValueSupplier() {
             @Override
             public Object get(String key) {
-                return attributes != null ? attributes.get(key) : null;
+                if(attributes == null || !attributes.containsKey(key))
+                    return null;
+                
+                return StringUtils.removeTrailingZerosIfNumber(attributes.get(key).toString());
             }
         });
     }
@@ -40,9 +44,11 @@ public class TemplateString {
         while (matcher.find()) {
             String key = matcher.group(1);
             
-            Object value = valueSupplier != null ? valueSupplier.get(key) : null;
-            
-            replace(mainKey + ":" + key, value);
+            if(valueSupplier != null && valueSupplier.get(key) != null) {
+                String value = StringUtils.removeTrailingZerosIfNumber(valueSupplier.get(key).toString());
+                
+                replace(mainKey + ":" + key, value);
+            }
         }
     }
 

@@ -15,6 +15,7 @@ import javax.mail.internet.AddressException;
 import org.junit.Test;
 
 import ch.cern.exdemon.metrics.Metric;
+import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
@@ -58,14 +59,14 @@ public class TemplateTest {
         List<Metric> lastSourceMetrics = new LinkedList<>();
         
         Map<String, String> ids1 = new HashMap<>();
-        ids1.put("a1", "11");
-        ids1.put("a2", "12");
-		Metric m1 = new Metric(Instant.EPOCH, new StringValue("v1"), ids1 );
+        ids1.put("a1", "-1.0");
+        ids1.put("a2", "1.1");
+		Metric m1 = new Metric(Instant.EPOCH, new FloatValue(123.0), ids1 );
 		lastSourceMetrics.add(m1);
 		Map<String, String> ids2 = new HashMap<>();
-		ids2.put("a1", "21");
-		ids2.put("a2", "22");
-		Metric m2 = new Metric(Instant.EPOCH, new StringValue("v2"), ids2 );
+		ids2.put("a1", "2.0");
+		ids2.put("a2", "2.1");
+		Metric m2 = new Metric(Instant.EPOCH, new FloatValue(123.123), ids2 );
 		lastSourceMetrics.add(m2);
 		value.setLastSourceMetrics(lastSourceMetrics );
 		
@@ -76,12 +77,12 @@ public class TemplateTest {
 		action.setTriggeringResult(triggeringResult);
         
         assertEquals("Some text: "
-        				+ "1970-01-01 01:00:00:A1(=11), A2(=12):value=\"v1\":"
-        				+ "\na1 = 11"
-        				+ "\na2 = 12"
-        				+ "\n 1970-01-01 01:00:00:A1(=21), A2(=22):value=\"v2\":"
-        				+ "\na1 = 21"
-                        + "\na2 = 22"
+        				+ "1970-01-01 01:00:00:A1(=-1), A2(=1.1):value=123:"
+        				+ "\na1 = -1"
+        				+ "\na2 = 1.1"
+        				+ "\n 1970-01-01 01:00:00:A1(=2), A2(=2.1):value=123.123:"
+        				+ "\na1 = 2"
+                        + "\na2 = 2.1"
         				+ "\nOther text.", 
         		Template.apply("Some text:<agg_metrics> <datetime>:A1(=<attribute_value:a1>), A2(=<attribute_value:a2>):value=<value>:<attributes:a.+>\n</agg_metrics>Other text.", action));
     }

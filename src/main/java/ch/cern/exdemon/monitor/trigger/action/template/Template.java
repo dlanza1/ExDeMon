@@ -19,6 +19,7 @@ import ch.cern.exdemon.metrics.filter.MetricsFilter;
 import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 import ch.cern.exdemon.monitor.trigger.action.Action;
 import ch.cern.properties.Properties;
+import ch.cern.utils.StringUtils;
 import ch.cern.utils.TimeUtils;
 import lombok.NonNull;
 
@@ -87,7 +88,7 @@ public class Template {
                 StringBuilder sb = new StringBuilder();
                 
                 for(Map.Entry<String, String> att: matchingAttributes)
-                    sb.append("\n" + att.getKey() + " = " + att.getValue());
+                    sb.append("\n" + att.getKey() + " = " + StringUtils.removeTrailingZerosIfNumber(att.getValue()));
                 
                 return sb.toString();
             }else {

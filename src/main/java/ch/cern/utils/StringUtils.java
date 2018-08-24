@@ -74,4 +74,11 @@ public class StringUtils {
         return string.substring(0, fromIndex);
     }
 
+    public static String removeTrailingZerosIfNumber(String input) {
+        if(input.matches("^[-]?\\d+\\.[0]+$")) 
+            return input.replaceAll("0*$", "").replaceAll("\\.$", "");
+        else
+            return input;
+    }
+
 }
