@@ -54,7 +54,6 @@ public class JSONStatusSerializer implements StatusSerializer {
                                                     .registerTypeAdapter(VariableStatus.class, new HierarchyAdapter<Aggregation>())
                                                     .registerTypeAdapter(StatusKey.class, new HierarchyAdapter<StatusKey>())
                                                     .registerTypeAdapter(StatusValue.class, new HierarchyAdapter<StatusValue>())
-                                                    .registerTypeAdapter(Persistable.class, new HTMAnalysis.PersistableJsonAdapter())
                                                     .create();
     
     @Override
