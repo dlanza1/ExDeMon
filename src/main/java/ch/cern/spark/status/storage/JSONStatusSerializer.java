@@ -8,8 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.numenta.nupic.algorithms.AnomalyLikelihood;
-import org.numenta.nupic.network.Network;
+import org.numenta.nupic.model.Persistable;
 import org.reflections.Reflections;
 
 import com.google.gson.Gson;
@@ -55,8 +54,7 @@ public class JSONStatusSerializer implements StatusSerializer {
                                                     .registerTypeAdapter(VariableStatus.class, new HierarchyAdapter<Aggregation>())
                                                     .registerTypeAdapter(StatusKey.class, new HierarchyAdapter<StatusKey>())
                                                     .registerTypeAdapter(StatusValue.class, new HierarchyAdapter<StatusValue>())
-                                                    .registerTypeAdapter(Network.class, new HTMAnalysis.JsonAdapter())
-                                                    .registerTypeAdapter(AnomalyLikelihood.class, new HTMAnalysis.AnomalyLikelihoodJsonAdapter())
+                                                    .registerTypeAdapter(Persistable.class, new HTMAnalysis.PersistableJsonAdapter())
                                                     .create();
     
     @Override
