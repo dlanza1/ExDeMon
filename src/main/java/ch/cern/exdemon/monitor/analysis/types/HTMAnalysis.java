@@ -163,6 +163,9 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 	}
 	
 	private Persistable byteToPersistable(byte[] barray) {
+	    if(persistance == null)
+            persistance = Persistence.get();
+	    
 		Persistable pers = persistance.read(barray);
 		return pers;
 	}
