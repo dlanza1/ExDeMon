@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.numenta.nupic.model.Persistable;
 import org.reflections.Reflections;
 
 import com.google.gson.Gson;
@@ -36,7 +35,6 @@ import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.PropertiesValue;
 import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.exdemon.metrics.value.Value;
-import ch.cern.exdemon.monitor.analysis.types.HTMAnalysis;
 import ch.cern.exdemon.monitor.trigger.TriggerStatus;
 import ch.cern.exdemon.monitor.trigger.TriggerStatusKey;
 import ch.cern.exdemon.monitor.trigger.types.ConstantTrigger;
