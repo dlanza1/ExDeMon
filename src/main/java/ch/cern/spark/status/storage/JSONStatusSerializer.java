@@ -8,8 +8,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.numenta.nupic.algorithms.AnomalyLikelihood;
-import org.numenta.nupic.network.Network;
 import org.reflections.Reflections;
 
 import com.google.gson.Gson;
@@ -37,7 +35,6 @@ import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.PropertiesValue;
 import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.exdemon.metrics.value.Value;
-import ch.cern.exdemon.monitor.analysis.types.HTMAnalysis;
 import ch.cern.exdemon.monitor.trigger.TriggerStatus;
 import ch.cern.exdemon.monitor.trigger.TriggerStatusKey;
 import ch.cern.exdemon.monitor.trigger.types.ConstantTrigger;
@@ -55,8 +52,6 @@ public class JSONStatusSerializer implements StatusSerializer {
                                                     .registerTypeAdapter(VariableStatus.class, new HierarchyAdapter<Aggregation>())
                                                     .registerTypeAdapter(StatusKey.class, new HierarchyAdapter<StatusKey>())
                                                     .registerTypeAdapter(StatusValue.class, new HierarchyAdapter<StatusValue>())
-                                                    .registerTypeAdapter(Network.class, new HTMAnalysis.JsonAdapter())
-                                                    .registerTypeAdapter(AnomalyLikelihood.class, new HTMAnalysis.AnomalyLikelihoodJsonAdapter())
                                                     .create();
     
     @Override

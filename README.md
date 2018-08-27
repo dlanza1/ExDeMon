@@ -1,12 +1,12 @@
 # ExDeMon: extract, define and monitor metrics
 
-A general purpose metric monitor implemented with Apache Spark. [![coverage report](https://gitlab.cern.ch/TapeAnalytics/ExDeMon/badges/master/coverage.svg)](https://gitlab.cern.ch/TapeAnalytics/ExDeMon/commits/master)
+A general purpose metric monitor implemented with Apache Spark.
 
 Metrics can come from several sources like Kafka, results and actions can be sunk to Elastic or any other system, new metrics can be defined combining other metrics, different analysis can be applied, notifications, configuration can be updated without restarting, it can detect missing metrics, ...
 
 This tool was introduced at Spark Summit 2017 conference, you can watch the talk [here](https://www.youtube.com/watch?v=1IsMMmug5q0&feature=youtu.be&t=11m17s).
 
-[User's manual](./doc/users-manual/users-manual.md)
+## [User's manual](./doc/users-manual/users-manual.md)
 
 An example of a monitored metric can be observed in the following image. As it can be observed, thresholds around the value are calculated and statuses are generated if analyzed value exceed these limits. 
 Action can be triggered if certain statuses like error or warning are maintained during some time.    

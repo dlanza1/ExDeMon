@@ -20,6 +20,7 @@ import org.numenta.nupic.algorithms.SpatialPooler;
 import org.numenta.nupic.algorithms.TemporalMemory;
 import org.numenta.nupic.encoders.DateEncoder;
 import org.numenta.nupic.encoders.MultiEncoder;
+import org.numenta.nupic.model.Persistable;
 import org.numenta.nupic.network.Inference;
 import org.numenta.nupic.network.Network;
 import org.numenta.nupic.network.Persistence;
@@ -54,71 +55,74 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 	//TODO: check naming convention
 	public static final String MIN_VALUE_PARAMS = "htm.min";
 	public static final float MIN_VALUE_DEFAULT = 0;
+	private float minValue;
 	
 	public static final String MAX_VALUE_PARAMS = "htm.max";
 	public static final float MAX_VALUE_DEFAULT = 1;
+	private float maxValue;
 	
-	public static final String TOD_PARAMS = "htm.timeofday";
+	public static final String TOD_PARAMS = "htm.season.timeofday";
 	public static final boolean TOD_DEFAULT = true;
+	private boolean timeOfDay;
 	
-	public static final String DOW_PARAMS = "htm.dateodweek";
+	public static final String DOW_PARAMS = "htm.season.dateofweek";
 	public static final boolean DOW_DEFAULT = false;
+	private boolean dateOfWeek;
 	
-	public static final String WEEKEND_PARAMS = "htm.weekend";
+	public static final String WEEKEND_PARAMS = "htm.season.weekend";
 	public static final boolean WEEKEND_DEFAULT = false;
-	
-	public static final String TIMESTAMP_FORMAT = "timestamp.format";
-	public static final String TIMESTAMP_DEFAULT = "YYYY-MM-dd'T'HH:mm:ssZ";
+	private boolean isWeekend;
 	
 	public static final String ERROR_THRESHOLD_PARAMS = "error.threshold";
 	public static final float ERROR_THRESHOLD_DEFAULT = (float) 0.999;
 	public double errorThreshold;
 	
-	public static final String WARNING_THRESHOLD_PARAMS = "warning.threshold";
+	public static final String WARNING_THRESHOLD_PARAMS = "warn.threshold";
 	public static final float WARNING_THRESHOLD_DEFAULT = (float) 0.9;
 	public double warningThreshold;
 
-	private Network network;
-	private AnomalyLikelihood anomalyLikelihood;
-	DateEncoder dateEncoder;
-	private HTMParameters networkParams;
+	private transient Network network;
+	private transient AnomalyLikelihood anomalyLikelihood;
+	private transient int learningPhaseCounter;
+	private transient DateEncoder dateEncoder;
+	
+	private PersistenceAPI persistance;
 
 	@Override
 	protected ConfigurationResult config(Properties properties) {
 		ConfigurationResult confResult = super.config(properties);	
 		
-		networkParams = new HTMParameters();
+		minValue = properties.getFloat(MIN_VALUE_PARAMS, MIN_VALUE_DEFAULT);
+		maxValue = properties.getFloat(MAX_VALUE_PARAMS, MAX_VALUE_DEFAULT);
 		
-		float minValue = properties.getFloat(MIN_VALUE_PARAMS, MIN_VALUE_DEFAULT);
-		float maxValue = properties.getFloat(MAX_VALUE_PARAMS, MAX_VALUE_DEFAULT);
-		
-		boolean timeOfDay = TOD_DEFAULT;
+		timeOfDay = TOD_DEFAULT;
 		try {
 			timeOfDay = properties.getBoolean(TOD_PARAMS, TOD_DEFAULT);
 		} catch (ConfigurationException e) {
 			confResult.withError(null, e);
 		}
-		boolean dateOfWeek = DOW_DEFAULT;
+		dateOfWeek = DOW_DEFAULT;
 		try {
 			dateOfWeek = properties.getBoolean(DOW_PARAMS, DOW_DEFAULT);
 		} catch (ConfigurationException e) {
 			confResult.withError(null, e);
 		}
-		boolean isWeekend = WEEKEND_DEFAULT;
+		isWeekend = WEEKEND_DEFAULT;
 		try {
 			isWeekend = properties.getBoolean(WEEKEND_PARAMS, WEEKEND_DEFAULT);
 		} catch (ConfigurationException e) {
 			confResult.withError(null, e);
 		}
-		String timeformat = properties.getProperty(TIMESTAMP_FORMAT, TIMESTAMP_DEFAULT);
-		
-		networkParams.setModelParameters(minValue, maxValue, timeOfDay, dateOfWeek, isWeekend, timeformat);
 		
 		errorThreshold = properties.getFloat(ERROR_THRESHOLD_PARAMS, ERROR_THRESHOLD_DEFAULT);
 		warningThreshold = properties.getFloat(WARNING_THRESHOLD_PARAMS, WARNING_THRESHOLD_DEFAULT);
-				
-		anomalyLikelihood = initAnomalyLikelihood(HTMParameters.getAnomalyLikelihoodParams());
-		network = buildNetwork();
+		if(errorThreshold < warningThreshold)
+			confResult.withError(ERROR_THRESHOLD_PARAMS, "Error Threshold is lower than the warning treshold");
+		else {
+			anomalyLikelihood = initAnomalyLikelihood(HTMParameters.getAnomalyLikelihoodParams());
+			network = buildNetwork();
+		}
+		learningPhaseCounter = 0;
 		
 		return confResult.merge(null, properties.warningsIfNotAllPropertiesUsed());
 	}
@@ -127,8 +131,11 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 	public void load(StatusValue store) {
 		if(store != null && (store instanceof Status_)) {
 			Status_ status_ = ((Status_) store);
-			network = status_.network;
-			anomalyLikelihood = status_.anomalyLikelihood;
+			
+			network = (Network) byteToPersistable(Base64.decodeBase64(status_.networkBase64));
+			anomalyLikelihood = (AnomalyLikelihood) byteToPersistable(Base64.decodeBase64(status_.anomalyLikelihoodBase64));
+			learningPhaseCounter = status_.learningPhaseCounter;
+			
 			network.restart();
 		}
 		
@@ -139,25 +146,47 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 	@Override
 	public StatusValue save() {
         Status_ status = new Status_();
-        status.network = network;
-        status.anomalyLikelihood = anomalyLikelihood;
+        status.networkBase64 = Base64.encodeBase64String(persistableToByte(network));
+        status.anomalyLikelihoodBase64 = Base64.encodeBase64String(persistableToByte(anomalyLikelihood));
+        status.learningPhaseCounter = learningPhaseCounter;
+        
         return status;
+	}
+	
+	private byte[] persistableToByte(Persistable pers) {
+		if(persistance == null)
+			persistance = Persistence.get();
+		
+		pers.preSerialize();
+        byte[] barray = persistance.serializer().serialize(pers);
+        return barray;
+	}
+	
+	private Persistable byteToPersistable(byte[] barray) {
+	    if(persistance == null)
+            persistance = Persistence.get();
+	    
+		Persistable pers = persistance.read(barray);
+		return pers;
 	}
 
 	@Override
 	public AnalysisResult process(Instant timestamp, double value) {
-		//TODO: check the reasons
 		AnalysisResult results = new AnalysisResult();
+		double likelihood;
 		
 		Map<String, Object> m = new HashMap<>();
 		m.put("timestamp", dateEncoder.parse(timestamp.toString()));
 		m.put("value", value);
 		Inference i = network.computeImmediate(m);
-		
+		learningPhaseCounter = isLearningPhase() ? learningPhaseCounter+1 : -1;
 		if(i == null)
 			results.setStatus(Status.EXCEPTION, "Inference is null");
-		else {
-			double likelihood = anomalyLikelihood.anomalyProbability((double)m.get("value"), i.getAnomalyScore(),dateEncoder.parse(timestamp.toString()));
+		else if(isLearningPhase()) {
+			anomalyLikelihood.anomalyProbability((double)m.get("value"), i.getAnomalyScore(),dateEncoder.parse(timestamp.toString()));
+			results.setStatus(Status.EXCEPTION, "Algorithm is in the learning phase");
+		} else {
+			likelihood = anomalyLikelihood.anomalyProbability((double)m.get("value"), i.getAnomalyScore(),dateEncoder.parse(timestamp.toString()));
 			AnomaliesResults anomaliesResults = new AnomaliesResults(likelihood, errorThreshold, warningThreshold);
 			
 			if(anomaliesResults.isError())
@@ -176,12 +205,21 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 		
 		return results;
 	}
+	
+	private boolean isLearningPhase() {
+		Map<String, Object> anomalyLikelihoodParams = HTMParameters.getAnomalyLikelihoodParams();
+		return  learningPhaseCounter >= 0 && learningPhaseCounter <= 
+				((int)anomalyLikelihoodParams.get(KEY_LEARNING_PERIOD) + (int)anomalyLikelihoodParams.get(KEY_ESTIMATION_SAMPLES));
+	}
 
 	private Network buildNetwork(){
     	
-    	Network network = Network.create("Demo", this.networkParams.getParameters())    
+		HTMParameters networkParams = new HTMParameters();
+		networkParams.setModelParameters(minValue, maxValue, timeOfDay, dateOfWeek, isWeekend);
+		
+    	Network network = Network.create("Demo", networkParams.getParameters())    
     	    .add(Network.createRegion("Region 1")                       
-    	    	.add(Network.createLayer("Layer 2/3", this.networkParams.getParameters())
+    	    	.add(Network.createLayer("Layer 2/3", networkParams.getParameters())
     	    		.add(new TemporalMemory())                
     	    		.add(new SpatialPooler())
     	    		.add(Anomaly.create())));
@@ -198,6 +236,7 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 		network.lookup("Region 1").lookup("Layer 2/3").add(me);
 		
 		dateEncoder = me.getEncoderOfType(FieldMetaType.DATETIME);
+		
     	return network;
 	}
 	
@@ -221,25 +260,27 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
     @ClassNameAlias("anomaly-likelihood")
     public static class Status_ extends StatusValue{
 		private static final long serialVersionUID = 1921682817162401606L;
-        public Network network;
-        public AnomalyLikelihood anomalyLikelihood; 
+        public String networkBase64;
+        public String anomalyLikelihoodBase64;
+        public int learningPhaseCounter;
     }
     
-	public static class JsonAdapter implements JsonSerializer<Network>, JsonDeserializer<Network> {
+	public static class PersistableJsonAdapter implements JsonSerializer<Persistable>, JsonDeserializer<Persistable> {
 		
 		private PersistenceAPI persistance;
 
 		@Override
-		public JsonElement serialize(Network status, java.lang.reflect.Type type, JsonSerializationContext context) {
+		public JsonElement serialize(Persistable status, java.lang.reflect.Type type, JsonSerializationContext context) {
 			if(persistance == null)
 				persistance = Persistence.get();
 			
-			byte[] barray = persistance.storeAndGet(status);
+			status.preSerialize();
+            byte[] barray = persistance.serializer().serialize(status);
 			return new JsonPrimitive(Base64.encodeBase64String(barray));
 		}
 		
 		@Override
-		public Network deserialize(JsonElement element, java.lang.reflect.Type type, JsonDeserializationContext context)
+		public Persistable deserialize(JsonElement element, java.lang.reflect.Type type, JsonDeserializationContext context)
 				throws JsonParseException {
 
 			if(!element.isJsonPrimitive())
@@ -247,40 +288,9 @@ public class HTMAnalysis extends NumericAnalysis implements HasStatus {
 
 			byte[] bytes = Base64.decodeBase64(element.getAsString());
 			
-			Network status = persistance.read(bytes);
+			Persistable status = persistance.read(bytes);
 			return status;
 		}
 
-		
-	}
-	
-	public static class AnomalyLikelihoodJsonAdapter implements JsonSerializer<AnomalyLikelihood>, JsonDeserializer<AnomalyLikelihood> {
-		
-		private PersistenceAPI persistance;
-
-		@Override
-		public JsonElement serialize(AnomalyLikelihood status, java.lang.reflect.Type type, JsonSerializationContext context) {
-			if(persistance == null)
-				persistance = Persistence.get();
-			
-			byte[] barray = persistance.write(status);
-			return new JsonPrimitive(Base64.encodeBase64String(barray));
-		}
-		
-		@Override
-		public AnomalyLikelihood deserialize(JsonElement element, java.lang.reflect.Type type, JsonDeserializationContext context)
-				throws JsonParseException {
-
-			if(!element.isJsonPrimitive())
-				throw new JsonParseException("Expected JsonPrimitive");
-
-			byte[] bytes = Base64.decodeBase64(element.getAsString());
-			
-			AnomalyLikelihood status = persistance.read(bytes);
-			
-			return status;
-		}
-
-		
 	}
 }
