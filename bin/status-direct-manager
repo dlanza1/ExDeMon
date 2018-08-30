@@ -48,7 +48,7 @@ process_args(){
 	    exit
 		;;
 	    -l|--list)
-		OPS="LIST "
+		OPS="LIST $OPS"
 	    shift
 	    ;;
 	    -r|--remove)
