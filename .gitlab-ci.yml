@@ -54,7 +54,7 @@ submit_qa:
     
 submit_production:
   stage: submit_production
-  image: gitlab-registry.cern.ch/db/cerndb-infra-hadoop-conf:hadoop-config-playground
+  image: gitlab-registry.cern.ch/db/cerndb-infra-hadoop-conf:testing
   only:
     - master
   script:
