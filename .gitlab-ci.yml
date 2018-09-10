@@ -41,7 +41,7 @@ submit_qa:
     - qa
   script:
     - hadoop-set-default-conf.sh hadoop-qa
-    - echo $SUBMIT_PASS | kinit $SUBMIT_USER
+    - bin/create_keytab $SUBMIT_USER $SUBMIT_PASS
     - cp target/exdemon-* lib/
     - rm -f /usr/hdp/spark/jars/curator-*
     - yum -y install lib/zookeepercli-1.0.12-1.x86_64.rpm
@@ -59,7 +59,7 @@ submit_production:
     - master
   script:
     - hadoop-set-default-conf.sh analytix
-    - echo $SUBMIT_PASS | kinit $SUBMIT_USER
+    - bin/create_keytab $SUBMIT_USER $SUBMIT_PASS
     - cp target/exdemon-* lib/
     - rm -f /usr/hdp/spark/jars/curator-*
     - yum -y install lib/zookeepercli-1.0.12-1.x86_64.rpm
