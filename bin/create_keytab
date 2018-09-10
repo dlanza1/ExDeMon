@@ -1,7 +1,7 @@
 USER=$1
 PASS=$2
 
-CMDS="add_entry -password -p ${USER}@CERN.CH -k 1 -e arcfour-hmac-md5\n"
+CMDS="add_entry -password -p ${USER}@CERN.CH -k 1 -e aes256-cts\n"
 CMDS="${CMDS}${PASS}\n"
 CMDS="${CMDS}wkt /tmp/tapeops.keytab\n"
 CMDS="${CMDS}quit\n"
