@@ -34,8 +34,8 @@ public class Metric implements Serializable {
     @NonNull
     private Value value;
 
-    public Metric(Instant timestamp, float value, Map<String, String> ids) {
-        this(timestamp, new FloatValue(value), ids);
+    public Metric(Instant timestamp, float value, Map<String, String> attributes) {
+        this(timestamp, new FloatValue(value), attributes);
     }
 
     public Metric(@NonNull Instant timestamp, @NonNull Value value, Map<String, String> attributes) {
