@@ -90,7 +90,7 @@ public abstract class UpdateStatusFunction<K extends StatusKey, V, S extends Sta
             
             result = keyValueAsString;
         }else {
-            result = keyAsString;
+            result = keyAsString.concat("\n");
         }
         
         if(client.checkExists().forPath(path) != null) {
