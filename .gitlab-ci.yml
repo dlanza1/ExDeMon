@@ -36,12 +36,13 @@ exdemon_package:
     
 submit_qa:
   stage: submit_qa
-  image: gitlab-registry.cern.ch/db/cerndb-infra-hadoop-conf:hadoop-config-playground
+  image: gitlab-registry.cern.ch/db/cerndb-infra-hadoop-conf:testing
   only:
     - qa
   script:
     - hadoop-set-default-conf.sh hadoop-qa
-    - echo $SUBMIT_PASS | kinit $SUBMIT_USER
+    - bin/create_keytab $SUBMIT_USER $SUBMIT_PASS
+    - kinit -kt /tmp/tapeops.keytab tapeops@CERN.CH
     - cp target/exdemon-* lib/
     - rm -f /usr/hdp/spark/jars/curator-*
     - yum -y install lib/zookeepercli-1.0.12-1.x86_64.rpm
@@ -54,12 +55,13 @@ submit_qa:
     
 submit_production:
   stage: submit_production
-  image: gitlab-registry.cern.ch/db/cerndb-infra-hadoop-conf:hadoop-config-playground
+  image: gitlab-registry.cern.ch/db/cerndb-infra-hadoop-conf:testing
   only:
     - master
   script:
     - hadoop-set-default-conf.sh analytix
-    - echo $SUBMIT_PASS | kinit $SUBMIT_USER
+    - bin/create_keytab $SUBMIT_USER $SUBMIT_PASS
+    - kinit -kt /tmp/tapeops.keytab tapeops@CERN.CH
     - cp target/exdemon-* lib/
     - rm -f /usr/hdp/spark/jars/curator-*
     - yum -y install lib/zookeepercli-1.0.12-1.x86_64.rpm

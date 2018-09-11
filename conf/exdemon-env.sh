@@ -1,0 +1,1 @@
+SPARK_EXTRA_ARGS="--principal tapeops@CERN.CH --keytab /tmp/tapeops.keytab"
