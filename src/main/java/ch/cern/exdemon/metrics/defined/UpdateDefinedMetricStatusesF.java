@@ -34,27 +34,30 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
             return Optional.empty();
         }
         DefinedMetric definedMetric = definedMetricOpt.get();
-            
-        VariableStatuses varStatuses = getStatus(status);
 
         Optional<Metric> newMetric = Optional.empty();
-        try {
-            definedMetric.updateStore(varStatuses, metric, id.getMetric_attributes().keySet());
-            
-            newMetric = definedMetric.generateByUpdate(varStatuses, metric, id.getMetric_attributes());
-        }catch(Exception e) {
-            LOG.error("ID:" + id
-                    + " Metric: " + metric
-                    + " VariableStatuses: " + varStatuses
-                    + " Message:" + e.getMessage(), e);
-            
-            newMetric = Optional.of(new Metric(
-                                            metric.getTimestamp(), 
-                                            new ExceptionValue("Error when processing defined metric: " + e.getMessage()), 
-                                            id.getMetric_attributes()));   
-        }
         
-        status.update(varStatuses);
+        synchronized (definedMetric) {
+            VariableStatuses varStatuses = getStatus(status);
+
+            try {
+                definedMetric.updateStore(varStatuses, metric, id.getMetric_attributes().keySet());
+                
+                newMetric = definedMetric.generateByUpdate(varStatuses, metric, id.getMetric_attributes());
+            }catch(Exception e) {
+                LOG.error("ID:" + id
+                        + " Metric: " + metric
+                        + " VariableStatuses: " + varStatuses
+                        + " Message:" + e.getMessage(), e);
+                
+                newMetric = Optional.of(new Metric(
+                                                metric.getTimestamp(), 
+                                                new ExceptionValue("Error when processing defined metric: " + e.getMessage()), 
+                                                id.getMetric_attributes()));   
+            }
+            
+            status.update(varStatuses);
+        }
         
         return newMetric;
     }
