@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
+import static java.util.Collections.synchronizedList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,7 @@ public class ValueHistory implements Serializable {
     }
     
     public ValueHistory(long max_size, int max_lastAggregatedMetrics_size, ChronoUnit granularity, Aggregation aggregation){
-        this.values = new LinkedList<>();
+        this.values = synchronizedList(new LinkedList<>());
         this.max_lastAggregatedMetrics_size = (int) Math.min(max_size, max_lastAggregatedMetrics_size);
         
         this.max_size = max_size;
@@ -113,11 +114,11 @@ public class ValueHistory implements Serializable {
         Map<Instant, List<DatedValue>> groupedValues = values.stream()
                                                         .collect(Collectors.groupingBy(v -> v.getTime().truncatedTo(granularity)));
         
-        values = new LinkedList<>();
+        values = synchronizedList(new LinkedList<>());
         for (Map.Entry<Instant, List<DatedValue>> group : groupedValues.entrySet())
             values.add(new DatedValue(group.getKey(), aggregation.aggregateValues(group.getValue(), group.getKey())));
         
-        values = values.stream().sorted().collect(Collectors.toList());
+        values = synchronizedList(values.stream().sorted().collect(Collectors.toList()));
     }
 
     public void purge(Instant oldest_time) {
