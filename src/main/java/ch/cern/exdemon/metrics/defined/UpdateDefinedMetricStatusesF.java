@@ -37,27 +37,25 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
 
         Optional<Metric> newMetric = Optional.empty();
         
-        synchronized (definedMetric) {
-            VariableStatuses varStatuses = getStatus(status);
+        VariableStatuses varStatuses = getStatus(status);
 
-            try {
-                definedMetric.updateStore(varStatuses, metric, id.getMetric_attributes().keySet());
-                
-                newMetric = definedMetric.generateByUpdate(varStatuses, metric, id.getMetric_attributes());
-            }catch(Exception e) {
-                LOG.error("ID:" + id
-                        + " Metric: " + metric
-                        + " VariableStatuses: " + varStatuses
-                        + " Message:" + e.getMessage(), e);
-                
-                newMetric = Optional.of(new Metric(
-                                                metric.getTimestamp(), 
-                                                new ExceptionValue("Error when processing defined metric: " + e.getMessage()), 
-                                                id.getMetric_attributes()));   
-            }
+        try {
+            definedMetric.updateStore(varStatuses, metric, id.getMetric_attributes().keySet());
             
-            status.update(varStatuses);
+            newMetric = definedMetric.generateByUpdate(varStatuses, metric, id.getMetric_attributes());
+        }catch(Exception e) {
+            LOG.error("ID:" + id
+                    + " Metric: " + metric
+                    + " VariableStatuses: " + varStatuses
+                    + " Message:" + e.getMessage(), e);
+            
+            newMetric = Optional.of(new Metric(
+                                            metric.getTimestamp(), 
+                                            new ExceptionValue("Error when processing defined metric: " + e.getMessage()), 
+                                            id.getMetric_attributes()));   
         }
+        
+        status.update(varStatuses);
         
         return newMetric;
     }
