@@ -177,11 +177,9 @@ public final class DefinedMetric extends Component {
 		for (Variable variableToUpdate : variablesToUpdate.values()) {
 		    String name = variableToUpdate.getName();
 		    
-		    Optional<VariableStatus> status = Optional.ofNullable(stores.get(name))
-		                                           .filter(s -> s instanceof VariableStatus)
-		                                           .map(s -> (VariableStatus) s);
+		    Optional<VariableStatus> statusOpt = stores.get(name);
 		    
-		    VariableStatus updatedStatus = variableToUpdate.updateStatus(status, metricForStore, metric.clone());
+		    VariableStatus updatedStatus = variableToUpdate.updateStatus(statusOpt, metricForStore, metric.clone());
 			
 		    stores.put(name, updatedStatus);
 		}

@@ -341,7 +341,7 @@ public class DefinedMetricTest {
         Metric metric = Metric(0, 10, "HOSTNAME=host1", "METRIC_NAME=Read Bytes");
         definedMetric.updateStore(store, metric, new HashSet<>());
 
-        assertEquals(Instant.EPOCH.plus(Duration.ofHours(1)), store.get("value").getLastUpdateMetricTime());
+        assertEquals(Instant.EPOCH.plus(Duration.ofHours(1)), store.get("value").get().getLastUpdateMetricTime());
     }
 	
 	@Test

@@ -131,7 +131,7 @@ public abstract class Variable implements ValueComputable, Predicate<Metric> {
         if(stores == null)
             return Optional.empty();
         
-        return Optional.ofNullable(stores.get(name));
+        return stores.get(name);
     }
 
     protected abstract Value compute(Optional<VariableStatus> statusValue, Instant time);

@@ -3,6 +3,7 @@ package ch.cern.exdemon.metrics.defined.equation.functions.analysis;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Optional;
 
 import ch.cern.exdemon.components.Component.Type;
 import ch.cern.exdemon.components.ComponentBuildResult;
@@ -66,10 +67,10 @@ public class AnalysisFunc extends Function {
 		Value value = arguments[0].compute(stores, time);
 		
 		if(analysis instanceof HasStatus) {
-		    VariableStatus status = stores.get(propsVal.getName());
+		    Optional<VariableStatus> status = stores.get(propsVal.getName());
 		    
-		    if(status != null && status instanceof AnalysisStatus)		    
-		        ((HasStatus) analysis).load(((AnalysisStatus) status).status);
+		    status.filter(s -> s instanceof AnalysisStatus)
+		          .ifPresent(s -> ((HasStatus) analysis).load(((AnalysisStatus) s).status));
         }
 		
 		if(value.getAsException().isPresent()) {

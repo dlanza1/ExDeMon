@@ -3,6 +3,7 @@ package ch.cern.exdemon.metrics.defined.equation.var;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
@@ -48,8 +49,8 @@ public class VariableStatuses extends StatusValue {
 		return statuses.containsKey(StatusValue);
 	}
 
-	public VariableStatus get(String varName) {
-		return statuses.get(varName);
+	public Optional<VariableStatus> get(String varName) {
+		return Optional.ofNullable(statuses.get(varName));
 	}
 
 }
