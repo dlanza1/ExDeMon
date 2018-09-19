@@ -39,6 +39,8 @@ submit_qa:
   image: gitlab-registry.cern.ch/db/cerndb-infra-hadoop-conf:testing
   only:
     - qa
+  variables:
+    CI_DEBUG_TRACE: "true"
   script:
     - hadoop-set-default-conf.sh hadoop-qa
     - bin/create_keytab $SUBMIT_USER $SUBMIT_PASS
