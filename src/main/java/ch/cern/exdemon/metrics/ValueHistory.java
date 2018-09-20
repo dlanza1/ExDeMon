@@ -256,16 +256,19 @@ public class ValueHistory implements Serializable {
         
         @Override
         public void write(Kryo kryo, Output output, ValueHistory object) {
+            Throwable throwable = null;
+            
             for (int tryNum = 1; tryNum <= 3; tryNum++) {
                 try {
                     kryo.writeObject(output, object);
                     
                     return;
                 }catch(Throwable t) {   
+                    throwable = t;
                 }
             }
             
-            LOG.error("ValueHistory object could not be written");
+            LOG.error("ValueHistory object could not be written", throwable);
         }
 
         @Override
