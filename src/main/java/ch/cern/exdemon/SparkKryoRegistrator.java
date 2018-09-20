@@ -29,6 +29,8 @@ public class SparkKryoRegistrator implements KryoRegistrator {
         kryo.register(VariableStatuses.class);
         kryo.register(AggregationValues.class);
         
+        kryo.register(ValueHistory.class, new ValueHistory.KryoSerializer());
+        
         kryo.register(Persistable.class, new PersistableKryoSerializer());
         kryo.register(Network.class, new PersistableKryoSerializer());
         kryo.register(AnomalyLikelihood.class, new PersistableKryoSerializer());

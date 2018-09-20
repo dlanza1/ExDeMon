@@ -16,6 +16,12 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.log4j.Logger;
+
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 
 import ch.cern.exdemon.metrics.defined.equation.ComputationException;
 import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
@@ -242,6 +248,31 @@ public class ValueHistory implements Serializable {
             this.lastAggregatedMetrics = new LimitedQueue<>(max_lastAggregatedMetrics_size);
         else
             this.lastAggregatedMetrics = null;
+    }
+    
+    public static class KryoSerializer extends Serializer<ValueHistory> {
+
+        private final static Logger LOG = Logger.getLogger(KryoSerializer.class.getName());
+        
+        @Override
+        public void write(Kryo kryo, Output output, ValueHistory object) {
+            for (int tryNum = 1; tryNum <= 3; tryNum++) {
+                try {
+                    kryo.writeObject(output, object);
+                    
+                    return;
+                }catch(Throwable t) {   
+                }
+            }
+            
+            LOG.error("ValueHistory object could not be written");
+        }
+
+        @Override
+        public ValueHistory read(Kryo kryo, Input input, Class<ValueHistory> type) {
+            return kryo.readObject(input, type);
+        }
+        
     }
 
 }
