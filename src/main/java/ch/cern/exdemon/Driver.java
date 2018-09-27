@@ -96,9 +96,7 @@ public final class Driver {
         Properties componentsSourceProps = properties.getSubset(ComponentsSource.PARAM);
         long batchInterval = properties.getPeriod(BATCH_INTERVAL_PARAM, Duration.ofMinutes(1)).getSeconds();
         componentsSourceProps.setProperty("static." + Driver.BATCH_INTERVAL_PARAM, Long.toString(batchInterval));
-        //TODO deprecated
-        componentsSourceProps.putAll(properties.getSubset("properties.source"));
-        //TODO deprecated
+
         JavaStreamingContext ssc = driver.createNewStreamingContext(componentsSourceProps);
 
         // Start the computation
