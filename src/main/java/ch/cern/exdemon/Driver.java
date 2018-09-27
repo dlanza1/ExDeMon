@@ -93,7 +93,7 @@ public final class Driver {
         try {
             ssc = driver.reloadStreamingContext(properties);
         }catch(Exception e) {
-            LOG.error("Previous stremaing context could not be reloaded, loading new context...");
+            LOG.error("Previous stremaing context could not be reloaded, loading new context...", e);
             
             ssc = driver.createNewStreamingContext(properties);
         }
@@ -115,7 +115,7 @@ public final class Driver {
 
             @Override
             public JavaStreamingContext call() throws Exception {
-                return createNewStreamingContext(properties);
+                return null;
             }
         });
     }
