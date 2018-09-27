@@ -12,8 +12,8 @@ public class DriverTest {
 
     @Test
     public void notConfiguredMetricSource() throws Exception{
-    		Properties props = new Properties();
-    		props.setProperty("spark.driver.allowMultipleContexts", "true");
+    	Properties props = new Properties();
+    	props.setProperty("spark.driver.allowMultipleContexts", "true");
         
         try{
             Driver driver = new Driver(props);
@@ -28,15 +28,15 @@ public class DriverTest {
     
     @Test
     public void configurationWithAnalysisResultsSink() throws Exception{
-    		Properties props = new Properties();
-    		props.setProperty("spark.driver.allowMultipleContexts", "true");
-    		props.setProperty("metrics.source.kafka.type", "kafka");
-    		props.setProperty("metrics.source.kafka.topics", "topic");
-    		props.setProperty("results.sink.type", "elastic");
+    	Properties props = new Properties();
+    	props.setProperty("spark.driver.allowMultipleContexts", "true");
+    	props.setProperty("metrics.source.kafka.type", "kafka");
+    	props.setProperty("metrics.source.kafka.topics", "topic");
+    	props.setProperty("results.sink.type", "elastic");
         
         Driver driver = new Driver(props);
         
-        driver.createNewStreamingContext(new Properties());
+        driver.createNewStreamingContext(props);
     }
     
 }
