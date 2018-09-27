@@ -5,7 +5,7 @@ stages:
   - submit_production
   
 variables:
-  DOCKER_IMAGE: docker-0.2.1
+  DOCKER_IMAGE: docker-0.2.2
   
 before_script:
   - if [[ "$CI_COMMIT_TAG" == release-* ]] ; then export RELEASE_VERSION=${CI_COMMIT_TAG#release-}; else export RELEASE_VERSION=test${CI_PIPELINE_ID}git${CI_COMMIT_SHA:0:8}; fi
