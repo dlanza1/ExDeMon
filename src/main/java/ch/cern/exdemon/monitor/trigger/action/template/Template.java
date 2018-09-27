@@ -25,7 +25,7 @@ import lombok.NonNull;
 
 public class Template {
     
-    public static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("YYYY-MM-dd hh:mm:ss").withZone(ZoneId.systemDefault());
+    public static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("YYYY-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
     
     public static synchronized String apply(String templateAsString, @NonNull Action action) {
         if(templateAsString == null)

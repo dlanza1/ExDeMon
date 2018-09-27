@@ -45,7 +45,7 @@ public class TemplateTest {
         action.setMetric_attributes(metric_attributes);
         
         assertEquals("Hello daniel.lanza@cern.ch! "
-                  + "2018-07-30 02:08:58 "
+                  + "2018-07-30 14:08:58 "
                   + "2018-07-30T12:08:58Z "
                   + "1532866138000", Template.apply("<tags:email.text> <datetime> <datetime:utc> <datetime:ms:-24h>", action));
     }
