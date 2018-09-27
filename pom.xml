@@ -11,7 +11,7 @@
     <properties>
         <!-- Set default encoding to UTF-8 to remove maven complaints -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spark.version>2.3.0</spark.version>
+        <spark.version>2.3.2</spark.version>
     </properties>
 
     <licenses>
