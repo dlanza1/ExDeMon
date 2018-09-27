@@ -61,6 +61,7 @@ public class KafkaMetricsSource extends MetricsSource {
     private Map<String, Object> getKafkaConsumerParams(Properties props) {
         Map<String, Object> kafkaParams = new HashMap<String, Object>();
         
+        kafkaParams.put("enable.auto.commit”", Boolean.FALSE.toString());
         kafkaParams.put("key.deserializer", StringDeserializer.class);
         kafkaParams.put("value.deserializer", StringDeserializer.class);
         
