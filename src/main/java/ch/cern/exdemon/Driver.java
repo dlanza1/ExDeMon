@@ -53,8 +53,6 @@ public final class Driver {
     public static String CHECKPOINT_DIR_PARAM = "checkpoint.dir";
     public static String CHECKPOINT_DIR_DEFAULT = "/tmp/";
 
-    private JavaStreamingContext ssc;
-
     private List<MetricsSource> metricSources;
     private Optional<AnalysisResultsSink> analysisResultsSink;
 
@@ -65,8 +63,6 @@ public final class Driver {
     public Properties statusesOperationsReceiverProperties;
 
     public Driver(Properties properties) throws Exception {
-        removeSparkCheckpointDir(properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT));
-
         String removalSocket = properties.getProperty(STATUSES_REMOVAL_SOCKET_PARAM);
         if (removalSocket != null) {
             String[] host_port = removalSocket.trim().split(":");
@@ -76,8 +72,6 @@ public final class Driver {
         }
 
         statusesOperationsReceiverProperties = properties.getSubset(ZookeeperStatusesOperationsReceiver.PARAM);
-        
-        ssc = newStreamingContext(properties);
 
         metricSources = getMetricSources(properties);
         analysisResultsSink = getAnalysisResultsSink(properties);
@@ -93,16 +87,9 @@ public final class Driver {
 
         Driver driver = new Driver(properties);
 
-        Properties componentsSourceProps = properties.getSubset(ComponentsSource.PARAM);
-        long batchInterval = properties.getPeriod(BATCH_INTERVAL_PARAM, Duration.ofMinutes(1)).getSeconds();
-        componentsSourceProps.setProperty("static." + Driver.BATCH_INTERVAL_PARAM, Long.toString(batchInterval));
+        JavaStreamingContext ssc = driver.createNewStreamingContext(properties);
 
-        JavaStreamingContext ssc = driver.createNewStreamingContext(componentsSourceProps);
-
-        // Start the computation
         ssc.start();
-
-        ssc.sparkContext().sc().applicationId();
 
         try {
             ssc.awaitTermination();
@@ -111,18 +98,12 @@ public final class Driver {
         }
     }
 
-    private static void removeSparkCheckpointDir(String mainDir) throws IOException {
-        Path path = new Path(mainDir + "/checkpoint/");
-
-        FileSystem fs = FileSystem.get(new Configuration());
-
-        if (fs.exists(path))
-            fs.delete(path, true);
-    }
-
-    protected JavaStreamingContext createNewStreamingContext(Properties componentsSourceProps) throws Exception {
-
-        Optional<JavaDStream<StatusOperation<StatusKey, ?>>> statusesOperationsOpt = getStatusesOperarions();
+    protected JavaStreamingContext createNewStreamingContext(Properties properties) throws Exception {
+        removeSparkCheckpointDir(properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT));
+        
+        JavaStreamingContext ssc = newStreamingContext(properties);
+        
+        Optional<JavaDStream<StatusOperation<StatusKey, ?>>> statusesOperationsOpt = getStatusesOperarions(ssc);
         Optional<JavaDStream<StatusOperation<DefinedMetricStatuskey, Metric>>> metricsStatusesOperationsOpt = Optional.empty();
         Optional<JavaDStream<StatusOperation<MonitorStatusKey, Metric>>> analysisStatusesOperationsOpt = Optional.empty();
         Optional<JavaDStream<StatusOperation<TriggerStatusKey, AnalysisResult>>> monitorsStatusesOperationsOpt = Optional.empty();
@@ -132,7 +113,9 @@ public final class Driver {
             monitorsStatusesOperationsOpt = filterOperations(statusesOperationsOpt, TriggerStatusKey.class);
         }
         
-        JavaDStream<Metric> metrics = getMetricStream(componentsSourceProps);
+        Properties componentsSourceProps = getComponentsSourceProperties(properties);
+        
+        JavaDStream<Metric> metrics = getMetricStream(ssc, componentsSourceProps);
         
         metrics = metrics.union(DefinedMetrics.generate(metrics, componentsSourceProps, metricsStatusesOperationsOpt));
 
@@ -149,6 +132,15 @@ public final class Driver {
         return ssc;
     }
 
+    private Properties getComponentsSourceProperties(Properties properties) throws ConfigurationException {
+        Properties componentsSourceProperties = properties.getSubset(ComponentsSource.PARAM);
+        
+        long batchInterval = properties.getPeriod(BATCH_INTERVAL_PARAM, Duration.ofMinutes(1)).getSeconds();
+        componentsSourceProperties.setProperty("static." + Driver.BATCH_INTERVAL_PARAM, Long.toString(batchInterval));
+        
+        return componentsSourceProperties;
+    }
+
     @SuppressWarnings("unchecked")
 	private <K, V> Optional<JavaDStream<StatusOperation<K, V>>> filterOperations(
     		Optional<JavaDStream<StatusOperation<StatusKey, ?>>> operations,
@@ -161,7 +153,7 @@ public final class Driver {
 								.map(op -> new StatusOperation<>(op.getId(), op.getOp(), (K) op.getKey(), (V) op.getValue(), op.getFilters())));
 	}
 
-	private Optional<JavaDStream<StatusOperation<StatusKey, ?>>> getStatusesOperarions() {
+	private Optional<JavaDStream<StatusOperation<StatusKey, ?>>> getStatusesOperarions(JavaStreamingContext ssc) {
         JavaDStream<StatusOperation<StatusKey, ?>> operations = ssc.receiverStream(new ZookeeperStatusesOperationsReceiver(statusesOperationsReceiverProperties));
         
         if (statuses_removal_socket_host != null && statuses_removal_socket_port != null) {
@@ -172,7 +164,7 @@ public final class Driver {
         return Optional.of(operations);
     }
 
-    public JavaDStream<Metric> getMetricStream(Properties propertiesSourceProps) {
+    public JavaDStream<Metric> getMetricStream(JavaStreamingContext ssc, Properties propertiesSourceProps) {
         return metricSources.stream()
                 .map(source -> MetricSchemas.generate(source.stream(ssc), propertiesSourceProps, source.getId()))
                 .reduce((str, stro) -> str.union(stro)).get();
@@ -246,8 +238,13 @@ public final class Driver {
         return ssc;
     }
 
-    public JavaStreamingContext getJavaStreamingContext() {
-        return ssc;
-    }
+    private static void removeSparkCheckpointDir(String mainDir) throws IOException {
+        Path path = new Path(mainDir + "/checkpoint/");
 
+        FileSystem fs = FileSystem.get(new Configuration());
+
+        if (fs.exists(path))
+            fs.delete(path, true);
+    }
+    
 }
