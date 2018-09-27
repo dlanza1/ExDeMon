@@ -11,6 +11,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
+import org.apache.spark.api.java.function.Function0;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
@@ -87,7 +88,15 @@ public final class Driver {
 
         Driver driver = new Driver(properties);
 
-        JavaStreamingContext ssc = driver.createNewStreamingContext(properties);
+        JavaStreamingContext ssc = null;
+        
+        try {
+            ssc = driver.reloadStreamingContext(properties);
+        }catch(Exception e) {
+            LOG.error("Previous stremaing context could not be reloaded, loading new context...");
+            
+            ssc = driver.createNewStreamingContext(properties);
+        }
 
         ssc.start();
 
@@ -96,6 +105,19 @@ public final class Driver {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private JavaStreamingContext reloadStreamingContext(Properties properties) {
+        String checkpointingPath = properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT);
+        
+        return JavaStreamingContext.getOrCreate(checkpointingPath, new Function0<JavaStreamingContext>() {
+            private static final long serialVersionUID = 5465807625731353740L;
+
+            @Override
+            public JavaStreamingContext call() throws Exception {
+                return createNewStreamingContext(properties);
+            }
+        });
     }
 
     protected JavaStreamingContext createNewStreamingContext(Properties properties) throws Exception {
