@@ -108,7 +108,7 @@ public final class Driver {
     }
 
     private JavaStreamingContext reloadStreamingContext(Properties properties) {
-        String checkpointingPath = properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT);
+        String checkpointingPath = properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT).concat("/checkpoint/");
         
         return JavaStreamingContext.getOrCreate(checkpointingPath, new Function0<JavaStreamingContext>() {
             private static final long serialVersionUID = 5465807625731353740L;
