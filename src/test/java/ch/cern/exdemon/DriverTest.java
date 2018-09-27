@@ -36,7 +36,7 @@ public class DriverTest {
         
         Driver driver = new Driver(props);
         
-        driver.createNewStreamingContext(null);
+        driver.createNewStreamingContext(new Properties());
     }
     
 }
