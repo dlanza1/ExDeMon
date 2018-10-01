@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.spark.streaming.api.java.JavaDStream;
@@ -60,10 +61,10 @@ public class KafkaMetricsSource extends MetricsSource {
     private Map<String, Object> getKafkaConsumerParams(Properties props) {
         Map<String, Object> kafkaParams = new HashMap<String, Object>();
 
-        kafkaParams.put("enable.auto.commit", Boolean.FALSE.toString());
-        kafkaParams.put("key.deserializer", StringDeserializer.class);
-        kafkaParams.put("value.deserializer", StringDeserializer.class);
-
+        kafkaParams.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        kafkaParams.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        kafkaParams.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        
         Properties kafkaPropertiesFromConf = props.getSubset("consumer");
         for (Entry<Object, Object> kafkaPropertyFromConf : kafkaPropertiesFromConf.entrySet()) {
             String key = (String) kafkaPropertyFromConf.getKey();
