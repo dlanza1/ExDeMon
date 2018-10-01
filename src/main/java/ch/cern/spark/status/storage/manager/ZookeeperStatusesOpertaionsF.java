@@ -58,7 +58,7 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
 					for (String id : distinctFuture.get())
 						finishOperation(id);
 				} catch (Exception e) {
-					LOG.error(e);
+					LOG.error(e.getMessage(), e);
 				}
 			}
 		}.start();
@@ -97,7 +97,7 @@ public class ZookeeperStatusesOpertaionsF<K extends StatusKey, V, S extends Stat
     				}
     			}
 		    } catch (Exception e) {
-                LOG.error(e);
+		        LOG.error(e.getMessage(), e);
             }
 		}
 	}
