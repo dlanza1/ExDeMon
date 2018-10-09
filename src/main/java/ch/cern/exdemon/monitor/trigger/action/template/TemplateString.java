@@ -55,20 +55,23 @@ public class TemplateString {
     }
 
     public void replaceContainer(String key, ValueSupplier valueSupplier) {
-        int startKey = template.indexOf("<"+key+">");
+        String opnening = "<"+key+">";
+        String closing = "</"+key+">";
+        
+        int startKey = template.indexOf(opnening);
         
         while (startKey > -1){
-            int endKey = template.indexOf("</"+key+">", startKey);
+            int endKey = template.indexOf(closing, startKey);
             
             String preText = template.substring(0, startKey);
-            String subTemplate = template.substring(startKey + 13, endKey);
-            String postText = template.substring(endKey + 14);
+            String subTemplate = template.substring(startKey + opnening.length(), endKey);
+            String postText = template.substring(endKey + closing.length());
         
             Object newValue = valueSupplier.get(subTemplate);
             
             template = preText + newValue + postText;
 
-            startKey = template.indexOf("<agg_metrics>", endKey);
+            startKey = template.indexOf(opnening, endKey);
         }
         
     }

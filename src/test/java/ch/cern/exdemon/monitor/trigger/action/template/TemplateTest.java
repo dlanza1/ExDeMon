@@ -84,7 +84,7 @@ public class TemplateTest {
         				+ "\na1 = 2"
                         + "\na2 = 2.1"
         				+ "\nOther text.", 
-        		Template.apply("Some text:<agg_metrics> <datetime>:A1(=<attribute_value:a1>), A2(=<attribute_value:a2>), ANULL(=<attribute_value:aNULL>):value=<value>:<attributes:a.+>\n</agg_metrics>Other text.", action));
+        		Template.apply("Some text:<source_metrics> <datetime>:A1(=<attribute_value:a1>), A2(=<attribute_value:a2>), ANULL(=<attribute_value:aNULL>):value=<value>:<attributes:a.+>\n</source_metrics>Other text.", action));
     }
     
     @Test
@@ -117,7 +117,7 @@ public class TemplateTest {
         
         assertEquals("1970-01-01 01:00:00:status=F value=\"v1\"\n" + 
                      "1970-01-01 01:00:00:status=F value=\"v2\"\n", 
-                Template.apply("<agg_metrics><filter_expr:status = F><datetime>:status=<attribute_value:status> value=<value>\n</agg_metrics>", action));
+                Template.apply("<source_metrics><filter_expr:status = F><datetime>:status=<attribute_value:status> value=<value>\n</source_metrics>", action));
     }
     
     @Test
@@ -135,7 +135,7 @@ public class TemplateTest {
         assertEquals("Some text: "
         				+ "No aggregated metrics."
         				+ " Other text.", 
-        		Template.apply("Some text: <agg_metrics>A</agg_metrics> Other text.", action));
+        		Template.apply("Some text: <source_metrics>A</source_metrics> Other text.", action));
     }
 
 }
