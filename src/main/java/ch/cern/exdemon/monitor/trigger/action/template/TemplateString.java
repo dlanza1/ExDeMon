@@ -48,6 +48,8 @@ public class TemplateString {
                 String value = StringUtils.removeTrailingZerosIfNumber(valueSupplier.get(key).toString());
                 
                 replace(mainKey + ":" + key, value);
+            }else {
+                replace(mainKey + ":" + key, "null");
             }
         }
     }

@@ -77,14 +77,14 @@ public class TemplateTest {
 		action.setTriggeringResult(triggeringResult);
         
         assertEquals("Some text: "
-        				+ "1970-01-01 01:00:00:A1(=-1), A2(=1.1):value=123:"
+        				+ "1970-01-01 01:00:00:A1(=-1), A2(=1.1), ANULL(=null):value=123:"
         				+ "\na1 = -1"
         				+ "\na2 = 1.1"
-        				+ "\n 1970-01-01 01:00:00:A1(=2), A2(=2.1):value=123.123:"
+        				+ "\n 1970-01-01 01:00:00:A1(=2), A2(=2.1), ANULL(=null):value=123.123:"
         				+ "\na1 = 2"
                         + "\na2 = 2.1"
         				+ "\nOther text.", 
-        		Template.apply("Some text:<agg_metrics> <datetime>:A1(=<attribute_value:a1>), A2(=<attribute_value:a2>):value=<value>:<attributes:a.+>\n</agg_metrics>Other text.", action));
+        		Template.apply("Some text:<agg_metrics> <datetime>:A1(=<attribute_value:a1>), A2(=<attribute_value:a2>), ANULL(=<attribute_value:aNULL>):value=<value>:<attributes:a.+>\n</agg_metrics>Other text.", action));
     }
     
     @Test
