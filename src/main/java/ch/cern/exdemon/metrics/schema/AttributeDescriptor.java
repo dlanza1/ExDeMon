@@ -84,8 +84,6 @@ public class AttributeDescriptor implements Serializable{
         
         if(fixedValue != null) {
             atts.put(alias, fixedValue);
-        }else if(key != null && key.startsWith("#")){ //TODO DEPRECATED
-            atts.put(alias, key.substring(1));
         }else if(key != null){
             String value = jsonObject.getProperty(key);
             
