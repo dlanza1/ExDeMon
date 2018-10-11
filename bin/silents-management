@@ -28,12 +28,16 @@ show_silent(){
     
     SILENCE_PATH="$SILENTS_PATH/id=${ID}"
     
+    echo "Configuration:"
+    zookeepercli --servers $ZK_HOST -c get "$SILENCE_PATH/config" 2>/dev/null
+    echo
+    
     echo "Configuration result:"
-    zookeepercli --servers $ZK_HOST -c get "$SILENCE_PATH/config.result"
+    zookeepercli --servers $ZK_HOST -c get "$SILENCE_PATH/config.result" 2>/dev/null
     echo
     
     echo "Silenced actions:"
-    zookeepercli --servers $ZK_HOST -c get "$SILENCE_PATH/silenced.report"
+    zookeepercli --servers $ZK_HOST -c get "$SILENCE_PATH/silenced.report" 2>/dev/null
     echo
 }
 
@@ -78,7 +82,7 @@ create_silent(){
         
         CONFIG_JSON="$CONFIG_JSON      \"attribute.$KEY\":\"$VALUE\",$NL"
     done
-    CONFIG_JSON="$CONFIG_JSON      \"attribute.$monitor\":\".*\"$NL"        # to avoid the trailing comma in the json
+    CONFIG_JSON="$CONFIG_JSON      \"attribute.\$monitor\":\".*\"$NL"        # to avoid the trailing comma in the json
     CONFIG_JSON="$CONFIG_JSON   }$NL"
     
     CONFIG_JSON="$CONFIG_JSON}"
@@ -89,7 +93,13 @@ create_silent(){
     echo "$CONFIG_JSON" | zookeepercli --servers $ZK_HOST -c set $CONFIG_PATH
     
     sleep 1
-    zookeepercli --servers $ZK_HOST -c get "$CONFIG_PATH.result"
+    
+    echo "Configuration:"
+    zookeepercli --servers $ZK_HOST -c get "$CONFIG_PATH" 2>/dev/null
+    echo
+    
+    echo "Configuration result:"
+    zookeepercli --servers $ZK_HOST -c get "$CONFIG_PATH.result" 2>/dev/null
 }
 
 remove_silent(){
@@ -104,7 +114,7 @@ remove_silent(){
     
     SILENCE_PATH="$SILENTS_PATH/id=${ID}"
  
-    zookeepercli --servers $ZK_HOST -c deleter --force "$SILENCE_PATH"
+    zookeepercli --servers $ZK_HOST -c deleter --force "$SILENCE_PATH" 2>/dev/null
     
     echo Deleted $SILENCE_PATH   
 }
@@ -123,11 +133,11 @@ process_args(){
 	key="$1"
 
 	case $key in
-		-h|--help)
-	    show_help
-	    exit
-		;;
-		-s|--show)
+        -h|--help)
+        show_help
+        exit
+        ;;
+        -s|--show)
         OP=show
         shift
         ;;
@@ -143,7 +153,7 @@ process_args(){
         OP=create
         shift
         ;;
-		-id|--id)
+        -id|--id)
         ID=$2
         shift
         shift
@@ -168,11 +178,11 @@ process_args(){
         shift
         shift
         ;;
-	    *)
-	    echo Unknown option: $1
-	    show_help
-	    exit 1
-	    ;;
+        *)
+        echo Unknown option: $1
+        show_help
+        exit 1
+        ;;
 	esac
 	done
 	set -- "${POSITIONAL[@]}"
