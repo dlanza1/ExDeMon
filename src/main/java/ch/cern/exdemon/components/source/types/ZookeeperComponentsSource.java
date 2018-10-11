@@ -120,7 +120,7 @@ public class ZookeeperComponentsSource extends ComponentsSource {
             if(client.checkExists().forPath(rootPath) != null)
                 client.delete().deletingChildrenIfNeeded().forPath(rootPath);
         } catch (Exception e) {
-            LOG.error("Error when cleaning component: " + rootPath, e);
+            LOG.warn("Error when cleaning component: " + rootPath, e);
         }
     }
     
