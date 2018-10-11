@@ -1,7 +1,14 @@
 package ch.cern.exdemon.components;
 
+import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 
 import ch.cern.properties.ConfigurationException;
 import lombok.Getter;
@@ -89,6 +96,35 @@ public class ConfigurationResult {
 
     public ConfigurationResult withMustBeConfigured(String parameter) {
         return withError(parameter, MUST_BE_CONFIGURED_MSG);
+    }
+    
+    public static class ConfigurationResultJsonSerializer implements JsonSerializer<ConfigurationResult> {
+
+        @Override
+        public JsonElement serialize(ConfigurationResult confgiResult, Type type, JsonSerializationContext context) {
+            JsonObject object = new JsonObject();
+            
+            JsonArray errors = new JsonArray();
+            for (ConfigurationException excep : confgiResult.getErrors()) {
+                JsonObject excepJson = new JsonObject();
+                excepJson.addProperty("parameter", excep.getParameter());
+                excepJson.addProperty("message", excep.getMessage());
+                errors.add(excepJson);
+            }
+            object.add("errors", errors);
+            
+            JsonArray warninigs = new JsonArray();
+            for (ConfigurationException warn : confgiResult.getWarnings()) {
+                JsonObject excepJson = new JsonObject();
+                excepJson.addProperty("parameter", warn.getParameter());
+                excepJson.addProperty("message", warn.getMessage());
+                warninigs.add(excepJson);
+            }
+            object.add("warnings", warninigs);
+            
+            return object;
+        }
+        
     }
     
 }

@@ -1,9 +1,7 @@
 package ch.cern.exdemon.json;
 
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,10 +13,7 @@ import ch.cern.exdemon.monitor.analysis.results.AnalysisResult;
 
 public class JSONParserTest{
 
-	public static DateTimeFormatter TIMESTAMP_FORMAT_DEFAULT = new DateTimeFormatterBuilder()
-			.appendPattern(JSONParser.TIMESTAMP_OUTPUT_FORMAT)
-			.toFormatter()
-			.withZone(ZoneOffset.systemDefault());
+	public static DateTimeFormatter TIMESTAMP_FORMAT_DEFAULT = InstantJsonSerializer.DEFAULT_FORMATTER;
 	
     @Test
     public void parse() throws Exception{

@@ -1,21 +1,14 @@
 package ch.cern.exdemon.components;
 
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 
 import ch.cern.exdemon.components.Component.Type;
+import ch.cern.exdemon.components.ConfigurationResult.ConfigurationResultJsonSerializer;
+import ch.cern.exdemon.json.InstantJsonSerializer;
 import ch.cern.properties.ConfigurationException;
 import lombok.Getter;
 import lombok.ToString;
@@ -25,40 +18,8 @@ public class ComponentRegistrationResult {
     
     private final transient static Gson jsonParser = new GsonBuilder()
             .setPrettyPrinting()
-            .registerTypeAdapter(Instant.class, new JsonSerializer<Instant>() {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ");
-            
-                    @Override
-                    public JsonElement serialize(Instant instant, java.lang.reflect.Type type, JsonSerializationContext context) {
-                        return new JsonPrimitive(ZonedDateTime.ofInstant(instant , ZoneOffset.systemDefault()).format(formatter));
-                    }
-                })
-            .registerTypeAdapter(ConfigurationResult.class, new JsonSerializer<ConfigurationResult>() {
-                @Override
-                public JsonElement serialize(ConfigurationResult confgiResult, java.lang.reflect.Type type, JsonSerializationContext context) {
-                    JsonObject object = new JsonObject();
-                    
-                    JsonArray errors = new JsonArray();
-                    for (ConfigurationException excep : confgiResult.getErrors()) {
-                        JsonObject excepJson = new JsonObject();
-                        excepJson.addProperty("parameter", excep.getParameter());
-                        excepJson.addProperty("message", excep.getMessage());
-                        errors.add(excepJson);
-                    }
-                    object.add("errors", errors);
-                    
-                    JsonArray warninigs = new JsonArray();
-                    for (ConfigurationException warn : confgiResult.getWarnings()) {
-                        JsonObject excepJson = new JsonObject();
-                        excepJson.addProperty("parameter", warn.getParameter());
-                        excepJson.addProperty("message", warn.getMessage());
-                        warninigs.add(excepJson);
-                    }
-                    object.add("warnings", warninigs);
-                    
-                    return object;
-                }
-            })
+            .registerTypeAdapter(Instant.class, new InstantJsonSerializer())
+            .registerTypeAdapter(ConfigurationResult.class, new ConfigurationResultJsonSerializer())
             .create();
     
     private Instant timestamp;
