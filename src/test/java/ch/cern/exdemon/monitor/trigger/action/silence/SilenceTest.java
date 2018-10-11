@@ -64,11 +64,11 @@ public class SilenceTest {
     public void activeWithTo() {
         Silence silence = new Silence();
         Properties properties = new Properties();
-        properties.setProperty("to", "2018-02-10 10:12:12");
+        properties.setProperty("to", "2020-02-10 10:12:12");
         silence.config(properties );
         
-        assertTrue(silence.isActiveAt(Instant.parse("2007-12-03T10:15:30.00Z")));
-        assertFalse(silence.isActiveAt(Instant.parse("2019-12-03T10:15:30.00Z")));
+        assertTrue(silence.isActiveAt(Instant.parse("2019-12-03T10:15:30.00Z")));
+        assertFalse(silence.isActiveAt(Instant.parse("2021-12-03T10:15:30.00Z")));
     }
     
     @Test
