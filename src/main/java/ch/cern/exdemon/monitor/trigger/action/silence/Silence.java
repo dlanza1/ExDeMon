@@ -38,7 +38,7 @@ public class Silence extends Component {
         ConfigurationResult confResult = ConfigurationResult.SUCCESSFUL();
         
         String fromAsString = properties.getProperty("from");
-        if(fromAsString != null)
+        if(fromAsString != null) {
             try {
                 LocalDateTime localDateTime = LocalDateTime.from(dateTimeFormatter.parse(fromAsString));
                 ZonedDateTime zonedDateTime = ZonedDateTime.of(localDateTime, ZoneId.systemDefault());
@@ -46,6 +46,9 @@ public class Silence extends Component {
             }catch(Exception e){
                 confResult.withError("from", "could not be parsed, expect format \"yyyy-MM-dd HH:mm:ss\" (e.g: 2016-02-16 11:00:02)");
             }
+        }else {
+            from = Instant.now();
+        }
         
         String toAsString = properties.getProperty("to");
         if(toAsString != null)
@@ -65,9 +68,7 @@ public class Silence extends Component {
                 if(to != null)
                     confResult.withWarning("to", "when using duration, this configuration is ignored");
                 
-                if(from == null)
-                    confResult.withError("from", "when using duration, creation must be configured");
-                else
+                if(from != null)
                     to = from.plus(duration);
             }catch(Exception e){
                 confResult.withError("duration", "wrong format, must be like 15m, 2h, 2w");

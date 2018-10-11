@@ -7,9 +7,9 @@ Silences are components like monitors that can be added and removed dynamically.
 Configuration:
 
 ```
-from = <yyyy-MM-dd HH:mm:ss> (e.g: 2018-02-16 11:00:02)
+from = <yyyy-MM-dd HH:mm:ss> (e.g: 2018-02-16 11:00:02) (default: now)
 to = <yyyy-MM-dd HH:mm:ss> (e.g: 2018-04-16 11:00:02)
-duration = <period like 15m, 1h, 1w> (if configured, "from" parameter must be set and "to" parameter is ignored) 
+duration = <period like 15m, 1h, 1w> (if configured, "to" parameter is ignored) 
 filter.expr = <expr> (as for metrics filter)
 filter.attribute.<att> = <val>
 filter.attribute.<att> = <val>
@@ -23,7 +23,7 @@ During active period, actions that match filter will be dropped.
 An example to silence all actions from a "http\_errors" monitor for the next to hour:
 
 ```
-# "from" should configure current time
+# from can be ignored if current time
 from = 2018-08-01 19:40:02
 duration = 2h 
 filter.attribute.$monitor = http_errors
