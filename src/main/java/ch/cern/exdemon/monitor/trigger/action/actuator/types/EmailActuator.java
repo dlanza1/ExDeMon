@@ -106,7 +106,8 @@ public class EmailActuator extends Actuator {
     }
 
     private String toHtml(String text) {
-        return text.replace("\n\n", "<br /><br />");
+        return text.replaceAll("(?<!>)\n", "<br />")
+                   .replaceAll(">\n", ">");
     }
 
     public void setSession() {
