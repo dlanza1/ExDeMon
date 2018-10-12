@@ -3,6 +3,7 @@ package ch.cern.exdemon.monitor.trigger.action.template;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -66,7 +67,7 @@ public class TemplateTest {
 		Map<String, String> ids2 = new HashMap<>();
 		ids2.put("a1", "2.0");
 		ids2.put("a2", "2.1");
-		Metric m2 = new Metric(Instant.EPOCH, new FloatValue(123.123), ids2 );
+		Metric m2 = new Metric(Instant.EPOCH.plus(Duration.ofMinutes(1)), new FloatValue(123.123), ids2 );
 		lastSourceMetrics.add(m2);
 		value.setLastSourceMetrics(lastSourceMetrics );
 		
@@ -76,14 +77,14 @@ public class TemplateTest {
 		triggeringResult.setStatus(Status.OK, "");
 		action.setTriggeringResult(triggeringResult);
         
-        assertEquals("Some text: "
-        				+ "1970-01-01 01:00:00:A1(=-1), A2(=1.1), ANULL(=null):value=123:"
+        assertEquals("Some text:"
+                        + " 1970-01-01 01:01:00:A1(=2), A2(=2.1), ANULL(=null):value=123.123:"
+                        + "\na1 = 2"
+                        + "\na2 = 2.1"
+        				+ "\n 1970-01-01 01:00:00:A1(=-1), A2(=1.1), ANULL(=null):value=123:"
         				+ "\na1 = -1"
         				+ "\na2 = 1.1"
-        				+ "\n 1970-01-01 01:00:00:A1(=2), A2(=2.1), ANULL(=null):value=123.123:"
-        				+ "\na1 = 2"
-                        + "\na2 = 2.1"
-        				+ "\nOther text.", 
+                        + "\nOther text.", 
         		Template.apply("Some text:<source_metrics> <datetime>:A1(=<attribute_value:a1>), A2(=<attribute_value:a2>), ANULL(=<attribute_value:aNULL>):value=<value>:<attributes:a.+>\n</source_metrics>Other text.", action));
     }
     
@@ -133,7 +134,7 @@ public class TemplateTest {
 		action.setTriggeringResult(triggeringResult);
         
         assertEquals("Some text: "
-        				+ "No aggregated metrics."
+        				+ "No source metrics."
         				+ " Other text.", 
         		Template.apply("Some text: <source_metrics>A</source_metrics> Other text.", action));
     }

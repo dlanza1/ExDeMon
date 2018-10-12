@@ -37,9 +37,9 @@ public class Template {
         template.replace("trigger_id", action.getTrigger_id());
         
         //TODO DEPRECATED
-        template.replaceContainer("agg_metrics", new AggregatedMetricsSupplier(action.getTriggeringResult()));
+        template.replaceContainer("agg_metrics", new SourceMetricsSupplier(action.getTriggeringResult()));
         //TODO DEPRECATED
-        template.replaceContainer("source_metrics", new AggregatedMetricsSupplier(action.getTriggeringResult()));
+        template.replaceContainer("source_metrics", new SourceMetricsSupplier(action.getTriggeringResult()));
         
         template.replaceKeys("attribute_value", action.getMetric_attributes());
         template.replaceKeys("attributes", new AttributesSupplier(action.getMetric_attributes()));
@@ -153,11 +153,11 @@ public class Template {
         
     }
     
-    private static class AggregatedMetricsSupplier implements ValueSupplier {
+    private static class SourceMetricsSupplier implements ValueSupplier {
 
         private AnalysisResult triggeringResult;
 
-        public AggregatedMetricsSupplier(AnalysisResult triggeringResult) {
+        public SourceMetricsSupplier(AnalysisResult triggeringResult) {
             this.triggeringResult = triggeringResult;
         }
 
@@ -167,13 +167,16 @@ public class Template {
             
             List<Metric> lastSourceMetrics = triggeringResult.getAnalyzed_metric().getValue().getLastSourceMetrics();
             if(lastSourceMetrics == null)
-                return "No aggregated metrics.";
+                return "No source metrics.";
             
             MetricsFilter metricsFilter = getMetricsFilter(globalMetricTemplate);
-            List<Metric> metrics = lastSourceMetrics.stream().filter(metricsFilter::test).collect(Collectors.toList());
+            List<Metric> metrics = lastSourceMetrics.stream()
+                                                        .filter(metricsFilter::test)
+                                                        .sorted((a, b) -> -1 * a.getTimestamp().compareTo(b.getTimestamp()))
+                                                        .collect(Collectors.toList());
             
             if(metrics.isEmpty())
-                return "No aggregated metrics.";
+                return "No source metrics.";
                 
             String finalText = "";
             for (Metric metric : metrics) {
