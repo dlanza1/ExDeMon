@@ -56,4 +56,13 @@ public class StringUtilsTest {
         assertEquals(expected, StringUtils.headLines(input, 2));
     }
     
+    @Test
+    public void dataAmount(){
+        assertEquals("2.0 bytes", StringUtils.asDataAmount(2));
+        assertEquals("2.3 KB", StringUtils.asDataAmount(2300));
+        assertEquals("56.31 MB", StringUtils.asDataAmount(56312123));
+        assertEquals("52.35 GB", StringUtils.asDataAmount(52346312123l));
+        assertEquals("9.84 TB", StringUtils.asDataAmount(9844335987594l));
+    }
+    
 }

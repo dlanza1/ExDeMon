@@ -163,5 +163,22 @@ public class TemplateTest {
         assertEquals("a:a_value, b:b_value", 
                      Template.apply("<attributes:_(.*):, :\\:>", action));
     }
+    
+    @Test
+    public void attributeValueFormat() {
+        Action action = ActionTest.DUMMY();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("num", "2076");
+        attributes.put("str", "hello");
+
+        action.setMetric_attributes(attributes);
+        
+        assertEquals("2076", Template.apply("<attribute_value:num>", action));
+        assertEquals("2076", Template.apply("<attribute_value:num:string>", action));
+        assertEquals("2.03 KB", Template.apply("<attribute_value:num:data>", action));
+        
+        assertEquals("[Template error: For input string: \"hello\"]", Template.apply("<attribute_value:str:data>", action));
+    }
 
 }

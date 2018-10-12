@@ -13,6 +13,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import com.esotericsoftware.minlog.Log;
 
 import ch.cern.exdemon.metrics.Metric;
@@ -25,6 +28,8 @@ import ch.cern.utils.TimeUtils;
 import lombok.NonNull;
 
 public class Template {
+    
+    private final static Logger LOG = LogManager.getLogger(Template.class);
     
     public static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("YYYY-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
     
@@ -42,7 +47,7 @@ public class Template {
         //TODO DEPRECATED
         template.replaceContainer("source_metrics", new SourceMetricsSupplier(action.getTriggeringResult()));
         
-        template.replaceKeys("attribute_value", action.getMetric_attributes());
+        template.replaceKeys("attribute_value", new AttributeValueSupplier(action.getMetric_attributes()));
         template.replaceKeys("attributes", new AttributesSupplier(action.getMetric_attributes()));
         
         template.replace("reason", action.getReason());
@@ -67,6 +72,51 @@ public class Template {
         template.replaceKeys("datetime", new DateSupplier(action));
         
         return template.toString();
+    }
+    
+    private static class AttributeValueSupplier implements ValueSupplier {
+
+        private Map<String, String> attributes;
+
+        public AttributeValueSupplier(Map<String, String> attributes) {
+            this.attributes = attributes;
+        }
+
+        @Override
+        public Object get(String fieldsAsString) {
+            String[] fields = fieldsAsString.split("(?<!\\\\):");
+            fields = Arrays.stream(fields)
+                                .map(field -> field.replace("\\:", ":"))
+                                .collect(Collectors.toList())
+                                .toArray(new String[0]);
+            
+            String key = fields[0];
+            
+            if(!attributes.containsKey(key))
+                return "null";
+            
+            String value = attributes.get(key);
+            
+            String format = "string";
+            if(fields.length > 1)
+                format = fields[1];
+            
+            try {
+                switch(format) {
+                case "string":
+                    return value;
+                case "data":
+                    return StringUtils.asDataAmount(Long.valueOf(value));
+                default:
+                    return "[Template error: unknown format \"" + format + "\"]";
+                }
+            }catch(Throwable e) {
+                LOG.error("Error when applying format", e);
+                
+                return "[Template error: "+e.getMessage()+"]";
+            }
+        }
+        
     }
 
     private static class AttributesSupplier implements ValueSupplier {

@@ -1,10 +1,13 @@
 package ch.cern.utils;
 
+import java.text.DecimalFormat;
 import java.util.Objects;
 import java.util.Optional;
 
 public class StringUtils {
 	
+    private static DecimalFormat DECIMAL_FORMAT = new DecimalFormat(".##");
+    
     public static Optional<Character> getLastCharacter(String input) {
         Objects.requireNonNull(input);
         
@@ -79,6 +82,32 @@ public class StringUtils {
             return input.replaceAll("0*$", "").replaceAll("\\.$", "");
         else
             return input;
+    }
+
+    public static String asDataAmount(float dataInBytes) {
+        String unit = "bytes";
+        
+        if(dataInBytes / 1000 > 1) {
+            dataInBytes /= 1000;
+            unit = "KB";
+        }
+        
+        if(dataInBytes / 1000 > 1) {
+            dataInBytes /= 1000;
+            unit = "MB";
+        }
+        
+        if(dataInBytes / 1000 > 1) {
+            dataInBytes /= 1000;
+            unit = "GB";
+        }
+        
+        if(dataInBytes / 1000 > 1) {
+            dataInBytes /= 1000;
+            unit = "TB";
+        }
+        
+        return DECIMAL_FORMAT.format(dataInBytes) + " " + unit;
     }
 
 }
