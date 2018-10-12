@@ -176,7 +176,7 @@ public class TemplateTest {
         
         assertEquals("2076", Template.apply("<attribute_value:num>", action));
         assertEquals("2076", Template.apply("<attribute_value:num:string>", action));
-        assertEquals("2.03 KB", Template.apply("<attribute_value:num:data>", action));
+        assertEquals("2.08 KB", Template.apply("<attribute_value:num:data>", action));
         
         assertEquals("[Template error: For input string: \"hello\"]", Template.apply("<attribute_value:str:data>", action));
     }
