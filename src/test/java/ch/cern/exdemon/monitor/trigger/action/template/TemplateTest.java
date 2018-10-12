@@ -30,7 +30,7 @@ public class TemplateTest {
 
     @Test
     public void templateInTag() throws ConfigurationException, AddressException, MessagingException, IOException{        
-        Action action = ActionTest.DUMMY;
+        Action action = ActionTest.DUMMY();
         Map<String, String> tags = new HashMap<>();
         tags.put("email.to", "daniel.lanza@cern.ch");
         tags.put("email.text", "Hello <tags:email.to>!");
@@ -53,7 +53,7 @@ public class TemplateTest {
     
     @Test
     public void aggMetrics() throws ConfigurationException, AddressException, MessagingException, IOException{
-        Action action = ActionTest.DUMMY;
+        Action action = ActionTest.DUMMY();
 
         AnalysisResult triggeringResult = new AnalysisResult();
         Value value = new StringValue("VALUE");
@@ -85,12 +85,12 @@ public class TemplateTest {
         				+ "\na1 = -1"
         				+ "\na2 = 1.1"
                         + "\nOther text.", 
-        		Template.apply("Some text:<source_metrics> <datetime>:A1(=<attribute_value:a1>), A2(=<attribute_value:a2>), ANULL(=<attribute_value:aNULL>):value=<value>:<attributes:a.+>\n</source_metrics>Other text.", action));
+        		Template.apply("Some text:<source_metrics> <datetime>:A1(=<attribute_value:a1>), A2(=<attribute_value:a2>), ANULL(=<attribute_value:aNULL>):value=<value>:\n<attributes:a.+>\n</source_metrics>Other text.", action));
     }
     
     @Test
     public void aggMetricsWithFilter() throws ConfigurationException, AddressException, MessagingException, IOException{
-        Action action = ActionTest.DUMMY;
+        Action action = ActionTest.DUMMY();
 
         AnalysisResult triggeringResult = new AnalysisResult();
         Value value = new StringValue("VALUE");
@@ -123,7 +123,7 @@ public class TemplateTest {
     
     @Test
     public void aggMetricsEmpty() throws ConfigurationException, AddressException, MessagingException, IOException{
-        Action action = ActionTest.DUMMY;
+        Action action = ActionTest.DUMMY();
 
         AnalysisResult triggeringResult = new AnalysisResult();
         Value value = new StringValue("VALUE");		
@@ -137,6 +137,31 @@ public class TemplateTest {
         				+ "No source metrics."
         				+ " Other text.", 
         		Template.apply("Some text: <source_metrics>A</source_metrics> Other text.", action));
+    }
+    
+    @Test
+    public void attributesSeparators() {
+        Action action = ActionTest.DUMMY();
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("_a", "a_value");
+        attributes.put("_b", "b_value");
+
+        action.setMetric_attributes(attributes);
+        
+        assertEquals("_a = a_value"
+                   + "\n_b = b_value", 
+                     Template.apply("<attributes:.*>", action));
+        
+        assertEquals("a = a_value"
+                   + "\nb = b_value", 
+                     Template.apply("<attributes:_(.*)>", action));
+        
+        assertEquals("a = a_value, b = b_value", 
+                     Template.apply("<attributes:_(.*):, >", action));
+        
+        assertEquals("a:a_value, b:b_value", 
+                     Template.apply("<attributes:_(.*):, :\\:>", action));
     }
 
 }

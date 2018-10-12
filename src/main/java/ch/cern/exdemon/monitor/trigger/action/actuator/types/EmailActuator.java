@@ -94,7 +94,7 @@ public class EmailActuator extends Actuator {
         }else {
             String textTemplate = "Monitor ID: <monitor_id>";
             textTemplate += "\n\nTrigger ID: <trigger_id>";
-            textTemplate += "\n\nMetric attributes: <attributes:.*>";
+            textTemplate += "\n\nMetric attributes: \n<attributes:.*>";
             textTemplate += "\n\nAt: <datetime>";
             textTemplate += "\n\nReason: <reason>";
             textTemplate += "\n\nTags: <tags>";

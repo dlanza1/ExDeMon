@@ -33,7 +33,7 @@ public class EmailActuatorTest {
         sink.config(properties);
         sink.setSession();
         
-        Action action = ActionTest.DUMMY;
+        Action action = ActionTest.DUMMY();
         Map<String, String> tags = new HashMap<>();
         tags.put("email.to", "daniel.lanza@cern.ch");
         tags.put("cluster", "cluster1");
@@ -62,7 +62,7 @@ public class EmailActuatorTest {
         sink.config(properties);
         sink.setSession();
         
-        Action action = ActionTest.DUMMY;
+        Action action = ActionTest.DUMMY();
         Map<String, String> tags = new HashMap<>();
         tags.put("email.to", "daniel.lanza@cern.ch");
         tags.put("cluster", "cluster1");

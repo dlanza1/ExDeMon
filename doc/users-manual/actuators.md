@@ -12,7 +12,7 @@ The following strings will be replaced by the action corresponding information:
 * &lt;monitor_id&gt;
 * &lt;trigger_id&gt;
 * &lt;attribute_value:key&gt; (will be replaced by the value of the specified attribute key)
-* &lt;attributes:keys_regex&gt; (will be replaced by a list, key = value)
+* &lt;attributes:keys_regex[:pair_separator[:key_value_separator]]&gt; (will be replaced by a list, key = value)
 * &lt;datetime[:(utc:ms)[:period]]&gt;
 * &lt;reason&gt;
 * &lt;triggering\_value&gt;

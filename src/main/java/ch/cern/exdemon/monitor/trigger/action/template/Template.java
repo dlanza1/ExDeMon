@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,8 +78,22 @@ public class Template {
         }
 
         @Override
-        public Object get(String keyPatternAsString) {
-            Pattern keyPattern = Pattern.compile(keyPatternAsString);
+        public Object get(String keyPatternAndSeparatorsAsString) {
+            String[] fields = keyPatternAndSeparatorsAsString.split("(?<!\\\\):");
+            fields = Arrays.stream(fields)
+                                .map(field -> field.replace("\\:", ":"))
+                                .collect(Collectors.toList())
+                                .toArray(new String[0]);
+            
+            Pattern keyPattern = Pattern.compile(fields[0]);
+            
+            String pairSeparator = "\n";
+            if(fields.length > 1)
+                pairSeparator = fields[1];
+            
+            String keyValueSeparator = " = ";
+            if(fields.length > 2)
+                keyValueSeparator = fields[2];
             
             List<Entry<String, String>> matchingAttributes = attributes.entrySet().stream()
                                                                         .filter(entry -> keyPattern.matcher(entry.getKey()).matches())
@@ -87,13 +102,27 @@ public class Template {
             if(!matchingAttributes.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
                 
-                for(Map.Entry<String, String> att: matchingAttributes)
-                    sb.append("\n" + att.getKey() + " = " + StringUtils.removeTrailingZerosIfNumber(att.getValue()));
+                for(Map.Entry<String, String> att: matchingAttributes) {
+                    String key = applyPatternGroup(keyPattern, att.getKey());
+                    
+                    sb.append(key + keyValueSeparator + StringUtils.removeTrailingZerosIfNumber(att.getValue()) + pairSeparator);
+                }
+                
+                sb.delete(sb.length() - pairSeparator.length(), sb.length());
                 
                 return sb.toString();
             }else {
                 return "";
             }
+        }
+
+        private String applyPatternGroup(Pattern keyPattern, String key) {
+            Matcher matcher = keyPattern.matcher(key);
+            
+            if(matcher.find() && matcher.groupCount() > 0)
+                return matcher.group(1);
+            
+            return key;
         }
         
     }

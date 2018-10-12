@@ -24,7 +24,7 @@ public class ActuatorTest {
     public void filter() throws ConfigurationException {
         TestActuator actuator = new TestActuator();
 
-        Action action = ActionTest.DUMMY;
+        Action action = ActionTest.DUMMY();
         
         action.setActuatorIDs(new HashSet<>(Arrays.asList("aa", "bb")));
         assertFalse(actuator.shouldBeProcess(action));
@@ -46,7 +46,7 @@ public class ActuatorTest {
     public void template() {
         String template = "<monitor_id> <trigger_id> <attributes:.*> <attribute_value:a> <datetime> <reason> <tags> <tags:b>";
 
-        Action action = ActionTest.DUMMY;
+        Action action = ActionTest.DUMMY();
         action.setMonitor_id("M_ID");
         action.setTrigger_id("T_ID");
         Map<String, String> metric_attributes = new HashMap<>();
@@ -69,7 +69,7 @@ public class ActuatorTest {
 
         assertEquals("M_ID "
                 + "T_ID " 
-                + "\na = a1" 
+                + "a = a1" 
                 + "\nb = b2 "
                 + "a1 "
                 + "2007-12-03 11:15:30 "

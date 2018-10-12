@@ -32,7 +32,7 @@ public class HTTPActuatorTest {
         HTTPActuator sink = new HTTPActuator();
         sink.config(properties);
         
-        Action action = ActionTest.DUMMY;
+        Action action = ActionTest.DUMMY();
         Set<String> sinks = new HashSet<>();
         sinks.add("ALL");
         action.setActuatorIDs(sinks);

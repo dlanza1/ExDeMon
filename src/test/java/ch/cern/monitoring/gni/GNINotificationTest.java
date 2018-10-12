@@ -30,7 +30,7 @@ public class GNINotificationTest {
 		properties.setProperty("body.metadata.metric_id", "12");
 		properties.setProperty("body.metadata.snow_assignment_level", "13");
         
-		GNINotification gniNotification = GNINotification.from(properties, ActionTest.DUMMY);
+		GNINotification gniNotification = GNINotification.from(properties, ActionTest.DUMMY());
 		
 		assertEquals(12, gniNotification.getBody().get("metadata").get("metric_id"));
 		assertEquals(13, gniNotification.getBody().get("metadata").get("snow_assignment_level"));
@@ -44,7 +44,7 @@ public class GNINotificationTest {
 		properties.setProperty("body.payload.bp1", "%payload_tag");
 		properties.setProperty("body.payload.bp2", "%no-tag");
         
-		Action action = ActionTest.DUMMY;
+		Action action = ActionTest.DUMMY();
 		Set<String> sinks = new HashSet<>();
 		sinks.add("ALL");
 		action.setActuatorIDs(sinks);
