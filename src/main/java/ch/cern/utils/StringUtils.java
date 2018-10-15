@@ -110,4 +110,10 @@ public class StringUtils {
         return DECIMAL_FORMAT.format(dataInBytes) + " " + unit;
     }
 
+    public static Object asDataAmountInMb(float dataInBytes) {
+        float dataInMb = dataInBytes / 1000 / 1000; 
+        
+        return DECIMAL_FORMAT.format(dataInMb) + " MB";
+    }
+
 }

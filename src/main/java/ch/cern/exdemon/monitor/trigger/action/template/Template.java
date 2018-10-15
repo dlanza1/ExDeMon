@@ -107,6 +107,8 @@ public class Template {
                     return value;
                 case "data":
                     return StringUtils.asDataAmount(Long.valueOf(value));
+                case "data_mb":
+                    return StringUtils.asDataAmountInMb(Long.valueOf(value));
                 default:
                     return "[Template error: unknown format \"" + format + "\"]";
                 }

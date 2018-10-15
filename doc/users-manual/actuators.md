@@ -11,7 +11,7 @@ In some of the parameters of the actuators, marked with &lt;template&gt;, templa
 The following strings will be replaced by the action corresponding information:
 * &lt;monitor_id&gt;
 * &lt;trigger_id&gt;
-* &lt;attribute_value:key[:format]&gt; (format can be: data)
+* &lt;attribute_value:key[:format]&gt; (format can be: data, data_mb)
 * &lt;attributes:keys_regex[:pair_separator[:key_value_separator]]&gt; (will be replaced by a list, key = value)
 * &lt;datetime[:(utc:ms)[:period]]&gt;
 * &lt;reason&gt;
