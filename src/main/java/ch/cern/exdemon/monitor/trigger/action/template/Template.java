@@ -263,7 +263,7 @@ public class Template {
             for (Metric metric : metrics) {
                 TemplateString metricTemplate = globalMetricTemplate.clone();
                 
-                metricTemplate.replaceKeys("attribute_value", metric.getAttributes());
+                metricTemplate.replaceKeys("attribute_value", new AttributeValueSupplier(metric.getAttributes()));
                 metricTemplate.replaceKeys("attributes", new AttributesSupplier(metric.getAttributes()));
                 metricTemplate.replace("datetime", dateFormatter.format(metric.getTimestamp()));
                 metricTemplate.replace("value", String.valueOf(metric.getValue()));
