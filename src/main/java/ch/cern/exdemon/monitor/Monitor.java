@@ -122,7 +122,7 @@ public class Monitor extends Component{
         return Optional.of(result);
     }
     
-    public Map<String, String> getMetricIDs(Metric metric) {
+    public Map<String, String> getMetricAttributes(Metric metric) {
 		return metric.getAttributes();
 	}
 

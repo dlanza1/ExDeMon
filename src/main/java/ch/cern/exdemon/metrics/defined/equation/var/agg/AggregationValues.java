@@ -48,7 +48,7 @@ public class AggregationValues extends StatusValue {
         add(hashCode, new FloatValue(f), now);   
     }
     
-	public void add(int hash, Value value, Instant timestamp, Metric metric, Metric originalMetric) {
+	public void add(int hash, Value value, Instant timestamp, Metric originalMetric) {
 		addLastAggMetric(hash, originalMetric);
 		add(hash, value, timestamp);
 	}

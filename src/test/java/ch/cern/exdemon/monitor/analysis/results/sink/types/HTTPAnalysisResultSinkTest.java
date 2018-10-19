@@ -36,7 +36,7 @@ public class HTTPAnalysisResultSinkTest {
         metric_attributes.put("att1", "att1-value");
         metric_attributes.put("att2", "att2-value");
         Metric metric = new Metric(Instant.now(), 10f, metric_attributes);
-        analysis.setAnalyzedMetric(metric );
+        analysis.setAnalyzedMetric(metric);
         
         JsonPOSTRequest jsonResult = sink.toJsonPOSTRequest(analysis);
         

@@ -6,8 +6,6 @@ import static org.junit.Assert.assertFalse;
 
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.junit.Test;
 
@@ -30,40 +28,37 @@ public class SuccessiveCountAgregationTest {
         properties.setProperty("variables.var.aggregate.type", "successive_count");
         definedMetric.config(properties);
         
-        Set<String> groupByKeys = new HashSet<>();
-        groupByKeys.add("HOSTNAME");
-        
         VariableStatuses store = new VariableStatuses();;
         
         Metric metric = Metric(Instant.now(), 10, "HOSTNAME=host1", "TYPE=Read Bytes");
-        definedMetric.updateStore(store, metric, groupByKeys);
+        definedMetric.updateStore(store, metric);
         assertEquals(1f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
         
         metric = Metric(Instant.now(), 13, "HOSTNAME=host1", "TYPE=Read Bytes");
-        definedMetric.updateStore(store, metric, groupByKeys);
+        definedMetric.updateStore(store, metric);
         assertEquals(2f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
         
         //Top level filter out, so this one is not taken into account
         metric = Metric(Instant.now(), 13, "HOSTNAME=host2", "TYPE=Read Bytes");
-        definedMetric.updateStore(store, metric, groupByKeys);
+        definedMetric.updateStore(store, metric);
         assertFalse(definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).isPresent());
         
         metric = Metric(Instant.now(), 13, "HOSTNAME=host1", "TYPE=Read Bytes");
-        definedMetric.updateStore(store, metric, groupByKeys);
+        definedMetric.updateStore(store, metric);
         assertEquals(3f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
         
         //Should reset
         metric = Metric(Instant.now(), 13, "HOSTNAME=host1", "TYPE=Write Bytes");
-        definedMetric.updateStore(store, metric, groupByKeys);
+        definedMetric.updateStore(store, metric);
         assertEquals(0f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
         
         metric = Metric(Instant.now(), 13, "HOSTNAME=host1", "TYPE=Write Bytes");
-        definedMetric.updateStore(store, metric, groupByKeys);
+        definedMetric.updateStore(store, metric);
         assertEquals(0f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
         
         //Restart count
         metric = Metric(Instant.now(), 13, "HOSTNAME=host1", "TYPE=Read Bytes");
-        definedMetric.updateStore(store, metric, groupByKeys);
+        definedMetric.updateStore(store, metric);
         assertEquals(1f, definedMetric.generateByUpdate(store, metric, new HashMap<String, String>()).get().getValue().getAsFloat().get(), 0.001f);
     }
     

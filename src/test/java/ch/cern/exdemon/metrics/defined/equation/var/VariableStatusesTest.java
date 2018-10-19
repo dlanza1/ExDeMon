@@ -27,7 +27,7 @@ public class VariableStatusesTest {
         
         AggregationValues aggregationValues = new AggregationValues(100, 10);
         aggregationValues.add(10, 7, Instant.now());
-        aggregationValues.add(23, new StringValue("string-value"), Instant.now(), new Metric(Instant.now(), 0, new HashMap<>()), new Metric(Instant.now(), 0, new HashMap<>()));
+        aggregationValues.add(23, new StringValue("string-value"), Instant.now(), new Metric(Instant.now(), 0, new HashMap<>()));
         VariableStatus var1status = new ValueVariable.Status_(aggregationValues);
         value.put("var1", var1status);
         

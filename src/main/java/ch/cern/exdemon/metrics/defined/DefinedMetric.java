@@ -69,6 +69,8 @@ public final class DefinedMetric extends Component {
 		String groupByVal = properties.getProperty("metrics.groupby");
 		if(groupByVal != null)
 			metricsGroupBy = Arrays.stream(groupByVal.split(" ")).map(String::trim).collect(Collectors.toSet());
+		else
+		    metricsGroupBy = new HashSet<>();
 		
 		filter = new MetricsFilter();
 		confResult.merge("metrics.filter", filter.config(properties.getSubset("metrics.filter")));
@@ -164,22 +166,23 @@ public final class DefinedMetric extends Component {
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 
-	public void updateStore(VariableStatuses stores, Metric metric, Set<String> groupByKeys) {
+	public void updateStore(VariableStatuses stores, Metric metric) {
 		if(!filter.test(metric))
 			return;
 		
 		Map<String, Variable> variablesToUpdate = getVariablesToUpdate(metric);
 		
-		Metric metricForStore = metric.clone();
-		if(groupByKeys != null)
-			metricForStore.getAttributes().entrySet().removeIf(entry -> groupByKeys.contains(entry.getKey()));
+		Map<String, String> attributes = metric.getAttributes()
+                                		                    .entrySet().stream()
+                                		                    .filter(entry -> !metricsGroupBy.contains(entry.getKey()))
+                                		                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 		
 		for (Variable variableToUpdate : variablesToUpdate.values()) {
 		    String name = variableToUpdate.getName();
 		    
 		    Optional<VariableStatus> statusOpt = stores.get(name);
 		    
-		    VariableStatus updatedStatus = variableToUpdate.updateStatus(statusOpt, metricForStore, metric.clone());
+		    VariableStatus updatedStatus = variableToUpdate.updateStatus(statusOpt, attributes, metric);
 			
 		    stores.put(name, updatedStatus);
 		}

@@ -34,12 +34,12 @@ public class ComputeTriggerKeysF implements PairFlatMapFunction<AnalysisResult, 
         	return new LinkedList<Tuple2<TriggerStatusKey, AnalysisResult>>().iterator();
         Monitor monitor = monitorOpt.get();
         
-        Map<String, String> metricIDs = monitor.getMetricIDs(analysis.getAnalyzed_metric());
+        Map<String, String> metricAttributes = monitor.getMetricAttributes(analysis.getAnalyzed_metric());
         
         Set<String> triggerIDs = monitor.getTriggers().keySet();
         
         return triggerIDs.stream()
-        		.map(id -> new TriggerStatusKey(monitorID, id, metricIDs))
+        		.map(id -> new TriggerStatusKey(monitorID, id, metricAttributes))
         		.map(notID -> new Tuple2<TriggerStatusKey, AnalysisResult>(notID, analysis))
         		.iterator();
     }

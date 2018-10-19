@@ -4,14 +4,12 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.Value;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.ToString;
 
 @ToString
@@ -21,12 +19,10 @@ public class Metric implements Serializable {
     private static final long serialVersionUID = -182236104179624396L;
 
     @Getter
-    @Setter
     @NonNull
     private Map<String, String> attributes;
 
     @Getter
-    @Setter
     @NonNull
     private Instant timestamp;
 
@@ -46,19 +42,6 @@ public class Metric implements Serializable {
 
         this.timestamp = timestamp;
         this.value = value;
-    }
-
-    public void addAttribute(@NonNull String key, @NonNull String value) {
-        attributes.put(key, value);
-    }
-
-    public void removeAttributes(@NonNull Set<String> keySet) {
-        keySet.forEach(key -> attributes.remove(key));
-    }
-
-    @Override
-    public Metric clone() {
-        return new Metric(timestamp, value.clone(), new HashMap<>(attributes));
     }
 
 }

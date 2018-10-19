@@ -43,7 +43,7 @@ public class ValueVariableTest  {
             
             Metric metric = new Metric(time, new FloatValue(Math.random()), new HashMap<>());
             Optional<VariableStatus> status = variableStatuses.get("");
-            variableStatuses.put("", var.updateStatus(status, metric, metric));
+            variableStatuses.put("", var.updateStatus(status, metric.getAttributes(), metric));
             
             if(time.isBefore(newest) || time.isAfter(oldest))
                 outOfPeriod++;
@@ -65,13 +65,13 @@ public class ValueVariableTest  {
 
         Map<String, String> att = new HashMap<>();
         Metric metric = new Metric(Instant.now(), 10f, att);
-        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), metric, metric));
+        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), att, metric));
         assertEquals(0f, var.compute(variableStatuses, Instant.now()).getAsFloat().get(), 0f);
         
         att = new HashMap<>();
         att.put("noseq", "");
         metric = new Metric(Instant.now(), 10f, att);
-        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), metric, metric));
+        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), att, metric));
         Value computed = var.compute(variableStatuses, Instant.now());
         assertEquals(0f, computed.getAsFloat().get(), 0f);
         assertNull(computed.getLastSourceMetrics());
@@ -79,7 +79,7 @@ public class ValueVariableTest  {
         att = new HashMap<>();
         att.put("seq", "1");
         metric = new Metric(Instant.now(), 10f, att);
-        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), metric, metric));
+        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), att, metric));
         computed = var.compute(variableStatuses, Instant.now());
         assertEquals(1f, computed.getAsFloat().get(), 0f);
         assertEquals(1, computed.getLastSourceMetrics().size());
@@ -87,7 +87,7 @@ public class ValueVariableTest  {
         att = new HashMap<>();
         att.put("seq", "2");
         metric = new Metric(Instant.now(), 10f, att);
-        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), metric, metric));
+        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), att, metric));
         computed = var.compute(variableStatuses, Instant.now());
         assertEquals(2f, computed.getAsFloat().get(), 0f);
         assertEquals(2, computed.getLastSourceMetrics().size());
@@ -95,7 +95,7 @@ public class ValueVariableTest  {
         att = new HashMap<>();
         att.put("seq", "1");
         metric = new Metric(Instant.now(), 10f, att);
-        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), metric, metric));
+        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), att, metric));
         computed = var.compute(variableStatuses, Instant.now());
         assertEquals(2f, var.compute(variableStatuses, Instant.now()).getAsFloat().get(), 0f);
         assertEquals(2, computed.getLastSourceMetrics().size());
@@ -104,7 +104,7 @@ public class ValueVariableTest  {
         att.put("seq", "1");
         att.put("noseq", "1");
         metric = new Metric(Instant.now(), 10f, att);
-        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), metric, metric));
+        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), att, metric));
         computed = var.compute(variableStatuses, Instant.now());
         assertEquals(2f, computed.getAsFloat().get(), 0f);
         assertEquals(2, computed.getLastSourceMetrics().size());
@@ -113,7 +113,7 @@ public class ValueVariableTest  {
         att.put("seq", "3");
         att.put("noseq", "1");
         metric = new Metric(Instant.now(), 10f, att);
-        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), metric, metric));
+        variableStatuses.put("", var.updateStatus(variableStatuses.get(""), att, metric));
         computed = var.compute(variableStatuses, Instant.now());
         assertEquals(3f, computed.getAsFloat().get(), 0f);
         assertEquals(3, computed.getLastSourceMetrics().size());

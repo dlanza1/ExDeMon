@@ -40,7 +40,7 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
         VariableStatuses varStatuses = getStatus(status);
 
         try {
-            definedMetric.updateStore(varStatuses, metric, id.getMetric_attributes().keySet());
+            definedMetric.updateStore(varStatuses, metric);
             
             newMetric = definedMetric.generateByUpdate(varStatuses, metric, id.getMetric_attributes());
         }catch(Exception e) {

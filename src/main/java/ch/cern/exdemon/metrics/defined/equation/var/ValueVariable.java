@@ -235,14 +235,12 @@ public class ValueVariable extends Variable {
     }
 
     @Override
-    public VariableStatus updateStatus(VariableStatus varStatus, Metric metric, Metric originalMetric) {
+    public VariableStatus updateStatus(VariableStatus varStatus, Instant timestamp, Map<String, String> attributes, Metric metric) {
         Status_ status = null;
         if(varStatus instanceof Status_)
             status = (Status_) varStatus;
         else
             status = (Status_) initStatus();
-        
-        metric.setAttributes(getAggSelectAttributes(metric.getAttributes()));
 
         if (isThereSelectedAttributes()) {
             if (status.aggregationValues == null)
@@ -253,18 +251,13 @@ public class ValueVariable extends Variable {
             aggValues.setMax_aggregation_size(max_aggregation_size);
             aggValues.setMax_lastAggregatedMetrics_size(max_lastAggregatedMetrics_size);
 
-            int hash = 0;
+            Map<String, String> selectedAttributes = getSelectedAttributes(attributes);
 
-            if (aggregateSelectALL)
-                hash = metric.getAttributes().hashCode();
-
-            if (aggregateSelectAtt != null)
-                hash = metric.getAttributes().entrySet().stream()
-                                                .filter(e -> aggregateSelectAtt.contains(e.getKey()))
-                                                .collect(Collectors.toList()).hashCode();
-
-            if (aggregateSelectALL || (hash != 1 && hash != 0))
-                aggValues.add(hash, metric.getValue(), metric.getTimestamp(), metric, originalMetric);
+            if (aggregateSelectALL || !selectedAttributes.isEmpty()) {
+                int hash = selectedAttributes.hashCode();
+                
+                aggValues.add(hash, metric.getValue(), timestamp, metric);
+            }
             
             aggregation.postUpdateStatus(this, aggValues, metric);
         } else {
@@ -277,7 +270,7 @@ public class ValueVariable extends Variable {
             history.setAggregation(aggregation);
             history.setMax_size(max_aggregation_size);
             history.setMax_lastAggregatedMetrics_size(max_lastAggregatedMetrics_size);
-            history.add(metric.getTimestamp(), metric.getValue(), originalMetric);
+            history.add(timestamp, metric.getValue(), metric);
             
             aggregation.postUpdateStatus(this, history, metric);
         }
@@ -297,12 +290,13 @@ public class ValueVariable extends Variable {
             return new Status_(new ValueHistory(max_aggregation_size, max_lastAggregatedMetrics_size, granularity, aggregation));
     }
 
-    private Map<String, String> getAggSelectAttributes(Map<String, String> attributes) {
+    private Map<String, String> getSelectedAttributes(Map<String, String> attributes) {
         if (aggregateSelectAtt == null || aggregateSelectALL)
             return attributes;
 
-        return attributes.entrySet().stream().filter(entry -> aggregateSelectAtt.contains(entry.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return attributes.entrySet().stream()
+                                .filter(entry -> aggregateSelectAtt.contains(entry.getKey()))
+                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override

@@ -4,7 +4,6 @@ import static ch.cern.exdemon.metrics.MetricTest.Metric;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Optional;
 
 import org.junit.Before;
@@ -108,7 +107,7 @@ public class AnalysisFuncTest {
 	}
 
 	private void assertResult(boolean expected, Metric metric) {
-		definedMetric.updateStore(stores, metric, new HashSet<>());
+		definedMetric.updateStore(stores, metric);
 		Optional<Metric> result = definedMetric.generateByUpdate(stores, metric, new HashMap<>());
 		
 		assertTrue(expected == result.get().getValue().getAsBoolean().get());

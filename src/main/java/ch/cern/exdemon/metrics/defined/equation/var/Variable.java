@@ -85,17 +85,17 @@ public abstract class Variable implements ValueComputable, Predicate<Metric> {
         }
     }
 
-    public final VariableStatus updateStatus(Optional<VariableStatus> statusOpt, Metric metric, Metric originalMetric) {
+    public final VariableStatus updateStatus(Optional<VariableStatus> statusOpt, Map<String, String> attributes, Metric metric) {
 	    VariableStatus status = statusOpt.orElse(initStatus());
+	    
+	    Instant timestamp = metric.getTimestamp().plus(delay);
 
-	    metric.setTimestamp(metric.getTimestamp().plus(delay));
+	    status.setLastUpdateMetricTime(timestamp);
 	    
-	    status.setLastUpdateMetricTime(metric.getTimestamp());
-	    
-        return updateStatus(status, metric, originalMetric);
+        return updateStatus(status, timestamp, attributes, metric);
 	}
 
-	protected VariableStatus updateStatus(VariableStatus status, Metric metric, Metric originalMetric) {
+	protected VariableStatus updateStatus(VariableStatus status, Instant timestamp, Map<String, String> attributes, Metric originalMetric) {
 	    return status;
 	}
 

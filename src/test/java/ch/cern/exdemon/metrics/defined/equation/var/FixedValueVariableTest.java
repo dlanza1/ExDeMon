@@ -4,7 +4,6 @@ import static ch.cern.exdemon.metrics.MetricTest.Metric;
 import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Optional;
 
 import org.junit.Test;
@@ -36,12 +35,12 @@ public class FixedValueVariableTest {
         VariableStatuses varStatuses = new VariableStatuses();
 
         Metric metric = Metric(1, "anyValue", "VAR=value");
-        definedMetric.updateStore(varStatuses, metric, new HashSet<>());
+        definedMetric.updateStore(varStatuses, metric);
         Optional<Metric> generatedMetric = definedMetric.generateByUpdate(varStatuses, metric, new HashMap<String, String>());
         assertEquals("fixedValue", generatedMetric.get().getAttributes().get("attA"));
         
         metric = Metric(1, "anyValue", "VARA=value");
-        definedMetric.updateStore(varStatuses, metric, new HashSet<>());
+        definedMetric.updateStore(varStatuses, metric);
         generatedMetric = definedMetric.generateByUpdate(varStatuses, metric, new HashMap<String, String>());
         assertEquals("value", generatedMetric.get().getAttributes().get("attA"));
     }

@@ -29,7 +29,7 @@ public class ComputeMonitorKeysF implements PairFlatMapFunction<Metric, MonitorS
         
         return monitors.values().stream()
 	        		.filter(monitor -> monitor.getFilter().test(metric))
-	        		.map(monitor -> new MonitorStatusKey(monitor.getId(), monitor.getMetricIDs(metric)))
+	        		.map(monitor -> new MonitorStatusKey(monitor.getId(), monitor.getMetricAttributes(metric)))
 	        		.map(ids -> new Tuple2<MonitorStatusKey, Metric>(ids, metric))
 	        		.iterator();
     }

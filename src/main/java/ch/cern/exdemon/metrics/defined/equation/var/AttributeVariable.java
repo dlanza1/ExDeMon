@@ -43,7 +43,7 @@ public class AttributeVariable extends Variable {
     }
 
     @Override
-    public VariableStatus updateStatus(VariableStatus varStatus, Metric metric, Metric originalMetric) {
+    public VariableStatus updateStatus(VariableStatus varStatus, Instant timestamp, Map<String, String> attributes, Metric metric) {
         Status_ status = null;
         if(varStatus instanceof Status_) {
             status = (Status_) varStatus;
