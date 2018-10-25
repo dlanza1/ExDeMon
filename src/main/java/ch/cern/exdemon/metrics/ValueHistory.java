@@ -123,6 +123,9 @@ public class ValueHistory implements Serializable {
 
     public void purge(Instant oldest_time) {
     	values.removeIf(value -> value.getTime().isBefore(oldest_time));
+    	
+    	if(lastAggregatedMetrics != null)
+    	    lastAggregatedMetrics.removeIf(metric -> metric.getTimestamp().isBefore(oldest_time));
     }
 
     public int size() {
