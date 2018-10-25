@@ -34,6 +34,7 @@ actuators.<actuator-id>.session.<others> = <value>
 actuators.<actuator-id>.username = <from-email>
 actuators.<actuator-id>.password = <from-email-password>
 # Email info
+actuators.<actuator-id>.from = <template> (default: login account)
 actuators.<actuator-id>.to = <template> (default: <tags:email.to>)
 actuators.<actuator-id>.subject = <template> (default: <tags:email.subject>)
 actuators.<actuator-id>.text = <template> (default: <tags:email.text>)

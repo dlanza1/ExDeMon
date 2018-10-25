@@ -36,6 +36,7 @@ public class EmailActuator extends Actuator {
 
     private transient Session session;
 
+    private String fromProp;
     private String toProp;
     private String subjectProp;
     private String textProp;
@@ -52,6 +53,7 @@ public class EmailActuator extends Actuator {
 		
 		password = properties.getProperty("password");
 		
+		fromProp = properties.getProperty("from");
 		toProp = properties.getProperty("to", "<tags:email.to>");
 		subjectProp = properties.getProperty("subject", "<tags:email.subject>");
 		textProp = properties.getProperty("text", "<tags:email.text>");
@@ -71,7 +73,12 @@ public class EmailActuator extends Actuator {
 
     public MimeMessage toMimeMessage(Action action) throws AddressException, MessagingException {
         MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(username));
+        
+        if(fromProp == null) {
+            message.setFrom(new InternetAddress(username));
+        }else {
+            message.setFrom(Template.apply(fromProp, action));   
+        }
         
         if(toProp == null) {
             LOG.error("Email not sent becuase email.to is empty: " + action);
