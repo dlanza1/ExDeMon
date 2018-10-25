@@ -111,19 +111,28 @@ public class ValueVariable extends Variable {
             }
 
         String granularityString = properties.getProperty("aggregate.history.granularity");
-        if (granularityString != null)
+        if (granularityString != null) {
             try {
                 granularity = TimeUtils.parseGranularity(granularityString);
             } catch (ConfigurationException e) {
                 confResult.withError("aggregate.history.granularity", e);
             }
-
+        }else {
+            granularity = null;
+        }
+        
         String aggregateSelect = properties.getProperty("aggregate.attributes");
-        if (aggregateSelect != null && aggregateSelect.equals("ALL"))
+        if (aggregateSelect != null && aggregateSelect.equals("ALL")) {
             aggregateSelectALL = true;
-        else if (aggregateSelect != null)
+            aggregateSelectAtt = null;
+        }else if (aggregateSelect != null) {
+            aggregateSelectALL = false;
             aggregateSelectAtt = new HashSet<String>(Arrays.asList(aggregateSelect.split("\\s")));
-
+        }else {
+            aggregateSelectALL = false;
+            aggregateSelectAtt = null;
+        }
+        
         max_aggregation_size = (int) properties.getFloat("aggregate.max-size", MAX_SIZE_DEFAULT);
 
         max_lastAggregatedMetrics_size = (int) properties.getFloat("aggregate.last_source_metrics.max-size", 0);
@@ -245,6 +254,7 @@ public class ValueVariable extends Variable {
         if (isThereSelectedAttributes()) {
             if (status.aggregationValues == null)
                 status = (Status_) initStatus();
+            status.valueHistory = null;
 
             AggregationValues aggValues = status.aggregationValues;
 
@@ -263,6 +273,7 @@ public class ValueVariable extends Variable {
         } else {
             if (status.valueHistory == null)
                 status = (Status_) initStatus();
+            status.aggregationValues = null;
 
             ValueHistory history = status.valueHistory;
 

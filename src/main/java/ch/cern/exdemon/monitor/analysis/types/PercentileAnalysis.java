@@ -138,7 +138,7 @@ public class PercentileAnalysis extends NumericAnalysis implements HasStatus{
         
         DescriptiveStatistics stats = history.getStatistics();
 
-        history.add(timestamp, new FloatValue(value));
+        history.add(timestamp, new FloatValue(value), null);
         
         if(history.size() < 5)
             return AnalysisResult.buildWithStatus(Status.EXCEPTION, "Not enought historic data (min 5 points)");

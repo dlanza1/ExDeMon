@@ -26,7 +26,6 @@ import com.esotericsoftware.kryo.io.Output;
 import ch.cern.exdemon.metrics.defined.equation.ComputationException;
 import ch.cern.exdemon.metrics.defined.equation.var.ValueVariable;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.Aggregation;
-import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.Value;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
@@ -73,16 +72,12 @@ public class ValueHistory implements Serializable {
         this.aggregation = aggregation;
     }
 
-    public void add(Instant time, float value) {
-        add(time, new FloatValue(value));
-    }
-
-    public void add(Instant time, Value value, Metric originalMetric) {
-        addLastAggMetric(originalMetric);
-        add(time, value);
+    public void add(Instant time, Value value, Metric metric) {
+        addSourceMetric(metric);
+        addDatedValue(time, value);
     }
     
-    private void addLastAggMetric(Metric metric) {
+    private void addSourceMetric(Metric metric) {
         if(max_lastAggregatedMetrics_size <= 0) {
             lastAggregatedMetrics = null;
             return;
@@ -95,7 +90,7 @@ public class ValueHistory implements Serializable {
             lastAggregatedMetrics.add(metric);
     }
     
-    public void add(Instant time, Value value) {
+    private void addDatedValue(Instant time, Value value) {
         if(time == null || value == null)
             return;
         

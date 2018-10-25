@@ -190,7 +190,7 @@ public class RecentActivityAnalysis extends NumericAnalysis implements HasStatus
             }
         }else {            
             if(history.size() < 10 || isBetweenLearningRatio(result, value)) {
-                history.add(timestamp, new FloatValue(value));
+                history.add(timestamp, new FloatValue(value), null);
             }
             
             if(history.size() > 0) {

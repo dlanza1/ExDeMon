@@ -32,7 +32,7 @@ public class JSONStatusSerializerTest {
         JSONStatusSerializer ser = new JSONStatusSerializer();
         
         ValueHistory.Status status = new ValueHistory.Status(100, 0, ChronoUnit.MINUTES, new CountAgregation());
-        status.history.add(Instant.now(), new FloatValue(1));
+        status.history.add(Instant.now(), new FloatValue(1), null);
         String json = new String(ser.fromValue(status));
         
         ValueHistory.Status statusDesser = (Status) ser.toValue(json.getBytes());

@@ -51,7 +51,7 @@ public class ValueHistoryTest {
         
         int numberOfRecords = 10;
         for (int i = 0; i < numberOfRecords; i++) 
-            store.history.add(Instant.ofEpochSecond(Instant.now().getEpochSecond()), new FloatValue(Math.random()));
+            store.history.add(Instant.ofEpochSecond(Instant.now().getEpochSecond()), new FloatValue(Math.random()), null);
         
         bos = new ByteArrayOutputStream();
         out = new ObjectOutputStream(bos);   
@@ -76,7 +76,7 @@ public class ValueHistoryTest {
         
         int numberOfRecords = 10;
         for (int i = 0; i < numberOfRecords; i++) 
-            store.history.add(Instant.ofEpochSecond(Instant.now().getEpochSecond()), new StringValue("something"));
+            store.history.add(Instant.ofEpochSecond(Instant.now().getEpochSecond()), new StringValue("something"), null);
         
         bos = new ByteArrayOutputStream();
         out = new ObjectOutputStream(bos);   
@@ -101,7 +101,7 @@ public class ValueHistoryTest {
         
         int numberOfRecords = 10;
         for (int i = 0; i < numberOfRecords; i++) 
-            store.history.add(Instant.ofEpochSecond(Instant.now().getEpochSecond()), new BooleanValue(true));
+            store.history.add(Instant.ofEpochSecond(Instant.now().getEpochSecond()), new BooleanValue(true), null);
         
         bos = new ByteArrayOutputStream();
         out = new ObjectOutputStream(bos);   
@@ -126,7 +126,7 @@ public class ValueHistoryTest {
         
         int numberOfRecords = 10;
         for (int i = 0; i < numberOfRecords; i++) 
-            store.history.add(Instant.ofEpochSecond(Instant.now().getEpochSecond()), new ExceptionValue("message"));
+            store.history.add(Instant.ofEpochSecond(Instant.now().getEpochSecond()), new ExceptionValue("message"), null);
         
         bos = new ByteArrayOutputStream();
         out = new ObjectOutputStream(bos);   
@@ -144,7 +144,7 @@ public class ValueHistoryTest {
         store.history = new ValueHistory();
         int numberOfRecords = 10;
         for (int i = 0; i < numberOfRecords; i++) 
-            store.history.add(Instant.ofEpochSecond(Instant.now().getEpochSecond()), (float) Math.random());
+            store.history.add(Instant.ofEpochSecond(Instant.now().getEpochSecond()), new FloatValue(Math.random()), null);
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = new ObjectOutputStream(bos);   
@@ -163,7 +163,7 @@ public class ValueHistoryTest {
     }
     
     @Test
-    public void lastAggregatedMetrics() throws ComputationException {
+    public void lastSourceMetrics() throws ComputationException {
         ValueHistory values = new ValueHistory(3, 0, null, null);
         values.add(Instant.now(), new FloatValue(1), new Metric(Instant.now(), new FloatValue(1), new HashMap<>()));
         assertNull(values.getLastAggregatedMetrics());
@@ -191,16 +191,16 @@ public class ValueHistoryTest {
         
         Instant now = Instant.now();
         
-        values.add(now, 0f);
+        values.add(now, new FloatValue(0f), null);
         values.getDatedValues();
         
-        values.add(now, 0f);
+        values.add(now, new FloatValue(0f), null);
         values.getDatedValues();
         
-        values.add(now, 0f);
+        values.add(now, new FloatValue(0f), null);
         values.getDatedValues();
         
-        values.add(now, 0f);
+        values.add(now, new FloatValue(0f), null);
         try {
             values.getDatedValues();
             fail();
@@ -218,15 +218,15 @@ public class ValueHistoryTest {
         
         Instant time = Instant.parse("2007-12-03T10:15:00.00Z");
         float num = (float) Math.random();
-        values.add(time, num);
-        granularValues.add(time, num);
+        values.add(time, new FloatValue(num), null);
+        granularValues.add(time, new FloatValue(num), null);
         assertEquals(aggregation.aggregateValues(values.getDatedValues(), time), aggregation.aggregateValues(granularValues.getDatedValues(), time));
         assertEquals(values.size(), granularValues.size());
         
         time = Instant.parse("2007-12-03T10:15:30.00Z");
         num = (float) Math.random();
-        values.add(time, num);
-        granularValues.add(time, num);
+        values.add(time, new FloatValue(num), null);
+        granularValues.add(time, new FloatValue(num), null);
         assertEquals(aggregation.aggregateValues(values.getDatedValues(), time), aggregation.aggregateValues(granularValues.getDatedValues(), time));
         assertEquals(values.size(), granularValues.size());
         
@@ -234,8 +234,8 @@ public class ValueHistoryTest {
             Instant tmpTime = time.plus(Duration.ofSeconds((long) (3000f * Math.random())));
 
             num = (float) Math.random();
-            values.add(tmpTime, num);
-            granularValues.add(tmpTime, num);
+            values.add(tmpTime, new FloatValue(num), null);
+            granularValues.add(tmpTime, new FloatValue(num), null);
             assertEquals(
                     aggregation.aggregateValues(values.getDatedValues(), time).getAsAggregated().get().getAsFloat().get(), 
                     aggregation.aggregateValues(granularValues.getDatedValues(), time).getAsAggregated().get().getAsFloat().get(),
@@ -244,8 +244,8 @@ public class ValueHistoryTest {
         
         time = Instant.parse("2007-12-03T10:16:30.00Z");
         num = (float) Math.random();
-        values.add(time, num);
-        granularValues.add(time, num);
+        values.add(time, new FloatValue(num), null);
+        granularValues.add(time, new FloatValue(num), null);
         assertEquals(
                 aggregation.aggregateValues(values.getDatedValues(), time).getAsAggregated().get().getAsFloat().get(), 
                 aggregation.aggregateValues(granularValues.getDatedValues(), time).getAsAggregated().get().getAsFloat().get(),
@@ -264,30 +264,30 @@ public class ValueHistoryTest {
         
         Instant time = Instant.parse("2007-12-03T10:15:00.00Z");
         StringValue input = new StringValue("a");
-        values.add(time, input);
-        granularValues.add(time, input);
+        values.add(time, input, null);
+        granularValues.add(time, input, null);
         assertEquals(aggregation.aggregateValues(values.getDatedValues(), time), aggregation.aggregateValues(granularValues.getDatedValues(), time));
         assertEquals(values.size(), granularValues.size());
         
         time = Instant.parse("2007-12-03T10:15:30.00Z");
         input = new StringValue("b");
-        values.add(time, input);
-        granularValues.add(time, input);
+        values.add(time, input, null);
+        granularValues.add(time, input, null);
         assertEquals(aggregation.aggregateValues(values.getDatedValues(), time), aggregation.aggregateValues(granularValues.getDatedValues(), time));
         assertEquals(values.size(), granularValues.size());
         
         for (int i = 0; i < 10; i++) {
             time = time.plus(Duration.ofSeconds(20));
             input = new StringValue("c");
-            values.add(time, input);
-            granularValues.add(time, input);
+            values.add(time, input, null);
+            granularValues.add(time, input, null);
             assertEquals(aggregation.aggregateValues(values.getDatedValues(), time), aggregation.aggregateValues(granularValues.getDatedValues(), time));
         }
         
         time = Instant.parse("2007-12-03T10:30:00.00Z");
         input = new StringValue("d");
-        values.add(time, input);
-        granularValues.add(time, input);
+        values.add(time, input, null);
+        granularValues.add(time, input, null);
         assertEquals(aggregation.aggregateValues(values.getDatedValues(), time), aggregation.aggregateValues(granularValues.getDatedValues(), time));
         assertTrue(values.size() > granularValues.size());
     }
@@ -298,16 +298,16 @@ public class ValueHistoryTest {
         
         Instant now = Instant.now();
         
-        values.add(now, 0f);
+        values.add(now, new FloatValue(0f), null);
         values.getDatedValues();
         
-        values.add(now.plus(Duration.ofSeconds(2)), 0f);
+        values.add(now.plus(Duration.ofSeconds(2)), new FloatValue(0f), null);
         values.getDatedValues();
         
-        values.add(now.plus(Duration.ofSeconds(4)), 0f);
+        values.add(now.plus(Duration.ofSeconds(4)), new FloatValue(0f), null);
         values.getDatedValues();
         
-        values.add(now.plus(Duration.ofSeconds(6)), 0f);
+        values.add(now.plus(Duration.ofSeconds(6)), new FloatValue(0f), null);
         try {
             values.getDatedValues();
             fail();
@@ -317,7 +317,7 @@ public class ValueHistoryTest {
         
         values.getDatedValues();
         
-        values.add(now.plus(Duration.ofSeconds(6)), 0f);
+        values.add(now.plus(Duration.ofSeconds(6)), new FloatValue(0f), null);
         try {
             values.getDatedValues();
             fail();
@@ -328,12 +328,12 @@ public class ValueHistoryTest {
     public void expiration() throws Exception{
         ValueHistory history = new ValueHistory();
         
-        history.add(TimeUtils.toInstant("2017-04-01 11:18:12"), 9f);
-        history.add(TimeUtils.toInstant("2017-04-01 11:18:56"), 10f);
-        history.add(TimeUtils.toInstant("2017-04-01 11:19:12"), 11f);
-        history.add(TimeUtils.toInstant("2017-04-01 11:19:31"), 12f);
-        history.add(TimeUtils.toInstant("2017-04-01 11:20:01"), 13f);
-        history.add(TimeUtils.toInstant("2017-04-01 11:20:10"), 14f);
+        history.add(TimeUtils.toInstant("2017-04-01 11:18:12"), new FloatValue(9f), null);
+        history.add(TimeUtils.toInstant("2017-04-01 11:18:56"), new FloatValue(10f), null);
+        history.add(TimeUtils.toInstant("2017-04-01 11:19:12"), new FloatValue(11f), null);
+        history.add(TimeUtils.toInstant("2017-04-01 11:19:31"), new FloatValue(12f), null);
+        history.add(TimeUtils.toInstant("2017-04-01 11:20:01"), new FloatValue(13f), null);
+        history.add(TimeUtils.toInstant("2017-04-01 11:20:10"), new FloatValue(14f), null);
         
         history.purge(TimeUtils.toInstant("2017-04-01 11:19:30"));
         
@@ -348,12 +348,12 @@ public class ValueHistoryTest {
     public void getHourlyValues() throws Exception{
         ValueHistory history = new ValueHistory();
         
-        history.add(TimeUtils.toInstant("2017-04-01 09:20:12"), 9f);
-        history.add(TimeUtils.toInstant("2017-04-01 10:20:56"), 10f);
-        history.add(TimeUtils.toInstant("2017-04-01 10:21:34"), 11f);
-        history.add(TimeUtils.toInstant("2017-04-01 10:22:31"), 12f);
-        history.add(TimeUtils.toInstant("2017-04-01 11:20:01"), 13f);
-        history.add(TimeUtils.toInstant("2017-04-01 11:20:10"), 14f);
+        history.add(TimeUtils.toInstant("2017-04-01 09:20:12"), new FloatValue(9f), null);
+        history.add(TimeUtils.toInstant("2017-04-01 10:20:56"), new FloatValue(10f), null);
+        history.add(TimeUtils.toInstant("2017-04-01 10:21:34"), new FloatValue(11f), null);
+        history.add(TimeUtils.toInstant("2017-04-01 10:22:31"), new FloatValue(12f), null);
+        history.add(TimeUtils.toInstant("2017-04-01 11:20:01"), new FloatValue(13f), null);
+        history.add(TimeUtils.toInstant("2017-04-01 11:20:10"), new FloatValue(14f), null);
         
         List<Value> returnedValues = history.getHourlyValues(TimeUtils.toInstant("2017-04-01 10:20:02"));
         
@@ -366,12 +366,12 @@ public class ValueHistoryTest {
     public void getDaylyValues() throws Exception{
         ValueHistory history = new ValueHistory();
         
-        history.add(TimeUtils.toInstant("2016-03-07 10:20:12"), 9f);
-        history.add(TimeUtils.toInstant("2017-04-07 10:20:56"), 10f);
-        history.add(TimeUtils.toInstant("2017-04-08 10:21:34"), 11f);
-        history.add(TimeUtils.toInstant("2017-04-09 10:22:31"), 12f);
-        history.add(TimeUtils.toInstant("2017-04-09 10:20:01"), 13f);
-        history.add(TimeUtils.toInstant("2017-04-10 11:20:10"), 14f);
+        history.add(TimeUtils.toInstant("2016-03-07 10:20:12"), new FloatValue(9f), null);
+        history.add(TimeUtils.toInstant("2017-04-07 10:20:56"), new FloatValue(10f), null);
+        history.add(TimeUtils.toInstant("2017-04-08 10:21:34"), new FloatValue(11f), null);
+        history.add(TimeUtils.toInstant("2017-04-09 10:22:31"), new FloatValue(12f), null);
+        history.add(TimeUtils.toInstant("2017-04-09 10:20:01"), new FloatValue(13f), null);
+        history.add(TimeUtils.toInstant("2017-04-10 11:20:10"), new FloatValue(14f), null);
         
         List<Value> returnedValues = history.getDaylyValues(TimeUtils.toInstant("2017-04-01 10:20:02"));
         
@@ -384,12 +384,12 @@ public class ValueHistoryTest {
     public void getWeeklyValues() throws Exception{
         ValueHistory history = new ValueHistory();
         
-        history.add(TimeUtils.toInstant("2016-03-05 10:20:12"), 9f);
-        history.add(TimeUtils.toInstant("2017-04-03 10:20:56"), 10f);
-        history.add(TimeUtils.toInstant("2017-04-03 10:21:34"), 11f);
-        history.add(TimeUtils.toInstant("2017-04-10 10:22:31"), 12f);
-        history.add(TimeUtils.toInstant("2017-04-10 10:20:01"), 13f);
-        history.add(TimeUtils.toInstant("2017-04-17 11:20:10"), 14f);
+        history.add(TimeUtils.toInstant("2016-03-05 10:20:12"), new FloatValue(9f), null);
+        history.add(TimeUtils.toInstant("2017-04-03 10:20:56"), new FloatValue(10f), null);
+        history.add(TimeUtils.toInstant("2017-04-03 10:21:34"), new FloatValue(11f), null);
+        history.add(TimeUtils.toInstant("2017-04-10 10:22:31"), new FloatValue(12f), null);
+        history.add(TimeUtils.toInstant("2017-04-10 10:20:01"), new FloatValue(13f), null);
+        history.add(TimeUtils.toInstant("2017-04-17 11:20:10"), new FloatValue(14f), null);
         
         List<Value> returnedValues = history.getWeeklyValues(TimeUtils.toInstant("2017-04-17 10:20:02"));
         

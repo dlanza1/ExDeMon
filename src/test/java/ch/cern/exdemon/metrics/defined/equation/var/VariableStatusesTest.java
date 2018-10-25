@@ -14,6 +14,7 @@ import ch.cern.exdemon.metrics.ValueHistory;
 import ch.cern.exdemon.metrics.defined.equation.ComputationException;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.AggregationValues;
 import ch.cern.exdemon.metrics.defined.equation.var.agg.AvgAggregation;
+import ch.cern.exdemon.metrics.value.FloatValue;
 import ch.cern.exdemon.metrics.value.StringValue;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
 
@@ -32,8 +33,8 @@ public class VariableStatusesTest {
         value.put("var1", var1status);
         
         ValueHistory valueHistory = new ValueHistory(10, 10, ChronoUnit.NANOS, new AvgAggregation());
-        valueHistory.add(Instant.now(), 115);
-        valueHistory.add(Instant.now(), 5324);
+        valueHistory.add(Instant.now(), new FloatValue(115f), null);
+        valueHistory.add(Instant.now(), new FloatValue(5324f), null);
         VariableStatus var2status = new ValueVariable.Status_(valueHistory);
         value.put("var2", var2status);
         
