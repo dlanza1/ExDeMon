@@ -52,7 +52,7 @@ public class TemplateTest {
     }
     
     @Test
-    public void aggMetrics() throws ConfigurationException, AddressException, MessagingException, IOException{
+    public void sourceMetrics() throws ConfigurationException, AddressException, MessagingException, IOException{
         Action action = ActionTest.DUMMY();
 
         AnalysisResult triggeringResult = new AnalysisResult();
@@ -89,7 +89,7 @@ public class TemplateTest {
     }
     
     @Test
-    public void aggMetricsWithFilter() throws ConfigurationException, AddressException, MessagingException, IOException{
+    public void sourceMetricsWithFilter() throws ConfigurationException, AddressException, MessagingException, IOException{
         Action action = ActionTest.DUMMY();
 
         AnalysisResult triggeringResult = new AnalysisResult();
@@ -122,7 +122,7 @@ public class TemplateTest {
     }
     
     @Test
-    public void aggMetricsEmpty() throws ConfigurationException, AddressException, MessagingException, IOException{
+    public void sourceMetricsEmpty() throws ConfigurationException, AddressException, MessagingException, IOException{
         Action action = ActionTest.DUMMY();
 
         AnalysisResult triggeringResult = new AnalysisResult();
@@ -170,6 +170,7 @@ public class TemplateTest {
 
         Map<String, String> attributes = new HashMap<>();
         attributes.put("num", "2076");
+        attributes.put("num_exp", "5.158557398E+10");
         attributes.put("str", "hello");
 
         action.setMetric_attributes(attributes);
@@ -177,6 +178,7 @@ public class TemplateTest {
         assertEquals("2076", Template.apply("<attribute_value:num>", action));
         assertEquals("2076", Template.apply("<attribute_value:num:string>", action));
         assertEquals("2.08 KB", Template.apply("<attribute_value:num:data>", action));
+        assertEquals("51.59 GB", Template.apply("<attribute_value:num_exp:data>", action));
         
         assertEquals("[Template error: For input string: \"hello\"]", Template.apply("<attribute_value:str:data>", action));
     }
