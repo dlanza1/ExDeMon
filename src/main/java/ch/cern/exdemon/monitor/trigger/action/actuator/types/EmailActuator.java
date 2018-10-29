@@ -1,5 +1,8 @@
 package ch.cern.exdemon.monitor.trigger.action.actuator.types;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -37,6 +40,7 @@ public class EmailActuator extends Actuator {
     private transient Session session;
 
     private String fromProp;
+    private String replyToProp;
     private String toProp;
     private String subjectProp;
     private String textProp;
@@ -54,6 +58,7 @@ public class EmailActuator extends Actuator {
 		password = properties.getProperty("password");
 		
 		fromProp = properties.getProperty("from");
+		replyToProp = properties.getProperty("replyTo", "");
 		toProp = properties.getProperty("to", "<tags:email.to>");
 		subjectProp = properties.getProperty("subject", "<tags:email.subject>");
 		textProp = properties.getProperty("text", "<tags:email.text>");
@@ -79,6 +84,8 @@ public class EmailActuator extends Actuator {
         }else {
             message.setFrom(Template.apply(fromProp, action));   
         }
+        
+        setReplyTo(message, action);
         
         if(toProp == null) {
             LOG.error("Email not sent becuase email.to is empty: " + action);
@@ -110,6 +117,28 @@ public class EmailActuator extends Actuator {
         }
         
         return message;  
+    }
+
+    private void setReplyTo(MimeMessage message, Action action) throws MessagingException {   
+        String[] reploToEmailsAsString = Template.apply(replyToProp, action).split(",");
+        
+        InternetAddress[] addresses = Arrays.stream(reploToEmailsAsString)
+                                              .map(String::trim)
+                                              .filter(s -> !s.isEmpty())
+                                              .map(reploToEmailAsString -> {
+                                                  try {
+                                                      return new InternetAddress(reploToEmailAsString);
+                                                  } catch (AddressException e) {
+                                                      LOG.error("Email replyTo exception for value: " + reploToEmailAsString, e);
+                                                      
+                                                      return null;
+                                                  }
+                                              })
+                                              .filter(Objects::nonNull)
+                                              .toArray(InternetAddress[]::new);
+        
+        if(addresses.length > 0)
+            message.setReplyTo(addresses);
     }
 
     private String toHtml(String text) {
