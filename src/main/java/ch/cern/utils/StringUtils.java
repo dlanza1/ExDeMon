@@ -87,6 +87,9 @@ public class StringUtils {
     public static String asDataAmount(float dataInBytes) {
         String unit = "bytes";
         
+        if(dataInBytes == 0)
+            return "0 " + unit;
+        
         if(dataInBytes / 1000 > 1) {
             dataInBytes /= 1000;
             unit = "KB";
@@ -111,6 +114,9 @@ public class StringUtils {
     }
 
     public static Object asDataAmountInMb(float dataInBytes) {
+        if(dataInBytes == 0)
+            return "0 MB";
+        
         float dataInMb = dataInBytes / 1000 / 1000; 
         
         return DECIMAL_FORMAT.format(dataInMb) + " MB";

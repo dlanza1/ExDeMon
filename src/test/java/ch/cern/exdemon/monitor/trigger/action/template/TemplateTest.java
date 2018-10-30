@@ -171,6 +171,7 @@ public class TemplateTest {
         Map<String, String> attributes = new HashMap<>();
         attributes.put("num", "2076");
         attributes.put("num_exp", "5.158557398E+10");
+        attributes.put("num_zero", "0.0");
         attributes.put("str", "hello");
 
         action.setMetric_attributes(attributes);
